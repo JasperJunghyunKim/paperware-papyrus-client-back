@@ -1,4 +1,4 @@
-ame: Deploy Dev
+name: Deploy Dev
 on:
   push:
     branches:
@@ -24,11 +24,17 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
+      - name: Set environment
+        run: echo -e "${{ secrets.BACK_ENV }}" >> .env
+
+      - name: Set prisma
+        run: npx prisma generate
+
       - name: Build
         run: yarn build
 
       - name: Generate deployment package
-        run: zip -r deploy.zip ./
+        run: zip -r deploy.zip dist node_modules package*.json Procfile
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v20
@@ -37,6 +43,6 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ${{ secrets.EB_NAME_DEV }}
           environment_name: ${{ secrets.EB_ENV_NAME_DEV }}
-          version_label: front-${{ github.sha }}
+          version_label: back-${{ github.sha }}
           region: ap-northeast-2
-          deployment_package: ./deploy.zip
+          deployment_package: ./backend/deploy.zip
