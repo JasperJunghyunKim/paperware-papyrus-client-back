@@ -16,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          token: ${{ github.token }}
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
           submodules: true
 
       - name: Use Node.js ${{ matrix.node-version }}
