@@ -1,10 +1,10 @@
-import { Selector } from '@common';
+import { Selector } from 'src/common';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class MeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getMe(id: number) {
     return this.prisma.user.findUnique({

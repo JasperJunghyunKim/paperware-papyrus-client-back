@@ -1,11 +1,11 @@
-import { Record, Selector } from '@common';
+import { Record, Selector } from 'src/common';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class InternalService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // #region Warehouse
   async getWarehouse(where: Prisma.WarehouseWhereUniqueInput) {

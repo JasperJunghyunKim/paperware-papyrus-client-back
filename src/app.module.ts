@@ -1,16 +1,34 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from 'src/app.service';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { MeModule } from './modules/me/me.module';
-import { InternalModule } from './modules/internal/internal.module';
-import { StaticModule } from './modules/static/static.module';
-import { ExternalModule } from './modules/external/external.module';
+import { DynamicModule, Module } from '@nestjs/common';
+import { BusinessModule } from './modules/business.module';
+import { ConfigModule } from '@nestjs/config';
+import { validate } from './core/config/confnig.validator';
+import { DatabaseModule, HealthModule, RouteScanModule } from './core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { GlobalExceptionFilter } from './filters';
+import { HttpLoggingInterceptor } from './interceptors';
+
+const configModule = (): DynamicModule => {
+  return ConfigModule.forRoot({
+    isGlobal: true,
+    envFilePath: `.env`,
+    validate
+  })
+};
+
 
 @Module({
-  imports: [AuthModule, MeModule, InternalModule, StaticModule, ExternalModule],
-  controllers: [AppController],
-  providers: [AppService, PrismaService],
+  imports: [
+    configModule(), HealthModule, RouteScanModule, BusinessModule, DatabaseModule
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule { }

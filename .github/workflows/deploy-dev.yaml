@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Set submodule
+        run: git submodule update --init --recursive
+
       - name: Install dependencies
         run: yarn install
 

@@ -1,4 +1,4 @@
-import { Record, Selector, Util } from '@common';
+import { Record, Selector, Util } from 'src/common';
 import {
   Body,
   Controller,
@@ -19,7 +19,7 @@ import { InternalService } from './internal.service';
 import { Prisma } from '@prisma/client';
 import { ulid } from 'ulid';
 import { StaticService } from '../static/static.service';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('internal')
 export class InternalController {

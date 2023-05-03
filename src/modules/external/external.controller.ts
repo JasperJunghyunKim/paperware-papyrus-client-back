@@ -18,7 +18,7 @@ import { AuthType } from '../auth/auth.type';
 import { InternalService } from '../internal/internal.service';
 import { ExternalService } from './external.service';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('external')
 export class ExternalController {

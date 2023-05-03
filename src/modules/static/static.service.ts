@@ -1,11 +1,11 @@
-import { Selector } from '@common';
+import { Selector } from 'src/common';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class StaticService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   // #region Paper Specs
   async getAllPaperDomain() {

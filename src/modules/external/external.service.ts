@@ -1,8 +1,8 @@
-import { Record, Selector, Util } from '@common';
+import { Record, Selector, Util } from 'src/common';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/providers/prisma/prisma.service';
 import { ulid } from 'ulid';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class ExternalService {

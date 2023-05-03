@@ -1,13 +1,13 @@
 import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { StaticService } from './static.service';
 import { Prisma } from '@prisma/client';
-import { Record, Util } from '@common';
+import { Record, Util } from 'src/common';
 import { AuthType } from '../auth/auth.type';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Controller('static')
 export class StaticController {
-  constructor(private staticService: StaticService) {}
+  constructor(private staticService: StaticService) { }
 
   @Get('data')
   async getAll() {
