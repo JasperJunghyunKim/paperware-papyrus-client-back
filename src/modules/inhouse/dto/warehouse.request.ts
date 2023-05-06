@@ -1,18 +1,18 @@
 import { IsBoolean, IsNumber, IsString, MaxLength } from 'class-validator';
-import {
-  WarehouseCreateRequest,
-  WarehouseListQuery,
-  WarehouseUpdateRequest,
-} from 'src/@shared/api/warehouse/warehouse.request';
+// import {
+//   WarehouseCreateRequest,
+//   WarehouseListQuery,
+//   WarehouseUpdateRequest,
+// } from 'src/@shared/api/warehouse/warehouse.request';
 
-export class WarehouseListQueryDto implements WarehouseListQuery {
+export class WarehouseListQueryDto {
   @IsNumber()
   skip: string;
   @IsNumber()
   take: string;
 }
 
-export class WarehouseCreateRequestDto implements WarehouseCreateRequest {
+export class WarehouseCreateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;
@@ -25,7 +25,7 @@ export class WarehouseCreateRequestDto implements WarehouseCreateRequest {
   address: string;
 }
 
-export class WarehouseUpdateRequestDto implements WarehouseUpdateRequest {
+export class WarehouseUpdateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;
