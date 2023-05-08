@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
 
 @Injectable()
 export class PlanChangeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async createPlan(params: {
     companyId: number;
@@ -100,10 +101,7 @@ export class PlanChangeService {
   }
 
   async createPlanWithOrder(
-    tx: Omit<
-      PrismaService,
-      '$on' | '$connect' | '$disconnect' | '$use' | '$transaction'
-    >,
+    tx: PrismaTransaction,
     params: {
       orderStockId: number;
       companyId: number;
