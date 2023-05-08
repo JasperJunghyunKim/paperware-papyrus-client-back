@@ -8,7 +8,7 @@ export class StockNotFoundException extends NotFoundException {
   // eslint-disable-next-line constructor-super
   constructor(
     errData?: AppError | string,
-    ...msgArgs: Array<string> | Array<number>
+    ...msgArgs: Array<string> | Array<number> | any
   ) {
     if (errData) {
       if (typeof errData === 'string') {
