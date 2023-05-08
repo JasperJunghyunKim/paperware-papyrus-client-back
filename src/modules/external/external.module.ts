@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ExternalService } from './external.service';
-import { ExternalController } from './external.controller';
-import { InternalService } from '../internal/internal.service';
+import { SalesController } from './api/sales.controller';
+import { SalesChangeService } from './service/sales-change.service';
+import { SalesRetriveService } from './service/sales-retrive.service';
 
 @Module({
-  providers: [ExternalService, InternalService],
-  controllers: [ExternalController],
+  controllers: [SalesController],
+  providers: [SalesChangeService, SalesRetriveService],
 })
-export class ExternalModule {}
+export class ExternalModule { }
