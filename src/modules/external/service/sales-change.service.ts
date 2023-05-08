@@ -1,11 +1,18 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/core";
 import { BusinessRelationshipRetriveService } from "src/modules/inhouse/service/business-relationship-retrive.service";
+import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
+import { SalesError } from "../infrastructure/constants/sales-error.enum";
+import { PartnerNotFoundException } from "../infrastructure/exception/partner-notfound.exception";
+import { Warehouse } from 'src/@shared/models';
+import { LocationNotFoundException } from "../infrastructure/exception/location-notfound.exception";
+import { InvalidLocationException } from "../infrastructure/exception/invalid-location.exception";
+import { StockQuantityCheckerService } from "src/modules/stock/service/stock-quantity-checker.service";
 
 interface StockGroup {
     warehouseId: number;
     productId: number;
-    packageingId: number;
+    packagingId: number;
     grammage: number;
     sizeX: number;
     sizeY: number;
@@ -19,8 +26,20 @@ interface StockGroup {
 export class SalesChangeService {
     constructor(
         private readonly prisma: PrismaService,
-        private readonly businessRelationshipRetriveService: BusinessRelationshipRetriveService
+        private readonly businessRelationshipRetriveService: BusinessRelationshipRetriveService,
+        private readonly locationRetriveService: LocationRetriveService,
+        private readonly stockQuantityCheckerService: StockQuantityCheckerService,
     ) { }
+
+    private validateLocation(location: Warehouse, locationId: number, srcCompanyId: number, dstCompanyId: number) {
+        if (
+            !location ||
+            (location.company.id !== srcCompanyId && location.company.id !== dstCompanyId) ||
+            (location.company.id === dstCompanyId && !location.isPublic)
+        ) throw new LocationNotFoundException(SalesError.SALES002, [locationId]);
+
+        if (location.company.id === srcCompanyId && location.isPublic) throw new InvalidLocationException(SalesError.SALES003, [locationId]);
+    }
 
     async createNormal(
         userId: number,
@@ -38,14 +57,22 @@ export class SalesChangeService {
                 srcCompanyId,
                 dstCompanyId,
             });
-            console.log(1111, relationship)
+            if (!relationship) throw new PartnerNotFoundException(SalesError.SALES001, [dstCompanyId]);
 
             // 장소 확인
-
+            const location = await this.locationRetriveService.getItem(locationId);
+            this.validateLocation(location, locationId, srcCompanyId, dstCompanyId);
 
             // 재고 확인
+            await this.stockQuantityCheckerService.checkInhouseStockGroupAvaliableQuantityTx(
+                tx,
+                srcCompanyId,
+                stockGroup,
+                quantity,
+            );
 
             // 데이터 생성
+
         });
     }
 

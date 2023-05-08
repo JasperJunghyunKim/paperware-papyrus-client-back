@@ -41,6 +41,7 @@ import { CompanyController } from './api/company.controller';
   ],
   exports: [
     BusinessRelationshipRetriveService,
+    LocationRetriveService,
   ]
 })
 export class InhouseModule { }

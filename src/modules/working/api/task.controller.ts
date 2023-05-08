@@ -24,6 +24,7 @@ import {
   TaskCreateConvertingRequestDto,
   TaskCreateGuillotineRequestDto,
   TaskCreateQuantityRequestDto,
+  TaskInsertInputStockRequestDto,
   TaskUpdateConvertingRequestDto,
   TaskUpdateGuillotineRequestDto,
   TaskUpdateQuantityRequestDto,
@@ -272,6 +273,74 @@ export class TaskController {
     }
 
     await this.taskChangeService.deleteTask(id);
+
+    return;
+  }
+
+  @Post('task/:id/start')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async startTask(@Request() req: AuthType, @Param('id') id: number) {
+    const task = await this.taskRetriveService.getTaskById(id);
+
+    if (task.plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    await this.taskChangeService.startTask(id);
+
+    return;
+  }
+
+  @Post('task/:id/reset')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async resetTask(@Request() req: AuthType, @Param('id') id: number) {
+    const task = await this.taskRetriveService.getTaskById(id);
+
+    if (task.plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    await this.taskChangeService.resetTask(id);
+
+    return;
+  }
+
+  @Post('task/:id/finish')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async finishTask(@Request() req: AuthType, @Param('id') id: number) {
+    const task = await this.taskRetriveService.getTaskById(id);
+
+    if (task.plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    await this.taskChangeService.finishTask(id);
+
+    return;
+  }
+
+  @Post('task/:id/input-stock')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async inputStockTask(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+    @Body() body: TaskInsertInputStockRequestDto,
+  ) {
+    const task = await this.taskRetriveService.getTaskById(id);
+
+    if (task.plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    await this.taskChangeService.insertInputStock({
+      taskId: id,
+      stockId: body.stockId,
+      quantity: body.quantity,
+    });
 
     return;
   }
