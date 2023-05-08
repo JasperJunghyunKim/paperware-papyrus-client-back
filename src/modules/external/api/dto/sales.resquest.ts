@@ -64,7 +64,12 @@ export class CreateNormalSalesDto implements CreateNormalSalesRequest {
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    companyId: number;
+    dstCompanyId: number;
+
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    locationId: number;
 
     @IsOptional()
     @IsString()

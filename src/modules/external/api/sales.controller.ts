@@ -21,6 +21,15 @@ export class SalesController {
         @Request() req: AuthType,
         @Body() dto: CreateNormalSalesDto,
     ) {
-        await this.salesChangeService.createNormal();
+        await this.salesChangeService.createNormal(
+            req.user.id,
+            req.user.companyId,
+            dto.dstCompanyId,
+            dto.locationId,
+            dto.memo,
+            dto.wantedDate,
+            dto.quantity,
+            dto.stockGroup,
+        );
     }
 }
