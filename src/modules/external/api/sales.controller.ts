@@ -22,7 +22,6 @@ export class SalesController {
         @Body() dto: CreateNormalSalesDto,
     ) {
         await this.salesChangeService.createNormal(
-            req.user.id,
             req.user.companyId,
             dto.dstCompanyId,
             dto.locationId,
