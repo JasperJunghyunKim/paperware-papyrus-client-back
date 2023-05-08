@@ -50,7 +50,12 @@ export class StockRetriveService {
     async getStockList(data: Prisma.StockWhereInput) {
         const stocks = await this.prisma.stock.findMany({
             include: {
-                warehouse: true,
+                warehouse: {
+                    include: {
+                        company: true,
+                    }
+                },
+                company: true,
                 product: {
                     include: {
                         paperDomain: true,
@@ -63,6 +68,7 @@ export class StockRetriveService {
                 paperColorGroup: true,
                 paperColor: true,
                 paperCert: true,
+                stockPrice: true,
             },
             where: {
                 ...data,
