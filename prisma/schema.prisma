@@ -545,6 +545,28 @@ model Invoice {
   plan              Plan             @relation(fields: [planId], references: [id])
 }
 
+enum Method {
+  /// 계좌 이체
+  ACCOUNT_TRANSFER
+  /// 어음
+  PROMISSORY_NOTE
+  /// 카드
+  CARD_PAYMENT
+  /// 현금
+  CASH
+  /// 상계
+  SET_OFF
+  /// 기타
+  ETC
+}
+
+enum AccountedTyp {
+  /// 지급
+  PAID
+  /// 수금
+  COLLECTED
+}
+
 /// 파트너
 model Partner {
   /// 식별자
@@ -581,222 +603,104 @@ model Partner {
   chgDt                     DateTime    @updatedAt @map("chg_dt")
   /// 등록 일시
   regDt                     DateTime    @default(now()) @map("reg_dt")
-  /// 지급 객체
-  paid                      Paid[]
-  /// 수급 객체
-  collected                 Collected[]
+  /// 회계 목록
+  accountedList             Accounted[]
 
   @@map("partner")
 }
 
-enum Method {
-  /// 계좌 이체
-  ACCOUNT_TRANSFER
-  /// 어음
-  PROMISSORY_NOTE
-  /// 카드
-  CARD_PAYMENT
-  /// 현금
-  CASH
-  /// 상계
-  SET_OFF
-  /// 기타
-  ETC
-}
-
-/// 지급
-model Paid {
+/// 회계
+model Accounted {
   /// 식별자
-  id          Int      @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
+  /// 회계 타입
+  accountedType    AccountedTyp @map("accounted_type")
   /// 회계 수단
-  paidMethod  Method   @map("paid_method")
+  accountedMethod  Method       @map("accounted_method")
   /// 회계 등록일
-  paidDate    DateTime @default(now()) @map("paid_date")
+  accountedDate    DateTime     @default(now()) @map("accounted_date")
   /// 계정 과목
-  paidSubject String   @map("paid_subject") @db.VarChar(10)
+  accountedSubject String       @map("accounted_subject") @db.VarChar(10)
   /// 메모
-  memo        String   @map("memo") @db.VarChar(500)
+  memo             String       @map("memo") @db.VarChar(500)
   /// 삭제 여부
-  isDeleted   Boolean  @default(false) @map("is_deleted")
+  isDeleted        Boolean      @default(false) @map("is_deleted")
   /// 파트너 식별자
-  partnerId   Int      @map("partner_id")
+  partnerId        Int          @map("partner_id")
   /// 파트너
-  partner     Partner  @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  partner          Partner      @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
-  regId       String?  @map("reg_id") @db.VarChar(255)
+  regId            String?      @map("reg_id") @db.VarChar(255)
   /// 등록자 명
-  regNm       String?  @map("reg_nm") @db.VarChar(255)
+  regNm            String?      @map("reg_nm") @db.VarChar(255)
   /// 변경자 아이디
-  chgId       String?  @map("chg_id") @db.VarChar(255)
+  chgId            String?      @map("chg_id") @db.VarChar(255)
   /// 변경자 명
-  chgNm       String?  @map("chg_nm") @db.VarChar(255)
+  chgNm            String?      @map("chg_nm") @db.VarChar(255)
   /// 변경 일시
-  chgDt       DateTime @updatedAt @map("chg_dt")
+  chgDt            DateTime     @updatedAt @map("chg_dt")
   /// 등록 일시
-  regDt       DateTime @default(now()) @map("reg_dt")
+  regDt            DateTime     @default(now()) @map("reg_dt")
 
   /// 지급 현금 결제
-  PaidByCash PaidByCash[]
+  ByCashList ByCash[]
   /// 지급 기타
-  PaidByEtc  PaidByEtc[]
+  ByEtcList  ByEtc[]
 
-  @@map("paid")
-}
-
-/// 수금
-model Collected {
-  /// 식별자
-  id               Int      @id @default(autoincrement())
-  /// 회계 수단
-  collectedMethod  Method   @map("collected_method")
-  /// 회계 등록일
-  collectedDate    DateTime @default(now()) @map("collected_date")
-  /// 계정 과목
-  collectedSubject String   @map("collected_subject") @db.VarChar(10)
-  /// 메모
-  memo             String   @map("memo") @db.VarChar(500)
-  /// 삭제 여부
-  isDeleted        Boolean  @default(false) @map("is_deleted")
-  /// 파트너 식별자
-  partnerId        Int      @map("partner_id")
-  /// 파트너
-  partner          Partner  @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 등록자 아이디
-  regId            String?  @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm            String?  @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId            String?  @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm            String?  @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt            DateTime @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt            DateTime @default(now()) @map("reg_dt")
-
-  /// 수금 현금 결제
-  CollectedByCash CollectedByCash[]
-  /// 수금 기타
-  CollectedByEtc  CollectedByEtc[]
-
-  @@map("collected")
-}
-
-/// 지급 현금
-model PaidByCash {
-  /// 식별자
-  id       Int    @id @default(autoincrement())
-  /// 지급 식별자
-  paidId   Int    @map("paid_id")
-  /// 지급 관계
-  paid     Paid   @relation(fields: [paidId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 현금 식별자
-  byCashId Int    @map("by_cash_id")
-  /// 현금 관계
-  byCash   ByCash @relation(fields: [byCashId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("paid_by_cash")
-}
-
-/// 수금 현금
-model CollectedByCash {
-  /// 식별자
-  id          Int       @id @default(autoincrement())
-  /// 수금 식별자
-  collectedId Int       @map("collected_id")
-  /// 수금 관계
-  collected   Collected @relation(fields: [collectedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 현금 식별자
-  byCashId    Int       @map("by_cash_id")
-  /// 현금 관계
-  byCash      ByCash    @relation(fields: [byCashId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("collected_by_cash")
-}
-
-/// 지급 현금
-model PaidByEtc {
-  /// 식별자
-  id      Int   @id @default(autoincrement())
-  /// 지급 식별자
-  paidId  Int   @map("paid_id")
-  /// 지급 관계
-  paid    Paid  @relation(fields: [paidId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 현금 식별자
-  byEtcId Int   @map("by_etc_id")
-  /// 현금 관계
-  byEtc   ByEtc @relation(fields: [byEtcId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("paid_by_etc")
-}
-
-/// 수금 현금
-model CollectedByEtc {
-  /// 식별자
-  id          Int       @id @default(autoincrement())
-  /// 지급 식별자
-  collectedId Int       @map("collected_id")
-  /// 지급 관계
-  collected   Collected @relation(fields: [collectedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 현금 식별자
-  byEtcId     Int       @map("by_etc_id")
-  /// 현금 관계
-  byEtc       ByEtc     @relation(fields: [byEtcId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("collected_by_etc")
+  @@map("accounted")
 }
 
 /// 현금
 model ByCash {
   /// 식별자
-  id                Int               @id @default(autoincrement())
-  /// 수금 현금 식별자
-  collectedByCashId Int               @map("collected_by_cash_id")
-  /// 수금 현금 관계
-  collectedByCash   CollectedByCash[]
-  /// 지급 현금 식별자
-  paidByCashId      Int               @map("paid_by_cash_id")
-  /// 지급 현금 관계
-  paidByCash        PaidByCash[]
+  id          Int       @id @default(autoincrement())
+  /// 식별자
+  cashAmount  Int       @map("cash_amount")
+  /// 삭제 여부
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  /// 파트너 식별자
+  accountedId Int       @map("accounted_id")
+  /// 파트너
+  accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
-  regId             String?           @map("reg_id") @db.VarChar(255)
+  regId       String?   @map("reg_id") @db.VarChar(255)
   /// 등록자 명
-  regNm             String?           @map("reg_nm") @db.VarChar(255)
+  regNm       String?   @map("reg_nm") @db.VarChar(255)
   /// 변경자 아이디
-  chgId             String?           @map("chg_id") @db.VarChar(255)
+  chgId       String?   @map("chg_id") @db.VarChar(255)
   /// 변경자 명
-  chgNm             String?           @map("chg_nm") @db.VarChar(255)
+  chgNm       String?   @map("chg_nm") @db.VarChar(255)
   /// 변경 일시
-  chgDt             DateTime          @updatedAt @map("chg_dt")
+  chgDt       DateTime  @updatedAt @map("chg_dt")
   /// 등록 일시
-  regDt             DateTime          @default(now()) @map("reg_dt")
+  regDt       DateTime  @default(now()) @map("reg_dt")
 
   @@map("by_cash")
 }
 
 model ByEtc {
   /// 식별자
-  id               Int              @id @default(autoincrement())
-  /// 수금 현금 식별자
-  collectedByEtcId Int              @map("collected_by_etc_id")
-  /// 수금 현금 관계
-  collectedByEtc   CollectedByEtc[]
-  /// 지급 현금 식별자
-  paidByEtcId      Int              @map("paid_by_etc_id")
-  /// 지급 현금 관계
-  paidByEtc        PaidByEtc[]
+  id          Int       @id @default(autoincrement())
+  /// 식별자
+  etcAmount   Int       @map("etc_amount")
+  /// 삭제 여부
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  /// 파트너 식별자
+  accountedId Int       @map("accounted_id")
+  /// 파트너
+  accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
-  regId            String?          @map("reg_id") @db.VarChar(255)
+  regId       String?   @map("reg_id") @db.VarChar(255)
   /// 등록자 명
-  regNm            String?          @map("reg_nm") @db.VarChar(255)
+  regNm       String?   @map("reg_nm") @db.VarChar(255)
   /// 변경자 아이디
-  chgId            String?          @map("chg_id") @db.VarChar(255)
+  chgId       String?   @map("chg_id") @db.VarChar(255)
   /// 변경자 명
-  chgNm            String?          @map("chg_nm") @db.VarChar(255)
+  chgNm       String?   @map("chg_nm") @db.VarChar(255)
   /// 변경 일시
-  chgDt            DateTime         @updatedAt @map("chg_dt")
+  chgDt       DateTime  @updatedAt @map("chg_dt")
   /// 등록 일시
-  regDt            DateTime         @default(now()) @map("reg_dt")
+  regDt       DateTime  @default(now()) @map("reg_dt")
 
   @@map("by_etc")
 }
