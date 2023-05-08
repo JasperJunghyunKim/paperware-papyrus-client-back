@@ -513,7 +513,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 srcCompanyId: req.user.companyId,
@@ -592,7 +592,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 dstCompanyId: req.user.companyId,

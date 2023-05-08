@@ -190,14 +190,14 @@ enum StockEventStatus {
 }
 
 model StockEvent {
-  id         Int              @id @default(autoincrement())
-  stockId    Int
-  stock      Stock            @relation(fields: [stockId], references: [id])
-  change     Int
-  status     StockEventStatus
-  orderStock OrderStock[]
-  planIn     Plan[]           @relation("StockEventInPlan")
-  planOut    Plan[]           @relation("StockEventOutPlan")
+  id                Int              @id @default(autoincrement())
+  stockId           Int
+  stock             Stock            @relation(fields: [stockId], references: [id])
+  change            Int
+  status            StockEventStatus
+  orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
+  planIn            Plan[]           @relation("StockEventInPlan")
+  planOut           Plan[]           @relation("StockEventOutPlan")
 
   @@unique([id, stockId])
 }
@@ -401,15 +401,15 @@ model Order {
 }
 
 model OrderStock {
-  id            Int          @id @default(autoincrement())
-  orderId       Int
-  order         Order        @relation(fields: [orderId], references: [id])
-  dstLocationId Int?
-  dstLocation   Location?    @relation(fields: [dstLocationId], references: [id])
-  stockEvent    StockEvent[]
-  planId        Int?         @unique
-  plan          Plan?        @relation(fields: [planId], references: [id])
-  StockGroup    StockGroup[]
+  id                Int          @id @default(autoincrement())
+  orderId           Int
+  order             Order        @relation(fields: [orderId], references: [id])
+  dstLocationId     Int?
+  dstLocation       Location?    @relation(fields: [dstLocationId], references: [id])
+  arrivalStockEvent StockEvent[] // 정상매입의 입고 예정 재고 이벤트
+  planId            Int?         @unique
+  plan              Plan?        @relation(fields: [planId], references: [id])
+  StockGroup        StockGroup[]
 }
 
 model TradePrice {
