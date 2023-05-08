@@ -9,7 +9,7 @@ export class StockChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
-  ) { }
+  ) {}
 
   async cacheStockQuantityTx(
     tx: Omit<
@@ -55,7 +55,7 @@ export class StockChangeService {
   async create(
     stockData: Prisma.StockCreateInput,
     stockPriceData: Prisma.StockPriceCreateInput,
-    quantity: number
+    quantity: number,
   ) {
     const stock = await this.prisma.$transaction(async (tx) => {
       const packaging = await tx.packaging.findUnique({
@@ -78,9 +78,9 @@ export class StockChangeService {
           stock: {
             connect: {
               id: stock.id,
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       const stockEvent = await tx.stockEvent.create({
@@ -100,17 +100,19 @@ export class StockChangeService {
           id: true,
         },
       });
-      await tx.plan.create({
-        data: {
-          planNo: ulid(),
-          companyId: stockData.company.connect.id,
-          stockEventOut: {
-            connect: {
-              id: stockEvent.id,
-            },
-          },
-        },
-      });
+
+      // 재고 생성 시 PLAN은 필요하지 않기때문에 아래 주석처리합니다.
+      // await tx.plan.create({
+      //   data: {
+      //     planNo: ulid(),
+      //     companyId: stockData.company.connect.id,
+      //     stockEventOut: {
+      //       connect: {
+      //         id: stockEvent.id,
+      //       },
+      //     },
+      //   },
+      // });
 
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
