@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Request,
@@ -11,13 +12,14 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
+  GetStockDto,
   StockCreateRequestDto,
   StockGroupListRequestDto,
   StockListRequestDto,
 } from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
+import { StockDetailResponse, StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
 
 @Controller('/stock')
 export class StockController {
@@ -62,6 +64,7 @@ export class StockController {
         packaging: stock.packaging,
         paperColorGroup: stock.paperColorGroup,
         paperColor: stock.paperColor,
+        paperPattern: stock.paperPattern,
         paperCert: stock.paperCert,
         stockPrice: null,
       })),
@@ -149,6 +152,32 @@ export class StockController {
         availableQuantity: sg.availableQuantity,
       })),
       total,
+    };
+  }
+
+  /** 재고 상세 */
+  @Get('/:stockId')
+  @UseGuards(AuthGuard)
+  async get(@Request() req: AuthType, @Param() dto: GetStockDto): Promise<StockDetailResponse> {
+    const stock = await this.stockRetriveService.getStock(req.user.companyId, dto.stockId);
+    return {
+      id: stock.id,
+      serial: stock.serial,
+      company: stock.company,
+      grammage: stock.grammage,
+      sizeX: stock.sizeX,
+      sizeY: stock.sizeY,
+      totalQuantity: stock.cachedQuantity,
+      availableQuantity: stock.cachedQuantityAvailable,
+      isSyncPrice: stock.isSyncPrice,
+      warehouse: stock.warehouse,
+      product: stock.product,
+      packaging: stock.packaging,
+      paperColorGroup: stock.paperColorGroup,
+      paperColor: stock.paperColor,
+      paperPattern: stock.paperPattern,
+      paperCert: stock.paperCert,
+      stockPrice: null,
     };
   }
 

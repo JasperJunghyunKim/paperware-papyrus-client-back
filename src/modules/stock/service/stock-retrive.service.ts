@@ -67,6 +67,7 @@ export class StockRetriveService {
                 packaging: true,
                 paperColorGroup: true,
                 paperColor: true,
+                paperPattern: true,
                 paperCert: true,
                 stockPrice: true,
             },
@@ -177,5 +178,36 @@ export class StockRetriveService {
         }
 
         return { stockGroups, total };
+    }
+
+    async getStock(companyId: number, stockId: number) {
+        const stock = await this.prisma.stock.findFirst({
+            include: {
+                company: true,
+                warehouse: {
+                    include: {
+                        company: true,
+                    },
+                },
+                product: {
+                    include: {
+                        paperDomain: true,
+                        paperGroup: true,
+                        manufacturer: true,
+                        paperType: true,
+                    },
+                },
+                packaging: true,
+                paperColorGroup: true,
+                paperColor: true,
+                paperPattern: true,
+                paperCert: true,
+            },
+            where: {
+                id: stockId,
+                companyId,
+            }
+        });
+        return stock;
     }
 }

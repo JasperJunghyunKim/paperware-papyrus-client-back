@@ -39,25 +39,25 @@ export class StockGroupDto implements StockGroup {
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperColorGroupId: number = 0;
+    paperColorGroupId: number = null;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperColorId: number = 0;
+    paperColorId: number = null;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperPatternId: number = 0;
+    paperPatternId: number = null;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperCertId: number = 0;
+    paperCertId: number = null;
 }
 
 export class CreateNormalSalesDto implements CreateNormalSalesRequest {
