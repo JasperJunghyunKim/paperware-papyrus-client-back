@@ -17,7 +17,7 @@ export class StockGroupDto implements StockGroup {
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    packageingId: number;
+    packagingId: number;
 
     @IsInt()
     @Type(() => Number)
