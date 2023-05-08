@@ -39,5 +39,8 @@ import { CompanyController } from './api/company.controller';
     VirtualCompanyController,
     WarehouseController,
   ],
+  exports: [
+    BusinessRelationshipRetriveService,
+  ]
 })
-export class InhouseModule {}
+export class InhouseModule { }

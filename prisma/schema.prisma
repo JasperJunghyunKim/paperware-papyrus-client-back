@@ -160,7 +160,7 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
-  StockPrice              StockPrice[]
+  stockPrice              StockPrice[]
 
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
