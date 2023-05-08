@@ -1,8 +1,9 @@
-import { Controller, NotImplementedException, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, NotImplementedException, Post, Request, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { SalesChangeService } from "../service/sales-change.service";
 import { SalesRetriveService } from "../service/sales-retrive.service";
+import { CreateNormalSalesDto } from "./dto/sales.resquest";
 
 @Controller('/sales')
 export class SalesController {
@@ -18,7 +19,8 @@ export class SalesController {
     @Post('/normal')
     async createNormal(
         @Request() req: AuthType,
+        @Body() dto: CreateNormalSalesDto,
     ) {
-        throw new NotImplementedException();
+        await this.salesChangeService.createNormal();
     }
 }

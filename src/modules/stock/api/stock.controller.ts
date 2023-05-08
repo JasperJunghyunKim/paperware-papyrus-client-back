@@ -17,7 +17,7 @@ import {
 } from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockGroupListResponse } from 'src/@shared/api/stock/stock.response';
+import { StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
 
 @Controller('/stock')
 export class StockController {
@@ -31,7 +31,7 @@ export class StockController {
     async getStockList(
         @Request() req: AuthType,
         @Query() dto: StockListRequestDto,
-    ): Promise<any> {
+    ): Promise<StockListResponse> {
         const stocks = await this.stockRetriveService.getStockList({
             companyId: req.user.companyId,
             warehouseId: dto.warehouseId,
@@ -46,7 +46,27 @@ export class StockController {
             paperCertId: dto.paperCertId,
         });
 
-        return stocks;
+        return {
+            items: stocks.map(stock => ({
+                id: stock.id,
+                serial: stock.serial,
+                company: stock.company,
+                grammage: stock.grammage,
+                sizeX: stock.sizeX,
+                sizeY: stock.sizeY,
+                totalQuantity: stock.cachedQuantity,
+                availableQuantity: stock.cachedQuantityAvailable,
+                isSyncPrice: stock.isSyncPrice,
+                warehouse: stock.warehouse,
+                product: stock.product,
+                packaging: stock.packaging,
+                paperColorGroup: stock.paperColorGroup,
+                paperColor: stock.paperColor,
+                paperCert: stock.paperCert,
+                stockPrice: null,
+            })),
+            total: stocks.length,
+        };
     }
 
     @Get('/group')
