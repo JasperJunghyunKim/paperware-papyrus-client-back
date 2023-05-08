@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
+import { StockError } from '../infrastructure/constants/stock-error.enum';
+import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
 
 interface StockGroupFromDB {
     warehouseId: number;
@@ -67,6 +69,7 @@ export class StockRetriveService {
                 packaging: true,
                 paperColorGroup: true,
                 paperColor: true,
+                paperPattern: true,
                 paperCert: true,
                 stockPrice: true,
             },
@@ -177,5 +180,37 @@ export class StockRetriveService {
         }
 
         return { stockGroups, total };
+    }
+
+    async getStock(companyId: number, stockId: number) {
+        const stock = await this.prisma.stock.findFirst({
+            include: {
+                company: true,
+                warehouse: {
+                    include: {
+                        company: true,
+                    },
+                },
+                product: {
+                    include: {
+                        paperDomain: true,
+                        paperGroup: true,
+                        manufacturer: true,
+                        paperType: true,
+                    },
+                },
+                packaging: true,
+                paperColorGroup: true,
+                paperColor: true,
+                paperPattern: true,
+                paperCert: true,
+            },
+            where: {
+                id: stockId,
+                companyId,
+            }
+        });
+        if (!stock) throw new StockNotFoundException(StockError.STOCK001, [stockId]);
+        return stock;
     }
 }

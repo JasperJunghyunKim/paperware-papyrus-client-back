@@ -93,6 +93,14 @@ export class StockListRequestDto implements StockListQuery {
   readonly paperCertId: number = null;
 }
 
+/** 재고 상세조회 */
+export class GetStockDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly stockId: number;
+}
+
 /** 재고생성 (신규등록) */
 export class StockCreateStockPriceDto implements StockCreateStockPriceRequest {
   @IsEnum(OfficialPriceType)

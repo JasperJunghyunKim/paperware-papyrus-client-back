@@ -24,7 +24,7 @@ export class StockQuantityCheckerService {
         stockGroup: StockGroup,
         quantity: number,
     ) {
-        await tx.stock.groupBy({
+        const selectedStockGroup = await tx.stock.groupBy({
             by: [
                 'warehouseId',
                 'productId',
@@ -53,5 +53,7 @@ export class StockQuantityCheckerService {
                 paperCertId: stockGroup.paperCertId,
             }
         });
+        // if (selectedStockGroup.length === 0)
+        console.log(11111111, selectedStockGroup)
     }
 }
