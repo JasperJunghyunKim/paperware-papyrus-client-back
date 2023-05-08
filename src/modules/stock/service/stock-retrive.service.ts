@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
+import { StockError } from '../infrastructure/constants/stock-error.enum';
+import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
 
 interface StockGroupFromDB {
     warehouseId: number;
@@ -208,6 +210,7 @@ export class StockRetriveService {
                 companyId,
             }
         });
+        if (!stock) throw new StockNotFoundException(StockError.STOCK001, [stockId]);
         return stock;
     }
 }

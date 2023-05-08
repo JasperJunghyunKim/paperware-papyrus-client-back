@@ -4,6 +4,7 @@ import {
   TaskCreateConvertingRequest,
   TaskCreateGuillotineRequest,
   TaskCreateQuantityRequest,
+  TaskInsertInputStockRequest,
   TaskUpdateConvertingRequest,
   TaskUpdateGuillotineRequest,
   TaskUpdateQuantityRequest,
@@ -107,6 +108,18 @@ export class TaskUpdateGuillotineRequestDto
 }
 
 export class TaskUpdateQuantityRequestDto implements TaskUpdateQuantityRequest {
+  @IsInt()
+  @Type(() => Number)
+  readonly quantity: number;
+}
+
+export class TaskInsertInputStockRequestDto
+  implements TaskInsertInputStockRequest
+{
+  @IsInt()
+  @Type(() => Number)
+  readonly stockId: number;
+
   @IsInt()
   @Type(() => Number)
   readonly quantity: number;
