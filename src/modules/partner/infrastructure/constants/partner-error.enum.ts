@@ -6,7 +6,7 @@ export enum PartnerErrorEnum {
   PARTNER001 = 'PARTNER001',
 }
 
-export const StockError: Readonly<{ [key in PartnerErrorEnum]: AppError }> = {
+export const PartnerError: Readonly<{ [key in PartnerErrorEnum]: AppError }> = {
   [PartnerErrorEnum.PARTNER001]: {
     name: PARTNER_ERROR,
     code: PartnerErrorEnum.PARTNER001,

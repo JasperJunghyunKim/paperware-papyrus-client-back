@@ -17,7 +17,7 @@ export class PartnerController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getStockList(
+  async getPartnerList(
     @Request() req: AuthType,
   ): Promise<PartnerResponseDto[]> {
     return await this.partnerRetriveService.getPartnerList(req.user.companyId);

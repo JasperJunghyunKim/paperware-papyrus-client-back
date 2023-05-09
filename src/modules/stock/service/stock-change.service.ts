@@ -9,7 +9,7 @@ export class StockChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
-  ) {}
+  ) { }
 
   async cacheStockQuantityTx(
     tx: Omit<

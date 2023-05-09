@@ -688,9 +688,9 @@ model Accounted {
   regDt            DateTime      @default(now()) @map("reg_dt")
 
   /// 지급 현금 결제
-  byCashList ByCash[]
+  byCash ByCash?
   /// 지급 기타
-  byEtcList  ByEtc[]
+  byEtc  ByEtc?
 
   @@map("accounted")
 }
@@ -704,7 +704,7 @@ model ByCash {
   /// 삭제 여부
   isDeleted   Boolean   @default(false) @map("is_deleted")
   /// 파트너 식별자
-  accountedId Int       @map("accounted_id")
+  accountedId Int       @unique @map("accounted_id")
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
@@ -731,7 +731,7 @@ model ByEtc {
   /// 삭제 여부
   isDeleted   Boolean   @default(false) @map("is_deleted")
   /// 파트너 식별자
-  accountedId Int       @map("accounted_id")
+  accountedId Int       @unique @map("accounted_id")
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
