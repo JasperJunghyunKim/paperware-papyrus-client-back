@@ -7,85 +7,85 @@ export class StockGroupDto implements StockGroup {
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    warehouseId: number;
+    readonly warehouseId: number;
 
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    productId: number;
+    readonly productId: number;
 
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    packagingId: number;
+    readonly packagingId: number;
 
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    grammage: number;
+    readonly grammage: number;
 
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    sizeX: number;
-
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    sizeY: number = 0;
+    readonly sizeX: number;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperColorGroupId: number = null;
+    readonly sizeY: number = 0;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperColorId: number = null;
+    readonly paperColorGroupId: number = null;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperPatternId: number = null;
+    readonly paperColorId: number = null;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    paperCertId: number = null;
+    readonly paperPatternId: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly paperCertId: number = null;
 }
 
 export class CreateNormalSalesDto implements CreateNormalSalesRequest {
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    dstCompanyId: number;
+    readonly dstCompanyId: number;
 
     @IsInt()
     @Type(() => Number)
     @IsPositive()
-    locationId: number;
+    readonly locationId: number;
 
     @IsOptional()
     @IsString()
     @Length(0, 100)
-    memo: string = '';
+    readonly memo: string = '';
 
     @IsDateString()
-    wantedDate: string;
+    readonly wantedDate: string;
 
     @IsObject()
     @ValidateNested()
     @Type(() => StockGroupDto)
-    stockGroup: StockGroupDto;
+    readonly stockGroup: StockGroupDto;
 
     @IsNumber()
     @Type(() => Number)
     @IsPositive()
-    quantity: number;
+    readonly quantity: number;
 }

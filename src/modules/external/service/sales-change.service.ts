@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotImplementedException } from "@nestjs/common";
 import { PrismaService } from "src/core";
 import { BusinessRelationshipRetriveService } from "src/modules/inhouse/service/business-relationship-retrive.service";
 import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
@@ -8,6 +8,8 @@ import { Warehouse } from 'src/@shared/models';
 import { LocationNotFoundException } from "../infrastructure/exception/location-notfound.exception";
 import { InvalidLocationException } from "../infrastructure/exception/invalid-location.exception";
 import { StockQuantityCheckerService } from "src/modules/stock/service/stock-quantity-checker.service";
+import { PlanChangeService } from "src/modules/working/service/plan-change.service";
+import { OrderService } from "./order.service";
 
 interface StockGroup {
     warehouseId: number;
@@ -29,6 +31,8 @@ export class SalesChangeService {
         private readonly businessRelationshipRetriveService: BusinessRelationshipRetriveService,
         private readonly locationRetriveService: LocationRetriveService,
         private readonly stockQuantityCheckerService: StockQuantityCheckerService,
+        private readonly planChangeService: PlanChangeService,
+        private readonly orderService: OrderService,
     ) { }
 
     private validateLocation(location: Warehouse, locationId: number, srcCompanyId: number, dstCompanyId: number) {
@@ -42,7 +46,6 @@ export class SalesChangeService {
     }
 
     async createNormal(
-        userId: number,
         srcCompanyId: number,
         dstCompanyId: number,
         locationId: number,
@@ -72,7 +75,18 @@ export class SalesChangeService {
             );
 
             // 데이터 생성
+            await this.orderService.createNormalSalesTx(
+                tx,
+                srcCompanyId,
+                dstCompanyId,
+                memo,
+                wantedDate,
+                locationId,
+                stockGroup,
+                quantity,
+            );
 
+            throw new NotImplementedException();
         });
     }
 
