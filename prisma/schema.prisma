@@ -643,9 +643,9 @@ model Accounted {
   regDt            DateTime     @default(now()) @map("reg_dt")
 
   /// 지급 현금 결제
-  ByCashList ByCash[]
+  byCashList ByCash[]
   /// 지급 기타
-  ByEtcList  ByEtc[]
+  byEtcList  ByEtc[]
 
   @@map("accounted")
 }
