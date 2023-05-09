@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import {
   LocationCreateRequest,
   LocationListQuery,
@@ -7,12 +13,14 @@ import {
 } from 'src/@shared/api/inhouse/location.request';
 
 export class LocationListQueryDto implements LocationListQuery {
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number;
+  skip: number = 0;
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  take: number;
+  take: number = undefined;
 }
 
 export class LocationCreateRequestDto implements LocationCreateRequest {
@@ -39,4 +47,18 @@ export class LocationUpdateRequestDto implements LocationUpdateRequest {
   isPublic: boolean;
   @IsString()
   address: string;
+}
+
+export class LocationForSalesListQueryDto implements LocationListQuery {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  skip: number = 0;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  take: number = undefined;
+  @Type(() => Number)
+  @IsInt()
+  targetCompanyId: number;
 }

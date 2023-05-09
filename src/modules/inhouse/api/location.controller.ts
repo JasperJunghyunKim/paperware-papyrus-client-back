@@ -17,6 +17,7 @@ import { LocationCreateRequest } from 'src/@shared/api/inhouse/location.request'
 import { LocationChangeService } from 'src/modules/inhouse/service/location-change.service';
 import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
 import {
+  LocationForSalesListQueryDto,
   LocationListQueryDto,
   LocationUpdateRequestDto,
 } from './dto/location.request';
@@ -46,6 +47,32 @@ export class LocationController {
 
     const total = await this.locationRetriveService.getCount({
       companyId: req.user.companyId,
+    });
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  @Get('for-sales')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getListForSales(
+    @Request() req: AuthType,
+    @Query() query: LocationForSalesListQueryDto,
+  ): Promise<LocationListResponse> {
+    console.log(query);
+    const items = await this.locationRetriveService.getListForSales({
+      skip: query.skip,
+      take: query.take,
+      companyId: req.user.companyId,
+      targetCompanyId: query.targetCompanyId,
+    });
+
+    const total = await this.locationRetriveService.getCountForSales({
+      companyId: req.user.companyId,
+      targetCompanyId: query.targetCompanyId,
     });
 
     return {

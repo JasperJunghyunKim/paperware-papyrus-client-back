@@ -379,25 +379,6 @@ export class InternalController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('stock/:id')
-  async getStock(
-    @Request() req: AuthType,
-    @Param() param: { id: string },
-  ): Promise<Record.Stock> {
-    const where: Prisma.StockWhereUniqueInput = {
-      id: Number(param.id),
-    };
-
-    const data = await this.internalService.getStock(where);
-
-    if (data.companyId !== req.user.companyId) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-
-    return null;
-  }
-
-  @UseGuards(AuthGuard)
   @Post('stock')
   async createStock(
     @Request() req: AuthType,
@@ -474,29 +455,6 @@ export class InternalController {
     );
   }
 
-  @UseGuards(AuthGuard)
-  @Delete('stock/:id')
-  async deleteStock(
-    @Request() req: AuthType,
-    @Param() param: { id: string },
-  ): Promise<void> {
-    const where = {
-      id: Number(param.id),
-    };
-
-    const stock = await this.internalService.getStock(where);
-
-    if (stock.companyId !== req.user.companyId) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-
-    await this.internalService.updateStock({
-      where,
-      data: {
-        isDeleted: true,
-      },
-    });
-  }
   // #endregion
 
   // #region Arrival stock

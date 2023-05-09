@@ -648,34 +648,6 @@ export class ExternalController {
     return null;
   }
 
-  @UseGuards(AuthGuard)
-  @Get('order-stock/:id')
-  async getOrderStock(
-    @Request() req: AuthType,
-    @Param() param: { id: string },
-  ): Promise<Record.OrderStock> {
-    const data = await this.externalService.getOrderStock({
-      id: Number(param.id),
-    });
-
-    const order = await this.externalService.getOrder({
-      id: data.order.id,
-    });
-
-    const allowed =
-      order.srcCompany.id === req.user.companyId ||
-      (['REQUESTED', 'ACCEPTED', 'REJECTED'].includes(order.status) &&
-        order.dstCompany.id === req.user.companyId);
-    if (!allowed) {
-      throw new HttpException(
-        'You are not allowed to get this order stock',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    return null;
-  }
-
   // #endregion
 
   // #region Receiving order

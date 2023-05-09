@@ -130,27 +130,15 @@ export const ORDER_STOCK_TRADE_PRICE = {
 
 export const STOCK = {
   id: true,
-  companyId: true,
   serial: true,
+  company: {
+    select: COMPANY,
+  },
   warehouse: {
     select: WAREHOUSE,
   },
   product: {
-    select: {
-      id: true,
-      paperDomain: {
-        select: PAPER_DOMAIN,
-      },
-      manufacturer: {
-        select: MANUFACTURER,
-      },
-      paperGroup: {
-        select: PAPER_GROUP,
-      },
-      paperType: {
-        select: PAPER_TYPE,
-      },
-    },
+    select: PRODUCT,
   },
   packaging: {
     select: PACKAGING,
@@ -176,6 +164,7 @@ export const STOCK = {
   // stockPrice: true,
   cachedQuantity: true,
   cachedQuantityAvailable: true,
+  isSyncPrice: true,
 } satisfies Prisma.StockSelect;
 
 export const VENDOR_STOCK = {
@@ -231,11 +220,11 @@ export const VENDOR_STOCK = {
 
 export const STOCK_EVENT = {
   id: true,
-  stockId: true,
-  status: true,
   stock: {
     select: STOCK,
   },
+  change: true,
+  status: true,
 } satisfies Prisma.StockEventSelect;
 
 export const STOCK_GROUP = {
@@ -278,15 +267,54 @@ export const STOCK_GROUP_EVENT = {
   status: true,
 } satisfies Prisma.StockGroupEventSelect;
 
+export const ORDER_STOCK = {
+  id: true,
+  orderId: true,
+  dstLocation: {
+    select: LOCATION,
+  },
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
+} satisfies Prisma.OrderStockSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
-  srcCompany: true,
-  dstCompany: true,
+  srcCompany: {
+    select: COMPANY,
+  },
+  dstCompany: {
+    select: COMPANY,
+  },
   status: true,
+  isEntrusted: true,
   memo: true,
   wantedDate: true,
-  isEntrusted: true,
+  stockAcceptedCompanyId: true,
+  isStockRejected: true,
+  orderStock: {
+    select: ORDER_STOCK,
+  },
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -334,19 +362,6 @@ export const TASK = {
   taskGuillotine: { select: TASK_GUILLOTINE },
   taskQuantity: { select: TASK_QUANTITY },
 } satisfies Prisma.TaskSelect;
-
-export const ORDER_STOCK = {
-  id: true,
-  order: {
-    select: ORDER,
-  },
-  dstLocation: {
-    select: LOCATION,
-  },
-  plan: {
-    select: PLAN,
-  },
-} satisfies Prisma.OrderStockSelect;
 
 export const SHIPPING = {
   id: true,

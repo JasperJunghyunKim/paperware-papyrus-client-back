@@ -19,14 +19,18 @@ import {
 } from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockDetailResponse, StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
+import {
+  StockDetailResponse,
+  StockGroupListResponse,
+  StockListResponse,
+} from 'src/@shared/api/stock/stock.response';
 
 @Controller('/stock')
 export class StockController {
   constructor(
     private readonly stockChangeService: StockChangeService,
     private readonly stockRetriveService: StockRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
@@ -49,15 +53,15 @@ export class StockController {
     });
 
     return {
-      items: stocks.map(stock => ({
+      items: stocks.map((stock) => ({
         id: stock.id,
         serial: stock.serial,
         company: stock.company,
         grammage: stock.grammage,
         sizeX: stock.sizeX,
         sizeY: stock.sizeY,
-        totalQuantity: stock.cachedQuantity,
-        availableQuantity: stock.cachedQuantityAvailable,
+        cachedQuantity: stock.cachedQuantity,
+        cachedQuantityAvailable: stock.cachedQuantityAvailable,
         isSyncPrice: stock.isSyncPrice,
         warehouse: stock.warehouse,
         product: stock.product,
@@ -89,12 +93,12 @@ export class StockController {
       items: stockGroups.map((sg) => ({
         warehouse: sg.warehouseId
           ? {
-            id: sg.warehouseId,
-            name: sg.warehouseName,
-            code: sg.warehouseCode,
-            isPublic: sg.warehouseIsPublic,
-            address: sg.warehouseAddress,
-          }
+              id: sg.warehouseId,
+              name: sg.warehouseName,
+              code: sg.warehouseCode,
+              isPublic: sg.warehouseIsPublic,
+              address: sg.warehouseAddress,
+            }
           : null,
         product: {
           id: sg.productId,
@@ -126,27 +130,27 @@ export class StockController {
         sizeY: sg.sizeY,
         paperColorGroup: sg.paperColorGroupId
           ? {
-            id: sg.paperColorGroupId,
-            name: sg.paperColorGroupName,
-          }
+              id: sg.paperColorGroupId,
+              name: sg.paperColorGroupName,
+            }
           : null,
         paperColor: sg.paperColorId
           ? {
-            id: sg.paperColorId,
-            name: sg.paperColorName,
-          }
+              id: sg.paperColorId,
+              name: sg.paperColorName,
+            }
           : null,
         paperPattern: sg.paperPatternId
           ? {
-            id: sg.paperPatternId,
-            name: sg.paperPatternName,
-          }
+              id: sg.paperPatternId,
+              name: sg.paperPatternName,
+            }
           : null,
         paperCert: sg.paperCertId
           ? {
-            id: sg.paperCertId,
-            name: sg.paperCertName,
-          }
+              id: sg.paperCertId,
+              name: sg.paperCertName,
+            }
           : null,
         totalQuantity: sg.totalQuantity,
         availableQuantity: sg.availableQuantity,
@@ -158,8 +162,14 @@ export class StockController {
   /** 재고 상세 */
   @Get('/:stockId')
   @UseGuards(AuthGuard)
-  async get(@Request() req: AuthType, @Param() dto: GetStockDto): Promise<StockDetailResponse> {
-    const stock = await this.stockRetriveService.getStock(req.user.companyId, dto.stockId);
+  async get(
+    @Request() req: AuthType,
+    @Param() dto: GetStockDto,
+  ): Promise<StockDetailResponse> {
+    const stock = await this.stockRetriveService.getStock(
+      req.user.companyId,
+      dto.stockId,
+    );
     return {
       id: stock.id,
       serial: stock.serial,
@@ -167,8 +177,8 @@ export class StockController {
       grammage: stock.grammage,
       sizeX: stock.sizeX,
       sizeY: stock.sizeY,
-      totalQuantity: stock.cachedQuantity,
-      availableQuantity: stock.cachedQuantityAvailable,
+      cachedQuantity: stock.cachedQuantity,
+      cachedQuantityAvailable: stock.cachedQuantityAvailable,
       isSyncPrice: stock.isSyncPrice,
       warehouse: stock.warehouse,
       product: stock.product,
@@ -177,7 +187,6 @@ export class StockController {
       paperColor: stock.paperColor,
       paperPattern: stock.paperPattern,
       paperCert: stock.paperCert,
-      stockPrice: null,
     };
   }
 
@@ -192,10 +201,10 @@ export class StockController {
         serial: ulid(),
         warehouse: dto.warehouseId
           ? {
-            connect: {
-              id: dto.warehouseId,
-            },
-          }
+              connect: {
+                id: dto.warehouseId,
+              },
+            }
           : undefined,
         company: {
           connect: {
@@ -217,31 +226,31 @@ export class StockController {
         },
         paperColorGroup: dto.paperColorGroupId
           ? {
-            connect: {
-              id: dto.paperColorGroupId,
-            },
-          }
+              connect: {
+                id: dto.paperColorGroupId,
+              },
+            }
           : undefined,
         paperColor: dto.paperColorId
           ? {
-            connect: {
-              id: dto.paperColorId,
-            },
-          }
+              connect: {
+                id: dto.paperColorId,
+              },
+            }
           : undefined,
         paperPattern: dto.paperPatternId
           ? {
-            connect: {
-              id: dto.paperPatternId,
-            },
-          }
+              connect: {
+                id: dto.paperPatternId,
+              },
+            }
           : undefined,
         paperCert: dto.paperCertId
           ? {
-            connect: {
-              id: dto.paperCertId,
-            },
-          }
+              connect: {
+                id: dto.paperCertId,
+              },
+            }
           : undefined,
       },
       {

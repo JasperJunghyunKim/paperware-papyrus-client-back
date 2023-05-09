@@ -44,6 +44,7 @@ model PaperColorGroup {
   officialPrice OfficialPriceMap[]
   StockGroup    StockGroup[]
   Invoice       Invoice[]
+  OrderStock    OrderStock[]
 }
 
 model PaperColor {
@@ -53,6 +54,7 @@ model PaperColor {
   officialPrice OfficialPriceMap[]
   StockGroup    StockGroup[]
   Invoice       Invoice[]
+  OrderStock    OrderStock[]
 }
 
 model PaperPattern {
@@ -62,6 +64,7 @@ model PaperPattern {
   officialPrice OfficialPriceMap[]
   StockGroup    StockGroup[]
   Invoice       Invoice[]
+  OrderStock    OrderStock[]
 }
 
 model PaperCert {
@@ -71,6 +74,7 @@ model PaperCert {
   officialPrice OfficialPriceMap[]
   StockGroup    StockGroup[]
   Invoice       Invoice[]
+  OrderStock    OrderStock[]
 }
 
 enum PackagingType {
@@ -89,6 +93,7 @@ model Packaging {
   stock      Stock[]
   StockGroup StockGroup[]
   Invoice    Invoice[]
+  OrderStock OrderStock[]
 
   @@unique([type, packA, packB])
 }
@@ -107,6 +112,7 @@ model Product {
   officialPrice  OfficialPriceMap[]
   StockGroup     StockGroup[]
   Invoice        Invoice[]
+  OrderStock     OrderStock[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -382,6 +388,8 @@ enum OrderStatus {
   OFFER_REQUESTED
   OFFER_REJECTED
   ACCEPTED
+  ORDER_CANCELLED
+  OFFER_CANCELLED
 }
 
 model Order {
@@ -402,20 +410,35 @@ model Order {
 }
 
 model OrderStock {
-  id                Int          @id @default(autoincrement())
-  orderId           Int          @unique
-  order             Order        @relation(fields: [orderId], references: [id])
+  id                Int              @id @default(autoincrement())
+  orderId           Int              @unique
+  order             Order            @relation(fields: [orderId], references: [id])
   dstLocationId     Int?
-  dstLocation       Location?    @relation(fields: [dstLocationId], references: [id])
-  planId            Int?         @unique
-  plan              Plan?        @relation(fields: [planId], references: [id])
+  dstLocation       Location?        @relation(fields: [dstLocationId], references: [id])
+  planId            Int?             @unique
+  plan              Plan?            @relation(fields: [planId], references: [id])
   // 정상매입의 입고 예정 재고 이벤트
   arrivalStockEvent StockEvent[]
   // 정상거래의 주문 원지 정보
-  stockGroupId      Int
-  stockGroup        StockGroup   @relation(fields: [stockGroupId], references: [id])
-  quantity          Int          @default(0)
-  stockGroups       StockGroup[] @relation("OrderStockStockGroup")
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  quantity          Int              @default(0)
+  stockGroups       StockGroup[]     @relation("OrderStockStockGroup")
+  StockGroup        StockGroup?      @relation(fields: [stockGroupId], references: [id])
+  stockGroupId      Int?
 }
 
 model TradePrice {

@@ -31,6 +31,54 @@ export class LocationRetriveService {
     });
   }
 
+  // 자사의 기타 도착지 (isPublic = false) 및 거래처(targetCompanyId)의 도착지 (isPublic = true)를 모두 가져온다.
+  async getListForSales(params: {
+    skip: number;
+    take: number;
+    companyId: number;
+    targetCompanyId: number;
+  }): Promise<Array<Model.Location>> {
+    return await this.prisma.location.findMany({
+      select: Selector.LOCATION,
+      where: {
+        isDeleted: false,
+        OR: [
+          {
+            isPublic: false,
+            companyId: params.companyId,
+          },
+          {
+            isPublic: true,
+            companyId: params.targetCompanyId,
+          },
+        ],
+      },
+      skip: params.skip,
+      take: params.take,
+    });
+  }
+
+  async getCountForSales(params: {
+    companyId: number;
+    targetCompanyId: number;
+  }): Promise<number> {
+    return await this.prisma.location.count({
+      where: {
+        isDeleted: false,
+        OR: [
+          {
+            isPublic: false,
+            companyId: params.companyId,
+          },
+          {
+            isPublic: true,
+            companyId: params.targetCompanyId,
+          },
+        ],
+      },
+    });
+  }
+
   async getItem(id: number): Promise<Model.Location> {
     return await this.prisma.location.findUnique({
       select: Selector.LOCATION,
