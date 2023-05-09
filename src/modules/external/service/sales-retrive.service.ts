@@ -16,6 +16,8 @@ export class SalesRetriveService {
         const [saleses, total] = await this.prisma.$transaction([
             this.prisma.order.findMany({
                 include: {
+                    srcCompany: true,
+                    dstCompany: true,
                     orderStock: {
                         include: {
                             dstLocation: true,

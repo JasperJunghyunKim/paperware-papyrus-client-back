@@ -2,6 +2,14 @@ import { Type } from "class-transformer";
 import { IsDateString, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, Max, Min, ValidateNested } from "class-validator";
 import { CreateNormalSalesRequest, SalesListQuery, StockGroup } from "src/@shared/api";
 
+/** salesId param */
+export class SalesIdDto {
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly salesId: number;
+}
+
 /** 매출 목록 조회 */
 export class GetSalesListDto implements SalesListQuery {
     @IsOptional()

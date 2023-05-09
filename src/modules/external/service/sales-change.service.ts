@@ -88,4 +88,18 @@ export class SalesChangeService {
         });
     }
 
+    async requestStockOffer(companyId: number, salesId: number) {
+        throw new NotImplementedException();
+
+        await this.prisma.$transaction(async tx => {
+        });
+    }
+
+    async acceptStockOffer(companyId: number, salesId: number) {
+        throw new NotImplementedException();
+
+        await this.prisma.$transaction(async tx => {
+
+        });
+    }
 }

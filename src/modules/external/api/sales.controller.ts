@@ -1,9 +1,10 @@
-import { Body, Controller, Get, NotImplementedException, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { SalesListResponse } from "src/@shared/api/external/sales.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { SalesChangeService } from "../service/sales-change.service";
 import { SalesRetriveService } from "../service/sales-retrive.service";
-import { CreateNormalSalesDto, GetSalesListDto } from "./dto/sales.resquest";
+import { CreateNormalSalesDto, GetSalesListDto, SalesIdDto } from "./dto/sales.resquest";
 
 @Controller('/sales')
 export class SalesController {
@@ -18,10 +19,24 @@ export class SalesController {
     async getSalesList(
         @Request() req: AuthType,
         @Query() dto: GetSalesListDto,
-    ) {
-        const saleses = await this.salesRetriveService.getSalesList(req.user.companyId, dto.skip, dto.take);
+    ): Promise<SalesListResponse> {
+        const result = await this.salesRetriveService.getSalesList(req.user.companyId, dto.skip, dto.take);
 
-        return saleses;
+        return {
+            items: result.saleses.map(sales => ({
+                id: sales.id,
+                orderNo: sales.orderNo,
+                srcCompany: sales.srcCompany,
+                dstCompany: sales.dstCompany,
+                status: null,
+                memo: sales.memo,
+                wantedDate: sales.wantedDate.toISOString(),
+                stockAcceptedCompanyId: sales.stockAcceptedCompanyId,
+                isStockRejected: sales.isStockRejected,
+                orderStock: null,
+            })),
+            total: result.total,
+        };
     }
 
     // 변경
@@ -40,5 +55,23 @@ export class SalesController {
             dto.quantity,
             dto.stockGroup,
         );
+    }
+
+    @Post('/:salesId/request')
+    @UseGuards(AuthGuard)
+    async requestStockOffer(
+        @Request() req: AuthType,
+        @Param() dto: SalesIdDto,
+    ) {
+        await this.salesChangeService.requestStockOffer(req.user.companyId, dto.salesId);
+    }
+
+    @Post('/:salesId/accept')
+    @UseGuards(AuthGuard)
+    async acceptStockOffer(
+        @Request() req: AuthType,
+        @Param() dto: SalesIdDto,
+    ) {
+        await this.salesChangeService.acceptStockOffer(req.user.companyId, dto.salesId);
     }
 }
