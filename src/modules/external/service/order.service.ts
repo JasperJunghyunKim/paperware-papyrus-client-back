@@ -34,6 +34,7 @@ export class OrderService {
                 isEntrusted: true,
                 memo,
                 wantedDate,
+                status: 'STOCK_OFFER_PREPARING',
                 srcCompany: {
                     connect: {
                         id: srcCompanyId,
