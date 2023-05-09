@@ -545,6 +545,7 @@ model Invoice {
   plan              Plan             @relation(fields: [planId], references: [id])
 }
 
+/// 계정 수단
 enum Method {
   /// 계좌 이체
   ACCOUNT_TRANSFER
@@ -560,11 +561,38 @@ enum Method {
   ETC
 }
 
-enum AccountedTyp {
+/// 회계 타입
+enum AccountedType {
   /// 지급
   PAID
   /// 수금
   COLLECTED
+}
+
+/// 계정 과목
+enum Subject {
+  /// 외상 매출금
+  PAID_ACCOUNTS_RECEIVABLE
+  /// 미수금
+  PAID_UNPAID_AMOUNTS
+  /// 선수금
+  PAID_ADVANCES
+  /// 잡이익
+  PAID_MISCELLANEOUS_INCOME
+  /// 상품 매출
+  PAID_PRODUCT_SALES
+  /// 외상 매입금
+  COLLECTED_ACCOUNTS_RECEIVABLE
+  /// 미지급금
+  COLLECTED_UNPAID_EXPENSES
+  /// 선지급금
+  COLLECTED_PREPAID_EXPENSES
+  //// 잡손실
+  COLLECTED_MISCELLANEOUS_LOSSES
+  /// 상품 매입"
+  COLLECTED_PRODUCT_PURCHASES
+  /// 기타 (공통)
+  ETC
 }
 
 /// 파트너
@@ -612,35 +640,35 @@ model Partner {
 /// 회계
 model Accounted {
   /// 식별자
-  id               Int          @id @default(autoincrement())
+  id               Int           @id @default(autoincrement())
   /// 회계 타입
-  accountedType    AccountedTyp @map("accounted_type")
+  accountedType    AccountedType @map("accounted_type")
   /// 회계 수단
-  accountedMethod  Method       @map("accounted_method")
+  accountedMethod  Method        @map("accounted_method")
   /// 회계 등록일
-  accountedDate    DateTime     @default(now()) @map("accounted_date")
+  accountedDate    DateTime      @default(now()) @map("accounted_date")
   /// 계정 과목
-  accountedSubject String       @map("accounted_subject") @db.VarChar(10)
+  accountedSubject Subject       @map("accounted_subject")
   /// 메모
-  memo             String       @map("memo") @db.VarChar(500)
+  memo             String        @map("memo") @db.VarChar(500)
   /// 삭제 여부
-  isDeleted        Boolean      @default(false) @map("is_deleted")
+  isDeleted        Boolean       @default(false) @map("is_deleted")
   /// 파트너 식별자
-  partnerId        Int          @map("partner_id")
+  partnerId        Int           @map("partner_id")
   /// 파트너
-  partner          Partner      @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 등록자 아이디
-  regId            String?      @map("reg_id") @db.VarChar(255)
+  regId            String?       @map("reg_id") @db.VarChar(255)
   /// 등록자 명
-  regNm            String?      @map("reg_nm") @db.VarChar(255)
+  regNm            String?       @map("reg_nm") @db.VarChar(255)
   /// 변경자 아이디
-  chgId            String?      @map("chg_id") @db.VarChar(255)
+  chgId            String?       @map("chg_id") @db.VarChar(255)
   /// 변경자 명
-  chgNm            String?      @map("chg_nm") @db.VarChar(255)
+  chgNm            String?       @map("chg_nm") @db.VarChar(255)
   /// 변경 일시
-  chgDt            DateTime     @updatedAt @map("chg_dt")
+  chgDt            DateTime      @updatedAt @map("chg_dt")
   /// 등록 일시
-  regDt            DateTime     @default(now()) @map("reg_dt")
+  regDt            DateTime      @default(now()) @map("reg_dt")
 
   /// 지급 현금 결제
   byCashList ByCash[]
