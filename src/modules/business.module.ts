@@ -8,6 +8,7 @@ import { ExampleModule } from './example/user.module';
 import { InhouseModule } from './inhouse/inhouse.module';
 import { StockModule } from './stock/stock.module';
 import { WorkingModule } from './working/working.module';
+import { TradeModule } from './trade/trade.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { WorkingModule } from './working/working.module';
     InhouseModule,
     StockModule,
     WorkingModule,
+    TradeModule,
   ],
 })
 export class BusinessModule {}

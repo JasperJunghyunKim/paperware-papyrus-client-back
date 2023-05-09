@@ -222,12 +222,13 @@ model StockGroup {
   warehouseId       Int?
   warehouse         Warehouse?        @relation(fields: [warehouseId], references: [id])
   orderStockId      Int?
-  orderStock        OrderStock?       @relation(fields: [orderStockId], references: [id])
+  orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
   StockGroupEvent   StockGroupEvent[]
+  orderStocks       OrderStock[]
 
-  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, companyId])
+  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
 }
 
 model StockGroupEvent {
@@ -384,36 +385,41 @@ enum OrderStatus {
 }
 
 model Order {
-  id                     Int          @id @default(autoincrement())
-  orderNo                String       @unique
+  id                     Int         @id @default(autoincrement())
+  orderNo                String      @unique
   srcCompanyId           Int
-  srcCompany             Company      @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
+  srcCompany             Company     @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId           Int
-  dstCompany             Company      @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
-  status                 OrderStatus  @default(ORDER_PREPARING)
-  isEntrusted            Boolean      @default(false)
+  dstCompany             Company     @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
+  status                 OrderStatus @default(ORDER_PREPARING)
+  isEntrusted            Boolean     @default(false)
   memo                   String
   wantedDate             DateTime?
   stockAcceptedCompanyId Int?
-  isStockRejected        Boolean      @default(false)
-  orderStock             OrderStock[]
-  TradePrice             TradePrice[]
+  isStockRejected        Boolean     @default(false)
+  orderStock             OrderStock?
+  tradePrice             TradePrice?
 }
 
 model OrderStock {
   id                Int          @id @default(autoincrement())
-  orderId           Int
+  orderId           Int          @unique
   order             Order        @relation(fields: [orderId], references: [id])
   dstLocationId     Int?
   dstLocation       Location?    @relation(fields: [dstLocationId], references: [id])
-  arrivalStockEvent StockEvent[] // 정상매입의 입고 예정 재고 이벤트
   planId            Int?         @unique
   plan              Plan?        @relation(fields: [planId], references: [id])
-  StockGroup        StockGroup[]
+  // 정상매입의 입고 예정 재고 이벤트
+  arrivalStockEvent StockEvent[]
+  // 정상거래의 주문 원지 정보
+  stockGroupId      Int
+  stockGroup        StockGroup   @relation(fields: [stockGroupId], references: [id])
+  quantity          Int          @default(0)
+  stockGroups       StockGroup[] @relation("OrderStockStockGroup")
 }
 
 model TradePrice {
-  orderId       Int
+  orderId       Int     @unique
   order         Order   @relation(fields: [orderId], references: [id])
   companyId     Int
   company       Company @relation(fields: [companyId], references: [id])

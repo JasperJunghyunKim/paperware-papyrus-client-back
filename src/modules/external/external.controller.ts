@@ -676,61 +676,6 @@ export class ExternalController {
     return null;
   }
 
-  @UseGuards(AuthGuard)
-  @Post('order-stock')
-  async createOrderStock(
-    @Request() req: AuthType,
-    @Body()
-    body: {
-      orderId: number;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY?: number | null;
-      paperColorGroupId?: number | null;
-      paperColorId?: number | null;
-      paperPatternId?: number | null;
-      paperCertId?: number[] | null;
-      quantity?: number;
-      memo?: string;
-      dstLocationId?: number;
-    },
-  ): Promise<Record.OrderStock> {
-    const order = await this.externalService.getOrder({
-      id: body.orderId,
-    });
-
-    const allowed =
-      order.srcCompany.id === req.user.companyId ||
-      ((['REQUESTED', 'ACCEPTED', 'REJECTED'].includes(order.status) ||
-        order.isEntrusted) &&
-        order.dstCompany.id === req.user.companyId);
-    if (!allowed) {
-      throw new HttpException(
-        'You are not allowed to create this order stock',
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    const data = await this.externalService.createOrderStock({
-      order: {
-        connect: {
-          id: body.orderId,
-        },
-      },
-      dstLocation: body.dstLocationId
-        ? {
-            connect: {
-              id: body.dstLocationId,
-            },
-          }
-        : undefined,
-    });
-
-    return null;
-  }
-
   // #endregion
 
   // #region Receiving order
