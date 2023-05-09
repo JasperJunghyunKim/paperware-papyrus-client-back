@@ -85,8 +85,6 @@ export class SalesChangeService {
                 stockGroup,
                 quantity,
             );
-
-            throw new NotImplementedException();
         });
     }
 
