@@ -128,6 +128,16 @@ export const ORDER_STOCK_TRADE_PRICE = {
   // s: true,
 } satisfies Prisma.OrderStockTradePriceSelect;
 
+export const STOCK_PRICE = {
+  officialPriceType: true,
+  officialPrice: true,
+  officialPriceUnit: true,
+  discountType: true,
+  discountPrice: true,
+  unitPrice: true,
+  unitPriceUnit: true,
+} satisfies Prisma.StockPriceSelect;
+
 export const STOCK = {
   id: true,
   serial: true,
@@ -165,6 +175,9 @@ export const STOCK = {
   cachedQuantity: true,
   cachedQuantityAvailable: true,
   isSyncPrice: true,
+  stockPrice: {
+    select: STOCK_PRICE,
+  },
 } satisfies Prisma.StockSelect;
 
 export const VENDOR_STOCK = {
