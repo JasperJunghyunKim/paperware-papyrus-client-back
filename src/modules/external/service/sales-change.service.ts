@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotImplementedException } from "@nestjs/common";
 import { PrismaService } from "src/core";
 import { BusinessRelationshipRetriveService } from "src/modules/inhouse/service/business-relationship-retrive.service";
 import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
@@ -9,8 +9,6 @@ import { LocationNotFoundException } from "../infrastructure/exception/location-
 import { InvalidLocationException } from "../infrastructure/exception/invalid-location.exception";
 import { StockQuantityCheckerService } from "src/modules/stock/service/stock-quantity-checker.service";
 import { PlanChangeService } from "src/modules/working/service/plan-change.service";
-import { ulid } from "ulid";
-import { OrderStatus } from "@prisma/client";
 import { OrderService } from "./order.service";
 
 interface StockGroup {
@@ -77,45 +75,18 @@ export class SalesChangeService {
             );
 
             // 데이터 생성
-            // order
-            const order = await tx.order.create({
-                data: {
-                    orderNo: ulid(),
-                    isEntrusted: true,
-                    memo,
-                    wantedDate,
-                    srcCompany: {
-                        connect: {
-                            id: srcCompanyId,
-                        },
-                    },
-                    dstCompany: {
-                        connect: {
-                            id: dstCompanyId,
-                        },
-                    },
-                }
-            });
+            await this.orderService.createNormalSalesTx(
+                tx,
+                srcCompanyId,
+                dstCompanyId,
+                memo,
+                wantedDate,
+                locationId,
+                stockGroup,
+                quantity,
+            );
 
-            // order stock
-            await tx.orderStock.create({
-                data: {
-                    order: {
-                        connect: {
-                            id: order.id,
-                        }
-                    },
-                    dstLocation: {
-                        connect: {
-                            id: locationId
-                        }
-                    },
-                }
-            });
-
-
-            throw new BadRequestException('test')
-
+            throw new NotImplementedException();
         });
     }
 
