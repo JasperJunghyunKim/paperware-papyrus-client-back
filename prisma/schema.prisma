@@ -328,7 +328,7 @@ model Location {
   company    Company      @relation(fields: [companyId], references: [id])
   isPublic   Boolean
   isDeleted  Boolean      @default(false)
-  orderStock OrderStock[]
+  orderStock OrderStock[] // 정상거래의 도착지
 
   @@unique([companyId, code])
 }
@@ -376,12 +376,12 @@ model OfficialPriceMap {
 
 enum OrderStatus {
   ORDER_PREPARING
-  ORDER_CANCELLED
   ORDER_REQUESTED
-  ORDER_ACCEPTED
   ORDER_REJECTED
-  STOCK_OFFER_REQUESTED
-  STOCK_OFFER_ACCEPTED
+  OFFER_PREPARING
+  OFFER_REQUESTED
+  OFFER_REJECTED
+  ACCEPTED
 }
 
 model Order {
