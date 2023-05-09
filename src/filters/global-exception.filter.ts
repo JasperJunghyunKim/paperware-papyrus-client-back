@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { Util } from 'src/@shared/helper';
 import { AppError } from 'src/@shared/models/error';
 
 /**
@@ -15,8 +16,6 @@ import { AppError } from 'src/@shared/models/error';
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
-
-  constructor() {}
 
   catch(exception: unknown & Error, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
@@ -36,12 +35,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (!(typeof errorData === 'string')) {
         const iError = errorData as AppError;
         code = iError.code;
-        // TODO: toStringify 사용
-        // message = toStringify({
-        //   message: iError.message,
-        //   error: iError.msgArgs,
-        // });
-        message = 'TODO';
+        message = Util.formatString(iError.message, iError.msgArgs);
       }
       // application 및 runtime(모든) 에러 정의
     } else {

@@ -19,7 +19,11 @@ import {
 } from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockDetailResponse, StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
+import {
+  StockDetailResponse,
+  StockGroupListResponse,
+  StockListResponse,
+} from 'src/@shared/api/stock/stock.response';
 
 @Controller('/stock')
 export class StockController {
