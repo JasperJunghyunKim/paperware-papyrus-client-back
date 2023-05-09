@@ -2,6 +2,58 @@ import { Injectable } from "@nestjs/common";
 import { PackagingType, Prisma, StockEventStatus } from "@prisma/client";
 import { PrismaService } from "src/core";
 
+export interface PartnerStockGroupFromDB {
+    warehouseId: number;
+    warehouseName: string;
+    warehouseCode: string;
+    warehouseIsPublic: boolean;
+    warehouseAddress: string;
+
+    partnerCompanyId: number;
+    partnerCompanyBusinessName: string;
+    partnerCompanyRegistrationNumber: string;
+    partnerCompanyInvoiceCode: string;
+    partnerCompanyRepresentative: string;
+    partnerCompanyAddress: string;
+    partnerCompanyPhoneNo: string;
+    partnerCompanyFaxNo: string;
+    partnerCompanyEmail: string;
+    partnerCompanyManagedById: number;
+
+    packagingId: number;
+    packagingName: string;
+    packagingType: PackagingType;
+    packagingPackA: number;
+    packagingPackB: number;
+
+    productId: number;
+    paperDomainId: number;
+    paperDomainName: string;
+    paperGroupId: number;
+    paperGroupName: string;
+    manufacturerId: number;
+    manufacturerName: string;
+    paperTypeId: number;
+    paperTypeName: string;
+
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+
+    paperColorGroupId: number;
+    paperColorGroupName: string;
+    paperColorId: number;
+    paperColorName: string;
+    paperPatternId: number;
+    paperPatternName: string;
+    paperCertId: number;
+    paperCertName: string;
+
+    totalQuantity: number;
+    availableQuantity: number;
+    total: bigint;
+}
+
 @Injectable()
 export class PartnerStockRetriveService {
     constructor(
@@ -17,12 +69,23 @@ export class PartnerStockRetriveService {
         const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
         const companyConditionQuery = partnerCompanyId ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}` : Prisma.empty;
 
-        const stockGroups: any[] = await this.prisma.$queryRaw`
+        const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
                 SELECT s.warehouseId AS warehouseId
                         , w.name AS warehouseName
                         , w.code AS warehouseCode
                         , w.isPublic AS warehouseIsPublic
                         , w.address AS warehouseAddress
+
+                        , srcCompany.id AS partnerCompanyId
+                        , srcCompany.businessName AS partnerCompanyBusinessName
+                        , srcCompany.companyRegistrationNumber AS partnerCompanyRegistrationNumber
+                        , srcCompany.invoiceCode AS partnerCompanyInvoiceCode
+                        , srcCompany.representative AS partnerCompanyRepresentative
+                        , srcCompany.address AS partnerCompanyAddress
+                        , srcCompany.phoneNo AS partnerCompanyPhoneNo
+                        , srcCompany.faxNo AS partnerCompanyFaxNo
+                        , srcCompany.email AS partnerCompanyEmail
+                        , srcCompany.managedById AS partnerCompanyManagedById
     
                         , product.id AS productId
                         , paperDomain.id AS paperDomainId
@@ -56,6 +119,7 @@ export class PartnerStockRetriveService {
     
                   FROM Company                  AS c
                   JOIN BusinessRelationship     AS br               ON br.dstCompanyId = c.id
+                  JOIN Company                  AS srcCompany       ON srcCompany.id = br.srcCompanyId
                   JOIN Stock                    AS s                ON s.companyId = br.srcCompanyId
                   JOIN StockEvent               AS se               ON se.stockId = s.id
                   JOIN Warehouse                AS w                ON w.id = s.warehouseId
