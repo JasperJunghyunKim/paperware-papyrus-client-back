@@ -1,6 +1,22 @@
 import { Type } from "class-transformer";
-import { IsDateString, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, ValidateNested } from "class-validator";
-import { CreateNormalSalesRequest, StockGroup } from "src/@shared/api";
+import { IsDateString, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, Max, Min, ValidateNested } from "class-validator";
+import { CreateNormalSalesRequest, SalesListQuery, StockGroup } from "src/@shared/api";
+
+/** 매출 목록 조회 */
+export class GetSalesListDto implements SalesListQuery {
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(0)
+    readonly skip: number = 0;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(10)
+    @Max(100)
+    readonly take: number = 30;
+}
 
 /** 정상매출 등록 */
 export class StockGroupDto implements StockGroup {

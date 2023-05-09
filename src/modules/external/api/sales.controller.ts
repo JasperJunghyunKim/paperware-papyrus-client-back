@@ -1,9 +1,9 @@
-import { Body, Controller, NotImplementedException, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, NotImplementedException, Post, Query, Request, UseGuards } from "@nestjs/common";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { SalesChangeService } from "../service/sales-change.service";
 import { SalesRetriveService } from "../service/sales-retrive.service";
-import { CreateNormalSalesDto } from "./dto/sales.resquest";
+import { CreateNormalSalesDto, GetSalesListDto } from "./dto/sales.resquest";
 
 @Controller('/sales')
 export class SalesController {
@@ -13,10 +13,20 @@ export class SalesController {
     ) { }
 
     // 조회
+    @Get()
+    @UseGuards(AuthGuard)
+    async getSalesList(
+        @Request() req: AuthType,
+        @Query() dto: GetSalesListDto,
+    ) {
+        const saleses = await this.salesRetriveService.getSalesList(req.user.companyId, dto.skip, dto.take);
+
+        return saleses;
+    }
 
     // 변경
-    @UseGuards(AuthGuard)
     @Post('/normal')
+    @UseGuards(AuthGuard)
     async createNormal(
         @Request() req: AuthType,
         @Body() dto: CreateNormalSalesDto,
