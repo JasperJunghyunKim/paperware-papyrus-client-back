@@ -19,9 +19,12 @@ import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import {
   OrderListQueryDto,
+  OrderStockArrivalCreateRequestDto,
+  OrderStockArrivalListQueryDto,
   OrderStockCreateRequestDto,
   OrderStockUpdateRequestDto,
 } from './dto/order.request';
+import { OrderStockArrivalListResponse } from 'src/@shared/api';
 
 @Controller('/order')
 export class OrderController {
@@ -181,7 +184,41 @@ export class OrderController {
     });
   }
 
-  @Post('stock/:id/request')
+  @Get('stock/:id/arrival')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async getArrival(
+    @Request() req: AuthType,
+    @Param('id') id: string,
+    @Query() query: OrderStockArrivalListQueryDto,
+  ): Promise<OrderStockArrivalListResponse> {
+    const order = await this.retrive.getItem({ orderId: Number(id) });
+
+    if (!order) {
+      throw new ForbiddenException('존재하지 않는 주문입니다.');
+    }
+
+    if (order.srcCompany.id !== req.user.companyId) {
+      throw new ForbiddenException('조회 권한이 없습니다.');
+    }
+
+    const items = await this.retrive.getOrderStockArrivalList({
+      skip: query.skip,
+      take: query.take,
+      orderId: Number(id),
+    });
+
+    const total = await this.retrive.getOrderStockArrivalCount({
+      orderId: Number(id),
+    });
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  @Post(':id/request')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async requestOrder(@Request() req: AuthType, @Param('id') id: string) {
@@ -196,7 +233,7 @@ export class OrderController {
     await this.change.request({ orderId: Number(id) });
   }
 
-  @Post('stock/:id/accept')
+  @Post(':id/accept')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async acceptOrder(@Request() req: AuthType, @Param('id') id: string) {
@@ -209,7 +246,7 @@ export class OrderController {
     await this.change.accept({ orderId: Number(id) });
   }
 
-  @Post('stock/:id/reject')
+  @Post(':id/reject')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async rejectOrder(@Request() req: AuthType, @Param('id') id: string) {
@@ -222,7 +259,7 @@ export class OrderController {
     await this.change.reject({ orderId: Number(id) });
   }
 
-  @Post('stock/:id/cancel')
+  @Post(':id/cancel')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async cancelOrder(@Request() req: AuthType, @Param('id') id: string) {
@@ -233,5 +270,53 @@ export class OrderController {
     }
 
     await this.change.cancel({ orderId: Number(id) });
+  }
+
+  @Post(':id/reset')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async resetOrder(@Request() req: AuthType, @Param('id') id: string) {
+    const order = await this.retrive.getItem({ orderId: Number(id) });
+
+    if (!order) {
+      throw new ForbiddenException('존재하지 않는 주문입니다.');
+    }
+
+    await this.change.reset({ orderId: Number(id) });
+  }
+
+  @Post(':id/arrival')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async createArrival(
+    @Request() req: AuthType,
+    @Param('id') id: string,
+    @Body() body: OrderStockArrivalCreateRequestDto,
+  ) {
+    const order = await this.retrive.getItem({ orderId: Number(id) });
+
+    if (!order) {
+      throw new ForbiddenException('존재하지 않는 주문입니다.');
+    }
+
+    if (order.srcCompany.id !== req.user.companyId) {
+      throw new ForbiddenException('등록 권한이 없습니다.');
+    }
+
+    await this.change.createArrival({
+      orderId: Number(id),
+      warehouseId: body.warehouseId,
+      productId: body.productId,
+      packagingId: body.packagingId,
+      grammage: body.grammage,
+      sizeX: body.sizeX,
+      sizeY: body.sizeY,
+      paperColorGroupId: body.paperColorGroupId,
+      paperColorId: body.paperColorId,
+      paperPatternId: body.paperPatternId,
+      paperCertId: body.paperCertId,
+      quantity: body.quantity,
+      stockPrice: body.stockPrice,
+    });
   }
 }

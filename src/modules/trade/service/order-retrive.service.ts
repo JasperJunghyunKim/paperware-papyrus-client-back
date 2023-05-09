@@ -79,6 +79,8 @@ export class OrderRetriveService {
   }
 
   async getOrderStockArrivalList(params: {
+    skip?: number;
+    take?: number;
     orderId: number;
   }): Promise<Model.StockEvent[]> {
     const { orderId } = params;
@@ -95,5 +97,21 @@ export class OrderRetriveService {
     });
 
     return stockEvents;
+  }
+
+  async getOrderStockArrivalCount(params: { orderId: number }) {
+    const { orderId } = params;
+
+    const count = await this.prisma.stockEvent.count({
+      where: {
+        orderStockArrival: {
+          some: {
+            orderId,
+          },
+        },
+      },
+    });
+
+    return count;
   }
 }
