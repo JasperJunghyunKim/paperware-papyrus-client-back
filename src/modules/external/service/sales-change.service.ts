@@ -10,6 +10,8 @@ import { InvalidLocationException } from "../infrastructure/exception/invalid-lo
 import { StockQuantityCheckerService } from "src/modules/stock/service/stock-quantity-checker.service";
 import { PlanChangeService } from "src/modules/working/service/plan-change.service";
 import { OrderService } from "./order.service";
+import { SalesNotFoundException } from "../infrastructure/exception/sales-notfound.exception ";
+import { InvalidSalesStatusException } from "../infrastructure/exception/invalid-sales-status.exception ";
 
 interface StockGroup {
     warehouseId: number;
@@ -89,17 +91,56 @@ export class SalesChangeService {
     }
 
     async requestStockOffer(companyId: number, salesId: number) {
-        throw new NotImplementedException();
-
         await this.prisma.$transaction(async tx => {
+            const sales = await tx.order.findFirst({
+                where: {
+                    id: salesId,
+                    srcCompanyId: companyId,
+                }
+            });
+            if (!sales) throw new SalesNotFoundException(SalesError.SALES004, [salesId]);
+            if (sales.status !== 'STOCK_OFFER_PREPARING') throw new InvalidSalesStatusException(SalesError.SALES005);
+
+            await tx.order.update({
+                data: {
+                    status: 'STOCK_OFFER_REQUESTED',
+                },
+                where: {
+                    id: salesId,
+                }
+            });
         });
     }
 
     async acceptStockOffer(companyId: number, salesId: number) {
-        throw new NotImplementedException();
-
         await this.prisma.$transaction(async tx => {
+            const sales = await tx.order.findFirst({
+                include: {
+                    orderStock: true,
+                },
+                where: {
+                    id: salesId,
+                    srcCompanyId: companyId,
+                }
+            });
+            if (!sales) throw new SalesNotFoundException(SalesError.SALES004, [salesId]);
+            if (sales.status !== 'STOCK_OFFER_PREPARING') throw new InvalidSalesStatusException(SalesError.SALES005);
 
+            await tx.order.update({
+                data: {
+                    status: 'STOCK_OFFER_ACCEPTED',
+                },
+                where: {
+                    id: salesId,
+                }
+            });
+
+            // plan 생성
+            // await this.planChangeService.createPlanWithOrder(tx, {
+
+            // });
+
+            throw new NotImplementedException();
         });
     }
 }
