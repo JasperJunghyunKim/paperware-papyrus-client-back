@@ -1,5 +1,8 @@
 import * as moment from 'moment';
-import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
+import {
+  utilities as nestWinstonModuleUtilities,
+  WinstonModule,
+} from 'nest-winston';
 import { config, format, transports } from 'winston';
 
 const { errors, combine, timestamp, prettyPrint, json } = format;

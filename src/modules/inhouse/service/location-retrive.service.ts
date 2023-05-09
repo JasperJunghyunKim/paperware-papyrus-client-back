@@ -1,22 +1,39 @@
 import { Injectable } from '@nestjs/common';
+import { Model } from 'src/@shared';
+import { Selector } from 'src/common';
 import { PrismaService } from 'src/core';
-import { LOCATION } from '../constants/selector';
 
 @Injectable()
 export class LocationRetriveService {
   constructor(private prisma: PrismaService) {}
 
-  async getLocations(skip: number, take: number) {
+  async getList(params: {
+    skip: number;
+    take: number;
+    companyId: number;
+  }): Promise<Array<Model.Location>> {
     return await this.prisma.location.findMany({
-      select: LOCATION,
-      skip,
-      take,
+      select: Selector.LOCATION,
+      where: {
+        companyId: params.companyId,
+        isDeleted: false,
+      },
+      skip: params.skip,
+      take: params.take,
     });
   }
 
-  async getLocation(id: number) {
+  async getCount(params: { companyId: number }): Promise<number> {
+    return await this.prisma.location.count({
+      where: {
+        companyId: params.companyId,
+      },
+    });
+  }
+
+  async getItem(id: number): Promise<Model.Location> {
     return await this.prisma.location.findUnique({
-      select: LOCATION,
+      select: Selector.LOCATION,
       where: { id },
     });
   }

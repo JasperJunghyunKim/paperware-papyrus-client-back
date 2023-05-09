@@ -1,22 +1,27 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
-import { LOCATION } from '../constants/selector';
 
 @Injectable()
-export class LocationRetriveService {
+export class LocationChangeService {
   constructor(private prisma: PrismaService) {}
 
-  async getLocations(skip: number, take: number) {
-    return await this.prisma.location.findMany({
-      select: LOCATION,
-      skip,
-      take,
+  async create(data: Prisma.LocationCreateInput) {
+    return await this.prisma.location.create({
+      data,
     });
   }
 
-  async getLocation(id: number) {
-    return await this.prisma.location.findUnique({
-      select: LOCATION,
+  async update(id: number, data: Prisma.LocationUpdateInput) {
+    return await this.prisma.location.update({
+      data,
+      where: { id },
+    });
+  }
+
+  async delete(id: number) {
+    return await this.prisma.location.update({
+      data: { isDeleted: true },
       where: { id },
     });
   }

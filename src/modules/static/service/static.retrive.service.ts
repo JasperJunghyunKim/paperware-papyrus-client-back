@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class StaticService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // #region Paper Specs
   async getAllPaperDomain() {

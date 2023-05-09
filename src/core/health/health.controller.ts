@@ -1,5 +1,9 @@
 import { Controller, Get, Logger, OnApplicationShutdown } from '@nestjs/common';
-import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
+import {
+  HealthCheck,
+  HealthCheckService,
+  MemoryHealthIndicator,
+} from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController implements OnApplicationShutdown {
@@ -8,7 +12,7 @@ export class HealthController implements OnApplicationShutdown {
   constructor(
     private healthCheckService: HealthCheckService,
     private memoryHealthIndicator: MemoryHealthIndicator,
-  ) { }
+  ) {}
 
   /**
    * 앱이 종료 되었을때 호출되는 훅이다.
@@ -32,7 +36,8 @@ export class HealthController implements OnApplicationShutdown {
   checkHeap() {
     return this.healthCheckService.check([
       // The process should not have more than 300MB RSS memory allocated
-      () => this.memoryHealthIndicator.checkHeap('memory heap', 500 * 1024 * 1024),
+      () =>
+        this.memoryHealthIndicator.checkHeap('memory heap', 500 * 1024 * 1024),
     ]);
   }
 
@@ -41,7 +46,8 @@ export class HealthController implements OnApplicationShutdown {
   checkRss() {
     return this.healthCheckService.check([
       // The process should not have more than 300MB RSS memory allocated
-      () => this.memoryHealthIndicator.checkRSS('memory RSS', 500 * 1024 * 1024),
+      () =>
+        this.memoryHealthIndicator.checkRSS('memory RSS', 500 * 1024 * 1024),
     ]);
   }
 }

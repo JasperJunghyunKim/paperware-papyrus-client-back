@@ -4,7 +4,7 @@ import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) { }
+  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async signIn(params: {
     username: string;

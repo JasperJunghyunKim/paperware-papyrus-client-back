@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { UserChangeService } from '../service/user-change.service';
 import { UserRetriveService } from '../service/user-retrive.service';
 
@@ -12,7 +23,10 @@ export class UserController {
    *
    * @param userRetriveService 사용자 서비스
    */
-  constructor(private readonly userRetriveService: UserRetriveService, private readonly userChangeService: UserChangeService) { }
+  constructor(
+    private readonly userRetriveService: UserRetriveService,
+    private readonly userChangeService: UserChangeService,
+  ) {}
 
   /**
    * 전제 사용자 목록을 조회한다.

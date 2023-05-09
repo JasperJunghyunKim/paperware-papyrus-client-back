@@ -4,7 +4,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 
 @Controller('me')
 export class MeController {
-  constructor(private meService: MeService) { }
+  constructor(private meService: MeService) {}
 
   @UseGuards(AuthGuard)
   @Get('')

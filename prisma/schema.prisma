@@ -160,7 +160,7 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
-  StockPrice              StockPrice[]
+  stockPrice              StockPrice[]
 
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
@@ -176,7 +176,8 @@ model StockPrice {
   officialPrice     Float             @default(0)
   officialPriceUnit PriceUnit
   discountType      DiscountType      @default(DEFAULT)
-  discountUnitPrice Float             @default(0)
+  unitPrice         Float
+  discountPrice     Float             @default(0)
   unitPriceUnit     PriceUnit
 
   @@id([stockId])
@@ -189,14 +190,14 @@ enum StockEventStatus {
 }
 
 model StockEvent {
-  id         Int              @id @default(autoincrement())
-  stockId    Int
-  stock      Stock            @relation(fields: [stockId], references: [id])
-  change     Int
-  status     StockEventStatus
-  orderStock OrderStock[]
-  planIn     Plan[]           @relation("StockEventInPlan")
-  planOut    Plan[]           @relation("StockEventOutPlan")
+  id                Int              @id @default(autoincrement())
+  stockId           Int
+  stock             Stock            @relation(fields: [stockId], references: [id])
+  change            Int
+  status            StockEventStatus
+  orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
+  planIn            Plan[]           @relation("StockEventInPlan")
+  planOut           Plan[]           @relation("StockEventOutPlan")
 
   @@unique([id, stockId])
 }
@@ -220,13 +221,13 @@ model StockGroup {
   paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
   warehouseId       Int?
   warehouse         Warehouse?        @relation(fields: [warehouseId], references: [id])
-  planId            Int?
-  plan              Plan?             @relation(fields: [planId], references: [id])
   orderStockId      Int?
   orderStock        OrderStock?       @relation(fields: [orderStockId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
   StockGroupEvent   StockGroupEvent[]
+
+  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, companyId])
 }
 
 model StockGroupEvent {
@@ -235,6 +236,8 @@ model StockGroupEvent {
   status       StockGroupEventStatus
   stockGroupId Int
   stockGroup   StockGroup            @relation(fields: [stockGroupId], references: [id])
+  Plan         Plan?
+  planId       Int?
 }
 
 enum StockGroupEventStatus {
@@ -260,10 +263,13 @@ model User {
 model Company {
   id                             Int                           @id @default(autoincrement())
   businessName                   String
-  companyRegistrationNumber      String?                       @unique
+  companyRegistrationNumber      String?
   phoneNo                        String                        @default("")
   faxNo                          String                        @default("")
   email                          String                        @default("")
+  representative                 String                        @default("")
+  invoiceCode                    String?
+  address                        String                        @default("")
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")
@@ -374,6 +380,7 @@ enum OrderStatus {
   ORDER_REQUESTED
   ORDER_ACCEPTED
   ORDER_REJECTED
+  STOCK_OFFER_PREPARING
   STOCK_OFFER_REQUESTED
   STOCK_OFFER_ACCEPTED
 }
@@ -396,15 +403,15 @@ model Order {
 }
 
 model OrderStock {
-  id            Int          @id @default(autoincrement())
-  orderId       Int
-  order         Order        @relation(fields: [orderId], references: [id])
-  dstLocationId Int?
-  dstLocation   Location?    @relation(fields: [dstLocationId], references: [id])
-  stockEvent    StockEvent[]
-  planId        Int?         @unique
-  plan          Plan?        @relation(fields: [planId], references: [id])
-  StockGroup    StockGroup[]
+  id                Int          @id @default(autoincrement())
+  orderId           Int
+  order             Order        @relation(fields: [orderId], references: [id])
+  dstLocationId     Int?
+  dstLocation       Location?    @relation(fields: [dstLocationId], references: [id])
+  arrivalStockEvent StockEvent[] // 정상매입의 입고 예정 재고 이벤트
+  planId            Int?         @unique
+  plan              Plan?        @relation(fields: [planId], references: [id])
+  StockGroup        StockGroup[]
 }
 
 model TradePrice {
@@ -454,18 +461,28 @@ enum TaskType {
   QUANTITY
 }
 
+enum PlanStatus {
+  PREPARING
+  PROGRESSING
+  PROGRESSED
+}
+
 model Plan {
-  id            Int          @id @default(autoincrement())
-  planNo        String       @unique
-  companyId     Int
-  company       Company      @relation(fields: [companyId], references: [id])
-  createdAt     DateTime     @default(now())
-  task          Task[]
-  stockEventIn  StockEvent[] @relation("StockEventInPlan")
-  stockEventOut StockEvent[] @relation("StockEventOutPlan")
-  orderStock    OrderStock?
-  stockGroup    StockGroup[]
-  invoice       Invoice[]
+  id                      Int             @id @default(autoincrement())
+  planNo                  String          @unique
+  companyId               Int
+  company                 Company         @relation(fields: [companyId], references: [id])
+  status                  PlanStatus      @default(PREPARING)
+  isDeleted               Boolean         @default(false)
+  memo                    String          @default("")
+  createdAt               DateTime        @default(now())
+  task                    Task[]
+  stockEventIn            StockEvent[]    @relation("StockEventInPlan")
+  stockEventOut           StockEvent[]    @relation("StockEventOutPlan")
+  orderStock              OrderStock?
+  targetStockGroupEventId Int             @unique
+  targetStockGroupEvent   StockGroupEvent @relation(fields: [targetStockGroupEventId], references: [id])
+  invoice                 Invoice[]
 }
 
 enum TaskStatus {
@@ -481,7 +498,7 @@ model Task {
   plan           Plan            @relation(fields: [planId], references: [id])
   type           TaskType
   isDeleted      Boolean         @default(false)
-  taskStatus     TaskStatus
+  status         TaskStatus
   taskConverting TaskConverting?
   taskGuillotine TaskGuillotine?
   taskQuantity   TaskQuantity?

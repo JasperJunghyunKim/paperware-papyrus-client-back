@@ -6,13 +6,13 @@ import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class ExternalService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // #region Company
   async findCompanyWithCompanyRegistrationNumber(
     companyRegistrationNumber: string,
   ) {
-    return await this.prisma.company.findUnique({
+    return await this.prisma.company.findFirst({
       where: {
         companyRegistrationNumber,
       },
@@ -262,11 +262,7 @@ export class ExternalService {
     return null;
   }
 
-  async acceptOrder(orderId: number): Promise<void> {
-
-
-
-  }
+  async acceptOrder(orderId: number): Promise<void> {}
 
   // #endregion
 

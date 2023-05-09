@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import {
   Body,
   Controller,
@@ -12,19 +13,20 @@ import {
   Query,
   Request,
   UseGuards,
-} from '@nestjs/common';
-// import { WarehouseCreateRequest } from 'src/@shared/api/warehouse/warehouse.request';
-import { WarehouseChangeService } from 'src/modules/inhouse/service/warehouse-change.service';
-import { WarehouseRetriveService } from 'src/modules/inhouse/service/warehouse-retrive.service';
+} from "@nestjs/common";
+import { WarehouseCreateRequest } from "src/@shared/api/inhouse/warehouse.request";
+import { WarehouseChangeService } from "src/modules/inhouse/service/warehouse-change.service";
+import { WarehouseRetriveService } from "src/modules/inhouse/service/warehouse-retrive.service";
 import {
   WarehouseListQueryDto,
   WarehouseUpdateRequestDto,
-} from '../dto/warehouse.request';
-import { AuthType } from 'src/modules/auth/auth.type';
-import { AuthGuard } from 'src/modules/auth/auth.guard';
+} from "./dto/warehouse.request";
+import { AuthType } from "src/modules/auth/auth.type";
+import { AuthGuard } from "src/modules/auth/auth.guard";
+import { WarehouseListResponse } from "src/@shared/api";
 
-@Controller('inhouse/warehouse')
-export class UserController {
+@Controller("inhouse/warehouse")
+export class WarehouseController {
   constructor(
     private readonly warehouseRetriveService: WarehouseRetriveService,
     private readonly warehouseChangeService: WarehouseChangeService,
@@ -32,17 +34,38 @@ export class UserController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getList(@Query() query: WarehouseListQueryDto): Promise<Array<any>> {
-    return await this.warehouseRetriveService.getList(
-      Number(query.skip),
-      Number(query.take),
-    );
+  @UseGuards(AuthGuard)
+  async getList(
+    @Request() req: AuthType,
+    @Query() query: WarehouseListQueryDto,
+  ): Promise<WarehouseListResponse> {
+    const items = await this.warehouseRetriveService.getList({
+      skip: query.skip,
+      take: query.take,
+      companyId: req.user.companyId,
+    });
+
+    const total = await this.warehouseRetriveService.getCount({
+      companyId: req.user.companyId,
+    });
+
+    return {
+      items,
+      total,
+    };
   }
 
-  @Get(':id')
-  @HttpCode(HttpStatus.CREATED)
-  async get(@Param('id') id: number) {
-    return await this.warehouseRetriveService.getItem(id);
+  @Get(":id")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async get(@Request() req: AuthType, @Param("id") id: number) {
+    const warehouse = await this.warehouseRetriveService.getItem(id);
+
+    if (warehouse.company.id !== req.user.companyId) {
+      throw new ForbiddenException();
+    }
+
+    return warehouse;
   }
 
   @Post()
@@ -62,17 +85,17 @@ export class UserController {
     });
   }
 
-  @Put(':id')
+  @Put(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async update(
     @Request() req: AuthType,
-    @Param('id') id: number,
+    @Param("id") id: number,
     @Body() body: WarehouseUpdateRequestDto,
   ) {
     const warehouse = await this.warehouseRetriveService.getItem(id);
 
-    if (warehouse.companyId !== req.user.companyId) {
+    if (warehouse.company.id !== req.user.companyId) {
       throw new ForbiddenException();
     }
 
@@ -84,13 +107,13 @@ export class UserController {
     });
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  async delete(@Request() req: AuthType, @Param('id') id: number) {
+  async delete(@Request() req: AuthType, @Param("id") id: number) {
     const warehouse = await this.warehouseRetriveService.getItem(id);
 
-    if (warehouse.companyId !== req.user.companyId) {
+    if (warehouse.company.id !== req.user.companyId) {
       throw new ForbiddenException();
     }
 

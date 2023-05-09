@@ -1,22 +1,34 @@
 import { Injectable } from '@nestjs/common';
+import { Selector } from 'src/common';
 import { PrismaService } from 'src/core';
-import { WAREHOUSE } from '../constants/selector';
 
 @Injectable()
 export class WarehouseRetriveService {
   constructor(private prisma: PrismaService) {}
 
-  async getList(skip: number, take: number) {
+  async getList(params: { skip: number; take: number; companyId: number }) {
     return await this.prisma.warehouse.findMany({
-      select: WAREHOUSE,
-      skip,
-      take,
+      select: Selector.WAREHOUSE,
+      where: {
+        companyId: params.companyId,
+        isDeleted: false,
+      },
+      skip: params.skip,
+      take: params.take,
+    });
+  }
+
+  async getCount(params: { companyId: number }) {
+    return await this.prisma.warehouse.count({
+      where: {
+        companyId: params.companyId,
+      },
     });
   }
 
   async getItem(id: number) {
     return await this.prisma.warehouse.findUnique({
-      select: WAREHOUSE,
+      select: Selector.WAREHOUSE,
       where: { id },
     });
   }

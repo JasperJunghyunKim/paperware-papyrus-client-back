@@ -26,7 +26,7 @@ export class ExternalController {
     private externalService: ExternalService,
     private internalService: InternalService,
     private prisma: PrismaService,
-  ) { }
+  ) {}
 
   // #region BusinessRelationshipRequest
 
@@ -721,10 +721,10 @@ export class ExternalController {
       },
       dstLocation: body.dstLocationId
         ? {
-          connect: {
-            id: body.dstLocationId,
-          },
-        }
+            connect: {
+              id: body.dstLocationId,
+            },
+          }
         : undefined,
     });
 

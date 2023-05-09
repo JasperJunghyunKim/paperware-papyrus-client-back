@@ -18,18 +18,30 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   }
 
   async onModuleInit() {
-    this.$on('query' as any, (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
-      this.prismaLogger.query(event as Prisma.QueryEvent & Prisma.LogEvent);
-    });
-    this.$on('info' as any, (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
-      this.prismaLogger.info(event as Prisma.QueryEvent & Prisma.LogEvent);
-    });
-    this.$on('warn' as any, (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
-      this.prismaLogger.warn(event as Prisma.QueryEvent & Prisma.LogEvent);
-    });
-    this.$on('error' as any, (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
-      this.prismaLogger.error(event as Prisma.QueryEvent & Prisma.LogEvent);
-    });
+    this.$on(
+      'query' as any,
+      (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
+        this.prismaLogger.query(event as Prisma.QueryEvent & Prisma.LogEvent);
+      },
+    );
+    this.$on(
+      'info' as any,
+      (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
+        this.prismaLogger.info(event as Prisma.QueryEvent & Prisma.LogEvent);
+      },
+    );
+    this.$on(
+      'warn' as any,
+      (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
+        this.prismaLogger.warn(event as Prisma.QueryEvent & Prisma.LogEvent);
+      },
+    );
+    this.$on(
+      'error' as any,
+      (event: Prisma.QueryEvent | Prisma.LogEvent | (() => Promise<void>)) => {
+        this.prismaLogger.error(event as Prisma.QueryEvent & Prisma.LogEvent);
+      },
+    );
     await this.$connect();
   }
 

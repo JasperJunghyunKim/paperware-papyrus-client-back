@@ -18,7 +18,7 @@ import { AuthType } from '../auth/auth.type';
 import { InternalService } from './internal.service';
 import { Prisma } from '@prisma/client';
 import { ulid } from 'ulid';
-import { StaticService } from '../static/static.service';
+import { StaticService } from '../static/service/static.retrive.service';
 import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('internal')
@@ -513,7 +513,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 srcCompanyId: req.user.companyId,
@@ -592,7 +592,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 dstCompanyId: req.user.companyId,

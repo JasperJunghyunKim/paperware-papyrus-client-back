@@ -1,5 +1,5 @@
-import { IsNumber, IsString } from "class-validator";
-import { UserRequest } from "src/@shared/api/user/user.request";
+import { IsNumber, IsString } from 'class-validator';
+import { UserRequest } from 'src/@shared/api/user/user.request';
 
 /**
  * 사용자 요청

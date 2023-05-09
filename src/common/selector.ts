@@ -12,11 +12,23 @@ export const COMPANY = {
   id: true,
   businessName: true,
   companyRegistrationNumber: true,
+  invoiceCode: true,
+  representative: true,
+  address: true,
   phoneNo: true,
   faxNo: true,
   email: true,
   managedById: true,
 } satisfies Prisma.CompanySelect;
+
+export const BUSINESS_RELATIONSHIP = {
+  srcCompany: {
+    select: COMPANY,
+  },
+  dstCompany: {
+    select: COMPANY,
+  },
+} satisfies Prisma.BusinessRelationshipSelect;
 
 export const BUSINESS_RELATIONSHIP_REQUEST = {
   srcCompany: {
@@ -34,7 +46,9 @@ export const WAREHOUSE = {
   name: true,
   code: true,
   isPublic: true,
-  companyId: true,
+  company: {
+    select: COMPANY,
+  },
   address: true,
 } satisfies Prisma.WarehouseSelect;
 
@@ -43,7 +57,9 @@ export const LOCATION = {
   name: true,
   code: true,
   isPublic: true,
-  companyId: true,
+  company: {
+    select: COMPANY,
+  },
   address: true,
 } satisfies Prisma.LocationSelect;
 
@@ -222,6 +238,46 @@ export const STOCK_EVENT = {
   },
 } satisfies Prisma.StockEventSelect;
 
+export const STOCK_GROUP = {
+  id: true,
+  company: {
+    select: COMPANY,
+  },
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  warehouse: {
+    select: WAREHOUSE,
+  },
+} satisfies Prisma.StockGroupSelect;
+
+export const STOCK_GROUP_EVENT = {
+  id: true,
+  stockGroup: {
+    select: STOCK_GROUP,
+  },
+  change: true,
+  status: true,
+} satisfies Prisma.StockGroupEventSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -247,13 +303,10 @@ export const TASK_GUILLOTINE = {
   memo: true,
 } satisfies Prisma.TaskGuillotineSelect;
 
-export const TASK = {
-  id: true,
-  taskNo: true,
-  type: true,
-  taskConverting: { select: TASK_CONVERTING },
-  taskGuillotine: { select: TASK_GUILLOTINE },
-} satisfies Prisma.TaskSelect;
+export const TASK_QUANTITY = {
+  taskId: true,
+  quantity: true,
+} satisfies Prisma.TaskQuantitySelect;
 
 export const PLAN = {
   id: true,
@@ -261,13 +314,26 @@ export const PLAN = {
   company: {
     select: COMPANY,
   },
-  task: {
-    select: TASK,
-  },
-  stockEventIn: { select: STOCK_EVENT },
+  status: true,
   createdAt: true,
-  // status: true,
+  targetStockGroupEvent: {
+    select: STOCK_GROUP_EVENT,
+  },
 } satisfies Prisma.PlanSelect;
+
+export const TASK = {
+  id: true,
+  taskNo: true,
+  plan: {
+    select: PLAN,
+  },
+  status: true,
+  type: true,
+  parentTaskId: true,
+  taskConverting: { select: TASK_CONVERTING },
+  taskGuillotine: { select: TASK_GUILLOTINE },
+  taskQuantity: { select: TASK_QUANTITY },
+} satisfies Prisma.TaskSelect;
 
 export const ORDER_STOCK = {
   id: true,

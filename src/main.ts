@@ -1,6 +1,10 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ClassSerializerInterceptor, Logger } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  ValidationPipe,
+} from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { CONFIG_KEY } from './core/constants/config';
@@ -23,7 +27,10 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     // 파이프 인터셉터, 컴프레션 설정
-    app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+    app.useGlobalInterceptors(
+      new ClassSerializerInterceptor(app.get(Reflector)),
+    );
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     // 운영환경일 경우...
     if (configService.get(CONFIG_KEY.COMMON.NODE_ENV) === 'prod') {
