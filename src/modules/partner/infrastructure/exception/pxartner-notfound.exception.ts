@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { AppError } from 'src/@shared/models/error';
 
 /**
- * 재고 데이터 없음(`NOT_FOUND: 404`) 에러이다.
+ * 파트너 데이터 없음(`NOT_FOUND: 404`) 에러이다.
  */
 export class PartnerNotFoundException extends NotFoundException {
   // eslint-disable-next-line constructor-super
