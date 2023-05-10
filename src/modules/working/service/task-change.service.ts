@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { TaskUtil, Util } from 'src/@shared/helper';
 import { Selector } from 'src/common';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { ulid } from 'ulid';
+import { TaskUtil } from '../infrastructure';
 
 @Injectable()
 export class TaskChangeService {
