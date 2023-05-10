@@ -5,7 +5,7 @@ import { ulid } from 'ulid';
 
 @Injectable()
 export class PlanChangeService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async createPlan(params: {
     companyId: number;
@@ -141,32 +141,34 @@ export class PlanChangeService {
     const sg =
       (await tx.stockGroup.findFirst({
         where: {
+          companyId,
+          warehouseId: warehouseId != null ? warehouseId : undefined,
           productId,
           packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroupId,
-          paperColorId,
-          paperPatternId,
-          paperCertId,
-          warehouseId,
-          companyId,
+          paperColorGroupId:
+            paperColorGroupId != null ? paperColorGroupId : undefined,
+          paperColorId: paperColorId != null ? paperColorId : undefined,
+          paperPatternId: paperPatternId != null ? paperPatternId : undefined,
+          paperCertId: paperCertId != null ? paperCertId : undefined,
         },
       })) ??
       (await tx.stockGroup.create({
         data: {
           companyId,
+          warehouseId: warehouseId != null ? warehouseId : undefined,
           productId,
           packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroupId,
-          paperColorId,
-          paperPatternId,
-          paperCertId,
-          warehouseId,
+          paperColorGroupId:
+            paperColorGroupId != null ? paperColorGroupId : undefined,
+          paperColorId: paperColorId != null ? paperColorId : undefined,
+          paperPatternId: paperPatternId != null ? paperPatternId : undefined,
+          paperCertId: paperCertId != null ? paperCertId : undefined,
         },
       }));
 

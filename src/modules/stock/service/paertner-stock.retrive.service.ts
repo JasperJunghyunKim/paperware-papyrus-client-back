@@ -1,75 +1,75 @@
-import { Injectable } from "@nestjs/common";
-import { PackagingType, Prisma, StockEventStatus } from "@prisma/client";
-import { PrismaService } from "src/core";
+import { Injectable } from '@nestjs/common';
+import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
+import { PrismaService } from 'src/core';
 
 export interface PartnerStockGroupFromDB {
-    warehouseId: number;
-    warehouseName: string;
-    warehouseCode: string;
-    warehouseIsPublic: boolean;
-    warehouseAddress: string;
+  warehouseId: number;
+  warehouseName: string;
+  warehouseCode: string;
+  warehouseIsPublic: boolean;
+  warehouseAddress: string;
 
-    partnerCompanyId: number;
-    partnerCompanyBusinessName: string;
-    partnerCompanyRegistrationNumber: string;
-    partnerCompanyInvoiceCode: string;
-    partnerCompanyRepresentative: string;
-    partnerCompanyAddress: string;
-    partnerCompanyPhoneNo: string;
-    partnerCompanyFaxNo: string;
-    partnerCompanyEmail: string;
-    partnerCompanyManagedById: number;
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyRegistrationNumber: string;
+  partnerCompanyInvoiceCode: string;
+  partnerCompanyRepresentative: string;
+  partnerCompanyAddress: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyEmail: string;
+  partnerCompanyManagedById: number;
 
-    packagingId: number;
-    packagingName: string;
-    packagingType: PackagingType;
-    packagingPackA: number;
-    packagingPackB: number;
+  packagingId: number;
+  packagingName: string;
+  packagingType: PackagingType;
+  packagingPackA: number;
+  packagingPackB: number;
 
-    productId: number;
-    paperDomainId: number;
-    paperDomainName: string;
-    paperGroupId: number;
-    paperGroupName: string;
-    manufacturerId: number;
-    manufacturerName: string;
-    paperTypeId: number;
-    paperTypeName: string;
+  productId: number;
+  paperDomainId: number;
+  paperDomainName: string;
+  paperGroupId: number;
+  paperGroupName: string;
+  manufacturerId: number;
+  manufacturerName: string;
+  paperTypeId: number;
+  paperTypeName: string;
 
-    grammage: number;
-    sizeX: number;
-    sizeY: number;
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
 
-    paperColorGroupId: number;
-    paperColorGroupName: string;
-    paperColorId: number;
-    paperColorName: string;
-    paperPatternId: number;
-    paperPatternName: string;
-    paperCertId: number;
-    paperCertName: string;
+  paperColorGroupId: number;
+  paperColorGroupName: string;
+  paperColorId: number;
+  paperColorName: string;
+  paperPatternId: number;
+  paperPatternName: string;
+  paperCertId: number;
+  paperCertName: string;
 
-    totalQuantity: number;
-    availableQuantity: number;
-    total: bigint;
+  totalQuantity: number;
+  availableQuantity: number;
+  total: bigint;
 }
 
 @Injectable()
 export class PartnerStockRetriveService {
-    constructor(
-        private readonly prisma: PrismaService,
-    ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    async getStockGroupList(
-        companyId: number,
-        skip: number,
-        take: number,
-        partnerCompanyId: number | null,
-    ) {
-        const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
-        const companyConditionQuery = partnerCompanyId ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}` : Prisma.empty;
+  async getStockGroupList(
+    companyId: number,
+    skip: number,
+    take: number,
+    partnerCompanyId: number | null,
+  ) {
+    const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
+    const companyConditionQuery = partnerCompanyId
+      ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
+      : Prisma.empty;
 
-        const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
+    const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
                 SELECT s.warehouseId AS warehouseId
                         , w.name AS warehouseName
                         , w.code AS warehouseCode
@@ -86,7 +86,7 @@ export class PartnerStockRetriveService {
                         , srcCompany.faxNo AS partnerCompanyFaxNo
                         , srcCompany.email AS partnerCompanyEmail
                         , srcCompany.managedById AS partnerCompanyManagedById
-    
+
                         , product.id AS productId
                         , paperDomain.id AS paperDomainId
                         , paperDomain.name AS paperDomainName
@@ -112,18 +112,18 @@ export class PartnerStockRetriveService {
                         , s.grammage AS grammage
                         , s.sizeX AS sizeX
                         , s.sizeY AS sizeY
-    
+
                         , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
                         , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS availableQuantity
                         , COUNT(1) OVER() AS total
-    
+
                   FROM Company                  AS c
                   JOIN BusinessRelationship     AS br               ON br.dstCompanyId = c.id
                   JOIN Company                  AS srcCompany       ON srcCompany.id = br.srcCompanyId
                   JOIN Stock                    AS s                ON s.companyId = br.srcCompanyId
                   JOIN StockEvent               AS se               ON se.stockId = s.id
                   JOIN Warehouse                AS w                ON w.id = s.warehouseId
-    
+
                 # 메타데이터
                   JOIN Product                  AS product          ON product.id = s.productId
                   JOIN PaperDomain              AS paperDomain      ON paperDomain.id = product.paperDomainId
@@ -135,10 +135,10 @@ export class PartnerStockRetriveService {
              LEFT JOIN PaperColor               AS paperColor       ON paperColor.id = s.paperColorId
              LEFT JOIN PaperPattern             AS paperPattern     ON paperPattern.id = s.paperPatternId
              LEFT JOIN PaperCert                AS paperCert        ON paperCert.id = s.paperCertId
-    
+
                  WHERE c.id = ${companyId}
                    AND se.status IN (${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})
-                   ${companyConditionQuery} 
+                   ${companyConditionQuery}
 
                  GROUP BY s.warehouseId
                         , s.productId
@@ -150,18 +150,19 @@ export class PartnerStockRetriveService {
                         , s.paperColorId
                         , s.paperPatternId
                         , s.paperCertId
+                        , srcCompany.id
                 HAVING totalQuantity != 0 OR availableQuantity != 0
-    
+
                  ${limit}
             `;
 
-        const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
-        for (const stockGroup of stockGroups) {
-            stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
-            stockGroup.availableQuantity = Number(stockGroup.availableQuantity);
-            delete stockGroup.total;
-        }
-
-        return { stockGroups, total };
+    const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
+    for (const stockGroup of stockGroups) {
+      stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
+      stockGroup.availableQuantity = Number(stockGroup.availableQuantity);
+      delete stockGroup.total;
     }
+
+    return { stockGroups, total };
+  }
 }

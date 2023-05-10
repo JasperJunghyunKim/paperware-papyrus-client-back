@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
-import { Util } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { ulid } from 'ulid';
@@ -17,6 +18,7 @@ export class OrderChangeService {
     srcCompanyId: number;
     dstCompanyId: number;
     locationId: number;
+    warehouseId: number;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -30,11 +32,12 @@ export class OrderChangeService {
     memo: string;
     wantedDate: string;
     isOffer: boolean;
-  }) {
+  }): Promise<Model.Order> {
     const {
       srcCompanyId,
       dstCompanyId,
       locationId,
+      warehouseId,
       productId,
       packagingId,
       grammage,
@@ -71,7 +74,8 @@ export class OrderChangeService {
         })
       ).managedById;
 
-    await this.prisma.order.create({
+    const created = await this.prisma.order.create({
+      select: Selector.ORDER,
       data: {
         orderNo: ulid(),
         srcCompany: {
@@ -91,6 +95,7 @@ export class OrderChangeService {
         orderStock: {
           create: {
             dstLocationId: locationId,
+            warehouseId,
             productId,
             packagingId,
             grammage,
@@ -105,11 +110,17 @@ export class OrderChangeService {
         },
       },
     });
+
+    return {
+      ...created,
+      wantedDate: Util.dateToIso8601(created.wantedDate),
+    };
   }
 
   async updateStockOrder(params: {
     orderId: number;
     locationId: number;
+    warehouseId: number;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -126,6 +137,7 @@ export class OrderChangeService {
     const {
       orderId,
       locationId,
+      warehouseId,
       productId,
       packagingId,
       grammage,
@@ -150,6 +162,7 @@ export class OrderChangeService {
         orderStock: {
           update: {
             dstLocationId: locationId,
+            warehouseId,
             productId,
             packagingId,
             grammage,
@@ -257,7 +270,7 @@ export class OrderChangeService {
 
       if (!order.dstCompany.managedById && order.orderStock) {
         // TODO: Plan 생성
-        this.planChange.createPlanWithOrder(tx, {
+        await this.planChange.createPlanWithOrder(tx, {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
           warehouseId: order.orderStock.warehouseId,
@@ -340,7 +353,7 @@ export class OrderChangeService {
         },
         data: {
           status:
-            order.status === 'OFFER_REQUESTED'
+            order.status === 'OFFER_REJECTED'
               ? 'OFFER_PREPARING'
               : 'ORDER_PREPARING',
         },
