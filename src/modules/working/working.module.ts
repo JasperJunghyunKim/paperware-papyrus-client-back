@@ -18,5 +18,6 @@ import { StockValidator } from '../stock/service/stock.validator';
     StockValidator,
   ],
   controllers: [PlanController, TaskController],
+  exports: [PlanChangeService]
 })
-export class WorkingModule {}
+export class WorkingModule { }

@@ -187,3 +187,5 @@ export class StockCreateRequestDto implements StockCreateRequest {
   @Type(() => StockCreateStockPriceDto)
   readonly stockPrice: StockCreateStockPriceDto;
 }
+
+

@@ -1,10 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { AppError } from 'src/@shared/models/error';
 
 /**
- * 도착지 올바르지 않음(400) 에러
+ * 재고 수량 부족(`NOT_FOUND: 409`) 에러이다.
  */
-export class InvalidLocationException extends BadRequestException {
+export class InsufficientStockQuantityException extends ConflictException {
     // eslint-disable-next-line constructor-super
     constructor(
         errData?: AppError | string,

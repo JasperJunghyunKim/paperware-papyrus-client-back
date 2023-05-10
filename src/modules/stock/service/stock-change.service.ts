@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotImplementedException } from '@nestjs/common';
 import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
@@ -9,7 +9,7 @@ export class StockChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
-  ) {}
+  ) { }
 
   async cacheStockQuantityTx(
     tx: Omit<
@@ -83,36 +83,20 @@ export class StockChangeService {
         },
       });
 
-      const stockEvent = await tx.stockEvent.create({
+      await tx.stockEvent.create({
         data: {
           stock: {
             connect: {
               id: stock.id,
             },
           },
-          change:
-            packaging.type === PackagingType.ROLL
-              ? quantity * 1000000
-              : quantity, // TODO... 계산 함수 만들기
+          change: quantity,
           status: StockEventStatus.NORMAL,
         },
         select: {
           id: true,
         },
       });
-
-      // 재고 생성 시 PLAN은 필요하지 않기때문에 아래 주석처리합니다.
-      // await tx.plan.create({
-      //   data: {
-      //     planNo: ulid(),
-      //     companyId: stockData.company.connect.id,
-      //     stockEventOut: {
-      //       connect: {
-      //         id: stockEvent.id,
-      //       },
-      //     },
-      //   },
-      // });
 
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
