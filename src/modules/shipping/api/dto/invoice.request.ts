@@ -19,8 +19,7 @@ export class InvoiceListQueryDto implements InvoiceListQuery {
 }
 
 export class InvoiceDisconnectShippingRequestDto
-  implements InvoiceDisconnectShippingRequest
-{
+  implements InvoiceDisconnectShippingRequest {
   @IsInt({ each: true })
   @Type(() => Number)
   readonly invoiceIds: number[];
