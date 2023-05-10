@@ -461,16 +461,16 @@ model TradePrice {
 model OrderStockTradePrice {
   orderId                  Int
   companyId                Int
-  Company                  Company                    @relation(fields: [companyId], references: [id])
-  tradePrice               TradePrice                 @relation(fields: [orderId, companyId], references: [orderId, companyId])
-  officialPriceType        OfficialPriceType          @default(NONE)
-  officialPrice            Float                      @default(0)
+  Company                  Company                   @relation(fields: [companyId], references: [id])
+  tradePrice               TradePrice                @relation(fields: [orderId, companyId], references: [orderId, companyId])
+  officialPriceType        OfficialPriceType         @default(NONE)
+  officialPrice            Float                     @default(0)
   officialPriceUnit        PriceUnit
-  discountType             DiscountType               @default(DEFAULT)
-  discountUnitPrice        Float                      @default(0)
+  discountType             DiscountType              @default(DEFAULT)
+  discountUnitPrice        Float                     @default(0)
   unitPriceUnit            PriceUnit
-  processPrice             Float                      @default(0)
-  OrderStockTradeAltBundle OrderStockTradeAltBundle[]
+  processPrice             Float                     @default(0)
+  orderStockTradeAltBundle OrderStockTradeAltBundle?
 
   @@id([orderId, companyId])
 }
