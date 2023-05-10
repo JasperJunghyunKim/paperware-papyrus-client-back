@@ -2,11 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
+import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { ulid } from 'ulid';
 
 @Injectable()
 export class OrderChangeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planChange: PlanChangeService,
+  ) {}
 
   /** 정상거래 주문 생성 */
   async createStockOrder(params: {
@@ -234,6 +238,8 @@ export class OrderChangeService {
         },
         select: {
           status: true,
+          dstCompany: true,
+          orderStock: true,
         },
       });
 
@@ -247,6 +253,26 @@ export class OrderChangeService {
         )
       ) {
         throw new Error('Invalid order status');
+      }
+
+      if (!order.dstCompany.managedById && order.orderStock) {
+        // TODO: Plan 생성
+        this.planChange.createPlanWithOrder(tx, {
+          companyId: order.dstCompany.id,
+          orderStockId: order.orderStock.id,
+          warehouseId: order.orderStock.warehouseId,
+          productId: order.orderStock.productId,
+          packagingId: order.orderStock.packagingId,
+          grammage: order.orderStock.grammage,
+          sizeX: order.orderStock.sizeX,
+          sizeY: order.orderStock.sizeY,
+          paperColorGroupId: order.orderStock.paperColorGroupId,
+          paperColorId: order.orderStock.paperColorId,
+          paperPatternId: order.orderStock.paperPatternId,
+          paperCertId: order.orderStock.paperCertId,
+          quantity: order.orderStock.quantity,
+          memo: '',
+        });
       }
 
       await tx.order.update({
@@ -304,7 +330,7 @@ export class OrderChangeService {
         },
       });
 
-      if (!Util.inc(order.status, 'OFFER_REQUESTED', 'ORDER_REQUESTED')) {
+      if (!Util.inc(order.status, 'OFFER_REJECTED', 'ORDER_REJECTED')) {
         throw new Error('Invalid order status');
       }
 

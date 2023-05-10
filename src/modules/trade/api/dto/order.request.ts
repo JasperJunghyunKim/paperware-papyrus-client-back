@@ -55,6 +55,10 @@ export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
 
   @IsInt()
   @Type(() => Number)
+  warehouseId: number = null;
+
+  @IsInt()
+  @Type(() => Number)
   productId: number;
 
   @IsInt()
@@ -109,6 +113,10 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsInt()
   @Type(() => Number)
   locationId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  warehouseId: number = null;
 
   @IsInt()
   @Type(() => Number)

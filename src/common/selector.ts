@@ -286,6 +286,9 @@ export const ORDER_STOCK = {
   dstLocation: {
     select: LOCATION,
   },
+  warehouse: {
+    select: WAREHOUSE,
+  },
   product: {
     select: PRODUCT,
   },
