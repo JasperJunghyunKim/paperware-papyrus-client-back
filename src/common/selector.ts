@@ -311,6 +311,12 @@ export const ORDER_STOCK = {
     select: PAPER_CERT,
   },
   quantity: true,
+  plan: {
+    select: {
+      id: true,
+      planNo: true,
+    },
+  },
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER = {
@@ -362,6 +368,13 @@ export const PLAN = {
   createdAt: true,
   targetStockGroupEvent: {
     select: STOCK_GROUP_EVENT,
+  },
+  orderStock: {
+    select: {
+      order: {
+        select: ORDER,
+      },
+    },
   },
 } satisfies Prisma.PlanSelect;
 
