@@ -9,7 +9,7 @@ export class AccountedChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
   async createCash(paidCashRequest: PaidCashRequest): Promise<void> {
-    const result = await lastValueFrom(
+    await lastValueFrom(
       from(
         this.prisma.accounted.create({
           data: {
@@ -27,7 +27,7 @@ export class AccountedChangeService {
               create: {
                 cashAmount: paidCashRequest.amount,
               }
-            }
+            },
           },
           select: {
             id: true,
@@ -35,12 +35,10 @@ export class AccountedChangeService {
         })
       )
     );
-
-    console.log(result);
   }
 
-  async updateCash(paidId: number, paidCashRequest: PaidCashRequest): Promise<void> {
-    const result = await lastValueFrom(
+  async updateCash(accountedId: number, paidCashRequest: PaidCashRequest): Promise<void> {
+    await lastValueFrom(
       from(
         this.prisma.accounted.update({
           data: {
@@ -61,26 +59,43 @@ export class AccountedChangeService {
             }
           },
           where: {
-            id: paidId
+            id: accountedId
           }
         })
       )
     );
-
-    console.log(result);
   }
-  async deleteCash(paidId: number): Promise<void> {
-    const result = await lastValueFrom(
+
+  async deleteCash(accountedId: number): Promise<void> {
+    const result = await this.prisma.accounted.findFirst({
+      select: {
+        byCash: true,
+      },
+      where: { id: accountedId }
+    });
+
+    await lastValueFrom(
       from(
-        this.prisma.accounted.delete({ where: { id: paidId } })
+        this.prisma.byCash.update({
+          data: {
+            isDeleted: true,
+            accounted: {
+              update: {
+                isDeleted: true,
+              }
+            }
+          },
+          include: {
+            accounted: true,
+          },
+          where: { id: result.byCash.id }
+        })
       )
     );
-
-    console.log(result);
   }
 
   async createEtc(paidEtcRequest: PaidEtcRequest): Promise<void> {
-    const result = await lastValueFrom(
+    await lastValueFrom(
       from(
         this.prisma.accounted.create({
           data: {
@@ -106,11 +121,10 @@ export class AccountedChangeService {
         })
       )
     );
-
-    console.log(result);
   }
-  async updateEtc(paidId: number, paidEtcRequest: PaidEtcRequest): Promise<void> {
-    const result = await lastValueFrom(
+
+  async updateEtc(accountedId: number, paidEtcRequest: PaidEtcRequest): Promise<void> {
+    await lastValueFrom(
       from(
         this.prisma.accounted.update({
           data: {
@@ -134,21 +148,38 @@ export class AccountedChangeService {
             id: true,
           },
           where: {
-            id: paidId
+            id: accountedId
           }
         })
       )
     );
-
-    console.log(result);
   }
-  async deleteEtc(paidId: number): Promise<void> {
-    const result = await lastValueFrom(
+
+  async deleteEtc(accountedId: number): Promise<void> {
+    const result = await this.prisma.accounted.findFirst({
+      select: {
+        byEtc: true,
+      },
+      where: { id: accountedId }
+    });
+
+    await lastValueFrom(
       from(
-        this.prisma.accounted.delete({ where: { id: paidId } })
+        this.prisma.byEtc.update({
+          data: {
+            isDeleted: true,
+            accounted: {
+              update: {
+                isDeleted: true,
+              }
+            }
+          },
+          include: {
+            accounted: true,
+          },
+          where: { id: result.byEtc.id }
+        })
       )
     );
-
-    console.log(result);
   }
 }

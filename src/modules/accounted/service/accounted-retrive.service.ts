@@ -14,62 +14,76 @@ export class AccountedRetriveService {
 
   async getPaidList(companyId: number, paidRequest: PaidRequest): Promise<PaidListResponse> {
     const { partnerId, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+    const param: any = {
+      accountedType: 'PAID',
+      isDeleted: false,
+    }
+
+    if (accountedSubject !== 'All') {
+      param.accountedSubject = {
+        equals: accountedSubject,
+      };
+    }
+
+    if (accountedMethod !== 'All') {
+      param.accountedMethod = {
+        equals: accountedMethod,
+      };
+    }
+
+    if (accountedFromDate !== '' && accountedToDate !== '') {
+      param.accountedDate = {
+        gte: new Date(accountedFromDate),
+        lte: new Date(accountedToDate),
+      }
+    }
 
     return await lastValueFrom(from(
-      this.prisma.partner.findMany({
+      this.prisma.accounted.findMany({
         select: {
           id: true,
-          partnerNickName: true,
-          accountedList: {
+          accountedType: true,
+          accountedSubject: true,
+          accountedMethod: true,
+          accountedDate: true,
+          memo: true,
+          byCash: true,
+          byEtc: true,
+          partner: {
             select: {
+              partnerNickName: true,
               id: true,
-              accountedType: true,
-              accountedSubject: true,
-              accountedMethod: true,
-              accountedDate: true,
-              memo: true,
-              byCash: true,
-              byEtc: true,
-            },
+              company: {
+                select: {
+                  id: true,
+                }
+              }
+            }
           }
         },
-        // where: {
-        //   companyId,
-        //   id: partnerId,
-        //   accountedList: {
-        //     some: {
-        //       accountedType: 'PAID',
-        //       accountedSubject,
-        //       accountedMethod,
-        //       accountedDate: {
-        //         gte: new Date(accountedFromDate),
-        //         lte: new Date(accountedToDate),
-        //       },
-        //     }
-        //   }
-        // }
+        where: {
+          partner: {
+            id: partnerId !== 0 ? { equals: partnerId } : undefined,
+            companyId
+          },
+          ...param,
+        }
       })
     ).pipe(
       throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [paidRequest])),
-      map((partnerList) => {
-        const items = [];
-
-        partnerList.forEach((partner) => {
-          const data = partner.accountedList.map((accounted) => {
-            return {
-              partnerId: partner.id,
-              partnerNickName: partner.partnerNickName,
-              id: accounted.id,
-              accountedDate: accounted.accountedDate.toISOString(),
-              accountedMethod: accounted.accountedMethod,
-              accountedSubject: accounted.accountedSubject,
-              amount: accounted.accountedMethod === Method.CASH ? accounted.byCash : accounted.byEtc,
-              memo: accounted.memo,
-              gubun: accounted.accountedMethod === Method.CASH ? '현금' : '기타',
-            }
-          })
-
-          items.push(data);
+      map((accountedList) => {
+        const items = accountedList.map((accounted) => {
+          return {
+            partnerId: accounted.partner.id,
+            partnerNickName: accounted.partner.partnerNickName,
+            accountedId: accounted.id,
+            accountedDate: accounted.accountedDate.toISOString(),
+            accountedMethod: accounted.accountedMethod,
+            accountedSubject: accounted.accountedSubject,
+            amount: accounted.accountedMethod === Method.CASH ? accounted.byCash.cashAmount : accounted.byEtc.etcAmount,
+            memo: accounted.memo,
+            gubun: '',
+          }
         })
 
         return {
@@ -80,7 +94,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByCash(companyId: number, paidId: number): Promise<PaidEtcResponse> {
+  async getPaidByCash(companyId: number, accountedId: number): Promise<PaidEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -101,13 +115,18 @@ export class AccountedRetriveService {
           partner: {
             companyId,
           },
-          id: paidId,
+          id: accountedId,
+          isDeleted: false,
+          byCash: {
+            isDeleted: false,
+          }
         }
       })
     ).pipe(
-      throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [paidId])),
+      throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [accountedId])),
       map((accounted) => {
         return {
+          accountedId: accounted.id,
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,
@@ -120,7 +139,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByEtc(companyId: number, paidId: number): Promise<PaidEtcResponse> {
+  async getPaidByEtc(companyId: number, accountedId: number): Promise<PaidEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -141,13 +160,18 @@ export class AccountedRetriveService {
           partner: {
             companyId,
           },
-          id: paidId,
+          id: accountedId,
+          isDeleted: false,
+          byEtc: {
+            isDeleted: false,
+          }
         }
       })
     ).pipe(
-      throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [paidId])),
+      throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [accountedId])),
       map((accounted) => {
         return {
+          accountedId: accounted.id,
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,

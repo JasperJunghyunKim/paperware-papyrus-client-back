@@ -8,6 +8,9 @@ export class PaidCashRequest implements PaidByCashCreateRequest {
   @IsNumber()
   readonly partnerId: number;
 
+  @IsString()
+  readonly partnerNickName: string;
+
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 

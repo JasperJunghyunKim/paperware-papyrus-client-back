@@ -8,6 +8,9 @@ export class PaidEtcRequest implements PaidByEtcCreateRequest {
   @IsNumber()
   readonly partnerId: number;
 
+  @IsString()
+  readonly partnerNickName: string;
+
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 

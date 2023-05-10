@@ -11,6 +11,10 @@ export class PaidCashResponse implements PaidByCashItemResponse {
   @IsString()
   readonly partnerNickName: string;
 
+  @Type(() => Number)
+  @IsNumber()
+  readonly accountedId: number;
+
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 

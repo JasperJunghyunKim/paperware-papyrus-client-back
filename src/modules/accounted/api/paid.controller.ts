@@ -38,13 +38,13 @@ export class PaidController {
     return await this.accountedRetriveService.getPaidList(req.user.companyId, paidRequest);
   }
 
-  @Get(':paidId/cash')
+  @Get(':accountedId/cash')
   @UseGuards(AuthGuard)
   async getPaidByCash(
     @Request() req: AuthType,
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
   ): Promise<PaidEtcResponse> {
-    return await this.accountedRetriveService.getPaidByCash(req.user.companyId, paidId);
+    return await this.accountedRetriveService.getPaidByCash(req.user.companyId, accountedId);
   }
 
   @Post('/cash')
@@ -56,32 +56,32 @@ export class PaidController {
     await this.accountedChangeService.createCash(paidCashRequest);
   }
 
-  @Patch(':paidId/cash')
+  @Patch(':accountedId/cash')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateCash(
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
     @Body() paidCashRequest: PaidCashRequest,
   ): Promise<void> {
-    await this.accountedChangeService.updateCash(paidId, paidCashRequest);
+    await this.accountedChangeService.updateCash(accountedId, paidCashRequest);
   }
 
-  @Delete(':paidId/cash')
+  @Delete(':accountedId/cash')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async deleteCash(
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
   ): Promise<void> {
-    await this.accountedChangeService.deleteCash(paidId);
+    await this.accountedChangeService.deleteCash(accountedId);
   }
 
-  @Get()
+  @Get(':accountedId/etc')
   @UseGuards(AuthGuard)
   async getPaidByEtc(
     @Request() req: AuthType,
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
   ): Promise<PaidEtcResponse> {
-    return await this.accountedRetriveService.getPaidByEtc(req.user.companyId, paidId);
+    return await this.accountedRetriveService.getPaidByEtc(req.user.companyId, accountedId);
   }
 
   @Post('/etc')
@@ -93,22 +93,22 @@ export class PaidController {
     await this.accountedChangeService.createEtc(paidEtcRequest);
   }
 
-  @Patch(':paidId/etc')
+  @Patch(':accountedId/etc')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateEtc(
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
     @Body() paidEtcRequest: PaidEtcRequest,
   ): Promise<void> {
-    await this.accountedChangeService.updateEtc(paidId, paidEtcRequest);
+    await this.accountedChangeService.updateEtc(accountedId, paidEtcRequest);
   }
 
-  @Delete(':paidId/etc')
+  @Delete(':accountedId/etc')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async deleteEtc(
-    @Param('paidId') paidId: number,
+    @Param('accountedId') accountedId: number,
   ): Promise<void> {
-    await this.accountedChangeService.deleteEtc(paidId);
+    await this.accountedChangeService.deleteEtc(accountedId);
   }
 }
