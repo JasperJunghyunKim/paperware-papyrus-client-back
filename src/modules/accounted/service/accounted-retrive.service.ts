@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Method } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
-import { PaidByCashItemResponse, PaidListResponse } from 'src/@shared/api';
+import { PaidListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
+import { PaidEtcResponse } from '../api/dto/etc.response';
 import { PaidRequest } from '../api/dto/paid.request';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
@@ -80,7 +81,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByCash(companyId: number, paidId: number): Promise<PaidByCashItemResponse> {
+  async getPaidByCash(companyId: number, paidId: number): Promise<PaidEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -120,7 +121,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByEtc(companyId: number, paidId: number): Promise<PaidByCashItemResponse> {
+  async getPaidByEtc(companyId: number, paidId: number): Promise<PaidEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
