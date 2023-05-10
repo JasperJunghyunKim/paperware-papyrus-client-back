@@ -8,6 +8,7 @@ import { InhouseModule } from './inhouse/inhouse.module';
 import { StockModule } from './stock/stock.module';
 import { WorkingModule } from './working/working.module';
 import { TradeModule } from './trade/trade.module';
+import { ShippingModule } from './shipping/shipping.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TradeModule } from './trade/trade.module';
     StockModule,
     WorkingModule,
     TradeModule,
+    ShippingModule,
   ],
 })
 export class BusinessModule {}

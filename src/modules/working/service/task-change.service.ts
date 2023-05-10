@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TaskUtil, Util } from 'src/@shared/helper';
 import { Selector } from 'src/common';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
@@ -239,33 +240,141 @@ export class TaskChangeService {
   }
 
   async finishTask(id: number) {
-    const task = await this.prisma.task.findUnique({
-      select: {
-        type: true,
-        status: true,
-        parentTask: {
-          select: {
-            status: true,
+    return await this.prisma.$transaction(async (tx) => {
+      const task = await tx.task.findUnique({
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          parentTask: {
+            select: {
+              status: true,
+            },
+          },
+          plan: {
+            select: {
+              id: true,
+              orderStock: true,
+              targetStockGroupEvent: {
+                select: Selector.STOCK_GROUP_EVENT,
+              },
+            },
           },
         },
-      },
-      where: {
-        id,
-      },
-    });
+        where: {
+          id,
+        },
+      });
 
-    if (task.status === 'PROGRESSED') {
-      throw new Error('이미 완료된 작업입니다.');
-    }
+      if (task.status === 'PROGRESSED') {
+        throw new Error('이미 완료된 작업입니다.');
+      }
 
-    return await this.prisma.task.update({
-      select: Selector.TASK,
-      where: {
-        id,
-      },
-      data: {
-        status: 'PROGRESSED',
-      },
+      if (task.type === 'QUANTITY') {
+        const allTasks = await tx.task.findMany({
+          select: Selector.TASK,
+          where: {
+            planId: task.plan.id,
+            isDeleted: false,
+          },
+        });
+
+        const result = TaskUtil.applicate(
+          {
+            packagingType:
+              task.plan.targetStockGroupEvent.stockGroup.packaging.type,
+            sizeX: task.plan.targetStockGroupEvent.stockGroup.sizeX,
+            sizeY: task.plan.targetStockGroupEvent.stockGroup.sizeY,
+          },
+          allTasks,
+          task.id,
+        );
+
+        const packaging = await tx.packaging.findFirstOrThrow({
+          select: {
+            id: true,
+          },
+          where: {
+            type: task.plan.targetStockGroupEvent.stockGroup.packaging.type,
+          },
+        });
+
+        console.log(':::', task.plan.targetStockGroupEvent.stockGroup);
+
+        if (task.plan.orderStock) {
+          // 송장 맹글기
+          await tx.invoice.create({
+            data: {
+              invoiceNo: ulid(),
+              plan: {
+                connect: {
+                  id: task.plan.id,
+                },
+              },
+              product: {
+                connect: {
+                  id: task.plan.targetStockGroupEvent.stockGroup.product.id,
+                },
+              },
+              packaging: {
+                connect: {
+                  id: packaging.id,
+                },
+              },
+              grammage: task.plan.orderStock.grammage,
+              sizeX: result.sizeX,
+              sizeY: result.sizeY,
+              paperColorGroup: task.plan.targetStockGroupEvent.stockGroup
+                .paperColorGroup
+                ? {
+                    connect: {
+                      id: task.plan.targetStockGroupEvent.stockGroup
+                        .paperColorGroup.id,
+                    },
+                  }
+                : undefined,
+              paperColor: task.plan.targetStockGroupEvent.stockGroup.paperColor
+                ? {
+                    connect: {
+                      id: task.plan.targetStockGroupEvent.stockGroup.paperColor
+                        .id,
+                    },
+                  }
+                : undefined,
+              paperPattern: task.plan.targetStockGroupEvent.stockGroup
+                .paperPattern
+                ? {
+                    connect: {
+                      id: task.plan.targetStockGroupEvent.stockGroup
+                        .paperPattern.id,
+                    },
+                  }
+                : undefined,
+              paperCert: task.plan.targetStockGroupEvent.stockGroup.paperCert
+                ? {
+                    connect: {
+                      id: task.plan.targetStockGroupEvent.stockGroup.paperCert
+                        .id,
+                    },
+                  }
+                : undefined,
+              quantity: -task.plan.targetStockGroupEvent.change,
+            },
+          });
+        } else {
+          // TODO: 재고 증가
+        }
+      }
+
+      return await tx.task.update({
+        select: Selector.TASK,
+        where: {
+          id,
+        },
+        data: {
+          status: 'PROGRESSED',
+        },
+      });
     });
   }
 

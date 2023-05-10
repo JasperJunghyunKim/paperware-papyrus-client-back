@@ -402,11 +402,33 @@ export const SHIPPING = {
 
 export const INVOICE = {
   id: true,
+  invoiceNo: true,
   shipping: {
     select: SHIPPING,
   },
-  invoiceNo: true,
-  // stockEvent: {
-  //   select: STOCK_EVENT,
-  // },
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
+  plan: {
+    select: PLAN,
+  },
 } satisfies Prisma.InvoiceSelect;
