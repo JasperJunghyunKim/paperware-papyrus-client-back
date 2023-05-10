@@ -1,8 +1,8 @@
-import { Controller, Get, NotImplementedException, Param, Put, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, NotImplementedException, Param, Put, Request, UseGuards } from "@nestjs/common";
 import { TradePriceResponse } from "src/@shared/api";
 import { AuthGuard } from "../auth/auth.guard";
 import { AuthType } from "../auth/auth.type";
-import { OrderIdDto } from "./dto/temp.request";
+import { OrderIdDto, UpdateTradePriceDto } from "./dto/temp.request";
 import { TempService } from "./temp.service";
 
 @Controller('/trade')
@@ -25,7 +25,12 @@ export class TempController {
     async updateTradePrice(
         @Request() req: AuthType,
         @Param() parmDto: OrderIdDto,
+        @Body() dto: UpdateTradePriceDto,
     ) {
-        throw new NotImplementedException();
+        await this.tempService.updateTradePrice(
+            req.user.companyId,
+            parmDto.orderId,
+            dto,
+        )
     }
 }
