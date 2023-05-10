@@ -394,20 +394,20 @@ enum OrderStatus {
 }
 
 model Order {
-  id                     Int         @id @default(autoincrement())
-  orderNo                String      @unique
+  id                     Int          @id @default(autoincrement())
+  orderNo                String       @unique
   srcCompanyId           Int
-  srcCompany             Company     @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
+  srcCompany             Company      @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId           Int
-  dstCompany             Company     @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
-  status                 OrderStatus @default(ORDER_PREPARING)
-  isEntrusted            Boolean     @default(false)
+  dstCompany             Company      @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
+  status                 OrderStatus  @default(ORDER_PREPARING)
+  isEntrusted            Boolean      @default(false)
   memo                   String
   wantedDate             DateTime?
   stockAcceptedCompanyId Int?
-  isStockRejected        Boolean     @default(false)
+  isStockRejected        Boolean      @default(false)
   orderStock             OrderStock?
-  tradePrice             TradePrice?
+  tradePrice             TradePrice[]
 }
 
 model OrderStock {
