@@ -11,7 +11,11 @@ import { StockArrivalRetriveService } from './service/stock-arrival-retrive.serv
 import { StockArrivalChangeService } from './service/stock-arrival-change.service';
 
 @Module({
-  controllers: [StockController, StockArrivalController],
+  controllers: [
+    StockController,
+    StockArrivalController,
+    PartnerStockController,
+  ],
   providers: [
     StockRetriveService,
     StockChangeService,
@@ -19,6 +23,7 @@ import { StockArrivalChangeService } from './service/stock-arrival-change.servic
     StockQuantityCheckerService,
     StockArrivalRetriveService,
     StockArrivalChangeService,
+    PartnerStockRetriveService,
   ],
   exports: [StockQuantityCheckerService],
 })
