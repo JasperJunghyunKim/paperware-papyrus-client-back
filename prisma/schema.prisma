@@ -453,23 +453,24 @@ model TradePrice {
   vatPrice      Float   @default(0)
   isBookClosed  Boolean @default(false)
 
-  OrderStockTradePrice OrderStockTradePrice[]
+  orderStockTradePrice OrderStockTradePrice?
 
   @@id([orderId, companyId])
 }
 
 model OrderStockTradePrice {
-  orderId           Int
-  companyId         Int
-  Company           Company           @relation(fields: [companyId], references: [id])
-  tradePrice        TradePrice        @relation(fields: [orderId, companyId], references: [orderId, companyId])
-  officialPriceType OfficialPriceType @default(NONE)
-  officialPrice     Float             @default(0)
-  officialPriceUnit PriceUnit
-  discountType      DiscountType      @default(DEFAULT)
-  discountUnitPrice Float             @default(0)
-  unitPriceUnit     PriceUnit
-  processPrice      Float             @default(0)
+  orderId                  Int
+  companyId                Int
+  Company                  Company                    @relation(fields: [companyId], references: [id])
+  tradePrice               TradePrice                 @relation(fields: [orderId, companyId], references: [orderId, companyId])
+  officialPriceType        OfficialPriceType          @default(NONE)
+  officialPrice            Float                      @default(0)
+  officialPriceUnit        PriceUnit
+  discountType             DiscountType               @default(DEFAULT)
+  discountUnitPrice        Float                      @default(0)
+  unitPriceUnit            PriceUnit
+  processPrice             Float                      @default(0)
+  OrderStockTradeAltBundle OrderStockTradeAltBundle[]
 
   @@id([orderId, companyId])
 }
@@ -481,6 +482,8 @@ model OrderStockTradeAltBundle {
   altSizeX    Int
   altSizeY    Int
   altQuantity Int
+
+  orderStockTradePrice OrderStockTradePrice @relation(fields: [orderId, companyId], references: [orderId, companyId])
 
   @@id([orderId, companyId])
 }
