@@ -30,6 +30,8 @@ export class TempService {
         });
         if (!order) throw new Error('존재하지 않는 주문') // 모듈 이동시 Exception 생성하여 처리
 
-        return order.tradePrice;
+        const tradePrice = order.tradePrice.find(tp => tp.companyId === companyId) || null;
+
+        return tradePrice;
     }
 }

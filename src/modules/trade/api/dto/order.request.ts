@@ -170,8 +170,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery
-{
+  implements OrderStockArrivalListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -184,8 +183,7 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest
-{
+  implements OrderStockArrivalCreateRequest {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
