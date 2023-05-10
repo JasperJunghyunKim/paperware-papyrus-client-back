@@ -7,6 +7,14 @@ enum COMMON {
    * 포트
    */
   PORT = 'PORT',
+  /**
+   * jwt 시크릿키
+   */
+  JWT_SECRET = 'JWT_SECRET',
+  /**
+   * jwt 유효시간
+   */
+  JWT_EXPIRES_IN = 'JWT_EXPIRES_IN',
 }
 
 enum DATABASE {

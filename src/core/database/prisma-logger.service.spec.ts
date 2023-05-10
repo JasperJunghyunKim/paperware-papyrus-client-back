@@ -2,7 +2,6 @@ import { Test } from '@nestjs/testing';
 import { winstonConfig } from '../config/winson';
 import { PrismaLogger } from './prisma-logger.service';
 
-
 const trueLoggerProvider = {
   provide: PrismaLogger,
   useFactory: () => new PrismaLogger(true),

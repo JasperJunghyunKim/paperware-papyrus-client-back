@@ -139,7 +139,8 @@ CREATE TABLE `StockPrice` (
     `officialPrice` DOUBLE NOT NULL DEFAULT 0,
     `officialPriceUnit` ENUM('WON_PER_TON', 'WON_PER_REAM', 'WON_PER_BOX') NOT NULL,
     `discountType` ENUM('DEFAULT', 'SPECIAL') NOT NULL DEFAULT 'DEFAULT',
-    `discountUnitPrice` DOUBLE NOT NULL DEFAULT 0,
+    `unitPrice` DOUBLE NOT NULL,
+    `discountPrice` DOUBLE NOT NULL DEFAULT 0,
     `unitPriceUnit` ENUM('WON_PER_TON', 'WON_PER_REAM', 'WON_PER_BOX') NOT NULL,
 
     PRIMARY KEY (`stockId`)
@@ -169,10 +170,10 @@ CREATE TABLE `StockGroup` (
     `paperPatternId` INTEGER NULL,
     `paperCertId` INTEGER NULL,
     `warehouseId` INTEGER NULL,
-    `planId` INTEGER NULL,
     `orderStockId` INTEGER NULL,
     `companyId` INTEGER NOT NULL,
 
+    UNIQUE INDEX `StockGroup_productId_packagingId_grammage_sizeX_sizeY_paperC_key`(`productId`, `packagingId`, `grammage`, `sizeX`, `sizeY`, `paperColorGroupId`, `paperColorId`, `paperPatternId`, `paperCertId`, `warehouseId`, `orderStockId`, `companyId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -182,6 +183,7 @@ CREATE TABLE `StockGroupEvent` (
     `change` INTEGER NOT NULL,
     `status` ENUM('NORMAL', 'CANCELLED', 'PENDING') NOT NULL,
     `stockGroupId` INTEGER NOT NULL,
+    `planId` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -207,9 +209,11 @@ CREATE TABLE `Company` (
     `phoneNo` VARCHAR(191) NOT NULL DEFAULT '',
     `faxNo` VARCHAR(191) NOT NULL DEFAULT '',
     `email` VARCHAR(191) NOT NULL DEFAULT '',
+    `representative` VARCHAR(191) NOT NULL DEFAULT '',
+    `invoiceCode` VARCHAR(191) NULL,
+    `address` VARCHAR(191) NOT NULL DEFAULT '',
     `managedById` INTEGER NULL,
 
-    UNIQUE INDEX `Company_companyRegistrationNumber_key`(`companyRegistrationNumber`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -283,7 +287,10 @@ CREATE TABLE `OrderStock` (
     `orderId` INTEGER NOT NULL,
     `dstLocationId` INTEGER NULL,
     `planId` INTEGER NULL,
+    `stockGroupId` INTEGER NOT NULL,
+    `quantity` INTEGER NOT NULL DEFAULT 0,
 
+    UNIQUE INDEX `OrderStock_orderId_key`(`orderId`),
     UNIQUE INDEX `OrderStock_planId_key`(`planId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -296,6 +303,7 @@ CREATE TABLE `TradePrice` (
     `vatPrice` DOUBLE NOT NULL DEFAULT 0,
     `isBookClosed` BOOLEAN NOT NULL DEFAULT false,
 
+    UNIQUE INDEX `TradePrice_orderId_key`(`orderId`),
     PRIMARY KEY (`orderId`, `companyId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -330,9 +338,14 @@ CREATE TABLE `Plan` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `planNo` VARCHAR(191) NOT NULL,
     `companyId` INTEGER NOT NULL,
+    `status` ENUM('PREPARING', 'PROGRESSING', 'PROGRESSED') NOT NULL DEFAULT 'PREPARING',
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `targetStockGroupEventId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Plan_planNo_key`(`planNo`),
+    UNIQUE INDEX `Plan_targetStockGroupEventId_key`(`targetStockGroupEventId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -343,7 +356,7 @@ CREATE TABLE `Task` (
     `planId` INTEGER NOT NULL,
     `type` ENUM('CONVERTING', 'GUILLOTINE', 'QUANTITY') NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
-    `taskStatus` ENUM('PREPARING', 'PROGRESSING', 'PROGRESSED') NOT NULL,
+    `status` ENUM('PREPARING', 'PROGRESSING', 'PROGRESSED') NOT NULL,
     `parentTaskId` INTEGER NULL,
 
     UNIQUE INDEX `Task_taskNo_key`(`taskNo`),
@@ -503,9 +516,6 @@ ALTER TABLE `StockGroup` ADD CONSTRAINT `StockGroup_paperCertId_fkey` FOREIGN KE
 ALTER TABLE `StockGroup` ADD CONSTRAINT `StockGroup_warehouseId_fkey` FOREIGN KEY (`warehouseId`) REFERENCES `Warehouse`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `StockGroup` ADD CONSTRAINT `StockGroup_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `StockGroup` ADD CONSTRAINT `StockGroup_orderStockId_fkey` FOREIGN KEY (`orderStockId`) REFERENCES `OrderStock`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -569,6 +579,9 @@ ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_dstLocationId_fkey` FOREIGN 
 ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_stockGroupId_fkey` FOREIGN KEY (`stockGroupId`) REFERENCES `StockGroup`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `TradePrice` ADD CONSTRAINT `TradePrice_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -585,6 +598,9 @@ ALTER TABLE `OrderStockTradeAltBundle` ADD CONSTRAINT `OrderStockTradeAltBundle_
 
 -- AddForeignKey
 ALTER TABLE `Plan` ADD CONSTRAINT `Plan_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Plan` ADD CONSTRAINT `Plan_targetStockGroupEventId_fkey` FOREIGN KEY (`targetStockGroupEventId`) REFERENCES `StockGroupEvent`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Task` ADD CONSTRAINT `Task_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

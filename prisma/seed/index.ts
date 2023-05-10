@@ -68,6 +68,28 @@ async function main() {
   await prisma.paperType.createMany({
     data: Data.PAPER_TYPE.map((name) => ({ name })),
   });
+  await prisma.product.createMany({
+    data: [
+      {
+        paperDomainId: 1,
+        manufacturerId: 1,
+        paperGroupId: 1,
+        paperTypeId: 1,
+      },
+      {
+        paperDomainId: 1,
+        manufacturerId: 1,
+        paperGroupId: 1,
+        paperTypeId: 2,
+      },
+      {
+        paperDomainId: 2,
+        manufacturerId: 3,
+        paperGroupId: 1,
+        paperTypeId: 3,
+      },
+    ],
+  });
   await prisma.paperColorGroup.createMany({
     data: Data.PAPER_COLOR_GROUP.map((name) => ({ name })),
   });

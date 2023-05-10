@@ -1,24 +1,27 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { BusinessModule } from './modules/business.module';
 import { ConfigModule } from '@nestjs/config';
-import { validate } from './core/config/confnig.validator';
-import { DatabaseModule, HealthModule, RouteScanModule } from './core';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { DatabaseModule, HealthModule, RouteScanModule } from './core';
+import { validate } from './core/config/confnig.validator';
 import { GlobalExceptionFilter } from './filters';
 import { HttpLoggingInterceptor } from './interceptors';
+import { BusinessModule } from './modules/business.module';
 
 const configModule = (): DynamicModule => {
   return ConfigModule.forRoot({
     isGlobal: true,
     envFilePath: `.env`,
-    validate
-  })
+    validate,
+  });
 };
-
 
 @Module({
   imports: [
-    configModule(), HealthModule, RouteScanModule, BusinessModule, DatabaseModule
+    configModule(),
+    HealthModule,
+    RouteScanModule,
+    BusinessModule,
+    DatabaseModule,
   ],
   providers: [
     {
@@ -31,4 +34,4 @@ const configModule = (): DynamicModule => {
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -8,4 +8,4 @@ import { UserChangeService } from './service/user-change.service';
   exports: [UserRetriveService, UserChangeService],
   providers: [UserRetriveService, UserChangeService],
 })
-export class ExampleModule { }
+export class ExampleModule {}

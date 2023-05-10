@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class InternalService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   // #region Warehouse
   async getWarehouse(where: Prisma.WarehouseWhereUniqueInput) {

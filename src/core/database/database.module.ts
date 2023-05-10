@@ -18,4 +18,4 @@ import { PrismaService } from './prisma.service';
   ],
   exports: [PrismaService],
 })
-export class DatabaseModule { }
+export class DatabaseModule {}

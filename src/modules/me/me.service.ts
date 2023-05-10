@@ -4,7 +4,7 @@ import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class MeService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getMe(id: number) {
     return this.prisma.user.findUnique({

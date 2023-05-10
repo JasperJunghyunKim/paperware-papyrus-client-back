@@ -21,8 +21,9 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: 'secret',
       });
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
+
+      // TODO intercepter에서 사용자 정보에 대해 변경 및 추가적인 조건을 실행 하고 싶을 때 사용
+      // 다만 컨트롤에서에서 유저에 대한 정보를 꺼내어서 변경하는 행위는 안됨(글로벌로 처리 여부 확인 필요) or 안사용하면 삭제...
       request['user'] = payload;
     } catch {
       throw new UnauthorizedException();

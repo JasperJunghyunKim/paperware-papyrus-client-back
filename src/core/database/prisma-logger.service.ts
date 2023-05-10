@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import { isUndefined } from 'lodash';
 import * as moment from 'moment';
 
-
 import { highlight } from 'sql-highlight';
 
 /**
@@ -35,7 +34,9 @@ export class PrismaLogger {
     this.logger.log('----------------- QUERY START ----------------- ');
 
     this.logger.log(
-      `query: ${highlight(query)} - Took ${duration}ms -Time: ${moment(timestamp).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`
+      `query: ${highlight(query)} - Took ${duration}ms -Time: ${moment(
+        timestamp,
+      ).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
     );
 
     this.logger.log('----------------- QUERY END  ----------------- ');
@@ -44,7 +45,9 @@ export class PrismaLogger {
   info(queryEvent: Prisma.QueryEvent): void {
     const { timestamp, query, params, duration } = queryEvent;
     this.logger.log(
-      `info: ${highlight(query)} - Took ${duration}ms -Time: ${moment(timestamp).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`
+      `info: ${highlight(query)} - Took ${duration}ms -Time: ${moment(
+        timestamp,
+      ).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
     );
   }
 
@@ -52,7 +55,9 @@ export class PrismaLogger {
     const { timestamp, query, params, duration } = queryEvent;
 
     this.logger.warn(
-      `warn: ${highlight(query)} - Took ${duration}ms -Time: ${moment(timestamp).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
+      `warn: ${highlight(query)} - Took ${duration}ms -Time: ${moment(
+        timestamp,
+      ).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
     );
   }
 
@@ -61,10 +66,16 @@ export class PrismaLogger {
 
     if (!isUndefined(query)) {
       this.logger.error(
-        `error: ${highlight(query)} - Took ${duration}ms -Time: ${moment(timestamp).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
+        `error: ${highlight(query)} - Took ${duration}ms -Time: ${moment(
+          timestamp,
+        ).format('YYYY년 MM월 DD일  HH시mm분ss초')} - Params: ${params}`,
       );
     } else {
-      this.logger.error(`error: ${message} - target: ${target} -Time: ${moment(timestamp).format('YYYY년 MM월 DD일  HH시mm분ss초')}`);
+      this.logger.error(
+        `error: ${message} - target: ${target} -Time: ${moment(
+          timestamp,
+        ).format('YYYY년 MM월 DD일  HH시mm분ss초')}`,
+      );
     }
   }
 

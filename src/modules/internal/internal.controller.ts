@@ -18,7 +18,7 @@ import { AuthType } from '../auth/auth.type';
 import { InternalService } from './internal.service';
 import { Prisma } from '@prisma/client';
 import { ulid } from 'ulid';
-import { StaticService } from '../static/static.service';
+import { StaticService } from '../static/service/static.retrive.service';
 import { PrismaService } from 'src/core/database/prisma.service';
 
 @Controller('internal')
@@ -379,25 +379,6 @@ export class InternalController {
   }
 
   @UseGuards(AuthGuard)
-  @Get('stock/:id')
-  async getStock(
-    @Request() req: AuthType,
-    @Param() param: { id: string },
-  ): Promise<Record.Stock> {
-    const where: Prisma.StockWhereUniqueInput = {
-      id: Number(param.id),
-    };
-
-    const data = await this.internalService.getStock(where);
-
-    if (data.companyId !== req.user.companyId) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-
-    return null;
-  }
-
-  @UseGuards(AuthGuard)
   @Post('stock')
   async createStock(
     @Request() req: AuthType,
@@ -474,29 +455,6 @@ export class InternalController {
     );
   }
 
-  @UseGuards(AuthGuard)
-  @Delete('stock/:id')
-  async deleteStock(
-    @Request() req: AuthType,
-    @Param() param: { id: string },
-  ): Promise<void> {
-    const where = {
-      id: Number(param.id),
-    };
-
-    const stock = await this.internalService.getStock(where);
-
-    if (stock.companyId !== req.user.companyId) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-
-    await this.internalService.updateStock({
-      where,
-      data: {
-        isDeleted: true,
-      },
-    });
-  }
   // #endregion
 
   // #region Arrival stock
@@ -513,7 +471,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 srcCompanyId: req.user.companyId,
@@ -592,7 +550,7 @@ export class InternalController {
       AND: [
         {
           status: 'PENDING',
-          orderStock: {
+          orderStockArrival: {
             some: {
               order: {
                 dstCompanyId: req.user.companyId,
