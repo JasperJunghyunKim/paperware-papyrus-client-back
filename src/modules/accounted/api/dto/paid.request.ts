@@ -1,13 +1,20 @@
 import { Method, Subject } from "@prisma/client";
+import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 import { PaidQuery } from "src/@shared/api";
 
 export class PaidRequest implements PaidQuery {
+  @Type(() => Number)
+  @IsNumber()
+  readonly skip: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  readonly take: number;
+
+  @Type(() => Number)
   @IsNumber()
   readonly partnerId: number;
-
-  @IsString()
-  readonly partnerNickName: string;
 
   @IsEnum(Subject)
   readonly accountedSubject: Subject;

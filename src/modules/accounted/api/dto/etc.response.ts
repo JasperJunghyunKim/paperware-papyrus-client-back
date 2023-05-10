@@ -1,8 +1,10 @@
 import { Method, Subject } from "@prisma/client";
+import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 import { PaidByEtcItemResponse } from "src/@shared/api";
 
 export class PaidEtcResponse implements PaidByEtcItemResponse {
+  @Type(() => Number)
   @IsNumber()
   readonly partnerId: number;
 

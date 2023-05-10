@@ -576,6 +576,8 @@ enum Method {
   SET_OFF
   /// 기타
   ETC
+  /// 전체
+  All
 }
 
 /// 회계 타입
@@ -610,6 +612,8 @@ enum Subject {
   COLLECTED_PRODUCT_PURCHASES
   /// 기타 (공통)
   ETC
+  /// 전체
+  All
 }
 
 /// 파트너

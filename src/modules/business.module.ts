@@ -9,6 +9,7 @@ import { InhouseModule } from './inhouse/inhouse.module';
 import { StockModule } from './stock/stock.module';
 import { WorkingModule } from './working/working.module';
 import { PartnerModule } from './partner/partner.module';
+import { AccountedModule } from './accounted/accounted.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PartnerModule } from './partner/partner.module';
     StockModule,
     WorkingModule,
     PartnerModule,
+    AccountedModule,
   ],
 })
 export class BusinessModule { }

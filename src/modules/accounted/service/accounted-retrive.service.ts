@@ -13,7 +13,7 @@ export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
   async getPaidList(companyId: number, paidRequest: PaidRequest): Promise<PaidListResponse> {
-    const { partnerId, partnerNickName, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+    const { partnerId, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
 
     return await lastValueFrom(from(
       this.prisma.partner.findMany({
@@ -33,22 +33,21 @@ export class AccountedRetriveService {
             },
           }
         },
-        where: {
-          companyId,
-          id: partnerId,
-          partnerNickName,
-          accountedList: {
-            some: {
-              accountedType: 'PAID',
-              accountedSubject,
-              accountedMethod,
-              accountedDate: {
-                gte: accountedFromDate,
-                lte: accountedToDate,
-              },
-            }
-          }
-        }
+        // where: {
+        //   companyId,
+        //   id: partnerId,
+        //   accountedList: {
+        //     some: {
+        //       accountedType: 'PAID',
+        //       accountedSubject,
+        //       accountedMethod,
+        //       accountedDate: {
+        //         gte: new Date(accountedFromDate),
+        //         lte: new Date(accountedToDate),
+        //       },
+        //     }
+        //   }
+        // }
       })
     ).pipe(
       throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [paidRequest])),
@@ -61,7 +60,7 @@ export class AccountedRetriveService {
               partnerId: partner.id,
               partnerNickName: partner.partnerNickName,
               id: accounted.id,
-              accountedDate: accounted.accountedDate,
+              accountedDate: accounted.accountedDate.toISOString(),
               accountedMethod: accounted.accountedMethod,
               accountedSubject: accounted.accountedSubject,
               amount: accounted.accountedMethod === Method.CASH ? accounted.byCash : accounted.byEtc,
