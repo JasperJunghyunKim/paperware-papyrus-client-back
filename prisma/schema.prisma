@@ -38,43 +38,43 @@ model PaperType {
 }
 
 model PaperColorGroup {
-  id            Int                @id @default(autoincrement())
-  name          String
-  Stock         Stock[]
-  officialPrice OfficialPriceMap[]
-  StockGroup    StockGroup[]
-  Invoice       Invoice[]
-  OrderStock    OrderStock[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  Stock                  Stock[]
+  StockGroup             StockGroup[]
+  Invoice                Invoice[]
+  OrderStock             OrderStock[]
+  OfficialPriceCondition OfficialPriceCondition[]
 }
 
 model PaperColor {
-  id            Int                @id @default(autoincrement())
-  name          String
-  Stock         Stock[]
-  officialPrice OfficialPriceMap[]
-  StockGroup    StockGroup[]
-  Invoice       Invoice[]
-  OrderStock    OrderStock[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  Stock                  Stock[]
+  StockGroup             StockGroup[]
+  Invoice                Invoice[]
+  OrderStock             OrderStock[]
+  OfficialPriceCondition OfficialPriceCondition[]
 }
 
 model PaperPattern {
-  id            Int                @id @default(autoincrement())
-  name          String
-  Stock         Stock[]
-  officialPrice OfficialPriceMap[]
-  StockGroup    StockGroup[]
-  Invoice       Invoice[]
-  OrderStock    OrderStock[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  Stock                  Stock[]
+  StockGroup             StockGroup[]
+  Invoice                Invoice[]
+  OrderStock             OrderStock[]
+  OfficialPriceCondition OfficialPriceCondition[]
 }
 
 model PaperCert {
-  id            Int                @id @default(autoincrement())
-  name          String
-  Stock         Stock[]
-  officialPrice OfficialPriceMap[]
-  StockGroup    StockGroup[]
-  Invoice       Invoice[]
-  OrderStock    OrderStock[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  Stock                  Stock[]
+  StockGroup             StockGroup[]
+  Invoice                Invoice[]
+  OrderStock             OrderStock[]
+  OfficialPriceCondition OfficialPriceCondition[]
 }
 
 enum PackagingType {
@@ -99,20 +99,20 @@ model Packaging {
 }
 
 model Product {
-  id             Int                @id @default(autoincrement())
-  paperDomainId  Int
-  paperDomain    PaperDomain        @relation(fields: [paperDomainId], references: [id])
-  manufacturerId Int
-  manufacturer   Manufacturer       @relation(fields: [manufacturerId], references: [id])
-  paperGroupId   Int
-  paperGroup     PaperGroup         @relation(fields: [paperGroupId], references: [id])
-  paperTypeId    Int
-  paperType      PaperType          @relation(fields: [paperTypeId], references: [id])
-  stock          Stock[]
-  officialPrice  OfficialPriceMap[]
-  StockGroup     StockGroup[]
-  Invoice        Invoice[]
-  OrderStock     OrderStock[]
+  id                     Int                      @id @default(autoincrement())
+  paperDomainId          Int
+  paperDomain            PaperDomain              @relation(fields: [paperDomainId], references: [id])
+  manufacturerId         Int
+  manufacturer           Manufacturer             @relation(fields: [manufacturerId], references: [id])
+  paperGroupId           Int
+  paperGroup             PaperGroup               @relation(fields: [paperGroupId], references: [id])
+  paperTypeId            Int
+  paperType              PaperType                @relation(fields: [paperTypeId], references: [id])
+  stock                  Stock[]
+  StockGroup             StockGroup[]
+  Invoice                Invoice[]
+  OrderStock             OrderStock[]
+  OfficialPriceCondition OfficialPriceCondition[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -361,22 +361,38 @@ enum PriceUnit {
   WON_PER_BOX
 }
 
-model OfficialPriceMap {
-  id                Int               @id @default(autoincrement())
-  companyId         Int
-  company           Company           @relation(fields: [companyId], references: [id])
-  officialPriceType OfficialPriceType
-  officialPrice     Float
+// 고시가
+enum OfficialPriceMapType {
+  WHOLESALE
+  RETAIL
+}
+
+model OfficialPriceCondition {
+  id                Int                @id @default(autoincrement())
   productId         Int
-  product           Product           @relation(fields: [productId], references: [id])
+  product           Product            @relation(fields: [productId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
   paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
+  paperColorGroup   PaperColorGroup?   @relation(fields: [paperColorGroupId], references: [id])
   paperColorId      Int?
-  paperColor        PaperColor?       @relation(fields: [paperColorId], references: [id])
+  paperColor        PaperColor?        @relation(fields: [paperColorId], references: [id])
   paperPatternId    Int?
-  paperPattern      PaperPattern?     @relation(fields: [paperPatternId], references: [id])
+  paperPattern      PaperPattern?      @relation(fields: [paperPatternId], references: [id])
   paperCertId       Int?
-  paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
+  paperCert         PaperCert?         @relation(fields: [paperCertId], references: [id])
+  OfficialPriceMap  OfficialPriceMap[]
+}
+
+model OfficialPriceMap {
+  id                       Int                    @id @default(autoincrement())
+  officialPriceConditionId Int
+  officialPriceCondition   OfficialPriceCondition @relation(fields: [officialPriceConditionId], references: [id])
+  companyId                Int
+  company                  Company                @relation(fields: [companyId], references: [id])
+  officialPriceMapType     OfficialPriceMapType
+  officialPrice            Float
 }
 
 // Order
