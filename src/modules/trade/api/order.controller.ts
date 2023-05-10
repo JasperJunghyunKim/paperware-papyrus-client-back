@@ -25,6 +25,7 @@ import {
   OrderStockUpdateRequestDto,
 } from './dto/order.request';
 import { OrderStockArrivalListResponse } from 'src/@shared/api';
+import { Api } from 'src/@shared';
 
 @Controller('/order')
 export class OrderController {
@@ -110,7 +111,7 @@ export class OrderController {
   async createStockOrder(
     @Request() req: AuthType,
     @Body() body: OrderStockCreateRequestDto,
-  ) {
+  ): Promise<Api.OrderCreateResponse> {
     if (
       body.srcCompanyId !== req.user.companyId &&
       body.dstCompanyId !== req.user.companyId
@@ -128,6 +129,7 @@ export class OrderController {
       srcCompanyId: body.srcCompanyId,
       dstCompanyId: body.dstCompanyId,
       locationId: body.locationId,
+      warehouseId: body.warehouseId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -169,6 +171,7 @@ export class OrderController {
     this.change.updateStockOrder({
       orderId: Number(id),
       locationId: body.locationId,
+      warehouseId: body.warehouseId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,

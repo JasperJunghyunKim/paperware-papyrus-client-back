@@ -53,6 +53,7 @@ export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
   @Type(() => Number)
   locationId: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   warehouseId: number = null;
@@ -82,6 +83,7 @@ export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
   @Type(() => Number)
   paperColorGroupId: number | null = null;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   paperColorId: number | null = null;
@@ -100,9 +102,10 @@ export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
   @Type(() => Number)
   quantity: number;
 
+  @IsOptional()
   @IsString()
   @MaxLength(100)
-  memo: string;
+  memo: string = '';
 
   @IsString()
   wantedDate: string;
@@ -114,6 +117,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @Type(() => Number)
   locationId: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   warehouseId: number = null;
@@ -143,6 +147,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @Type(() => Number)
   paperColorGroupId: number | null = null;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   paperColorId: number | null = null;
@@ -161,9 +166,10 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @Type(() => Number)
   quantity: number;
 
+  @IsOptional()
   @IsString()
   @MaxLength(100)
-  memo: string;
+  memo: string = '';
 
   @IsString()
   wantedDate: string;

@@ -8,6 +8,7 @@ import { InhouseModule } from './inhouse/inhouse.module';
 import { StockModule } from './stock/stock.module';
 import { WorkingModule } from './working/working.module';
 import { TradeModule } from './trade/trade.module';
+import { ShippingModule } from './shipping/shipping.module';
 import { TempModule } from './temp/temp.module';
 
 @Module({
@@ -21,6 +22,7 @@ import { TempModule } from './temp/temp.module';
     StockModule,
     WorkingModule,
     TradeModule,
+    ShippingModule,
     TempModule,
   ],
 })
