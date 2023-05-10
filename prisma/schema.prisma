@@ -467,7 +467,8 @@ model OrderStockTradePrice {
   officialPrice            Float                     @default(0)
   officialPriceUnit        PriceUnit
   discountType             DiscountType              @default(DEFAULT)
-  discountUnitPrice        Float                     @default(0)
+  discountPrice            Float                     @default(0)
+  unitPrice                Float                     @default(0)
   unitPriceUnit            PriceUnit
   processPrice             Float                     @default(0)
   orderStockTradeAltBundle OrderStockTradeAltBundle?
