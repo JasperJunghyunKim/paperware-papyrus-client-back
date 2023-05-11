@@ -35,10 +35,12 @@ export class InvoiceController {
       skip: query.skip,
       take: query.take,
       companyId: req.user.companyId,
+      shippingId: query.shippingId,
     });
 
     const total = await this.retrive.getCount({
       companyId: req.user.companyId,
+      shippingId: query.shippingId,
     });
 
     return {

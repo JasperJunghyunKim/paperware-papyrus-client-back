@@ -10,6 +10,7 @@ export class InvoiceRetriveService {
   async getList(params: {
     skip?: number;
     take?: number;
+    shippingId?: number | null;
     companyId: number;
   }): Promise<Model.Invoice[]> {
     const { companyId } = params;
@@ -19,6 +20,7 @@ export class InvoiceRetriveService {
         plan: {
           companyId: companyId,
         },
+        shippingId: params.shippingId,
       },
       skip: params.skip,
       take: params.take,
@@ -42,7 +44,10 @@ export class InvoiceRetriveService {
     }));
   }
 
-  async getCount(params: { companyId: number }): Promise<number> {
+  async getCount(params: {
+    companyId: number;
+    shippingId?: number | null;
+  }): Promise<number> {
     const { companyId } = params;
 
     const count = await this.prisma.invoice.count({
@@ -50,6 +55,7 @@ export class InvoiceRetriveService {
         plan: {
           companyId: companyId,
         },
+        shippingId: params.shippingId,
       },
     });
 

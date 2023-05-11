@@ -16,6 +16,11 @@ export class InvoiceListQueryDto implements InvoiceListQuery {
   @Type(() => Number)
   @Min(0)
   readonly take: number = undefined;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly shippingId: number | null = undefined;
 }
 
 export class InvoiceDisconnectShippingRequestDto
