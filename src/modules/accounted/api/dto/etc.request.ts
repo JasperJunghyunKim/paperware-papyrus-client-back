@@ -1,6 +1,6 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ByEtcCreateRequest } from "src/@shared/api";
 
 export class EtcRequest implements ByEtcCreateRequest {
@@ -12,6 +12,7 @@ export class EtcRequest implements ByEtcCreateRequest {
   readonly partnerNickName: string;
 
   @IsNumber()
+  @IsOptional()
   readonly accountedId: number;
 
   @IsEnum(AccountedType)

@@ -1,6 +1,6 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ByCashCreateRequest } from "src/@shared/api";
 
 export class CashRequest implements ByCashCreateRequest {
@@ -13,6 +13,7 @@ export class CashRequest implements ByCashCreateRequest {
   readonly partnerNickName: string;
 
   @IsNumber()
+  @IsOptional()
   readonly accountedId: number;
 
   @IsEnum(AccountedType)

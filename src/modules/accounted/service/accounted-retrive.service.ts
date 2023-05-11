@@ -12,8 +12,8 @@ import { AccountedNotFoundException } from '../infrastructure/exception/accounte
 export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedList(companyId: number, paidRequest: AccountedRequest): Promise<AccountedListResponse> {
-    const { partnerId, accountedSubject, accountedType, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+  async getAccountedList(companyId: number, accountedType: AccountedType, paidRequest: AccountedRequest): Promise<AccountedListResponse> {
+    const { partnerId, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
     const param: any = {
       accountedType,
       isDeleted: false,
@@ -95,7 +95,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getAccountedByCash(companyId: number, accountedId: number, accountedType: AccountedType,): Promise<EtcResponse> {
+  async getAccountedByCash(companyId: number, accountedType: AccountedType, accountedId: number): Promise<EtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -143,7 +143,7 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getAccountedByEtc(companyId: number, accountedId: number, accountedType: AccountedType,): Promise<EtcResponse> {
+  async getAccountedByEtc(companyId: number, accountedType: AccountedType, accountedId: number): Promise<EtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

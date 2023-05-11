@@ -3,12 +3,13 @@ import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { CashRequest } from '../api/dto/cash.request';
 import { EtcRequest } from '../api/dto/etc.request';
+import { AccountedType } from '@prisma/client';
 
 @Injectable()
 export class AccountedChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async createCash(cashRequest: CashRequest): Promise<void> {
+  async createCash(accountedType: AccountedType, cashRequest: CashRequest): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -18,7 +19,7 @@ export class AccountedChangeService {
                 id: cashRequest.partnerId,
               },
             },
-            accountedType: cashRequest.accountedType,
+            accountedType,
             accountedSubject: cashRequest.accountedSubject,
             accountedMethod: cashRequest.accountedMethod,
             accountedDate: cashRequest.accountedDate,
@@ -37,7 +38,7 @@ export class AccountedChangeService {
     );
   }
 
-  async updateCash(accountedId: number, cashRequest: CashRequest): Promise<void> {
+  async updateCash(accountedType: AccountedType, accountedId: number, cashRequest: CashRequest): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -47,7 +48,7 @@ export class AccountedChangeService {
                 id: cashRequest.partnerId,
               },
             },
-            accountedType: cashRequest.accountedType,
+            accountedType,
             accountedSubject: cashRequest.accountedSubject,
             accountedMethod: cashRequest.accountedMethod,
             accountedDate: cashRequest.accountedDate,
@@ -66,12 +67,15 @@ export class AccountedChangeService {
     );
   }
 
-  async deleteCash(accountedId: number): Promise<void> {
+  async deleteCash(accountedType: AccountedType, accountedId: number): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byCash: true,
       },
-      where: { id: accountedId }
+      where: {
+        id: accountedId,
+        accountedType,
+      }
     });
 
     await lastValueFrom(
@@ -88,13 +92,15 @@ export class AccountedChangeService {
           include: {
             accounted: true,
           },
-          where: { id: result.byCash.id }
+          where: {
+            id: result.byCash.id,
+          }
         })
       )
     );
   }
 
-  async createEtc(etcRequest: EtcRequest): Promise<void> {
+  async createEtc(accountedType: AccountedType, etcRequest: EtcRequest): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -104,7 +110,7 @@ export class AccountedChangeService {
                 id: etcRequest.partnerId,
               },
             },
-            accountedType: etcRequest.accountedType,
+            accountedType,
             accountedSubject: etcRequest.accountedSubject,
             accountedMethod: etcRequest.accountedMethod,
             accountedDate: etcRequest.accountedDate,
@@ -123,7 +129,7 @@ export class AccountedChangeService {
     );
   }
 
-  async updateEtc(accountedId: number, etcRequest: EtcRequest): Promise<void> {
+  async updateEtc(accountedType: AccountedType, accountedId: number, etcRequest: EtcRequest): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -133,7 +139,7 @@ export class AccountedChangeService {
                 id: etcRequest.partnerId,
               },
             },
-            accountedType: etcRequest.accountedType,
+            accountedType,
             accountedSubject: etcRequest.accountedSubject,
             accountedMethod: etcRequest.accountedMethod,
             accountedDate: etcRequest.accountedDate,
@@ -155,12 +161,15 @@ export class AccountedChangeService {
     );
   }
 
-  async deleteEtc(accountedId: number): Promise<void> {
+  async deleteEtc(accountedType: AccountedType, accountedId: number): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byEtc: true,
       },
-      where: { id: accountedId }
+      where: {
+        id: accountedId,
+        accountedType
+      }
     });
 
     await lastValueFrom(
