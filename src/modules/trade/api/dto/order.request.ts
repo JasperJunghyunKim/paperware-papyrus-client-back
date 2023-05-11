@@ -58,6 +58,11 @@ export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
   @Type(() => Number)
   warehouseId: number = null;
 
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  orderStockId: number = null;
+
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -121,6 +126,11 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsInt()
   @Type(() => Number)
   warehouseId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  orderStockId: number = null;
 
   @IsInt()
   @Type(() => Number)
@@ -192,11 +202,6 @@ export class OrderStockArrivalListQueryDto
 export class OrderStockArrivalCreateRequestDto
   implements OrderStockArrivalCreateRequest
 {
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  warehouseId: number | null = null;
-
   @IsInt()
   @Type(() => Number)
   productId: number;

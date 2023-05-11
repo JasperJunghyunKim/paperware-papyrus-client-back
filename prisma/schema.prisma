@@ -423,6 +423,8 @@ model OrderStock {
   // 정상거래의 주문 원지 정보
   warehouseId       Int?
   warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
+  orderStockId      Int?
+  orderStock        OrderStock?      @relation("orig", fields: [orderStockId], references: [id])
   productId         Int
   product           Product          @relation(fields: [productId], references: [id])
   packagingId       Int
@@ -442,6 +444,7 @@ model OrderStock {
   stockGroups       StockGroup[]     @relation("OrderStockStockGroup")
   StockGroup        StockGroup?      @relation(fields: [stockGroupId], references: [id])
   stockGroupId      Int?
+  OrderStock        OrderStock[]     @relation("orig")
 }
 
 model TradePrice {

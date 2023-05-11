@@ -15,7 +15,11 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { PlanChangeService } from '../service/plan-change.service';
 import { PlanRetriveService } from '../service/plan-retrive.service';
-import { PlanCreateRequestDto, PlanListQueryDto } from './dto/plan.request';
+import {
+  PlanCreateRequestDto,
+  PlanListQueryDto,
+  RegisterInputStockRequestDto,
+} from './dto/plan.request';
 import { TaskRetriveService } from '../service/task-retrive.service';
 import { TaskListResponse } from 'src/@shared/api/working/task.response';
 
@@ -127,6 +131,29 @@ export class PlanController {
 
     const updatedPlan = await this.planChangeService.completePlan({
       planId: id,
+    });
+
+    return updatedPlan;
+  }
+
+  @Post('plan/:id/register-stock')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async registerStock(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+    @Body() body: RegisterInputStockRequestDto,
+  ) {
+    const plan = await this.planRetriveService.getPlanById(id);
+
+    if (plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    const updatedPlan = await this.planChangeService.registerInputStock({
+      planId: id,
+      stockId: body.stockId,
+      quantity: body.quantity,
     });
 
     return updatedPlan;

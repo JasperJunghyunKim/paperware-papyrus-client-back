@@ -130,6 +130,7 @@ export class OrderController {
       dstCompanyId: body.dstCompanyId,
       locationId: body.locationId,
       warehouseId: body.warehouseId,
+      orderStockId: body.orderStockId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -308,7 +309,6 @@ export class OrderController {
 
     await this.change.createArrival({
       orderId: Number(id),
-      warehouseId: body.warehouseId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,

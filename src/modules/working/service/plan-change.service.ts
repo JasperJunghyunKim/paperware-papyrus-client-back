@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
+import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { ulid } from 'ulid';
 
 @Injectable()
@@ -114,7 +115,8 @@ export class PlanChangeService {
       paperColorId: number | null;
       paperPatternId: number | null;
       paperCertId: number | null;
-      warehouseId: number | null;
+      warehouseId: number | null; // 원지 부모재고 정보 구분하는 속성
+      orderStockIdOrig: number | null; // 원지 부모재고 정보 구분하는 속성
       memo: string;
       quantity: number;
     },
@@ -132,17 +134,17 @@ export class PlanChangeService {
       paperPatternId,
       paperCertId,
       warehouseId,
+      orderStockIdOrig,
       memo,
       quantity,
     } = params;
-
-    console.log('TEST', params);
 
     const sg =
       (await tx.stockGroup.findFirst({
         where: {
           companyId,
-          warehouseId: warehouseId != null ? warehouseId : undefined,
+          warehouseId: warehouseId,
+          orderStockId: orderStockIdOrig,
           productId,
           packagingId,
           grammage,
@@ -158,24 +160,24 @@ export class PlanChangeService {
       (await tx.stockGroup.create({
         data: {
           companyId,
-          warehouseId: warehouseId != null ? warehouseId : undefined,
+          warehouseId: warehouseId,
+          orderStockId: orderStockIdOrig,
           productId,
           packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroupId:
-            paperColorGroupId != null ? paperColorGroupId : undefined,
-          paperColorId: paperColorId != null ? paperColorId : undefined,
-          paperPatternId: paperPatternId != null ? paperPatternId : undefined,
-          paperCertId: paperCertId != null ? paperCertId : undefined,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
         },
       }));
 
     const sge = await tx.stockGroupEvent.create({
       data: {
         stockGroupId: sg.id,
-        change: quantity,
+        change: -quantity,
         status: 'PENDING',
       },
     });
@@ -255,5 +257,39 @@ export class PlanChangeService {
     });
 
     // TODO: 입고 가능한 Release 재고를 생성합니다.
+  }
+
+  async registerInputStock(params: {
+    planId: number;
+    stockId: number;
+    quantity: number;
+  }) {
+    const { planId, stockId, quantity } = params;
+
+    const plan = await this.prisma.plan.findUnique({
+      where: {
+        id: planId,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (plan.status !== 'PROGRESSING') {
+      throw new Error('실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.');
+    }
+
+    await this.prisma.stockEvent.create({
+      data: {
+        change: -quantity,
+        stockId,
+        status: 'NORMAL',
+        planIn: {
+          connect: {
+            id: planId,
+          },
+        },
+      },
+    });
   }
 }

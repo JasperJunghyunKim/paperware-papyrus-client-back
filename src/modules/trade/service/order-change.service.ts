@@ -18,7 +18,8 @@ export class OrderChangeService {
     srcCompanyId: number;
     dstCompanyId: number;
     locationId: number;
-    warehouseId: number;
+    warehouseId: number | null;
+    orderStockId: number | null;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -38,6 +39,7 @@ export class OrderChangeService {
       dstCompanyId,
       locationId,
       warehouseId,
+      orderStockId,
       productId,
       packagingId,
       grammage,
@@ -96,6 +98,7 @@ export class OrderChangeService {
           create: {
             dstLocationId: locationId,
             warehouseId,
+            orderStockId,
             productId,
             packagingId,
             grammage,
@@ -274,6 +277,7 @@ export class OrderChangeService {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
           warehouseId: order.orderStock.warehouseId,
+          orderStockIdOrig: order.orderStock.id,
           productId: order.orderStock.productId,
           packagingId: order.orderStock.packagingId,
           grammage: order.orderStock.grammage,
@@ -363,7 +367,6 @@ export class OrderChangeService {
 
   async createArrival(params: {
     orderId: number;
-    warehouseId: number | null;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -378,7 +381,6 @@ export class OrderChangeService {
   }) {
     const {
       orderId,
-      warehouseId,
       productId,
       packagingId,
       grammage,
@@ -412,7 +414,6 @@ export class OrderChangeService {
             },
           },
           serial: ulid(),
-          warehouse: warehouseId ? { connect: { id: warehouseId } } : undefined,
           product: { connect: { id: productId } },
           packaging: { connect: { id: packagingId } },
           grammage,
