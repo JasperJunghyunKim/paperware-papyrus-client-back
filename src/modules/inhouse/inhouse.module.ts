@@ -16,6 +16,9 @@ import { VirtualCompanyController } from './api/virtual-company.controller';
 import { BusinessRelationshipRequestRetriveService } from './service/business-relationship-request-retrive.service';
 import { BusinessRelationshipRequestChangeService } from './service/business-relationship-request-change.service';
 import { CompanyController } from './api/company.controller';
+import { OfficialPriceController } from './api/official-price.controller';
+import { OfficialPriceChangeService } from './service/official-price-change.service';
+import { OfficialPriceRetriveService } from './service/official-price-retrive.service';
 
 @Module({
   providers: [
@@ -30,6 +33,8 @@ import { CompanyController } from './api/company.controller';
     VirtualCompanyRetriveService,
     WarehouseChangeService,
     WarehouseRetriveService,
+    OfficialPriceChangeService,
+    OfficialPriceRetriveService,
   ],
   controllers: [
     BusinessRelationshipController,
@@ -38,6 +43,7 @@ import { CompanyController } from './api/company.controller';
     LocationController,
     VirtualCompanyController,
     WarehouseController,
+    OfficialPriceController,
   ],
   exports: [
     BusinessRelationshipRetriveService,
