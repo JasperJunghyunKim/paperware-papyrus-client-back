@@ -47,7 +47,6 @@ export class PartnerStockController {
                         address: sg.warehouseAddress,
                     }
                     : null,
-                    orderStock: null, // TODO: 일단 null로 둠
                 product: {
                     id: sg.productId,
                     paperDomain: {
