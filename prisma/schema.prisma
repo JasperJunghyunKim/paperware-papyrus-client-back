@@ -298,6 +298,7 @@ model Company {
   StockGroup                     StockGroup[]
   TradePrice                     TradePrice[]
   OrderStockTradeAltBundle       OrderStockTradeAltBundle[]
+  Partner                        Partner[]
 }
 
 model BusinessRelationship {
@@ -615,4 +616,196 @@ model Invoice {
   quantity          Int
   planId            Int
   plan              Plan             @relation(fields: [planId], references: [id])
+}
+
+/// 계정 수단
+enum Method {
+  /// 계좌 이체
+  ACCOUNT_TRANSFER
+  /// 어음
+  PROMISSORY_NOTE
+  /// 카드
+  CARD_PAYMENT
+  /// 현금
+  CASH
+  /// 상계
+  SET_OFF
+  /// 기타
+  ETC
+  /// 전체
+  All
+}
+
+/// 회계 타입
+enum AccountedType {
+  /// 지급
+  PAID
+  /// 수금
+  COLLECTED
+}
+
+/// 계정 과목
+enum Subject {
+  /// 외상 매출금
+  PAID_ACCOUNTS_RECEIVABLE
+  /// 미수금
+  PAID_UNPAID_AMOUNTS
+  /// 선수금
+  PAID_ADVANCES
+  /// 잡이익
+  PAID_MISCELLANEOUS_INCOME
+  /// 상품 매출
+  PAID_PRODUCT_SALES
+  /// 외상 매입금
+  COLLECTED_ACCOUNTS_RECEIVABLE
+  /// 미지급금
+  COLLECTED_UNPAID_EXPENSES
+  /// 선지급금
+  COLLECTED_PREPAID_EXPENSES
+  //// 잡손실
+  COLLECTED_MISCELLANEOUS_LOSSES
+  /// 상품 매입"
+  COLLECTED_PRODUCT_PURCHASES
+  /// 기타 (공통)
+  ETC
+  /// 전체
+  All
+}
+
+/// 파트너
+model Partner {
+  /// 식별자
+  id                        Int         @id @default(autoincrement())
+  /// ceo명
+  ceoName                   String      @map("ceo_name") @db.VarChar(10)
+  /// ceo 핸드폰번호
+  ceoPhoneNumber            String      @map("ceo_phone_number") @db.VarChar(30)
+  /// 사업자 번호
+  companyRegistrationNumber String      @map("company_registration_number") @db.VarChar(191)
+  /// 파트너 대표변호(회사 대표 번호)
+  representativeNumber      String      @map("representative_number") @db.VarChar(30)
+  /// 파트너 닉네임(회사 닉네임)
+  partnerNickName           String      @map("partner_nick_name") @db.VarChar(100)
+  /// 파트너명(회사명)
+  partnerName               String      @map("partner_name") @db.VarChar(100)
+  /// 메모
+  memo                      String      @map("memo") @db.VarChar(500)
+  /// 삭제 여부
+  isDeleted                 Boolean     @default(false) @map("is_deleted")
+  /// 회사 식별자
+  companyId                 Int         @map("company_id")
+  /// 회사
+  company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 등록자 아이디
+  regId                     String?     @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm                     String?     @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId                     String?     @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm                     String?     @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt                     DateTime    @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt                     DateTime    @default(now()) @map("reg_dt")
+  /// 회계 목록
+  accountedList             Accounted[]
+
+  @@map("partner")
+}
+
+/// 회계
+model Accounted {
+  /// 식별자
+  id               Int           @id @default(autoincrement())
+  /// 회계 타입
+  accountedType    AccountedType @map("accounted_type")
+  /// 회계 수단
+  accountedMethod  Method        @map("accounted_method")
+  /// 회계 등록일
+  accountedDate    DateTime      @default(now()) @map("accounted_date")
+  /// 계정 과목
+  accountedSubject Subject       @map("accounted_subject")
+  /// 메모
+  memo             String        @map("memo") @db.VarChar(500)
+  /// 삭제 여부
+  isDeleted        Boolean       @default(false) @map("is_deleted")
+  /// 파트너 식별자
+  partnerId        Int           @map("partner_id")
+  /// 파트너
+  partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 등록자 아이디
+  regId            String?       @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm            String?       @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId            String?       @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm            String?       @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt            DateTime      @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt            DateTime      @default(now()) @map("reg_dt")
+
+  /// 지급 현금 결제
+  byCash ByCash?
+  /// 지급 기타
+  byEtc  ByEtc?
+
+  @@map("accounted")
+}
+
+/// 현금
+model ByCash {
+  /// 식별자
+  id          Int       @id @default(autoincrement())
+  /// 식별자
+  cashAmount  Int       @map("cash_amount")
+  /// 삭제 여부
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  /// 파트너 식별자
+  accountedId Int       @unique @map("accounted_id")
+  /// 파트너
+  accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 등록자 아이디
+  regId       String?   @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm       String?   @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId       String?   @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm       String?   @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt       DateTime  @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt       DateTime  @default(now()) @map("reg_dt")
+
+  @@map("by_cash")
+}
+
+model ByEtc {
+  /// 식별자
+  id          Int       @id @default(autoincrement())
+  /// 식별자
+  etcAmount   Int       @map("etc_amount")
+  /// 삭제 여부
+  isDeleted   Boolean   @default(false) @map("is_deleted")
+  /// 파트너 식별자
+  accountedId Int       @unique @map("accounted_id")
+  /// 파트너
+  accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 등록자 아이디
+  regId       String?   @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm       String?   @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId       String?   @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm       String?   @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt       DateTime  @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt       DateTime  @default(now()) @map("reg_dt")
+
+  @@map("by_etc")
 }

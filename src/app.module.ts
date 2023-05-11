@@ -34,4 +34,4 @@ const configModule = (): DynamicModule => {
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
