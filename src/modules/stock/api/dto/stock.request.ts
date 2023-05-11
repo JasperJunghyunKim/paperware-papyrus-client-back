@@ -65,8 +65,8 @@ export class StockListRequestDto implements StockListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  @IsPositive()
-  readonly sizeY: number = 0;
+  @Min(0)
+  readonly sizeY: number;
 
   @IsOptional()
   @IsInt()

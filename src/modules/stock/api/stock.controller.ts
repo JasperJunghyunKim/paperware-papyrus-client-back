@@ -35,7 +35,7 @@ export class StockController {
         company: stock.company,
         grammage: stock.grammage,
         sizeX: stock.sizeX,
-        sizeY: stock.sizeY,
+        sizeY: stock.sizeY || 0,
         cachedQuantity: stock.cachedQuantity,
         cachedQuantityAvailable: stock.cachedQuantityAvailable,
         isSyncPrice: stock.isSyncPrice,
