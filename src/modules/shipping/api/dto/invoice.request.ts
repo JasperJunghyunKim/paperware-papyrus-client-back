@@ -5,7 +5,7 @@ import {
   InvoiceListQuery,
 } from 'src/@shared/api/shipping/invoice.request';
 
-export class InvoiceListQueryDto implements InvoiceListQuery {
+export default class InvoiceListQueryDto implements InvoiceListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)

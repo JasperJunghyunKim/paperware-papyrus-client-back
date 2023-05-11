@@ -40,7 +40,7 @@ export class OrderListQueryDto implements OrderListQuery {
 }
 
 /** 정상거래 등록 요청 */
-export class OrderStockCreateRequestDto implements OrderStockCreateRequest {
+export default class OrderStockCreateRequestDto implements OrderStockCreateRequest {
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -186,8 +186,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery
-{
+  implements OrderStockArrivalListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -200,8 +199,7 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest
-{
+  implements OrderStockArrivalCreateRequest {
   @IsInt()
   @Type(() => Number)
   productId: number;

@@ -126,7 +126,7 @@ model Warehouse {
   id         Int          @id @default(autoincrement())
   name       String
   code       String?
-  address    String       @default("")
+  address    String       @default("") @db.VarChar(500)
   companyId  Int
   company    Company      @relation(fields: [companyId], references: [id])
   isPublic   Boolean
@@ -277,7 +277,7 @@ model Company {
   email                          String                        @default("")
   representative                 String                        @default("")
   invoiceCode                    String?
-  address                        String                        @default("")
+  address                        String                        @default("") @db.VarChar(500)
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")
@@ -330,7 +330,7 @@ model Location {
   id         Int          @id @default(autoincrement())
   name       String
   code       String?
-  address    String       @default("")
+  address    String       @default("") @db.VarChar(500)
   companyId  Int
   company    Company      @relation(fields: [companyId], references: [id])
   isPublic   Boolean
@@ -382,7 +382,7 @@ model OfficialPriceCondition {
   paperPattern      PaperPattern?      @relation(fields: [paperPatternId], references: [id])
   paperCertId       Int?
   paperCert         PaperCert?         @relation(fields: [paperCertId], references: [id])
-  OfficialPriceMap  OfficialPriceMap[]
+  officialPriceMap  OfficialPriceMap[]
 }
 
 model OfficialPriceMap {
@@ -393,6 +393,8 @@ model OfficialPriceMap {
   company                  Company                @relation(fields: [companyId], references: [id])
   officialPriceMapType     OfficialPriceMapType
   officialPrice            Float
+  officialPriceUnit        PriceUnit
+  isDeleted                Boolean                @default(false)
 }
 
 // Order

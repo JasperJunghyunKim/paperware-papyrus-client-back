@@ -17,11 +17,10 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
-import {
+import OrderStockCreateRequestDto, {
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
-  OrderStockCreateRequestDto,
   OrderStockUpdateRequestDto,
 } from './dto/order.request';
 import { OrderStockArrivalListResponse } from 'src/@shared/api';
