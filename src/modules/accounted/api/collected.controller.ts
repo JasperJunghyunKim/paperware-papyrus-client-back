@@ -12,19 +12,20 @@ import {
   Request,
   UseGuards
 } from '@nestjs/common';
-import { AccountedListResponse } from 'src/@shared/api';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedChangeService } from '../service/accounted-change.service';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
-import { CashRequest } from './dto/cash.request';
-import { EtcRequest } from './dto/etc.request';
-import { EtcResponse } from './dto/etc.response';
 import { AccountedRequest } from './dto/accounted.request';
+import { CashRequest } from './dto/cash.request';
+import { EtcResponse } from './dto/etc.response';
+import { EtcRequest } from './dto/etc.request';
+import { AccountedListResponse } from 'src/@shared/api';
+import { CashResponse } from './dto/cash.response';
 import { AccountedType } from '@prisma/client';
 
-@Controller('/paid')
-export class PaidController {
+@Controller('/collected')
+export class CollectedController {
   constructor(
     private readonly accountedRetriveService: AccountedRetriveService,
     private readonly accountedChangeService: AccountedChangeService,
@@ -32,20 +33,20 @@ export class PaidController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getPaidList(
+  async getcollectedList(
     @Request() req: AuthType,
-    @Query() paidRequest: AccountedRequest
+    @Query() collectedRequest: AccountedRequest
   ): Promise<AccountedListResponse> {
-    return await this.accountedRetriveService.getAccountedList(req.user.companyId, paidRequest);
+    return await this.accountedRetriveService.getAccountedList(req.user.companyId, collectedRequest);
   }
 
   @Get(':accountedId/cash/:accountedType')
   @UseGuards(AuthGuard)
-  async getPaidByCash(
+  async getcollectedByCash(
     @Request() req: AuthType,
     @Param('accountedId') accountedId: number,
     @Param('accountedType') accountedType: AccountedType,
-  ): Promise<EtcResponse> {
+  ): Promise<CashResponse> {
     return await this.accountedRetriveService.getAccountedByCash(req.user.companyId, accountedId, accountedType);
   }
 
@@ -53,9 +54,9 @@ export class PaidController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createCash(
-    @Body() paidCashRequest: CashRequest,
+    @Body() collectedCashRequest: CashRequest,
   ): Promise<void> {
-    await this.accountedChangeService.createCash(paidCashRequest);
+    await this.accountedChangeService.createCash(collectedCashRequest);
   }
 
   @Patch(':accountedId/cash')
@@ -63,9 +64,9 @@ export class PaidController {
   @UseGuards(AuthGuard)
   async updateCash(
     @Param('accountedId') accountedId: number,
-    @Body() paidCashRequest: CashRequest,
+    @Body() collectedCashRequest: CashRequest,
   ): Promise<void> {
-    await this.accountedChangeService.updateCash(accountedId, paidCashRequest);
+    await this.accountedChangeService.updateCash(accountedId, collectedCashRequest);
   }
 
   @Delete(':accountedId/cash')
@@ -79,7 +80,7 @@ export class PaidController {
 
   @Get(':accountedId/etc/:accountedType')
   @UseGuards(AuthGuard)
-  async getPaidByEtc(
+  async getcollectedByEtc(
     @Request() req: AuthType,
     @Param('accountedId') accountedId: number,
     @Param('accountedType') accountedType: AccountedType,
@@ -91,9 +92,9 @@ export class PaidController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createEtc(
-    @Body() paidEtcRequest: EtcRequest,
+    @Body() collectedEtcRequest: EtcRequest,
   ): Promise<void> {
-    await this.accountedChangeService.createEtc(paidEtcRequest);
+    await this.accountedChangeService.createEtc(collectedEtcRequest);
   }
 
   @Patch(':accountedId/etc')
@@ -101,9 +102,9 @@ export class PaidController {
   @UseGuards(AuthGuard)
   async updateEtc(
     @Param('accountedId') accountedId: number,
-    @Body() paidEtcRequest: EtcRequest,
+    @Body() collectedEtcRequest: EtcRequest,
   ): Promise<void> {
-    await this.accountedChangeService.updateEtc(accountedId, paidEtcRequest);
+    await this.accountedChangeService.updateEtc(accountedId, collectedEtcRequest);
   }
 
   @Delete(':accountedId/etc')

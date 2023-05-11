@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Method } from '@prisma/client';
+import { AccountedType, Method } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
-import { PaidListResponse } from 'src/@shared/api';
+import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
-import { PaidEtcResponse } from '../api/dto/etc.response';
-import { PaidRequest } from '../api/dto/paid.request';
+import { EtcResponse } from '../api/dto/etc.response';
+import { AccountedRequest } from '../api/dto/accounted.request';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 
@@ -12,10 +12,10 @@ import { AccountedNotFoundException } from '../infrastructure/exception/accounte
 export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getPaidList(companyId: number, paidRequest: PaidRequest): Promise<PaidListResponse> {
-    const { partnerId, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+  async getAccountedList(companyId: number, paidRequest: AccountedRequest): Promise<AccountedListResponse> {
+    const { partnerId, accountedSubject, accountedType, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
     const param: any = {
-      accountedType: 'PAID',
+      accountedType,
       isDeleted: false,
     }
 
@@ -77,6 +77,7 @@ export class AccountedRetriveService {
             partnerId: accounted.partner.id,
             partnerNickName: accounted.partner.partnerNickName,
             accountedId: accounted.id,
+            accountedType: accounted.accountedType,
             accountedDate: accounted.accountedDate.toISOString(),
             accountedMethod: accounted.accountedMethod,
             accountedSubject: accounted.accountedSubject,
@@ -94,11 +95,12 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByCash(companyId: number, accountedId: number): Promise<PaidEtcResponse> {
+  async getAccountedByCash(companyId: number, accountedId: number, accountedType: AccountedType,): Promise<EtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
           id: true,
+          accountedType: true,
           accountedDate: true,
           accountedSubject: true,
           accountedMethod: true,
@@ -115,6 +117,7 @@ export class AccountedRetriveService {
           partner: {
             companyId,
           },
+          accountedType,
           id: accountedId,
           isDeleted: false,
           byCash: {
@@ -127,6 +130,7 @@ export class AccountedRetriveService {
       map((accounted) => {
         return {
           accountedId: accounted.id,
+          accountedType: accounted.accountedType,
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,
@@ -139,11 +143,12 @@ export class AccountedRetriveService {
     ));
   }
 
-  async getPaidByEtc(companyId: number, accountedId: number): Promise<PaidEtcResponse> {
+  async getAccountedByEtc(companyId: number, accountedId: number, accountedType: AccountedType,): Promise<EtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
           id: true,
+          accountedType: true,
           accountedDate: true,
           accountedSubject: true,
           accountedMethod: true,
@@ -160,6 +165,7 @@ export class AccountedRetriveService {
           partner: {
             companyId,
           },
+          accountedType,
           id: accountedId,
           isDeleted: false,
           byEtc: {
@@ -172,6 +178,7 @@ export class AccountedRetriveService {
       map((accounted) => {
         return {
           accountedId: accounted.id,
+          accountedType: accounted.accountedType,
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,
