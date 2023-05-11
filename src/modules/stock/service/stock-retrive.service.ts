@@ -301,7 +301,14 @@ export class StockRetriveService {
                     , s.paperColorId
                     , s.paperPatternId
                     , s.paperCertId
+
+                    # 최신버전
                     , o.id
+                    , os.id
+                    , partnerCompany.id
+                    , sgWarehouse.id
+                    , osStockEvent.change
+                    , p.id
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}
