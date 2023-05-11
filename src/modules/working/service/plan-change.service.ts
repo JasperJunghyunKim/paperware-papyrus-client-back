@@ -143,15 +143,14 @@ export class PlanChangeService {
       (await tx.stockGroup.findFirst({
         where: {
           companyId,
-          warehouseId: warehouseId,
-          orderStockId: orderStockIdOrig,
+          warehouseId: warehouseId ?? null,
+          orderStockId: orderStockIdOrig ?? null,
           productId,
           packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroupId:
-            paperColorGroupId != null ? paperColorGroupId : undefined,
+          paperColorGroupId: paperColorGroupId != null ? paperColorGroupId : undefined,
           paperColorId: paperColorId != null ? paperColorId : undefined,
           paperPatternId: paperPatternId != null ? paperPatternId : undefined,
           paperCertId: paperCertId != null ? paperCertId : undefined,
@@ -259,11 +258,7 @@ export class PlanChangeService {
     // TODO: 입고 가능한 Release 재고를 생성합니다.
   }
 
-  async registerInputStock(params: {
-    planId: number;
-    stockId: number;
-    quantity: number;
-  }) {
+  async registerInputStock(params: { planId: number; stockId: number; quantity: number }) {
     const { planId, stockId, quantity } = params;
 
     const plan = await this.prisma.plan.findUnique({
