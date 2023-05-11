@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { OfficialPriceListResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
@@ -17,10 +18,41 @@ export class OfficialPriceController {
     async getList(
         @Request() req: AuthType,
         @Query() dto: OfficialPriceListDto,
-    ) {
+    ): Promise<OfficialPriceListResponse> {
         const { officialPrices, total } = await this.officialPriceRetriveService.getList(req.user.companyId, dto.skip, dto.take);
 
-        return { officialPrices, total };
+        return {
+            items: officialPrices.map(op => {
+                const wholesale = op.officialPriceMap.find(opm => opm.officialPriceMapType === 'WHOLESALE');
+                const retail = op.officialPriceMap.find(opm => opm.officialPriceMapType === 'RETAIL');
+
+                delete op.product.paperDomainId;
+                delete op.product.paperGroupId;
+                delete op.product.manufacturerId;
+                delete op.product.paperTypeId;
+
+                return {
+                    id: op.id,
+                    product: op.product,
+                    grammage: op.grammage,
+                    sizeX: op.sizeX,
+                    sizeY: op.sizeY,
+                    paperColorGroup: op.paperColorGroup,
+                    paperColor: op.paperColor,
+                    paperPattern: op.paperPattern,
+                    paperCert: op.paperCert,
+                    wholesalesPrice: {
+                        officialPrice: wholesale.officialPrice,
+                        officialPriceUnit: wholesale.officialPriceUnit,
+                    },
+                    retailPrice: {
+                        officialPrice: retail.officialPrice,
+                        officialPriceUnit: retail.officialPriceUnit,
+                    },
+                }
+            }),
+            total,
+        }
     }
 
     @Post()
