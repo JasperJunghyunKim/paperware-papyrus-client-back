@@ -243,7 +243,7 @@ export class StockRetriveService {
                     , p.planNo AS planNo
 
                     , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
-                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS availableQuantity
+                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(SUM(allocatedSgEvent.change), 0) AS availableQuantity
                     , COUNT(1) OVER() AS total
 
               FROM Stock                    AS s
@@ -287,6 +287,20 @@ export class StockRetriveService {
          LEFT JOIN PaperColor               AS osPaperColor       ON osPaperColor.id = os.paperColorId
          LEFT JOIN PaperPattern             AS osPaperPattern     ON osPaperPattern.id = os.paperPatternId
          LEFT JOIN PaperCert                AS osPaperCert        ON osPaperCert.id = os.paperCertId
+
+          # 재고그룹 이벤트 반영
+         LEFT JOIN StockGroup               AS allocatedSg        ON allocatedSg.productId = s.productId
+                                                                 AND allocatedSg.packagingId = s.packagingId
+                                                                 AND allocatedSg.grammage = s.grammage
+                                                                 AND allocatedSg.sizeX = s.sizeX
+                                                                 AND allocatedSg.sizeY = s.sizeY
+                                                                 AND (CASE WHEN s.paperColorGroupId IS NULL THEN allocatedSg.paperColorGroupId IS NULL ELSE allocatedSg.paperColorGroupId = s.paperColorGroupId END)
+                                                                 AND (CASE WHEN s.paperColorId IS NULL THEN allocatedSg.paperColorId IS NULL ELSE allocatedSg.paperColorId = s.paperColorId END)
+                                                                 AND (CASE WHEN s.paperPatternId IS NULL THEN allocatedSg.paperPatternId IS NULL ELSE allocatedSg.paperPatternId = s.paperPatternId END)
+                                                                 AND (CASE WHEN s.paperCertId IS NULL THEN allocatedSg.paperCertId IS NULL ELSE allocatedSg.paperCertId = s.paperCertId END)
+                                                                 AND (CASE WHEN s.warehouseId IS NULL THEN allocatedSg.warehouseId IS NULL ELSE allocatedSg.warehouseId = s.warehouseId END)
+                                                                 AND allocatedSg.companyId = s.companyId
+         LEFT JOIN StockGroupEvent          AS allocatedSgEvent   ON allocatedSgEvent.stockGroupId = allocatedSg.id AND allocatedSgEvent.status = ${StockEventStatus.PENDING}
 
              WHERE s.companyId = ${companyId}
                AND se.status IN(${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})
