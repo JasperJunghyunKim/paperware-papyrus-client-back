@@ -25,7 +25,7 @@ export class WarehouseListQueryDto implements WarehouseListQuery {
   readonly take: number = undefined;
 }
 
-export class WarehouseCreateRequestDto implements WarehouseCreateRequest {
+export class WarehouseCreateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;
@@ -39,7 +39,7 @@ export class WarehouseCreateRequestDto implements WarehouseCreateRequest {
   address: string;
 }
 
-export class WarehouseUpdateRequestDto implements WarehouseUpdateRequest {
+export class WarehouseUpdateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;

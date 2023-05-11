@@ -10,6 +10,8 @@ import { WorkingModule } from './working/working.module';
 import { TradeModule } from './trade/trade.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { TempModule } from './temp/temp.module';
+import { PartnerModule } from './partner/partner.module';
+import { AccountedModule } from './accounted/accounted.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { TempModule } from './temp/temp.module';
     TradeModule,
     ShippingModule,
     TempModule,
+    PartnerModule,
+    AccountedModule,
   ],
 })
 export class BusinessModule { }
