@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
@@ -111,5 +111,14 @@ export class OfficialPriceController {
             dto.wholesalePrice,
             dto.retailPrice,
         );
+    }
+
+    @Put()
+    @UseGuards(AuthGuard)
+    async update(
+        @Request() req: AuthType,
+
+    ) {
+
     }
 }

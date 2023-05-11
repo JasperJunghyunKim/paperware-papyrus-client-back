@@ -7,7 +7,7 @@ import { Packaging, PackagingType } from '@prisma/client';
 
 @Injectable()
 export class StockValidator {
-  private readonly MAX_ROLL_QUANTITY = 100;
+  private readonly MAX_ROLL_QUANTITY = 100 * 1000000;
   private readonly MAX_SHEET_QUANTITY = 5000000;
 
   validateQuantity(packaging: Packaging, quantity: number) {
