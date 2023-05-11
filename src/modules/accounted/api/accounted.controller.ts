@@ -99,9 +99,9 @@ export class AccountedController {
   @UseGuards(AuthGuard)
   async createEtc(
     @Param('accountedType') accountedType: AccountedType,
-    @Body() EtcRequest: EtcRequest,
+    @Body() etcRequest: EtcRequest,
   ): Promise<void> {
-    await this.accountedChangeService.createEtc(accountedType, EtcRequest);
+    await this.accountedChangeService.createEtc(accountedType, etcRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/etc')
@@ -110,9 +110,9 @@ export class AccountedController {
   async updateEtc(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-    @Body() EtcRequest: EtcRequest,
+    @Body() etcRequest: EtcRequest,
   ): Promise<void> {
-    await this.accountedChangeService.updateEtc(accountedType, accountedId, EtcRequest);
+    await this.accountedChangeService.updateEtc(accountedType, accountedId, etcRequest);
   }
 
   @Delete('accountedType/:accountedType/accountedId/:accountedId/etc')
