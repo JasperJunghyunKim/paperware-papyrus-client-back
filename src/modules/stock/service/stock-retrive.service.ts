@@ -40,6 +40,58 @@ interface StockGroupFromDB {
   paperCertId: number;
   paperCertName: string;
 
+  orderId: number;
+  orderStockId: number;
+  dstLocationId: number;
+  dstLocationCode: string;
+  dstLocationName: string;
+  dstLocationAddress: string;
+  dstLocationIsPublic: boolean;
+
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyCompanyregistrationstring: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyEmail: string;
+  partnerCompanyAddress: string;
+
+  sgWarehouseId: number;
+  sgWarehouseName: string;
+  sgWarehouseCode: string;
+  sgWarehouseAddress: string;
+  sgWarehouseIsPublic: boolean;
+
+  orderStockProductId: number;
+  orderStockPaperDomainId: number;
+  orderStockPaperDomainName: string;
+  orderStockManufacturerId: number;
+  orderStockManufacturerName: string;
+  orderStockPaperGroupId: number;
+  orderStockPaperGroupName: string;
+  orderStockPaperTypeId: number;
+  orderStockPaperTypeName: string;
+  orderStockPackagingId: number;
+  orderStockPackagingName: string;
+  orderStockPackagingType: PackagingType;
+  orderStockPackagingPackA: number;
+  orderStockPackagingPackB: number;
+  orderStockPaperColorGroupId: number;
+  orderStockPaperColorGroupName: string;
+  orderStockPaperColorId: number;
+  orderStockPaperColorName: string;
+  orderStockPaperPatternId: number;
+  orderStockPaperPatternName: string;
+  orderStockPaperCertId: number;
+  orderStockPaperCertName: string;
+  orderStockGrammage: number;
+  orderStockSizeX: number;
+  orderStockSizeY: number;
+  orderStockQuantity: number;
+
+  planId: number;
+  planNo: string;
+
   totalQuantity: number;
   availableQuantity: number;
   total: bigint;
@@ -134,28 +186,110 @@ export class StockRetriveService {
                     , s.sizeX AS sizeX
                     , s.sizeY AS sizeY
 
+                    # 주문정보 및 거래처 정보
+                    , o.id AS orderId
+                    , os.id AS orderStockId
+
+                    , dstLocation.id AS dstLocationId
+                    , dstLocation.code AS dstLocationCode
+                    , dstLocation.name AS dstLocationName
+                    , dstLocation.address AS dstLocationAddress
+                    , dstLocation.isPublic AS dstLocationIsPublic
+                    
+                    , partnerCompany.id AS partnerCompanyId
+                    , partnerCompany.businessName AS partnerCompanyBusinessName
+                    , partnerCompany.companyRegistrationNumber AS partnerCompanyCompanyregistrationNumber
+                    , partnerCompany.phoneNo As partnerCompanyPhoneNo
+                    , partnerCompany.faxNo As partnerCompanyFaxNo
+                    , partnerCompany.email AS partnerCompanyEmail
+                    , partnerCompany.address AS partnerCompanyAddress
+
+                    , sgWarehouse.id AS sgWarehouseId
+                    , sgWarehouse.name AS sgWarehouseName
+                    , sgWarehouse.code AS sgWarehouseCode
+                    , sgWarehouse.address AS sgWarehouseAddress
+                    , sgWarehouse.isPublic AS sgWarehouseIsPublic
+
+                    # 주문 원지 정보
+                    , osProduct.id AS orderStockProductId
+                    , osPaperDomain.id AS orderStockPaperDomainId
+                    , osPaperDomain.name AS orderStockPaperDomainName
+                    , osManufacturer.id AS orderStockManufacturerId
+                    , osManufacturer.name AS orderStockManufacturerName
+                    , osPaperGroup.id AS orderStockPaperGroupId
+                    , osPaperGroup.name AS orderStockPaperGroupName
+                    , osPaperType.id AS orderStockPaperTypeId
+                    , osPaperType.name AS orderStockPaperTypeName
+                    , osPackaging.id AS orderStockPackagingId
+                    , osPackaging.name AS orderStockPackagingName
+                    , osPackaging.type AS orderStockPackagingType
+                    , osPackaging.packA AS orderStockPackagingPackA
+                    , osPackaging.packB AS orderStockPackagingPackB
+                    , osPaperColorGroup.id AS orderStockPaperColorGroupId
+                    , osPaperColorGroup.name AS orderStockPaperColorGroupName
+                    , osPaperColor.id AS orderStockPaperColorId
+                    , osPaperColor.name AS orderStockPaperColorName
+                    , osPaperPattern.id AS orderStockPaperPatternId
+                    , osPaperPattern.name AS orderStockPaperPatternName
+                    , osPaperCert.id AS orderStockPaperCertId
+                    , osPaperCert.name AS orderStockPaperCertName
+                    , os.grammage AS orderStockGrammage
+                    , os.sizeX AS orderStockSizeX
+                    , os.sizeY AS orderStockSizeY
+                    , osStockEvent.change AS orderStockQuantity
+
+                    # 플랜
+                    , p.id AS planId
+                    , p.planNo AS planNo
+
                     , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
                     , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS availableQuantity
                     , COUNT(1) OVER() AS total
 
-              FROM Stock            AS s
-              JOIN StockEvent       AS se               ON se.stockId = s.id
-         LEFT JOIN Warehouse        AS w                ON w.id = s.warehouseId
+              FROM Stock                    AS s
+              JOIN StockEvent               AS se               ON se.stockId = s.id
+         LEFT JOIN Warehouse                AS w                ON w.id = s.warehouseId
 
             # 메타데이터
-              JOIN Product          AS product          ON product.id = s.productId
-              JOIN PaperDomain      AS paperDomain      ON paperDomain.id = product.paperDomainId
-              JOIN Manufacturer     AS manufacturer     ON manufacturer.id = product.manufacturerId
-              JOIN PaperGroup       AS paperGroup       ON paperGroup.id = product.paperGroupId
-              JOIN PaperType        AS paperType        ON paperType.id = product.paperTypeId
-              JOIN Packaging        AS packaging        ON packaging.id = s.packagingId
-         LEFT JOIN PaperColorGroup  AS paperColorGroup  ON paperColorGroup.id = s.paperColorGroupId
-         LEFT JOIN PaperColor       AS paperColor       ON paperColor.id = s.paperColorId
-         LEFT JOIN PaperPattern     AS paperPattern     ON paperPattern.id = s.paperPatternId
-         LEFT JOIN PaperCert        AS paperCert        ON paperCert.id = s.paperCertId
+              JOIN Product                  AS product          ON product.id = s.productId
+              JOIN PaperDomain              AS paperDomain      ON paperDomain.id = product.paperDomainId
+              JOIN Manufacturer             AS manufacturer     ON manufacturer.id = product.manufacturerId
+              JOIN PaperGroup               AS paperGroup       ON paperGroup.id = product.paperGroupId
+              JOIN PaperType                AS paperType        ON paperType.id = product.paperTypeId
+              JOIN Packaging                AS packaging        ON packaging.id = s.packagingId
+         LEFT JOIN PaperColorGroup          AS paperColorGroup  ON paperColorGroup.id = s.paperColorGroupId
+         LEFT JOIN PaperColor               AS paperColor       ON paperColor.id = s.paperColorId
+         LEFT JOIN PaperPattern             AS paperPattern     ON paperPattern.id = s.paperPatternId
+         LEFT JOIN PaperCert                AS paperCert        ON paperCert.id = s.paperCertId
+
+            # 도착예정
+         LEFT JOIN StockEvent               AS arrivalEvent     ON arrivalEvent.stockId = s.id AND arrivalEvent.status = ${StockEventStatus.PENDING}
+         LEFT JOIN _StockEventOutPlan       AS arrivalEventPlan ON arrivalEventPlan.B = arrivalEvent.id
+         LEFT JOIN Plan                     AS p                ON p.id = arrivalEventPlan.A
+         LEFT JOIN OrderStock               AS os               ON os.planId = p.id
+         LEFT JOIN _OrderStockToStockEvent  AS osToStockEvent   ON osToStockEvent.A = os.id
+         LEFT JOIN StockEvent               AS osStockEvent     ON osStockEvent.id = osToStockEvent.B
+         LEFT JOIN StockGroup               AS sg               ON sg.orderStockId = os.id
+         LEFT JOIN Warehouse                AS sgWarehouse      ON sgWarehouse.id = sg.warehouseId
+         LEFT JOIN \`Location\`             AS dstLocation      ON dstLocation.id = os.dstLocationId 
+
+         LEFT JOIN \`Order\`                AS o                ON o.id = os.orderId
+         LEFT JOIN company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
+
+            # OrderStock 메타데이터
+         LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId
+         LEFT JOIN PaperDomain              AS osPaperDomain      ON osPaperDomain.id = osProduct.paperDomainId
+         LEFT JOIN Manufacturer             AS osManufacturer     ON osManufacturer.id = osProduct.manufacturerId
+         LEFT JOIN PaperGroup               AS osPaperGroup       ON osPaperGroup.id = osProduct.paperGroupId
+         LEFT JOIN PaperType                AS osPaperType        ON osPaperType.id = osProduct.paperTypeId
+         LEFT JOIN Packaging                AS osPackaging        ON osPackaging.id = os.packagingId
+         LEFT JOIN PaperColorGroup          AS osPaperColorGroup  ON osPaperColorGroup.id = os.paperColorGroupId
+         LEFT JOIN PaperColor               AS osPaperColor       ON osPaperColor.id = os.paperColorId
+         LEFT JOIN PaperPattern             AS osPaperPattern     ON osPaperPattern.id = os.paperPatternId
+         LEFT JOIN PaperCert                AS osPaperCert        ON osPaperCert.id = os.paperCertId
 
              WHERE s.companyId = ${companyId}
-               AND se.status IN (${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})
+               AND se.status IN(${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})
 
              GROUP BY s.warehouseId
                     , s.productId
@@ -167,10 +301,11 @@ export class StockRetriveService {
                     , s.paperColorId
                     , s.paperPatternId
                     , s.paperCertId
+                    , o.id
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}
-        `;
+    `;
 
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
     for (const stockGroup of stockGroups) {
