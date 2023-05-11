@@ -31,7 +31,7 @@ export class StockController {
   constructor(
     private readonly stockChangeService: StockChangeService,
     private readonly stockRetriveService: StockRetriveService,
-  ) {}
+  ) { }
 
   @Get()
   @UseGuards(AuthGuard)
@@ -94,12 +94,12 @@ export class StockController {
       items: stockGroups.map((sg) => ({
         warehouse: sg.warehouseId
           ? {
-              id: sg.warehouseId,
-              name: sg.warehouseName,
-              code: sg.warehouseCode,
-              isPublic: sg.warehouseIsPublic,
-              address: sg.warehouseAddress,
-            }
+            id: sg.warehouseId,
+            name: sg.warehouseName,
+            code: sg.warehouseCode,
+            isPublic: sg.warehouseIsPublic,
+            address: sg.warehouseAddress,
+          }
           : null,
         product: {
           id: sg.productId,
@@ -131,28 +131,105 @@ export class StockController {
         sizeY: sg.sizeY,
         paperColorGroup: sg.paperColorGroupId
           ? {
-              id: sg.paperColorGroupId,
-              name: sg.paperColorGroupName,
-            }
+            id: sg.paperColorGroupId,
+            name: sg.paperColorGroupName,
+          }
           : null,
         paperColor: sg.paperColorId
           ? {
-              id: sg.paperColorId,
-              name: sg.paperColorName,
-            }
+            id: sg.paperColorId,
+            name: sg.paperColorName,
+          }
           : null,
         paperPattern: sg.paperPatternId
           ? {
-              id: sg.paperPatternId,
-              name: sg.paperPatternName,
-            }
+            id: sg.paperPatternId,
+            name: sg.paperPatternName,
+          }
           : null,
         paperCert: sg.paperCertId
           ? {
-              id: sg.paperCertId,
-              name: sg.paperCertName,
-            }
+            id: sg.paperCertId,
+            name: sg.paperCertName,
+          }
           : null,
+        orderStock: sg.orderStockId ? {
+          id: sg.orderStockId,
+          orderId: sg.orderId,
+          dstLocation: {
+            id: sg.dstLocationId,
+            name: sg.dstLocationName,
+            code: sg.dstLocationCode,
+            isPublic: sg.dstLocationIsPublic,
+            company: null,
+            address: sg.dstLocationAddress,
+          },
+          warehouse: sg.sgWarehouseId ? {
+            id: sg.sgWarehouseId,
+            name: sg.sgWarehouseName,
+            code: sg.sgWarehouseCode,
+            isPublic: sg.sgWarehouseIsPublic,
+            company: null,
+            address: sg.sgWarehouseAddress,
+          } : null,
+          product: {
+            id: sg.orderStockProductId,
+            paperDomain: {
+              id: sg.orderStockPaperDomainId,
+              name: sg.orderStockPaperDomainName,
+            },
+            paperGroup: {
+              id: sg.orderStockPaperGroupId,
+              name: sg.orderStockPaperGroupName,
+            },
+            manufacturer: {
+              id: sg.orderStockManufacturerId,
+              name: sg.orderStockManufacturerName,
+            },
+            paperType: {
+              id: sg.orderStockPaperTypeId,
+              name: sg.orderStockPaperTypeName,
+            },
+          },
+          packaging: {
+            id: sg.orderStockPackagingId,
+            type: sg.orderStockPackagingType,
+            packA: sg.orderStockPackagingPackA,
+            packB: sg.orderStockPackagingPackB,
+          },
+          grammage: sg.orderStockGrammage,
+          sizeX: sg.orderStockSizeX,
+          sizeY: sg.orderStockSizeY,
+          paperColorGroup: sg.orderStockPaperColorGroupId
+            ? {
+              id: sg.orderStockPaperColorGroupId,
+              name: sg.orderStockPaperColorGroupName,
+            }
+            : null,
+          paperColor: sg.orderStockPaperColorId
+            ? {
+              id: sg.orderStockPaperColorId,
+              name: sg.orderStockPaperColorName,
+            }
+            : null,
+          paperPattern: sg.orderStockPaperPatternId
+            ? {
+              id: sg.orderStockPaperPatternId,
+              name: sg.orderStockPaperPatternName,
+            }
+            : null,
+          paperCert: sg.orderStockPaperCertId
+            ? {
+              id: sg.orderStockPaperCertId,
+              name: sg.orderStockPaperCertName,
+            }
+            : null,
+          quantity: Math.abs(sg.orderStockQuantity),
+          plan: sg.planId ? {
+            id: sg.planId,
+            planNo: sg.planNo,
+          } : null,
+        } : null,
         totalQuantity: sg.totalQuantity,
         availableQuantity: sg.availableQuantity,
       })),
@@ -202,10 +279,10 @@ export class StockController {
         serial: ulid(),
         warehouse: dto.warehouseId
           ? {
-              connect: {
-                id: dto.warehouseId,
-              },
-            }
+            connect: {
+              id: dto.warehouseId,
+            },
+          }
           : undefined,
         company: {
           connect: {
@@ -227,31 +304,31 @@ export class StockController {
         },
         paperColorGroup: dto.paperColorGroupId
           ? {
-              connect: {
-                id: dto.paperColorGroupId,
-              },
-            }
+            connect: {
+              id: dto.paperColorGroupId,
+            },
+          }
           : undefined,
         paperColor: dto.paperColorId
           ? {
-              connect: {
-                id: dto.paperColorId,
-              },
-            }
+            connect: {
+              id: dto.paperColorId,
+            },
+          }
           : undefined,
         paperPattern: dto.paperPatternId
           ? {
-              connect: {
-                id: dto.paperPatternId,
-              },
-            }
+            connect: {
+              id: dto.paperPatternId,
+            },
+          }
           : undefined,
         paperCert: dto.paperCertId
           ? {
-              connect: {
-                id: dto.paperCertId,
-              },
-            }
+            connect: {
+              id: dto.paperCertId,
+            },
+          }
           : undefined,
       },
       {
