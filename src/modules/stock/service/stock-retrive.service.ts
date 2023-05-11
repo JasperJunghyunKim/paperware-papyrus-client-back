@@ -274,7 +274,7 @@ export class StockRetriveService {
          LEFT JOIN \`Location\`             AS dstLocation      ON dstLocation.id = os.dstLocationId 
 
          LEFT JOIN \`Order\`                AS o                ON o.id = os.orderId
-         LEFT JOIN company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
+         LEFT JOIN Company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
 
             # OrderStock 메타데이터
          LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId

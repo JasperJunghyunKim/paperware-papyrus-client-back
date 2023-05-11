@@ -21,6 +21,14 @@ export class OfficialPriceListDto implements OfficialPriceListQuery {
     readonly take: number = undefined;
 }
 
+/** 고시가 상세 */
+export class OfficialPriceConditionIdDto {
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly officialPriceConditionId: number;
+}
+
 /** 고시가 등록 */
 export class OfficialPriceDto implements OfficialPrice {
     @IsInt()

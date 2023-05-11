@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { OfficialPriceListResponse } from "src/@shared/api/inhouse/official-price.response";
+import { Body, Controller, Get, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
 import { OfficialPriceRetriveService } from "../service/official-price-retrive.service";
-import { CreateOfficialPriceDto, OfficialPriceListDto } from "./dto/official-price.request";
+import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto } from "./dto/official-price.request";
 
 @Controller('/official-price')
 export class OfficialPriceController {
@@ -52,6 +52,43 @@ export class OfficialPriceController {
                 }
             }),
             total,
+        }
+    }
+
+    @Get('/:officialPriceConditionId')
+    @UseGuards(AuthGuard)
+    async get(
+        @Request() req: AuthType,
+        @Param() dto: OfficialPriceConditionIdDto,
+    ): Promise<OfficialPriceResponse> {
+        const officialPrice = await this.officialPriceRetriveService.get(req.user.companyId, dto.officialPriceConditionId);
+
+        const wholesale = officialPrice.officialPriceMap.find(opm => opm.officialPriceMapType === 'WHOLESALE');
+        const retail = officialPrice.officialPriceMap.find(opm => opm.officialPriceMapType === 'RETAIL');
+
+        delete officialPrice.product.paperDomainId;
+        delete officialPrice.product.paperGroupId;
+        delete officialPrice.product.manufacturerId;
+        delete officialPrice.product.paperTypeId;
+
+        return {
+            id: officialPrice.id,
+            product: officialPrice.product,
+            grammage: officialPrice.grammage,
+            sizeX: officialPrice.sizeX,
+            sizeY: officialPrice.sizeY,
+            paperColorGroup: officialPrice.paperColorGroup,
+            paperColor: officialPrice.paperColor,
+            paperPattern: officialPrice.paperPattern,
+            paperCert: officialPrice.paperCert,
+            wholesalesPrice: {
+                officialPrice: wholesale.officialPrice,
+                officialPriceUnit: wholesale.officialPriceUnit,
+            },
+            retailPrice: {
+                officialPrice: retail.officialPrice,
+                officialPriceUnit: retail.officialPriceUnit,
+            },
         }
     }
 
