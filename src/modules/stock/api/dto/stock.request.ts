@@ -156,7 +156,7 @@ export class StockCreateRequestDto implements StockCreateRequest {
   @IsOptional()
   @IsInt()
   @IsPositive()
-  readonly sizeY: number = 0;
+  readonly sizeY: number;
 
   @IsOptional()
   @IsInt()
