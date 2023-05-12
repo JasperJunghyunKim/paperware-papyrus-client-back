@@ -8,7 +8,13 @@ import { PrismaService } from 'src/core';
 export class OrderRetriveService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getList(params: { skip?: number; take?: number; srcCompanyId?: number; dstCompanyId?: number; status: OrderStatus[] }): Promise<Model.Order[]> {
+  async getList(params: {
+    skip?: number;
+    take?: number;
+    srcCompanyId?: number;
+    dstCompanyId?: number;
+    status: OrderStatus[];
+  }): Promise<Model.Order[]> {
     const { srcCompanyId, dstCompanyId } = params;
 
     const orders = await this.prisma.order.findMany({
@@ -22,6 +28,9 @@ export class OrderRetriveService {
       },
       skip: params.skip,
       take: params.take,
+      orderBy: {
+        id: 'desc',
+      },
     });
 
     return orders.map((order) => ({
@@ -30,7 +39,10 @@ export class OrderRetriveService {
     }));
   }
 
-  async getCount(params: { srcCompanyId?: number; dstCompanyId?: number }): Promise<number> {
+  async getCount(params: {
+    srcCompanyId?: number;
+    dstCompanyId?: number;
+  }): Promise<number> {
     const { srcCompanyId, dstCompanyId } = params;
 
     const count = await this.prisma.order.count({
@@ -74,7 +86,11 @@ export class OrderRetriveService {
     };
   }
 
-  async getOrderStockArrivalList(params: { skip?: number; take?: number; orderId: number }): Promise<Model.StockEvent[]> {
+  async getOrderStockArrivalList(params: {
+    skip?: number;
+    take?: number;
+    orderId: number;
+  }): Promise<Model.StockEvent[]> {
     const { orderId } = params;
 
     const stockEvents = await this.prisma.stockEvent.findMany({
