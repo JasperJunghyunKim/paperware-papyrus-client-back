@@ -120,7 +120,89 @@ export class StockController {
             name: sg.paperCertName,
           }
           : null,
-        orderStock: null,
+        orderStock: sg.orderStockId
+          ? {
+            id: sg.orderStockId,
+            orderId: sg.orderId,
+            dstLocation: {
+              id: sg.dstLocationId,
+              name: sg.dstLocationName,
+              code: sg.dstLocationCode,
+              isPublic: sg.dstLocationIsPublic,
+              company: null,
+              address: sg.dstLocationAddress,
+            },
+            warehouse: sg.osWarehouseId
+              ? {
+                id: sg.osWarehouseId,
+                name: sg.osWarehouseName,
+                code: sg.osWarehouseCode,
+                isPublic: sg.osWarehouseIsPublic,
+                company: null,
+                address: sg.osWarehouseAddress,
+              }
+              : null,
+            product: {
+              id: sg.orderStockProductId,
+              paperDomain: {
+                id: sg.orderStockPaperDomainId,
+                name: sg.orderStockPaperDomainName,
+              },
+              paperGroup: {
+                id: sg.orderStockPaperGroupId,
+                name: sg.orderStockPaperGroupName,
+              },
+              manufacturer: {
+                id: sg.orderStockManufacturerId,
+                name: sg.orderStockManufacturerName,
+              },
+              paperType: {
+                id: sg.orderStockPaperTypeId,
+                name: sg.orderStockPaperTypeName,
+              },
+            },
+            packaging: {
+              id: sg.orderStockPackagingId,
+              type: sg.orderStockPackagingType,
+              packA: sg.orderStockPackagingPackA,
+              packB: sg.orderStockPackagingPackB,
+            },
+            grammage: sg.orderStockGrammage,
+            sizeX: sg.orderStockSizeX,
+            sizeY: sg.orderStockSizeY,
+            paperColorGroup: sg.orderStockPaperColorGroupId
+              ? {
+                id: sg.orderStockPaperColorGroupId,
+                name: sg.orderStockPaperColorGroupName,
+              }
+              : null,
+            paperColor: sg.orderStockPaperColorId
+              ? {
+                id: sg.orderStockPaperColorId,
+                name: sg.orderStockPaperColorName,
+              }
+              : null,
+            paperPattern: sg.orderStockPaperPatternId
+              ? {
+                id: sg.orderStockPaperPatternId,
+                name: sg.orderStockPaperPatternName,
+              }
+              : null,
+            paperCert: sg.orderStockPaperCertId
+              ? {
+                id: sg.orderStockPaperCertId,
+                name: sg.orderStockPaperCertName,
+              }
+              : null,
+            quantity: Math.abs(sg.orderStockQuantity),
+            plan: sg.planId
+              ? {
+                id: sg.planId,
+                planNo: sg.planNo,
+              }
+              : null,
+          }
+          : null,
         totalQuantity: sg.totalQuantity,
         availableQuantity: sg.availableQuantity,
       })),
