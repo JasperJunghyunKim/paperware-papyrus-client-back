@@ -6,7 +6,10 @@ import { ulid } from 'ulid';
 
 @Injectable()
 export class PlanChangeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private stockChangeService: StockChangeService,
+  ) {}
 
   async createPlan(params: {
     companyId: number;
@@ -150,7 +153,8 @@ export class PlanChangeService {
           grammage,
           sizeX,
           sizeY,
-          paperColorGroupId: paperColorGroupId != null ? paperColorGroupId : undefined,
+          paperColorGroupId:
+            paperColorGroupId != null ? paperColorGroupId : undefined,
           paperColorId: paperColorId != null ? paperColorId : undefined,
           paperPatternId: paperPatternId != null ? paperPatternId : undefined,
           paperCertId: paperCertId != null ? paperCertId : undefined,
@@ -258,33 +262,43 @@ export class PlanChangeService {
     // TODO: 입고 가능한 Release 재고를 생성합니다.
   }
 
-  async registerInputStock(params: { planId: number; stockId: number; quantity: number }) {
+  async registerInputStock(params: {
+    planId: number;
+    stockId: number;
+    quantity: number;
+  }) {
     const { planId, stockId, quantity } = params;
 
-    const plan = await this.prisma.plan.findUnique({
-      where: {
-        id: planId,
-      },
-      select: {
-        status: true,
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.findUnique({
+        where: {
+          id: planId,
+        },
+        select: {
+          status: true,
+        },
+      });
 
-    if (plan.status !== 'PROGRESSING') {
-      throw new Error('실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.');
-    }
+      if (plan.status !== 'PROGRESSING') {
+        throw new Error('실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.');
+      }
 
-    await this.prisma.stockEvent.create({
-      data: {
-        change: -quantity,
-        stockId,
-        status: 'NORMAL',
-        planIn: {
-          connect: {
-            id: planId,
+      const se = await tx.stockEvent.create({
+        data: {
+          change: -quantity,
+          stockId,
+          status: 'NORMAL',
+          planIn: {
+            connect: {
+              id: planId,
+            },
           },
         },
-      },
+      });
+
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: se.stockId,
+      });
     });
   }
 }
