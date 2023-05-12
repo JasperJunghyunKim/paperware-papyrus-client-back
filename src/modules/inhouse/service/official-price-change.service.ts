@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { PriceUnit } from "src/@shared/models/enum";
 import { PrismaService } from "src/core";
 import { OfficialPriceCondition } from '@prisma/client'
@@ -92,6 +92,54 @@ export class OfficialPriceChangeService {
                     ]
                 })
             }
+        });
+    }
+
+    async update(
+        companyId: number,
+        officialPriceConditionId: number,
+        wholesalePrice: OfficialPrice,
+        retailPrice: OfficialPrice,
+    ) {
+        await this.prisma.$transaction(async tx => {
+            const condition = await tx.officialPriceCondition.findFirst({
+                include: {
+                    officialPriceMap: true,
+                },
+                where: {
+                    id: officialPriceConditionId,
+                    officialPriceMap: {
+                        some: {
+                            companyId,
+                            isDeleted: false,
+                        }
+                    }
+                }
+            });
+            if (!condition) throw new NotFoundException(`존재하지 않는 고시가 입니다.`);
+
+            const wholesale = condition.officialPriceMap.find(opm => opm.officialPriceMapType === 'WHOLESALE');
+            const retail = condition.officialPriceMap.find(opm => opm.officialPriceMapType === 'RETAIL');
+
+            await tx.officialPriceMap.update({
+                data: {
+                    officialPrice: wholesalePrice.officialPrice,
+                    officialPriceUnit: wholesalePrice.officialPriceUnit,
+                },
+                where: {
+                    id: wholesale.id,
+                }
+            });
+
+            await tx.officialPriceMap.update({
+                data: {
+                    officialPrice: retailPrice.officialPrice,
+                    officialPriceUnit: retailPrice.officialPriceUnit,
+                },
+                where: {
+                    id: retail.id,
+                }
+            });
         });
     }
 }

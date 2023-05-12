@@ -4,7 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
 import { OfficialPriceRetriveService } from "../service/official-price-retrive.service";
-import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto } from "./dto/official-price.request";
+import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto, OfficialPriceUpdateDto } from "./dto/official-price.request";
 
 @Controller('/official-price')
 export class OfficialPriceController {
@@ -113,12 +113,18 @@ export class OfficialPriceController {
         );
     }
 
-    @Put()
+    @Put('/:officialPriceConditionId')
     @UseGuards(AuthGuard)
     async update(
         @Request() req: AuthType,
-
+        @Param() param: OfficialPriceConditionIdDto,
+        @Body() dto: OfficialPriceUpdateDto,
     ) {
-
+        await this.officialPriceChangeService.update(
+            req.user.companyId,
+            param.officialPriceConditionId,
+            dto.wholesalePrice,
+            dto.retailPrice,
+        );
     }
 }
