@@ -314,8 +314,6 @@ export class StockRetriveService {
              ${limit}
     `;
 
-    console.log(111, stockGroups)
-
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
     for (const stockGroup of stockGroups) {
       stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
