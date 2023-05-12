@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { StockArrivalListQuery } from 'src/@shared/api';
+import { IsInt, IsOptional, IsPositive, Max, Min } from 'class-validator';
+import { StockArrivalApplyRequest, StockArrivalListQuery } from 'src/@shared/api';
 
 export class StockArrivalListQueryDto implements StockArrivalListQuery {
   @IsOptional()
@@ -15,4 +15,11 @@ export class StockArrivalListQueryDto implements StockArrivalListQuery {
   @Min(10)
   @Max(100)
   readonly take: number = undefined;
+}
+
+export class StockArrivalApplyDto implements StockArrivalApplyRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly warehouseId: number;
 }
