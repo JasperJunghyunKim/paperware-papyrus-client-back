@@ -87,6 +87,18 @@ interface StockGroupFromDB {
   orderStockSizeY: number;
   orderStockQuantity: number;
 
+  // 거래처 정보
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyCompanyRegistrationNumber: string;
+  partnerCompanyInvoiceCode: string;
+  partnerCompanyRepresentative: string;
+  partnerCompanyAddress: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyEmail: string;
+  partnerCompanyManagedById: number;
+
   totalQuantity: number;
   availableQuantity: number;
   total: bigint;
@@ -227,6 +239,18 @@ export class StockRetriveService {
                     , os.sizeX AS orderStockSizeX
                     , os.sizeY AS orderStockSizeY
                     , os.quantity AS orderStockQuantity
+
+                    # 거래처 정보
+                    , partnerCompany.id AS partnerCompanyId
+                    , partnerCompany.businessName As partnerCompanyBusinessName
+                    , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+                    , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
+                    , partnerCompany.representative AS partnerCompanyRepresentative
+                    , partnerCompany.address AS partnerCompanyAddress
+                    , partnerCompany.phoneNo AS partnerCompanyPhoneNo
+                    , partnerCompany.faxNo As partnerCompanyFaxNo
+                    , partnerCompany.email AS partnerCompanyEmail
+                    , partnerCompany.managedById AS partnerCompanyManagedById
 
                     , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
                     , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(allocStockGroup.change, 0) AS availableQuantity
