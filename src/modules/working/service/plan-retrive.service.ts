@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StockEvent } from 'src/@shared/models';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -65,7 +65,16 @@ export class PlanRetriveService {
       },
     });
 
-    return planInput;
+    return planInput.map((input) => ({
+      ...input,
+      stock: {
+        ...input.stock,
+        initialOrder: {
+          ...input.stock.initialOrder,
+          wantedDate: Util.dateToIso8601(input.stock.initialOrder?.wantedDate),
+        },
+      },
+    }));
   }
 
   async getPlanInputCount(params: { planId: number }) {

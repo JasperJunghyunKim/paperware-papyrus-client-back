@@ -20,7 +20,7 @@ export class InvoiceRetriveService {
         plan: {
           companyId: companyId,
         },
-        shippingId: params.shippingId,
+        shippingId: params.shippingId ?? null,
       },
       skip: params.skip,
       take: params.take,

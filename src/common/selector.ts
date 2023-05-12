@@ -128,6 +128,30 @@ export const ORDER_STOCK_TRADE_PRICE = {
   // s: true,
 } satisfies Prisma.OrderStockTradePriceSelect;
 
+export const INITIAL_ORDER = {
+  id: true,
+  orderNo: true,
+  srcCompany: {
+    select: COMPANY,
+  },
+  dstCompany: {
+    select: COMPANY,
+  },
+  status: true,
+  isEntrusted: true,
+  memo: true,
+  wantedDate: true,
+  stockAcceptedCompanyId: true,
+  isStockRejected: true,
+  orderStock: {
+    select: {
+      dstLocation: {
+        select: LOCATION,
+      },
+    },
+  },
+} satisfies Prisma.OrderSelect;
+
 export const STOCK_PRICE = {
   officialPriceType: true,
   officialPrice: true,
@@ -177,6 +201,9 @@ export const STOCK = {
   isSyncPrice: true,
   stockPrice: {
     select: STOCK_PRICE,
+  },
+  initialOrder: {
+    select: INITIAL_ORDER,
   },
 } satisfies Prisma.StockSelect;
 

@@ -1,19 +1,45 @@
-import { Body, Controller, Get, NotImplementedException, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotImplementedException,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
-import { GetStockDto, StockCreateRequestDto, StockGroupListRequestDto, StockListRequestDto } from './dto/stock.request';
+import {
+  GetStockDto,
+  StockCreateRequestDto,
+  StockGroupListRequestDto,
+  StockListRequestDto,
+} from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockDetailResponse, StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
+import {
+  StockDetailResponse,
+  StockGroupListResponse,
+  StockListResponse,
+} from 'src/@shared/api/stock/stock.response';
+import { Util } from 'src/common';
 
 @Controller('/stock')
 export class StockController {
-  constructor(private readonly stockChangeService: StockChangeService, private readonly stockRetriveService: StockRetriveService) { }
+  constructor(
+    private readonly stockChangeService: StockChangeService,
+    private readonly stockRetriveService: StockRetriveService,
+  ) { }
 
   @Get()
   @UseGuards(AuthGuard)
-  async getStockList(@Request() req: AuthType, @Query() dto: StockListRequestDto): Promise<StockListResponse> {
+  async getStockList(
+    @Request() req: AuthType,
+    @Query() dto: StockListRequestDto,
+  ): Promise<StockListResponse> {
     const stocks = await this.stockRetriveService.getStockList({
       companyId: req.user.companyId,
       warehouseId: dto.warehouseId,
@@ -47,6 +73,10 @@ export class StockController {
         paperPattern: stock.paperPattern,
         paperCert: stock.paperCert,
         stockPrice: stock.stockPrice,
+        initialOrder: {
+          ...stock.initialOrder,
+          wantedDate: Util.dateToIso8601(stock.initialOrder?.wantedDate),
+        },
       })),
       total: stocks.length,
     };
@@ -54,26 +84,39 @@ export class StockController {
 
   @Get('/group')
   @UseGuards(AuthGuard)
-  async getStockGroupList(@Request() req: AuthType, @Query() dto: StockGroupListRequestDto): Promise<StockGroupListResponse> {
-    const { stockGroups, total } = await this.stockRetriveService.getStockGroupList(req.user.companyId, dto.skip, dto.take);
+  async getStockGroupList(
+    @Request() req: AuthType,
+    @Query() dto: StockGroupListRequestDto,
+  ): Promise<StockGroupListResponse> {
+    const { stockGroups, total } =
+      await this.stockRetriveService.getStockGroupList(
+        req.user.companyId,
+        dto.skip,
+        dto.take,
+      );
 
     return {
       items: stockGroups.map((sg) => ({
-        orderCompanyInfo: sg.partnerCompanyId ? {
-          id: sg.partnerCompanyId,
-          businessName: sg.partnerCompanyBusinessName,
-          companyRegistrationNumber: sg.partnerCompanyCompanyRegistrationNumber,
-          invoiceCode: sg.partnerCompanyInvoiceCode,
-          representative: sg.partnerCompanyRepresentative,
-          address: sg.partnerCompanyAddress,
-          phoneNo: sg.partnerCompanyPhoneNo,
-          faxNo: sg.partnerCompanyFaxNo,
-          email: sg.partnerCompanyEmail,
-          managedById: sg.partnerCompanyManagedById,
-        } : null,
-        orderInfo: sg.orderId ? {
-          wantedDate: sg.wantedDate,
-        } : null,
+        orderCompanyInfo: sg.partnerCompanyId
+          ? {
+            id: sg.partnerCompanyId,
+            businessName: sg.partnerCompanyBusinessName,
+            companyRegistrationNumber:
+              sg.partnerCompanyCompanyRegistrationNumber,
+            invoiceCode: sg.partnerCompanyInvoiceCode,
+            representative: sg.partnerCompanyRepresentative,
+            address: sg.partnerCompanyAddress,
+            phoneNo: sg.partnerCompanyPhoneNo,
+            faxNo: sg.partnerCompanyFaxNo,
+            email: sg.partnerCompanyEmail,
+            managedById: sg.partnerCompanyManagedById,
+          }
+          : null,
+        orderInfo: sg.orderId
+          ? {
+            wantedDate: sg.wantedDate,
+          }
+          : null,
         warehouse: sg.warehouseId
           ? {
             id: sg.warehouseId,
@@ -228,8 +271,14 @@ export class StockController {
   /** 재고 상세 */
   @Get('/:stockId')
   @UseGuards(AuthGuard)
-  async get(@Request() req: AuthType, @Param() dto: GetStockDto): Promise<StockDetailResponse> {
-    const stock = await this.stockRetriveService.getStock(req.user.companyId, dto.stockId);
+  async get(
+    @Request() req: AuthType,
+    @Param() dto: GetStockDto,
+  ): Promise<StockDetailResponse> {
+    const stock = await this.stockRetriveService.getStock(
+      req.user.companyId,
+      dto.stockId,
+    );
     return {
       id: stock.id,
       serial: stock.serial,
@@ -247,12 +296,20 @@ export class StockController {
       paperColor: stock.paperColor,
       paperPattern: stock.paperPattern,
       paperCert: stock.paperCert,
+      initialOrder: {
+        ...stock.initialOrder,
+        wantedDate: Util.dateToIso8601(stock.initialOrder?.wantedDate),
+      },
+      stockPrice: stock.stockPrice,
     };
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Request() req: AuthType, @Body() dto: StockCreateRequestDto): Promise<any> {
+  async create(
+    @Request() req: AuthType,
+    @Body() dto: StockCreateRequestDto,
+  ): Promise<any> {
     await this.stockChangeService.create(
       {
         serial: ulid(),

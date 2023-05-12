@@ -104,7 +104,18 @@ export class OrderRetriveService {
       },
     });
 
-    return stockEvents;
+    return stockEvents.map((stockEvent) => ({
+      ...stockEvent,
+      stock: {
+        ...stockEvent.stock,
+        initialOrder: {
+          ...stockEvent.stock.initialOrder,
+          wantedDate: Util.dateToIso8601(
+            stockEvent.stock.initialOrder?.wantedDate,
+          ),
+        },
+      },
+    }));
   }
 
   async getOrderStockArrivalCount(params: { orderId: number }) {

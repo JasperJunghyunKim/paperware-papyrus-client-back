@@ -167,7 +167,10 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
-  stockPrice              StockPrice[]
+  stockPrice              StockPrice?
+
+  initialOrderId Int?
+  initialOrder   Order? @relation(fields: [initialOrderId], references: [id])
 
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
@@ -427,6 +430,7 @@ model Order {
   isStockRejected        Boolean      @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
+  stock                  Stock[]
 }
 
 model OrderStock {
