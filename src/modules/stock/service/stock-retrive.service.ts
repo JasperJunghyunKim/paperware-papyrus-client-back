@@ -261,8 +261,6 @@ export class StockRetriveService {
                     , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(allocStockGroup.change, 0) AS availableQuantity
                     , COUNT(1) OVER() AS total
 
-                    , IFNULL(allocStockGroup.change, 0) AS ttt
-
               FROM Stock                    AS s
               JOIN StockEvent               AS se                 ON se.stockId = s.id
          LEFT JOIN Warehouse                AS w                  ON w.id = s.warehouseId
@@ -337,6 +335,7 @@ export class StockRetriveService {
 
                     # 최신버전
                     , allocStockGroup.change
+                    , partnerCompany.id
                     
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
