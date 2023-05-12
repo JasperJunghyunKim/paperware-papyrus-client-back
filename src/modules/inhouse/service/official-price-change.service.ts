@@ -142,4 +142,35 @@ export class OfficialPriceChangeService {
             });
         });
     }
+
+    async delete(companyId: number, officialPriceConditionId: number) {
+        await this.prisma.$transaction(async tx => {
+            const condition = await tx.officialPriceCondition.findFirst({
+                include: {
+                    officialPriceMap: true,
+                },
+                where: {
+                    id: officialPriceConditionId,
+                    officialPriceMap: {
+                        some: {
+                            companyId,
+                            isDeleted: false,
+                        }
+                    }
+                }
+            });
+            if (!condition) throw new NotFoundException(`존재하지 않는 고시가 입니다.`);
+
+            await tx.officialPriceMap.updateMany({
+                where: {
+                    id: {
+                        in: condition.officialPriceMap.map(opm => opm.id),
+                    }
+                },
+                data: {
+                    isDeleted: true,
+                }
+            });
+        });
+    }
 }

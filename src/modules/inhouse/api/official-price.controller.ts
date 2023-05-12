@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
@@ -126,5 +126,14 @@ export class OfficialPriceController {
             dto.wholesalePrice,
             dto.retailPrice,
         );
+    }
+
+    @Delete('/:officialPriceConditionId')
+    @UseGuards(AuthGuard)
+    async delete(
+        @Request() req: AuthType,
+        @Param() param: OfficialPriceConditionIdDto,
+    ) {
+        await this.officialPriceChangeService.delete(req.user.companyId, param.officialPriceConditionId);
     }
 }
