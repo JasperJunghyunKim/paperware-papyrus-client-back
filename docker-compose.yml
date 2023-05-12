@@ -42,17 +42,17 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     volumes:
       - ./docker/shadow/mysql:/var/lib/mysql
-  redis:
-    image: redis:latest
-    restart: always
-    command: redis-server --requirepass ${REDIS_PASSWORD}
-    container_name: redis
-    labels:
-      - "name=redis"
-      - "mode=standalone"
-    ports:
-      - 6379:6379
-    volumes:
-      - ./docker/redis:/var/lib/redis
-    env_file:
-      - .env
+  # redis:
+  #   image: redis:latest
+  #   restart: always
+  #   command: redis-server --requirepass ${REDIS_PASSWORD}
+  #   container_name: redis
+  #   labels:
+  #     - "name=redis"
+  #     - "mode=standalone"
+  #   ports:
+  #     - 6379:6379
+  #   volumes:
+  #     - ./docker/redis:/var/lib/redis
+  #   env_file:
+  #     - .env

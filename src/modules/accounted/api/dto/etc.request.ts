@@ -9,6 +9,7 @@ export class EtcRequest implements ByEtcCreateRequest {
   readonly partnerId: number;
 
   @IsString()
+  @IsOptional()
   readonly partnerNickName: string;
 
   @IsNumber()
@@ -28,6 +29,7 @@ export class EtcRequest implements ByEtcCreateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @Type(() => Number)
