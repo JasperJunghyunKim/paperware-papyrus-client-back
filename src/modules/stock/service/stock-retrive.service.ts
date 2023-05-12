@@ -49,6 +49,7 @@ interface StockGroupFromDB {
   dstLocationCode: string;
   dstLocationIsPublic: boolean;
   dstLocationAddress: string;
+  wantedDate: string;
 
   planId: number;
   planNo: string;
@@ -202,6 +203,7 @@ export class StockRetriveService {
                     , dstLocation.code AS dstLocationCode
                     , dstLocation.isPublic AS dstLocationIsPublic
                     , dstLocation.address AS dstLocationAddress
+                    , o.wantedDate AS wantedDate
 
                     , plan.id AS planId
                     , plan.planNo As planNo
@@ -251,6 +253,9 @@ export class StockRetriveService {
                     , partnerCompany.faxNo As partnerCompanyFaxNo
                     , partnerCompany.email AS partnerCompanyEmail
                     , partnerCompany.managedById AS partnerCompanyManagedById
+
+                    # 거래 정보
+                    , o.wantedDate AS wantedDate
 
                     , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
                     , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(allocStockGroup.change, 0) AS availableQuantity

@@ -71,6 +71,9 @@ export class StockController {
           email: sg.partnerCompanyEmail,
           managedById: sg.partnerCompanyManagedById,
         } : null,
+        orderInfo: sg.orderId ? {
+          wantedDate: sg.wantedDate,
+        } : null,
         warehouse: sg.warehouseId
           ? {
             id: sg.warehouseId,
