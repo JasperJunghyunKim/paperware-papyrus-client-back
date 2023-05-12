@@ -1,19 +1,45 @@
-import { Body, Controller, Get, NotImplementedException, Param, Post, Query, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotImplementedException,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
-import { GetStockDto, StockCreateRequestDto, StockGroupListRequestDto, StockListRequestDto } from './dto/stock.request';
+import {
+  GetStockDto,
+  StockCreateRequestDto,
+  StockGroupListRequestDto,
+  StockListRequestDto,
+} from './dto/stock.request';
 import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
-import { StockDetailResponse, StockGroupListResponse, StockListResponse } from 'src/@shared/api/stock/stock.response';
+import {
+  StockDetailResponse,
+  StockGroupListResponse,
+  StockListResponse,
+} from 'src/@shared/api/stock/stock.response';
+import { Util } from 'src/common';
 
 @Controller('/stock')
 export class StockController {
-  constructor(private readonly stockChangeService: StockChangeService, private readonly stockRetriveService: StockRetriveService) { }
+  constructor(
+    private readonly stockChangeService: StockChangeService,
+    private readonly stockRetriveService: StockRetriveService,
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
-  async getStockList(@Request() req: AuthType, @Query() dto: StockListRequestDto): Promise<StockListResponse> {
+  async getStockList(
+    @Request() req: AuthType,
+    @Query() dto: StockListRequestDto,
+  ): Promise<StockListResponse> {
     const stocks = await this.stockRetriveService.getStockList({
       companyId: req.user.companyId,
       warehouseId: dto.warehouseId,
@@ -47,6 +73,10 @@ export class StockController {
         paperPattern: stock.paperPattern,
         paperCert: stock.paperCert,
         stockPrice: null,
+        initialOrder: {
+          ...stock.initialOrder,
+          wantedDate: Util.dateToIso8601(stock.initialOrder?.wantedDate),
+        },
       })),
       total: stocks.length,
     };
@@ -54,34 +84,47 @@ export class StockController {
 
   @Get('/group')
   @UseGuards(AuthGuard)
-  async getStockGroupList(@Request() req: AuthType, @Query() dto: StockGroupListRequestDto): Promise<StockGroupListResponse> {
-    const { stockGroups, total } = await this.stockRetriveService.getStockGroupList(req.user.companyId, dto.skip, dto.take);
+  async getStockGroupList(
+    @Request() req: AuthType,
+    @Query() dto: StockGroupListRequestDto,
+  ): Promise<StockGroupListResponse> {
+    const { stockGroups, total } =
+      await this.stockRetriveService.getStockGroupList(
+        req.user.companyId,
+        dto.skip,
+        dto.take,
+      );
 
     return {
       items: stockGroups.map((sg) => ({
-        orderCompanyInfo: sg.partnerCompanyId ? {
-          id: sg.partnerCompanyId,
-          businessName: sg.partnerCompanyBusinessName,
-          companyRegistrationNumber: sg.partnerCompanyCompanyRegistrationNumber,
-          invoiceCode: sg.partnerCompanyInvoiceCode,
-          representative: sg.partnerCompanyRepresentative,
-          address: sg.partnerCompanyAddress,
-          phoneNo: sg.partnerCompanyPhoneNo,
-          faxNo: sg.partnerCompanyFaxNo,
-          email: sg.partnerCompanyEmail,
-          managedById: sg.partnerCompanyManagedById,
-        } : null,
-        orderInfo: sg.orderId ? {
-          wantedDate: sg.wantedDate,
-        } : null,
+        orderCompanyInfo: sg.partnerCompanyId
+          ? {
+              id: sg.partnerCompanyId,
+              businessName: sg.partnerCompanyBusinessName,
+              companyRegistrationNumber:
+                sg.partnerCompanyCompanyRegistrationNumber,
+              invoiceCode: sg.partnerCompanyInvoiceCode,
+              representative: sg.partnerCompanyRepresentative,
+              address: sg.partnerCompanyAddress,
+              phoneNo: sg.partnerCompanyPhoneNo,
+              faxNo: sg.partnerCompanyFaxNo,
+              email: sg.partnerCompanyEmail,
+              managedById: sg.partnerCompanyManagedById,
+            }
+          : null,
+        orderInfo: sg.orderId
+          ? {
+              wantedDate: sg.wantedDate,
+            }
+          : null,
         warehouse: sg.warehouseId
           ? {
-            id: sg.warehouseId,
-            name: sg.warehouseName,
-            code: sg.warehouseCode,
-            isPublic: sg.warehouseIsPublic,
-            address: sg.warehouseAddress,
-          }
+              id: sg.warehouseId,
+              name: sg.warehouseName,
+              code: sg.warehouseCode,
+              isPublic: sg.warehouseIsPublic,
+              address: sg.warehouseAddress,
+            }
           : null,
         product: {
           id: sg.productId,
@@ -113,110 +156,110 @@ export class StockController {
         sizeY: sg.sizeY,
         paperColorGroup: sg.paperColorGroupId
           ? {
-            id: sg.paperColorGroupId,
-            name: sg.paperColorGroupName,
-          }
+              id: sg.paperColorGroupId,
+              name: sg.paperColorGroupName,
+            }
           : null,
         paperColor: sg.paperColorId
           ? {
-            id: sg.paperColorId,
-            name: sg.paperColorName,
-          }
+              id: sg.paperColorId,
+              name: sg.paperColorName,
+            }
           : null,
         paperPattern: sg.paperPatternId
           ? {
-            id: sg.paperPatternId,
-            name: sg.paperPatternName,
-          }
+              id: sg.paperPatternId,
+              name: sg.paperPatternName,
+            }
           : null,
         paperCert: sg.paperCertId
           ? {
-            id: sg.paperCertId,
-            name: sg.paperCertName,
-          }
+              id: sg.paperCertId,
+              name: sg.paperCertName,
+            }
           : null,
         orderStock: sg.orderStockId
           ? {
-            id: sg.orderStockId,
-            orderId: sg.orderId,
-            dstLocation: {
-              id: sg.dstLocationId,
-              name: sg.dstLocationName,
-              code: sg.dstLocationCode,
-              isPublic: sg.dstLocationIsPublic,
-              company: null,
-              address: sg.dstLocationAddress,
-            },
-            warehouse: sg.osWarehouseId
-              ? {
-                id: sg.osWarehouseId,
-                name: sg.osWarehouseName,
-                code: sg.osWarehouseCode,
-                isPublic: sg.osWarehouseIsPublic,
+              id: sg.orderStockId,
+              orderId: sg.orderId,
+              dstLocation: {
+                id: sg.dstLocationId,
+                name: sg.dstLocationName,
+                code: sg.dstLocationCode,
+                isPublic: sg.dstLocationIsPublic,
                 company: null,
-                address: sg.osWarehouseAddress,
-              }
-              : null,
-            product: {
-              id: sg.orderStockProductId,
-              paperDomain: {
-                id: sg.orderStockPaperDomainId,
-                name: sg.orderStockPaperDomainName,
+                address: sg.dstLocationAddress,
               },
-              paperGroup: {
-                id: sg.orderStockPaperGroupId,
-                name: sg.orderStockPaperGroupName,
+              warehouse: sg.osWarehouseId
+                ? {
+                    id: sg.osWarehouseId,
+                    name: sg.osWarehouseName,
+                    code: sg.osWarehouseCode,
+                    isPublic: sg.osWarehouseIsPublic,
+                    company: null,
+                    address: sg.osWarehouseAddress,
+                  }
+                : null,
+              product: {
+                id: sg.orderStockProductId,
+                paperDomain: {
+                  id: sg.orderStockPaperDomainId,
+                  name: sg.orderStockPaperDomainName,
+                },
+                paperGroup: {
+                  id: sg.orderStockPaperGroupId,
+                  name: sg.orderStockPaperGroupName,
+                },
+                manufacturer: {
+                  id: sg.orderStockManufacturerId,
+                  name: sg.orderStockManufacturerName,
+                },
+                paperType: {
+                  id: sg.orderStockPaperTypeId,
+                  name: sg.orderStockPaperTypeName,
+                },
               },
-              manufacturer: {
-                id: sg.orderStockManufacturerId,
-                name: sg.orderStockManufacturerName,
+              packaging: {
+                id: sg.orderStockPackagingId,
+                type: sg.orderStockPackagingType,
+                packA: sg.orderStockPackagingPackA,
+                packB: sg.orderStockPackagingPackB,
               },
-              paperType: {
-                id: sg.orderStockPaperTypeId,
-                name: sg.orderStockPaperTypeName,
-              },
-            },
-            packaging: {
-              id: sg.orderStockPackagingId,
-              type: sg.orderStockPackagingType,
-              packA: sg.orderStockPackagingPackA,
-              packB: sg.orderStockPackagingPackB,
-            },
-            grammage: sg.orderStockGrammage,
-            sizeX: sg.orderStockSizeX,
-            sizeY: sg.orderStockSizeY,
-            paperColorGroup: sg.orderStockPaperColorGroupId
-              ? {
-                id: sg.orderStockPaperColorGroupId,
-                name: sg.orderStockPaperColorGroupName,
-              }
-              : null,
-            paperColor: sg.orderStockPaperColorId
-              ? {
-                id: sg.orderStockPaperColorId,
-                name: sg.orderStockPaperColorName,
-              }
-              : null,
-            paperPattern: sg.orderStockPaperPatternId
-              ? {
-                id: sg.orderStockPaperPatternId,
-                name: sg.orderStockPaperPatternName,
-              }
-              : null,
-            paperCert: sg.orderStockPaperCertId
-              ? {
-                id: sg.orderStockPaperCertId,
-                name: sg.orderStockPaperCertName,
-              }
-              : null,
-            quantity: Math.abs(sg.orderStockQuantity),
-            plan: sg.planId
-              ? {
-                id: sg.planId,
-                planNo: sg.planNo,
-              }
-              : null,
-          }
+              grammage: sg.orderStockGrammage,
+              sizeX: sg.orderStockSizeX,
+              sizeY: sg.orderStockSizeY,
+              paperColorGroup: sg.orderStockPaperColorGroupId
+                ? {
+                    id: sg.orderStockPaperColorGroupId,
+                    name: sg.orderStockPaperColorGroupName,
+                  }
+                : null,
+              paperColor: sg.orderStockPaperColorId
+                ? {
+                    id: sg.orderStockPaperColorId,
+                    name: sg.orderStockPaperColorName,
+                  }
+                : null,
+              paperPattern: sg.orderStockPaperPatternId
+                ? {
+                    id: sg.orderStockPaperPatternId,
+                    name: sg.orderStockPaperPatternName,
+                  }
+                : null,
+              paperCert: sg.orderStockPaperCertId
+                ? {
+                    id: sg.orderStockPaperCertId,
+                    name: sg.orderStockPaperCertName,
+                  }
+                : null,
+              quantity: Math.abs(sg.orderStockQuantity),
+              plan: sg.planId
+                ? {
+                    id: sg.planId,
+                    planNo: sg.planNo,
+                  }
+                : null,
+            }
           : null,
         totalQuantity: sg.totalQuantity,
         availableQuantity: sg.availableQuantity,
@@ -228,8 +271,14 @@ export class StockController {
   /** 재고 상세 */
   @Get('/:stockId')
   @UseGuards(AuthGuard)
-  async get(@Request() req: AuthType, @Param() dto: GetStockDto): Promise<StockDetailResponse> {
-    const stock = await this.stockRetriveService.getStock(req.user.companyId, dto.stockId);
+  async get(
+    @Request() req: AuthType,
+    @Param() dto: GetStockDto,
+  ): Promise<StockDetailResponse> {
+    const stock = await this.stockRetriveService.getStock(
+      req.user.companyId,
+      dto.stockId,
+    );
     return {
       id: stock.id,
       serial: stock.serial,
@@ -247,21 +296,28 @@ export class StockController {
       paperColor: stock.paperColor,
       paperPattern: stock.paperPattern,
       paperCert: stock.paperCert,
+      initialOrder: {
+        ...stock.initialOrder,
+        wantedDate: Util.dateToIso8601(stock.initialOrder?.wantedDate),
+      },
     };
   }
 
   @Post()
   @UseGuards(AuthGuard)
-  async create(@Request() req: AuthType, @Body() dto: StockCreateRequestDto): Promise<any> {
+  async create(
+    @Request() req: AuthType,
+    @Body() dto: StockCreateRequestDto,
+  ): Promise<any> {
     await this.stockChangeService.create(
       {
         serial: ulid(),
         warehouse: dto.warehouseId
           ? {
-            connect: {
-              id: dto.warehouseId,
-            },
-          }
+              connect: {
+                id: dto.warehouseId,
+              },
+            }
           : undefined,
         company: {
           connect: {
@@ -283,31 +339,31 @@ export class StockController {
         },
         paperColorGroup: dto.paperColorGroupId
           ? {
-            connect: {
-              id: dto.paperColorGroupId,
-            },
-          }
+              connect: {
+                id: dto.paperColorGroupId,
+              },
+            }
           : undefined,
         paperColor: dto.paperColorId
           ? {
-            connect: {
-              id: dto.paperColorId,
-            },
-          }
+              connect: {
+                id: dto.paperColorId,
+              },
+            }
           : undefined,
         paperPattern: dto.paperPatternId
           ? {
-            connect: {
-              id: dto.paperPatternId,
-            },
-          }
+              connect: {
+                id: dto.paperPatternId,
+              },
+            }
           : undefined,
         paperCert: dto.paperCertId
           ? {
-            connect: {
-              id: dto.paperCertId,
-            },
-          }
+              connect: {
+                id: dto.paperCertId,
+              },
+            }
           : undefined,
       },
       {

@@ -3,6 +3,7 @@ import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockError } from '../infrastructure/constants/stock-error.enum';
 import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
+import { Selector } from 'src/common';
 
 interface StockGroupFromDB {
   warehouseId: number;
@@ -107,7 +108,7 @@ interface StockGroupFromDB {
 
 @Injectable()
 export class StockRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getStockList(data: Prisma.StockWhereInput) {
     const stocks = await this.prisma.stock.findMany({
@@ -115,7 +116,7 @@ export class StockRetriveService {
         warehouse: {
           include: {
             company: true,
-          }
+          },
         },
         company: true,
         product: {
@@ -132,6 +133,9 @@ export class StockRetriveService {
         paperPattern: true,
         paperCert: true,
         stockPrice: true,
+        initialOrder: {
+          select: Selector.INITIAL_ORDER,
+        },
       },
       where: {
         ...data,
@@ -285,7 +289,7 @@ export class StockRetriveService {
          LEFT JOIN \`Location\`             AS dstLocation        ON dstLocation.id = os.dstLocationId
          LEFT JOIN Warehouse                AS osWarehouse        ON osWarehouse.id = os.warehouseId
          LEFT JOIN Plan                     AS plan               ON plan.id = os.planId
-         
+
         # 부모재고 할당
          LEFT JOIN (
           SELECT StockGroup.*, SUM(StockGroupEvent.change) AS \`change\`
@@ -336,7 +340,7 @@ export class StockRetriveService {
                     # 최신버전
                     , allocStockGroup.change
                     , partnerCompany.id
-                    
+
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}
@@ -374,11 +378,14 @@ export class StockRetriveService {
         paperColor: true,
         paperPattern: true,
         paperCert: true,
+        initialOrder: {
+          select: Selector.INITIAL_ORDER,
+        },
       },
       where: {
         id: stockId,
         companyId,
-      }
+      },
     });
     if (!stock)
       throw new StockNotFoundException(StockError.STOCK001, [stockId]);

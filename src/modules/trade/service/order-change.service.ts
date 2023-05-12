@@ -13,7 +13,7 @@ export class OrderChangeService {
     private readonly prisma: PrismaService,
     private readonly planChange: PlanChangeService,
     private readonly stockChangeService: StockChangeService,
-  ) { }
+  ) {}
 
   /** 정상거래 주문 생성 */
   async createStockOrder(params: {
@@ -440,6 +440,11 @@ export class OrderChangeService {
               discountPrice: stockPrice.discountPrice,
               unitPrice: stockPrice.unitPrice,
               unitPriceUnit: stockPrice.unitPriceUnit,
+            },
+          },
+          initialOrder: {
+            connect: {
+              id: orderId,
             },
           },
           stockEvent: {
