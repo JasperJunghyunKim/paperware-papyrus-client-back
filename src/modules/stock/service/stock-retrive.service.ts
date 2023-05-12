@@ -108,7 +108,7 @@ interface StockGroupFromDB {
 
 @Injectable()
 export class StockRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getStockList(data: Prisma.StockWhereInput) {
     const stocks = await this.prisma.stock.findMany({
@@ -381,6 +381,7 @@ export class StockRetriveService {
         initialOrder: {
           select: Selector.INITIAL_ORDER,
         },
+        stockPrice: true,
       },
       where: {
         id: stockId,

@@ -167,7 +167,7 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
-  stockPrice              StockPrice[]
+  stockPrice              StockPrice?
 
   initialOrderId Int?
   initialOrder   Order? @relation(fields: [initialOrderId], references: [id])
