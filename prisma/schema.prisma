@@ -679,8 +679,6 @@ enum Bank {
   K_BANK
   /// 토스뱅크
   TOS_BANK
-  /// 기타
-  ETC
 }
 
 model BankAccount {
@@ -692,8 +690,6 @@ model BankAccount {
   company       Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 은행
   bankComapny   Bank        @map("bank_company")
-  /// 기타 계좌명
-  etcBank       String      @map("etc_bank") @db.VarChar(50)
   /// 계좌명
   accountName   String      @map("account_nm") @db.VarChar(30)
   /// 계좌 유형
@@ -740,8 +736,6 @@ enum CardCompany {
   HYUNDAI_CARD
   /// NH농협카드
   NH_CARD
-  /// 기타
-  ETC
 }
 
 /// 카드 정보
@@ -756,8 +750,6 @@ model Card {
   cardName    String      @map("card_nm") @db.VarChar(50)
   /// 카드사
   cardCompany CardCompany @map("card_company")
-  /// 기타 카드사
-  etcCard     String      @map("etc_card") @db.VarChar(50)
   /// 카드 번호
   cardNumber  String      @map("card_no") @db.VarChar(50)
   /// 소유주명
