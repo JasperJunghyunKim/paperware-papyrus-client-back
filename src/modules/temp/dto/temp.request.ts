@@ -1,6 +1,7 @@
+import { DiscountType, OfficialPriceType, PriceUnit } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, Min, ValidateNested } from "class-validator";
-import { DiscountType, DiscountTypes, OfficialPriceType, OfficialPriceTypes, OrderStockTradeAltBundleUpdateRequest, OrderStockTradePriceUpdateRequest, PriceUnit, PriceUnits, TradePriceUpdateRequest } from "src/@shared/api";
+import { OrderStockTradeAltBundleUpdateRequest, OrderStockTradePriceUpdateRequest, TradePriceUpdateRequest } from "src/@shared/api";
 
 export class OrderIdDto {
     @IsInt()
@@ -29,7 +30,7 @@ export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBund
 
 
 export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdateRequest {
-    @IsEnum(OfficialPriceTypes)
+    @IsEnum(OfficialPriceType)
     readonly officialPriceType: OfficialPriceType;
 
     @IsInt()
@@ -37,10 +38,10 @@ export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdate
     @Min(0)
     readonly officialPrice: number;
 
-    @IsEnum(PriceUnits)
+    @IsEnum(PriceUnit)
     readonly officialPriceUnit: PriceUnit;
 
-    @IsEnum(DiscountTypes)
+    @IsEnum(DiscountType)
     readonly discountType: DiscountType;
 
     @IsOptional()
@@ -55,7 +56,7 @@ export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdate
     @Min(0)
     readonly unitPrice: number = 0;
 
-    @IsEnum(PriceUnits)
+    @IsEnum(PriceUnit)
     readonly unitPriceUnit: PriceUnit;
 
     @IsInt()
