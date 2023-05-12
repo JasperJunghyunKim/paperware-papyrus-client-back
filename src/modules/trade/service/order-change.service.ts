@@ -456,10 +456,9 @@ export class OrderChangeService {
         },
       });
 
-      // TODO... 입고예정재고 추가시 Cache 업데이트
-      // await this.stockChangeService.cacheStockQuantityTx(tx, {
-      //   id: stock.id,
-      // });
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: stock.id,
+      });
     });
   }
 }
