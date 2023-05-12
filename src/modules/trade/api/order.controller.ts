@@ -312,7 +312,7 @@ export class OrderController {
       packagingId: body.packagingId,
       grammage: body.grammage,
       sizeX: body.sizeX,
-      sizeY: body.sizeY,
+      sizeY: body.sizeY || 0,
       paperColorGroupId: body.paperColorGroupId,
       paperColorId: body.paperColorId,
       paperPatternId: body.paperPatternId,

@@ -209,9 +209,10 @@ export class OrderStockArrivalCreateRequestDto implements OrderStockArrivalCreat
   @Type(() => Number)
   sizeX: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeY: number;
+  sizeY: number = 0;
 
   @IsOptional()
   @IsInt()
