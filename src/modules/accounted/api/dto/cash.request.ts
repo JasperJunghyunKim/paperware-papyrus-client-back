@@ -10,6 +10,7 @@ export class CashRequest implements ByCashCreateRequest {
   readonly partnerId: number;
 
   @IsString()
+  @IsOptional()
   readonly partnerNickName: string;
 
   @IsNumber()
@@ -29,6 +30,7 @@ export class CashRequest implements ByCashCreateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @Type(() => Number)

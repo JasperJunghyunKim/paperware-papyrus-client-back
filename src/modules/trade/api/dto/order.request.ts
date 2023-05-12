@@ -1,12 +1,5 @@
 import { Type } from 'class-transformer';
-import {
-  IsInt,
-  IsObject,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
+import { IsInt, IsObject, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import {
   OrderStockCreateRequest,
   OrderStockUpdateRequest,
@@ -79,9 +72,10 @@ export default class OrderStockCreateRequestDto implements OrderStockCreateReque
   @Type(() => Number)
   sizeX: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeY: number;
+  sizeY: number = 0;
 
   @IsOptional()
   @IsInt()
@@ -144,9 +138,10 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @Type(() => Number)
   grammage: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeX: number;
+  sizeX: number = 0;
 
   @IsInt()
   @Type(() => Number)
@@ -185,8 +180,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   wantedDate: string;
 }
 
-export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery {
+export class OrderStockArrivalListQueryDto implements OrderStockArrivalListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -198,8 +192,7 @@ export class OrderStockArrivalListQueryDto
   take: number = undefined;
 }
 
-export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest {
+export class OrderStockArrivalCreateRequestDto implements OrderStockArrivalCreateRequest {
   @IsInt()
   @Type(() => Number)
   productId: number;

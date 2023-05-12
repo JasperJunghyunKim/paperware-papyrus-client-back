@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { StockEvent } from 'src/@shared/models';
 import { Selector } from 'src/common';
 import { PrismaService } from 'src/core';
 
@@ -39,5 +40,47 @@ export class PlanRetriveService {
         id,
       },
     });
+  }
+
+  async getPlanInputList(params: {
+    planId: number;
+    skip?: number;
+    take?: number;
+  }): Promise<StockEvent[]> {
+    const { planId, skip, take } = params;
+
+    const planInput = await this.prisma.stockEvent.findMany({
+      select: Selector.STOCK_EVENT,
+      where: {
+        planIn: {
+          some: {
+            id: planId,
+          },
+        },
+      },
+      skip,
+      take,
+      orderBy: {
+        id: 'desc',
+      },
+    });
+
+    return planInput;
+  }
+
+  async getPlanInputCount(params: { planId: number }) {
+    const { planId } = params;
+
+    const count = await this.prisma.stockEvent.count({
+      where: {
+        planIn: {
+          some: {
+            id: planId,
+          },
+        },
+      },
+    });
+
+    return count;
   }
 }

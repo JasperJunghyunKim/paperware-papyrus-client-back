@@ -8,7 +8,10 @@ import { ulid } from 'ulid';
 
 @Injectable()
 export class OrderChangeService {
-  constructor(private readonly prisma: PrismaService, private readonly planChange: PlanChangeService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly planChange: PlanChangeService,
+  ) {}
 
   /** 정상거래 주문 생성 */
   async createStockOrder(params: {
@@ -201,7 +204,10 @@ export class OrderChangeService {
           id: orderId,
         },
         data: {
-          status: order.status === 'OFFER_PREPARING' ? 'OFFER_REQUESTED' : 'ORDER_REQUESTED',
+          status:
+            order.status === 'OFFER_PREPARING'
+              ? 'OFFER_REQUESTED'
+              : 'ORDER_REQUESTED',
         },
       });
     });
@@ -229,7 +235,10 @@ export class OrderChangeService {
           id: orderId,
         },
         data: {
-          status: order.status === 'OFFER_PREPARING' ? 'OFFER_CANCELLED' : 'ORDER_CANCELLED',
+          status:
+            order.status === 'OFFER_PREPARING'
+              ? 'OFFER_CANCELLED'
+              : 'ORDER_CANCELLED',
         },
       });
     });
@@ -250,7 +259,15 @@ export class OrderChangeService {
         },
       });
 
-      if (!Util.inc(order.status, 'OFFER_REQUESTED', 'ORDER_REQUESTED', 'OFFER_PREPARING', 'ORDER_PREPARING')) {
+      if (
+        !Util.inc(
+          order.status,
+          'OFFER_REQUESTED',
+          'ORDER_REQUESTED',
+          'OFFER_PREPARING',
+          'ORDER_PREPARING',
+        )
+      ) {
         throw new Error('Invalid order status');
       }
 
@@ -260,7 +277,7 @@ export class OrderChangeService {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
           warehouseId: order.orderStock.warehouseId,
-          orderStockIdOrig: order.orderStock.id,
+          orderStockIdOrig: order.orderStock.orderStockId,
           productId: order.orderStock.productId,
           packagingId: order.orderStock.packagingId,
           grammage: order.orderStock.grammage,
@@ -308,7 +325,10 @@ export class OrderChangeService {
           id: orderId,
         },
         data: {
-          status: order.status === 'OFFER_REQUESTED' ? 'OFFER_REJECTED' : 'ORDER_REJECTED',
+          status:
+            order.status === 'OFFER_REQUESTED'
+              ? 'OFFER_REJECTED'
+              : 'ORDER_REJECTED',
         },
       });
     });
@@ -336,7 +356,10 @@ export class OrderChangeService {
           id: orderId,
         },
         data: {
-          status: order.status === 'OFFER_REJECTED' ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
+          status:
+            order.status === 'OFFER_REJECTED'
+              ? 'OFFER_PREPARING'
+              : 'ORDER_PREPARING',
         },
       });
     });
@@ -356,8 +379,20 @@ export class OrderChangeService {
     quantity: number;
     stockPrice: StockCreateStockPriceRequest;
   }) {
-    const { orderId, productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, quantity, stockPrice } =
-      params;
+    const {
+      orderId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+      stockPrice,
+    } = params;
 
     await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
@@ -384,9 +419,15 @@ export class OrderChangeService {
           grammage,
           sizeX,
           sizeY,
-          paperColorGroup: paperColorGroupId ? { connect: { id: paperColorGroupId } } : undefined,
-          paperColor: paperColorId ? { connect: { id: paperColorId } } : undefined,
-          paperPattern: paperPatternId ? { connect: { id: paperPatternId } } : undefined,
+          paperColorGroup: paperColorGroupId
+            ? { connect: { id: paperColorGroupId } }
+            : undefined,
+          paperColor: paperColorId
+            ? { connect: { id: paperColorId } }
+            : undefined,
+          paperPattern: paperPatternId
+            ? { connect: { id: paperPatternId } }
+            : undefined,
           paperCert: paperCertId ? { connect: { id: paperCertId } } : undefined,
           stockPrice: {
             create: {

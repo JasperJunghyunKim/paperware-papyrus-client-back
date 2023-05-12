@@ -23,7 +23,7 @@ export class AccountedChangeService {
             accountedSubject: cashRequest.accountedSubject,
             accountedMethod: cashRequest.accountedMethod,
             accountedDate: cashRequest.accountedDate,
-            memo: cashRequest.memo,
+            memo: cashRequest.memo ?? '',
             byCash: {
               create: {
                 cashAmount: cashRequest.amount,
@@ -52,7 +52,7 @@ export class AccountedChangeService {
             accountedSubject: cashRequest.accountedSubject,
             accountedMethod: cashRequest.accountedMethod,
             accountedDate: cashRequest.accountedDate,
-            memo: cashRequest.memo,
+            memo: cashRequest.memo ?? '',
             byCash: {
               update: {
                 cashAmount: cashRequest.amount,
@@ -114,7 +114,7 @@ export class AccountedChangeService {
             accountedSubject: etcRequest.accountedSubject,
             accountedMethod: etcRequest.accountedMethod,
             accountedDate: etcRequest.accountedDate,
-            memo: etcRequest.memo,
+            memo: etcRequest.memo ?? '',
             byEtc: {
               create: {
                 etcAmount: etcRequest.amount,
@@ -143,7 +143,7 @@ export class AccountedChangeService {
             accountedSubject: etcRequest.accountedSubject,
             accountedMethod: etcRequest.accountedMethod,
             accountedDate: etcRequest.accountedDate,
-            memo: etcRequest.memo,
+            memo: etcRequest.memo ?? '',
             byEtc: {
               update: {
                 etcAmount: etcRequest.amount,
