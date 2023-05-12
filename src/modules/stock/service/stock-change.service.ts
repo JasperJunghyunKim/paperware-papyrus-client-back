@@ -27,6 +27,7 @@ export class StockChangeService {
         status: 'NORMAL',
       },
     });
+    // console.log(where.id, quantity._sum.change)
     const quantityAvailable = await tx.stockEvent.aggregate({
       _sum: {
         change: true,

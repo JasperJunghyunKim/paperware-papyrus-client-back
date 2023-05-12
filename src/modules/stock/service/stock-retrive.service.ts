@@ -252,8 +252,8 @@ export class StockRetriveService {
 
            # 도착예정 정보
          LEFT JOIN _OrderStockToStockEvent  AS osToSe             ON osToSe.B = se.id
-         LEFT JOIN orderStock               AS os                 ON os.id = osToSe.A AND (se.status = ${StockEventStatus.PENDING})
-         LEFT JOIN \`order\`                AS o                  ON o.id = os.orderId
+         LEFT JOIN OrderStock               AS os                 ON os.id = osToSe.A AND (se.status = ${StockEventStatus.PENDING})
+         LEFT JOIN \`Order\`                AS o                  ON o.id = os.orderId
          LEFT JOIN Company                  AS partnerCompany     ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
          LEFT JOIN \`Location\`             AS dstLocation        ON dstLocation.id = os.dstLocationId
          LEFT JOIN Warehouse                AS osWarehouse        ON osWarehouse.id = os.warehouseId
@@ -307,7 +307,7 @@ export class StockRetriveService {
                     , o.id
 
                     # 최신버전
-                    
+                    , allocStockGroup.change
                     
             HAVING totalQuantity != 0 OR availableQuantity != 0
 

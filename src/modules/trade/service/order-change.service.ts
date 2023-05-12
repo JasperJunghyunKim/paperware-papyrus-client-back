@@ -3,6 +3,7 @@ import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
+import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { ulid } from 'ulid';
 
@@ -11,7 +12,8 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly planChange: PlanChangeService,
-  ) {}
+    private readonly stockChangeService: StockChangeService,
+  ) { }
 
   /** 정상거래 주문 생성 */
   async createStockOrder(params: {
@@ -406,7 +408,7 @@ export class OrderChangeService {
 
       // TODO: 상테 체크
 
-      await tx.stock.create({
+      const stock = await tx.stock.create({
         data: {
           company: {
             connect: {
@@ -453,6 +455,11 @@ export class OrderChangeService {
           },
         },
       });
+
+      // TODO... 입고예정재고 추가시 Cache 업데이트
+      // await this.stockChangeService.cacheStockQuantityTx(tx, {
+      //   id: stock.id,
+      // });
     });
   }
 }
