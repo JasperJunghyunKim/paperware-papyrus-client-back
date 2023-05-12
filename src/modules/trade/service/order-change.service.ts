@@ -276,8 +276,8 @@ export class OrderChangeService {
         await this.planChange.createPlanWithOrder(tx, {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
-          warehouseId: order.orderStock.warehouseId,
-          orderStockIdOrig: order.orderStock.orderStockId,
+          warehouseId: order.orderStock.warehouseId ?? null,
+          orderStockIdOrig: order.orderStock.orderStockId ?? null,
           productId: order.orderStock.productId,
           packagingId: order.orderStock.packagingId,
           grammage: order.orderStock.grammage,
