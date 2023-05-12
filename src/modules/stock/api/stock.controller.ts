@@ -46,7 +46,7 @@ export class StockController {
         paperColor: stock.paperColor,
         paperPattern: stock.paperPattern,
         paperCert: stock.paperCert,
-        stockPrice: null,
+        stockPrice: stock.stockPrice,
       })),
       total: stocks.length,
     };

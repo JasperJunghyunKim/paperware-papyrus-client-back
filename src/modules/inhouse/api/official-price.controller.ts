@@ -1,10 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, NotImplementedException, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
 import { OfficialPriceRetriveService } from "../service/official-price-retrive.service";
-import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto, OfficialPriceUpdateDto } from "./dto/official-price.request";
+import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto, OfficialPriceMappingDto, OfficialPriceUpdateDto } from "./dto/official-price.request";
 
 @Controller('/official-price')
 export class OfficialPriceController {
@@ -12,6 +12,27 @@ export class OfficialPriceController {
         private readonly officialPriceChangeService: OfficialPriceChangeService,
         private readonly officialPriceRetriveService: OfficialPriceRetriveService,
     ) { }
+
+    @Get('/mapping')
+    @UseGuards(AuthGuard)
+    async getMapping(
+        @Request() req: AuthType,
+        @Query() query: OfficialPriceMappingDto
+    ) {
+        const result = await this.officialPriceRetriveService.getMapping(
+            req.user.companyId,
+            query.productId,
+            query.grammage,
+            query.sizeX,
+            query.sizeY,
+            query.paperColorGroupId,
+            query.paperColorId,
+            query.paperPatternId,
+            query.paperCertId,
+        );
+
+        return result;
+    }
 
     @Get()
     @UseGuards(AuthGuard)
