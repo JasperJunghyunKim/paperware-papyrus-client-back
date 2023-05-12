@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
 import { OfficialPriceRetriveService } from "../service/official-price-retrive.service";
-import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto } from "./dto/official-price.request";
+import { CreateOfficialPriceDto, OfficialPriceConditionIdDto, OfficialPriceListDto, OfficialPriceUpdateDto } from "./dto/official-price.request";
 
 @Controller('/official-price')
 export class OfficialPriceController {
@@ -113,12 +113,27 @@ export class OfficialPriceController {
         );
     }
 
-    @Put()
+    @Put('/:officialPriceConditionId')
     @UseGuards(AuthGuard)
     async update(
         @Request() req: AuthType,
-
+        @Param() param: OfficialPriceConditionIdDto,
+        @Body() dto: OfficialPriceUpdateDto,
     ) {
+        await this.officialPriceChangeService.update(
+            req.user.companyId,
+            param.officialPriceConditionId,
+            dto.wholesalePrice,
+            dto.retailPrice,
+        );
+    }
 
+    @Delete('/:officialPriceConditionId')
+    @UseGuards(AuthGuard)
+    async delete(
+        @Request() req: AuthType,
+        @Param() param: OfficialPriceConditionIdDto,
+    ) {
+        await this.officialPriceChangeService.delete(req.user.companyId, param.officialPriceConditionId);
     }
 }

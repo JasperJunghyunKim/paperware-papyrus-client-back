@@ -1,7 +1,7 @@
 import { PriceUnit } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsObject, IsOptional, IsPositive, Max, Min, ValidateNested } from "class-validator";
-import { OfficialPriceCreateRequest, OfficialPriceListQuery } from "src/@shared/api/inhouse/official-price.request";
+import { OfficialPriceCreateRequest, OfficialPriceListQuery, OfficialPriceUpdateRequest } from "src/@shared/api/inhouse/official-price.request";
 import { OfficialPrice } from "src/@shared/models";
 
 /** 고시가 목록 */
@@ -84,6 +84,19 @@ export class CreateOfficialPriceDto implements OfficialPriceCreateRequest {
     @IsPositive()
     readonly paperCertId: number | null = null;
 
+    @IsObject()
+    @ValidateNested()
+    @Type(() => OfficialPriceDto)
+    readonly wholesalePrice: OfficialPriceDto;
+
+    @IsObject()
+    @ValidateNested()
+    @Type(() => OfficialPriceDto)
+    readonly retailPrice: OfficialPriceDto;
+}
+
+/** 고시가 수정 */
+export class OfficialPriceUpdateDto implements OfficialPriceUpdateRequest {
     @IsObject()
     @ValidateNested()
     @Type(() => OfficialPriceDto)
