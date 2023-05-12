@@ -274,7 +274,7 @@ export class StockRetriveService {
          LEFT JOIN \`Location\`             AS dstLocation      ON dstLocation.id = os.dstLocationId 
 
          LEFT JOIN \`Order\`                AS o                ON o.id = os.orderId
-         LEFT JOIN company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
+         LEFT JOIN Company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
 
             # OrderStock 메타데이터
          LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId
@@ -301,7 +301,14 @@ export class StockRetriveService {
                     , s.paperColorId
                     , s.paperPatternId
                     , s.paperCertId
+
+                    # 최신버전
                     , o.id
+                    , os.id
+                    , partnerCompany.id
+                    , sgWarehouse.id
+                    , osStockEvent.change
+                    , p.id
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}

@@ -277,7 +277,7 @@ export class OrderChangeService {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
           warehouseId: order.orderStock.warehouseId,
-          orderStockIdOrig: order.orderStock.id,
+          orderStockIdOrig: order.orderStock.orderStockId,
           productId: order.orderStock.productId,
           packagingId: order.orderStock.packagingId,
           grammage: order.orderStock.grammage,

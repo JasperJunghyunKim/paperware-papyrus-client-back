@@ -56,7 +56,7 @@ export interface PartnerStockGroupFromDB {
 
 @Injectable()
 export class PartnerStockRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getStockGroupList(
     companyId: number,

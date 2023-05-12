@@ -25,6 +25,6 @@ import { StockArrivalChangeService } from './service/stock-arrival-change.servic
     StockArrivalChangeService,
     PartnerStockRetriveService,
   ],
-  exports: [StockQuantityCheckerService],
+  exports: [StockQuantityCheckerService, StockChangeService, StockValidator],
 })
 export class StockModule {}

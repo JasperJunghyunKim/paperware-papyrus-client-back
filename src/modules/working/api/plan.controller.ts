@@ -17,11 +17,18 @@ import { PlanChangeService } from '../service/plan-change.service';
 import { PlanRetriveService } from '../service/plan-retrive.service';
 import {
   PlanCreateRequestDto,
+  PlanInputListQueryDto,
   PlanListQueryDto,
   RegisterInputStockRequestDto,
 } from './dto/plan.request';
 import { TaskRetriveService } from '../service/task-retrive.service';
 import { TaskListResponse } from 'src/@shared/api/working/task.response';
+import { query } from 'express';
+import {
+  PlanInputListQuery,
+  PlanInputListResponse,
+  PlanListResponse,
+} from 'src/@shared/api';
 
 @Controller('working')
 export class PlanController {
@@ -157,5 +164,35 @@ export class PlanController {
     });
 
     return updatedPlan;
+  }
+
+  @Get('plan/:id/input-stock')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getInputStockListByPlanId(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+    @Query() query: PlanInputListQueryDto,
+  ): Promise<PlanInputListResponse> {
+    const plan = await this.planRetriveService.getPlanById(id);
+
+    if (plan.company.id !== req.user.companyId) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    const items = await this.planRetriveService.getPlanInputList({
+      planId: id,
+      skip: query.skip,
+      take: query.take,
+    });
+
+    const total = await this.planRetriveService.getPlanInputCount({
+      planId: id,
+    });
+
+    return {
+      items,
+      total,
+    };
   }
 }

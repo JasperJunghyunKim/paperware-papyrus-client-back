@@ -280,7 +280,7 @@ export const STOCK_GROUP_EVENT = {
   status: true,
 } satisfies Prisma.StockGroupEventSelect;
 
-export const ORDER_STOCK = {
+const ORDER_STOCK_BASE = {
   id: true,
   orderId: true,
   dstLocation: {
@@ -316,6 +316,13 @@ export const ORDER_STOCK = {
       id: true,
       planNo: true,
     },
+  },
+} satisfies Prisma.OrderStockSelect;
+
+export const ORDER_STOCK = {
+  ...ORDER_STOCK_BASE,
+  orderStock: {
+    select: ORDER_STOCK_BASE,
   },
 } satisfies Prisma.OrderStockSelect;
 

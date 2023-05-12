@@ -1,9 +1,33 @@
 import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsObject, IsOptional, IsPositive, Min, ValidateNested } from "class-validator";
+import { IsEnum, IsInt, IsObject, IsOptional, IsPositive, Max, Min, ValidateNested } from "class-validator";
 import { PriceUnits } from "src/@shared/api";
-import { OfficialPriceCreateRequest } from "src/@shared/api/inhouse/official-price.request";
+import { OfficialPriceCreateRequest, OfficialPriceListQuery } from "src/@shared/api/inhouse/official-price.request";
 import { OfficialPrice } from "src/@shared/models";
 import { PriceUnit } from "src/@shared/models/enum";
+
+/** 고시가 목록 */
+export class OfficialPriceListDto implements OfficialPriceListQuery {
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(0)
+    readonly skip: number = 0;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(10)
+    @Max(100)
+    readonly take: number = undefined;
+}
+
+/** 고시가 상세 */
+export class OfficialPriceConditionIdDto {
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly officialPriceConditionId: number;
+}
 
 /** 고시가 등록 */
 export class OfficialPriceDto implements OfficialPrice {

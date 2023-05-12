@@ -99,6 +99,7 @@ export class PartnerStockController {
                         name: sg.paperCertName,
                     }
                     : null,
+                orderStock: null,
                 totalQuantity: sg.totalQuantity,
                 availableQuantity: sg.availableQuantity,
             })),

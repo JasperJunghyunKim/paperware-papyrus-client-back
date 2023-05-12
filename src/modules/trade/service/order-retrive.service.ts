@@ -28,6 +28,9 @@ export class OrderRetriveService {
       },
       skip: params.skip,
       take: params.take,
+      orderBy: {
+        id: 'desc',
+      },
     });
 
     return orders.map((order) => ({
@@ -71,6 +74,11 @@ export class OrderRetriveService {
     if (!order) {
       return null;
     }
+
+    const a: Model.Order = {
+      ...order,
+      wantedDate: Util.dateToIso8601(order.wantedDate),
+    };
 
     return {
       ...order,
