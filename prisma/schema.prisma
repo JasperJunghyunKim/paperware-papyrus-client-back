@@ -299,6 +299,8 @@ model Company {
   TradePrice                     TradePrice[]
   OrderStockTradeAltBundle       OrderStockTradeAltBundle[]
   Partner                        Partner[]
+  BankAccount                    BankAccount[]
+  Card                           Card[]
 }
 
 model BusinessRelationship {
@@ -616,6 +618,166 @@ model Invoice {
   quantity          Int
   planId            Int
   plan              Plan             @relation(fields: [planId], references: [id])
+}
+
+enum AccountType {
+  /// 예금
+  deposit
+}
+
+/// 은행
+enum Bank {
+  /// 카카오뱅크
+  KAKAOBANK
+  /// 국민은행
+  KOOKMINBANK
+  /// 기업은행
+  KEB_HANABANK
+  /// NH농협은행
+  NH_BANK
+  /// 신한은행
+  SHINHANBANK
+  /// 산업은행
+  IBK
+  /// 우리은행
+  WOORIBANK
+  /// 한국씨티은행
+  CITIBANK_KOREA
+  /// 하나은행
+  HANABANK
+  /// SC제일은행
+  SC_FIRSTBANK
+  /// 경남은행
+  KYONGNAM_BANK
+  /// 광주은행
+  KWANGJU_BANK
+  /// 대구은행
+  DAEGU_BANK
+  /// 도이치은행
+  DEUTSCHE_BANK
+  /// 뱅크오브아메리카
+  BANK_OF_AMERICA
+  /// 부산은행
+  BUSAN_BANK
+  /// 산림조합중앙회
+  NACF
+  /// 저축은행
+  SAVINGS_BANK
+  /// 새마을금고중앙회
+  NACCSF
+  /// 수협은행
+  SUHYUP_BANK
+  /// 신협중앙회
+  NACUFOK
+  /// 우체국
+  POST_OFFICE
+  /// 전북은행
+  JEONBUK_BANK
+  /// 제주은행
+  JEJU_BANK
+  /// 케이뱅크
+  K_BANK
+  /// 토스뱅크
+  TOS_BANK
+  /// 기타
+  ETC
+}
+
+model BankAccount {
+  /// 계좌 ID
+  id            Int         @id @default(autoincrement()) @map("id")
+  /// 회사 식별자
+  companyId     Int         @map("company_id")
+  /// 회사
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 은행
+  bankComapny   Bank        @map("bank_company")
+  /// 기타 계좌명
+  etcBank       String      @map("etc_bank") @db.VarChar(50)
+  /// 계좌명
+  accountName   String      @map("account_nm") @db.VarChar(30)
+  /// 계좌 유형
+  accountType   AccountType @map("account_type")
+  /// 계좌 번호
+  accountNumber String      @map("account_no") @db.VarChar(30)
+  /// 예금주명
+  accountHolder String      @map("account_holder") @db.VarChar(50)
+  /// 삭제 여부
+  deletedYn     Boolean     @default(false) @map("deleted_yn")
+  /// 등록자 아이디
+  regId         String?     @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm         String?     @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId         String?     @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm         String?     @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt         DateTime    @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt         DateTime    @default(now()) @map("reg_dt")
+
+  @@map("bank_account")
+}
+
+/// 카드사
+enum CardCompany {
+  /// BC카드
+  BC_CARD
+  /// KB국민카드
+  KB_CARD
+  /// 삼성카드
+  SAMSUNG_CARD
+  /// 신한카드
+  SHINHAN_CARD
+  /// 우리카드
+  WOORI_CARD
+  /// 하나카드
+  HANA_CARD
+  /// 롯데카드
+  LOTTE_CARD
+  /// 현대카드
+  HYUNDAI_CARD
+  /// NH농협카드
+  NH_CARD
+  /// 기타
+  ETC
+}
+
+/// 카드 정보
+model Card {
+  /// 카드 ID
+  cardId      Int         @id @default(autoincrement()) @map("card_id")
+  /// 회사 식별자
+  companyId   Int         @map("company_id")
+  /// 회사
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 카드명
+  cardName    String      @map("card_nm") @db.VarChar(50)
+  /// 카드사
+  cardCompany CardCompany @map("card_company")
+  /// 기타 카드사
+  etcCard     String      @map("etc_card") @db.VarChar(50)
+  /// 카드 번호
+  cardNumber  String      @map("card_no") @db.VarChar(50)
+  /// 소유주명
+  cardHolder  String      @map("card_holder") @db.VarChar(50)
+  /// 삭제 여부
+  deletedYn   Boolean     @default(false) @map("deleted_yn")
+  /// 등록자 아이디
+  regId       String?     @map("reg_id") @db.VarChar(255)
+  /// 등록자 명
+  regNm       String?     @map("reg_nm") @db.VarChar(255)
+  /// 변경자 아이디
+  chgId       String?     @map("chg_id") @db.VarChar(255)
+  /// 변경자 명
+  chgNm       String?     @map("chg_nm") @db.VarChar(255)
+  /// 변경 일시
+  chgDt       DateTime    @updatedAt @map("chg_dt")
+  /// 등록 일시
+  regDt       DateTime    @default(now()) @map("reg_dt")
+
+  @@map("card")
 }
 
 /// 계정 수단
