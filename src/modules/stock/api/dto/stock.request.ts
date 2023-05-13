@@ -114,7 +114,7 @@ export class StockCreateStockPriceDto implements StockCreateStockPriceRequest {
   readonly officialPriceUnit: PriceUnit;
 
   @IsEnum(DiscountType)
-  readonly discountType: DiscountType;
+  readonly discountType: DiscountType
 
   @IsOptional()
   @IsNumber()
