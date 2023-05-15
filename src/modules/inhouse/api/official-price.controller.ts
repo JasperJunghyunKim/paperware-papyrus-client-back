@@ -126,7 +126,7 @@ export class OfficialPriceController {
             dto.sizeX,
             dto.sizeY,
             dto.paperColorGroupId,
-            dto.paperCertId,
+            dto.paperColorId,
             dto.paperPatternId,
             dto.paperCertId,
             dto.wholesalePrice,
