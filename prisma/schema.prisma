@@ -167,7 +167,10 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
-  stockPrice              StockPrice[]
+  stockPrice              StockPrice?
+
+  initialOrderId Int?
+  initialOrder   Order? @relation(fields: [initialOrderId], references: [id])
 
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
@@ -271,12 +274,12 @@ model User {
 model Company {
   id                             Int                           @id @default(autoincrement())
   businessName                   String
-  companyRegistrationNumber      String?
+  companyRegistrationNumber      String
   phoneNo                        String                        @default("")
   faxNo                          String                        @default("")
   email                          String                        @default("")
   representative                 String                        @default("")
-  invoiceCode                    String?
+  invoiceCode                    String
   address                        String                        @default("") @db.VarChar(500)
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
@@ -308,6 +311,7 @@ model BusinessRelationship {
   srcCompany   Company @relation("srcBusinessRelationship", fields: [srcCompanyId], references: [id])
   dstCompanyId Int
   dstCompany   Company @relation("dstBusinessRelationship", fields: [dstCompanyId], references: [id])
+  isActivated  Boolean @default(true)
 
   @@id([srcCompanyId, dstCompanyId])
 }
@@ -429,6 +433,7 @@ model Order {
   isStockRejected        Boolean      @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
+  stock                  Stock[]
 }
 
 model OrderStock {
@@ -828,34 +833,27 @@ enum Subject {
 
 /// 파트너
 model Partner {
-  /// 식별자
-  id              Int         @id @default(autoincrement())
-  /// 파트너 닉네임(회사 닉네임)
-  partnerNickName String      @map("partner_nick_name") @db.VarChar(100)
-  /// 메모
-  memo            String      @map("memo") @db.VarChar(500)
-  /// 삭제 여부
-  isDeleted       Boolean     @default(false) @map("is_deleted")
+  // id
+  id                        Int         @id @default(autoincrement())
   /// 회사 식별자
-  companyId       Int         @map("company_id")
+  companyId                 Int         @map("company_id")
   /// 회사
-  company         Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 등록자 아이디
-  regId           String?     @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm           String?     @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId           String?     @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm           String?     @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt           DateTime    @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt           DateTime    @default(now()) @map("reg_dt")
+  company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 거래처 사업자 등록번호
+  companyRegistrationNumber String
+  /// 파트너 닉네임(회사 닉네임)
+  partnerNickName           String      @map("partner_nick_name") @db.VarChar(100)
+  /// 여신한도
+  /// 매입 고시가적용 구분
+  /// 매출 고시가적용 구분
+  /// 메모
+  memo                      String      @map("memo") @db.VarChar(500)
+  /// 삭제 여부
+  isDeleted                 Boolean     @default(false) @map("is_deleted")
   /// 회계 목록
-  accountedList   Accounted[]
+  accountedList             Accounted[]
 
-  @@map("partner")
+  @@unique([companyId, companyRegistrationNumber])
 }
 
 /// 회계
@@ -878,18 +876,6 @@ model Accounted {
   partnerId        Int           @map("partner_id")
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 등록자 아이디
-  regId            String?       @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm            String?       @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId            String?       @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm            String?       @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt            DateTime      @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt            DateTime      @default(now()) @map("reg_dt")
 
   /// 지급 현금 결제
   byCash ByCash?
@@ -911,18 +897,6 @@ model ByCash {
   accountedId Int       @unique @map("accounted_id")
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 등록자 아이디
-  regId       String?   @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm       String?   @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId       String?   @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm       String?   @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt       DateTime  @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt       DateTime  @default(now()) @map("reg_dt")
 
   @@map("by_cash")
 }
@@ -938,18 +912,6 @@ model ByEtc {
   accountedId Int       @unique @map("accounted_id")
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 등록자 아이디
-  regId       String?   @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm       String?   @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId       String?   @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm       String?   @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt       DateTime  @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt       DateTime  @default(now()) @map("reg_dt")
 
   @@map("by_etc")
 }

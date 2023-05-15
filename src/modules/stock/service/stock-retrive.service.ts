@@ -3,6 +3,7 @@ import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockError } from '../infrastructure/constants/stock-error.enum';
 import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
+import { Selector } from 'src/common';
 
 interface StockGroupFromDB {
   warehouseId: number;
@@ -11,6 +12,7 @@ interface StockGroupFromDB {
   warehouseIsPublic: boolean;
   warehouseAddress: string;
 
+  // 메타데이터
   packagingId: number;
   packagingName: string;
   packagingType: PackagingType;
@@ -40,27 +42,25 @@ interface StockGroupFromDB {
   paperCertId: number;
   paperCertName: string;
 
-  orderId: number;
+  // 도착예정 정보
   orderStockId: number;
+  orderId: number;
   dstLocationId: number;
-  dstLocationCode: string;
   dstLocationName: string;
-  dstLocationAddress: string;
+  dstLocationCode: string;
   dstLocationIsPublic: boolean;
+  dstLocationAddress: string;
+  wantedDate: string;
 
-  partnerCompanyId: number;
-  partnerCompanyBusinessName: string;
-  partnerCompanyCompanyregistrationstring: string;
-  partnerCompanyPhoneNo: string;
-  partnerCompanyFaxNo: string;
-  partnerCompanyEmail: string;
-  partnerCompanyAddress: string;
+  planId: number;
+  planNo: string;
 
-  sgWarehouseId: number;
-  sgWarehouseName: string;
-  sgWarehouseCode: string;
-  sgWarehouseAddress: string;
-  sgWarehouseIsPublic: boolean;
+  // 원지정보
+  osWarehouseId: number;
+  osWarehouseName: string;
+  osWarehouseCode: string;
+  osWarehouseIsPublic: boolean;
+  osWarehouseAddress: string;
 
   orderStockProductId: number;
   orderStockPaperDomainId: number;
@@ -89,8 +89,17 @@ interface StockGroupFromDB {
   orderStockSizeY: number;
   orderStockQuantity: number;
 
-  planId: number;
-  planNo: string;
+  // 거래처 정보
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyCompanyRegistrationNumber: string;
+  partnerCompanyInvoiceCode: string;
+  partnerCompanyRepresentative: string;
+  partnerCompanyAddress: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyEmail: string;
+  partnerCompanyManagedById: number;
 
   totalQuantity: number;
   availableQuantity: number;
@@ -107,7 +116,7 @@ export class StockRetriveService {
         warehouse: {
           include: {
             company: true,
-          }
+          },
         },
         company: true,
         product: {
@@ -124,6 +133,9 @@ export class StockRetriveService {
         paperPattern: true,
         paperCert: true,
         stockPrice: true,
+        initialOrder: {
+          select: Selector.INITIAL_ORDER,
+        },
       },
       where: {
         ...data,
@@ -160,6 +172,7 @@ export class StockRetriveService {
                     , w.isPublic AS warehouseIsPublic
                     , w.address AS warehouseAddress
 
+                    # 메타데이터
                     , product.id AS productId
                     , paperDomain.id AS paperDomainId
                     , paperDomain.name AS paperDomainName
@@ -186,31 +199,26 @@ export class StockRetriveService {
                     , s.sizeX AS sizeX
                     , s.sizeY AS sizeY
 
-                    # 주문정보 및 거래처 정보
-                    , o.id AS orderId
+                    # 도착예정 정보
                     , os.id AS orderStockId
-
+                    , o.id AS orderId
                     , dstLocation.id AS dstLocationId
-                    , dstLocation.code AS dstLocationCode
                     , dstLocation.name AS dstLocationName
-                    , dstLocation.address AS dstLocationAddress
+                    , dstLocation.code AS dstLocationCode
                     , dstLocation.isPublic AS dstLocationIsPublic
-                    
-                    , partnerCompany.id AS partnerCompanyId
-                    , partnerCompany.businessName AS partnerCompanyBusinessName
-                    , partnerCompany.companyRegistrationNumber AS partnerCompanyCompanyregistrationNumber
-                    , partnerCompany.phoneNo As partnerCompanyPhoneNo
-                    , partnerCompany.faxNo As partnerCompanyFaxNo
-                    , partnerCompany.email AS partnerCompanyEmail
-                    , partnerCompany.address AS partnerCompanyAddress
+                    , dstLocation.address AS dstLocationAddress
+                    , o.wantedDate AS wantedDate
 
-                    , sgWarehouse.id AS sgWarehouseId
-                    , sgWarehouse.name AS sgWarehouseName
-                    , sgWarehouse.code AS sgWarehouseCode
-                    , sgWarehouse.address AS sgWarehouseAddress
-                    , sgWarehouse.isPublic AS sgWarehouseIsPublic
+                    , plan.id AS planId
+                    , plan.planNo As planNo
 
-                    # 주문 원지 정보
+                    # 원지정보
+                    , osWarehouse.id AS osWarehouseId
+                    , osWarehouse.name AS osWarehouseName
+                    , osWarehouse.code AS osWarehouseCode
+                    , osWarehouse.isPublic AS osWarehouseIsPublic
+                    , osWarehouse.address AS osWarehouseAddress
+
                     , osProduct.id AS orderStockProductId
                     , osPaperDomain.id AS orderStockPaperDomainId
                     , osPaperDomain.name AS orderStockPaperDomainName
@@ -236,47 +244,72 @@ export class StockRetriveService {
                     , os.grammage AS orderStockGrammage
                     , os.sizeX AS orderStockSizeX
                     , os.sizeY AS orderStockSizeY
-                    , osStockEvent.change AS orderStockQuantity
+                    , os.quantity AS orderStockQuantity
 
-                    # 플랜
-                    , p.id AS planId
-                    , p.planNo AS planNo
+                    # 거래처 정보
+                    , partnerCompany.id AS partnerCompanyId
+                    , partnerCompany.businessName As partnerCompanyBusinessName
+                    , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+                    , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
+                    , partnerCompany.representative AS partnerCompanyRepresentative
+                    , partnerCompany.address AS partnerCompanyAddress
+                    , partnerCompany.phoneNo AS partnerCompanyPhoneNo
+                    , partnerCompany.faxNo As partnerCompanyFaxNo
+                    , partnerCompany.email AS partnerCompanyEmail
+                    , partnerCompany.managedById AS partnerCompanyManagedById
+
+                    # 거래 정보
+                    , o.wantedDate AS wantedDate
 
                     , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
-                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS availableQuantity
+                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(allocStockGroup.change, 0) AS availableQuantity
                     , COUNT(1) OVER() AS total
 
               FROM Stock                    AS s
-              JOIN StockEvent               AS se               ON se.stockId = s.id
-         LEFT JOIN Warehouse                AS w                ON w.id = s.warehouseId
+              JOIN StockEvent               AS se                 ON se.stockId = s.id
+         LEFT JOIN Warehouse                AS w                  ON w.id = s.warehouseId
 
             # 메타데이터
-              JOIN Product                  AS product          ON product.id = s.productId
-              JOIN PaperDomain              AS paperDomain      ON paperDomain.id = product.paperDomainId
-              JOIN Manufacturer             AS manufacturer     ON manufacturer.id = product.manufacturerId
-              JOIN PaperGroup               AS paperGroup       ON paperGroup.id = product.paperGroupId
-              JOIN PaperType                AS paperType        ON paperType.id = product.paperTypeId
-              JOIN Packaging                AS packaging        ON packaging.id = s.packagingId
-         LEFT JOIN PaperColorGroup          AS paperColorGroup  ON paperColorGroup.id = s.paperColorGroupId
-         LEFT JOIN PaperColor               AS paperColor       ON paperColor.id = s.paperColorId
-         LEFT JOIN PaperPattern             AS paperPattern     ON paperPattern.id = s.paperPatternId
-         LEFT JOIN PaperCert                AS paperCert        ON paperCert.id = s.paperCertId
+              JOIN Product                  AS product            ON product.id = s.productId
+              JOIN PaperDomain              AS paperDomain        ON paperDomain.id = product.paperDomainId
+              JOIN Manufacturer             AS manufacturer       ON manufacturer.id = product.manufacturerId
+              JOIN PaperGroup               AS paperGroup         ON paperGroup.id = product.paperGroupId
+              JOIN PaperType                AS paperType          ON paperType.id = product.paperTypeId
+              JOIN Packaging                AS packaging          ON packaging.id = s.packagingId
+         LEFT JOIN PaperColorGroup          AS paperColorGroup    ON paperColorGroup.id = s.paperColorGroupId
+         LEFT JOIN PaperColor               AS paperColor         ON paperColor.id = s.paperColorId
+         LEFT JOIN PaperPattern             AS paperPattern       ON paperPattern.id = s.paperPatternId
+         LEFT JOIN PaperCert                AS paperCert          ON paperCert.id = s.paperCertId
 
-            # 도착예정
-         LEFT JOIN StockEvent               AS arrivalEvent     ON arrivalEvent.stockId = s.id AND arrivalEvent.status = ${StockEventStatus.PENDING}
-         LEFT JOIN _StockEventOutPlan       AS arrivalEventPlan ON arrivalEventPlan.B = arrivalEvent.id
-         LEFT JOIN Plan                     AS p                ON p.id = arrivalEventPlan.A
-         LEFT JOIN OrderStock               AS os               ON os.planId = p.id
-         LEFT JOIN _OrderStockToStockEvent  AS osToStockEvent   ON osToStockEvent.A = os.id
-         LEFT JOIN StockEvent               AS osStockEvent     ON osStockEvent.id = osToStockEvent.B
-         LEFT JOIN StockGroup               AS sg               ON sg.orderStockId = os.id
-         LEFT JOIN Warehouse                AS sgWarehouse      ON sgWarehouse.id = sg.warehouseId
-         LEFT JOIN \`Location\`             AS dstLocation      ON dstLocation.id = os.dstLocationId 
+           # 도착예정 정보
+         LEFT JOIN _OrderStockToStockEvent  AS osToSe             ON osToSe.B = se.id
+         LEFT JOIN OrderStock               AS os                 ON os.id = osToSe.A AND (se.status = ${StockEventStatus.PENDING})
+         LEFT JOIN \`Order\`                AS o                  ON o.id = os.orderId
+         LEFT JOIN Company                  AS partnerCompany     ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
+         LEFT JOIN \`Location\`             AS dstLocation        ON dstLocation.id = os.dstLocationId
+         LEFT JOIN Warehouse                AS osWarehouse        ON osWarehouse.id = os.warehouseId
+         LEFT JOIN Plan                     AS plan               ON plan.id = os.planId
 
-         LEFT JOIN \`Order\`                AS o                ON o.id = os.orderId
-         LEFT JOIN Company                  AS partnerCompany   ON partnerCompany.id = (CASE WHEN o.srcCompanyId = ${companyId} THEN o.dstCompanyId ELSE o.srcCompanyId END)
+        # 부모재고 할당
+         LEFT JOIN (
+          SELECT StockGroup.*, SUM(StockGroupEvent.change) AS \`change\`
+            FROM StockGroup
+            JOIN StockGroupEvent ON StockGroupEvent.stockGroupId = StockGroup.id
+           GROUP BY StockGroup.id
+         ) AS allocStockGroup ON allocStockGroup.productId = s.productId
+                              AND allocStockGroup.packagingId = s.packagingId
+                              AND allocStockGroup.grammage = s.grammage
+                              AND allocStockGroup.sizeX = s.sizeX
+                              AND allocStockGroup.sizeY = s.sizeY
+                              AND allocStockGroup.companyId = s.companyId
+                              AND IF(s.paperColorGroupId IS NULL, allocStockGroup.paperColorGroupId IS NULL, allocStockGroup.paperColorGroupId = s.paperColorGroupId)
+                              AND IF(s.paperColorId IS NULL, allocStockGroup.paperColorId IS NULL, allocStockGroup.paperColorId = s.paperColorId)
+                              AND IF(s.paperPatternId IS NULL, allocStockGroup.paperPatternId IS NULL, allocStockGroup.paperPatternId = s.paperPatternId)
+                              AND IF(s.paperCertId IS NULL, allocStockGroup.paperCertId IS NULL, allocStockGroup.paperCertId = s.paperCertId)
+                              AND IF(s.warehouseId IS NULL, allocStockGroup.warehouseId IS NULL, allocStockGroup.warehouseId = s.warehouseId)
+                              AND IF(os.id IS NULL, allocStockGroup.orderStockId IS NULL, allocStockGroup.orderStockId = os.id)
 
-            # OrderStock 메타데이터
+           # 원지정보
          LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId
          LEFT JOIN PaperDomain              AS osPaperDomain      ON osPaperDomain.id = osProduct.paperDomainId
          LEFT JOIN Manufacturer             AS osManufacturer     ON osManufacturer.id = osProduct.manufacturerId
@@ -291,8 +324,7 @@ export class StockRetriveService {
              WHERE s.companyId = ${companyId}
                AND se.status IN(${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})
 
-             GROUP BY s.warehouseId
-                    , s.productId
+             GROUP BY s.productId
                     , s.packagingId
                     , s.grammage
                     , s.sizeX
@@ -301,14 +333,14 @@ export class StockRetriveService {
                     , s.paperColorId
                     , s.paperPatternId
                     , s.paperCertId
+                    , s.warehouseId
+                    , os.id
+                    , o.id
 
                     # 최신버전
-                    , o.id
-                    , os.id
+                    , allocStockGroup.change
                     , partnerCompany.id
-                    , sgWarehouse.id
-                    , osStockEvent.change
-                    , p.id
+
             HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}
@@ -346,11 +378,15 @@ export class StockRetriveService {
         paperColor: true,
         paperPattern: true,
         paperCert: true,
+        initialOrder: {
+          select: Selector.INITIAL_ORDER,
+        },
+        stockPrice: true,
       },
       where: {
         id: stockId,
         companyId,
-      }
+      },
     });
     if (!stock)
       throw new StockNotFoundException(StockError.STOCK001, [stockId]);

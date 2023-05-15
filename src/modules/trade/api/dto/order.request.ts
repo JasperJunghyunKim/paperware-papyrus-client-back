@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsObject, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import {
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
 import {
   OrderStockCreateRequest,
   OrderStockUpdateRequest,
@@ -14,7 +21,7 @@ export class OrderListQueryDto implements OrderListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number = 0;
+  skip = 0;
 
   @IsOptional()
   @IsInt()
@@ -33,7 +40,9 @@ export class OrderListQueryDto implements OrderListQuery {
 }
 
 /** 정상거래 등록 요청 */
-export default class OrderStockCreateRequestDto implements OrderStockCreateRequest {
+export default class OrderStockCreateRequestDto
+  implements OrderStockCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -75,7 +84,7 @@ export default class OrderStockCreateRequestDto implements OrderStockCreateReque
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeY: number = 0;
+  sizeY = 0;
 
   @IsOptional()
   @IsInt()
@@ -104,7 +113,7 @@ export default class OrderStockCreateRequestDto implements OrderStockCreateReque
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  memo: string = '';
+  memo = '';
 
   @IsString()
   wantedDate: string;
@@ -141,7 +150,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeX: number = 0;
+  sizeX = 0;
 
   @IsInt()
   @Type(() => Number)
@@ -174,17 +183,19 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  memo: string = '';
+  memo = '';
 
   @IsString()
   wantedDate: string;
 }
 
-export class OrderStockArrivalListQueryDto implements OrderStockArrivalListQuery {
+export class OrderStockArrivalListQueryDto
+  implements OrderStockArrivalListQuery
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number = 0;
+  skip = 0;
 
   @IsOptional()
   @IsInt()
@@ -192,7 +203,9 @@ export class OrderStockArrivalListQueryDto implements OrderStockArrivalListQuery
   take: number = undefined;
 }
 
-export class OrderStockArrivalCreateRequestDto implements OrderStockArrivalCreateRequest {
+export class OrderStockArrivalCreateRequestDto
+  implements OrderStockArrivalCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -209,9 +222,10 @@ export class OrderStockArrivalCreateRequestDto implements OrderStockArrivalCreat
   @Type(() => Number)
   sizeX: number;
 
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeY: number;
+  sizeY = 0;
 
   @IsOptional()
   @IsInt()

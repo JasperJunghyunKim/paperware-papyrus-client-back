@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -12,14 +13,14 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockArrivalChangeService } from '../service/stock-arrival-change.service';
 import { StockArrivalRetriveService } from '../service/stock-arrival-retrive.service';
-import { StockArrivalListQueryDto } from './dto/stock-arrival.request';
+import { StockArrivalApplyDto, StockArrivalListQueryDto } from './dto/stock-arrival.request';
 
 @Controller('/stock-arrival')
 export class StockArrivalController {
   constructor(
     private readonly change: StockArrivalChangeService,
     private readonly retrive: StockArrivalRetriveService,
-  ) {}
+  ) { }
 
   @Get()
   @UseGuards(AuthGuard)
@@ -45,8 +46,9 @@ export class StockArrivalController {
   async applyStockArrival(
     @Request() req: AuthType,
     @Param('id') id: number,
+    @Body() dto: StockArrivalApplyDto,
   ): Promise<any> {
     // TODO: 권한 체크
-    await this.change.applyStockArrival(id);
+    await this.change.applyStockArrival(id, req.user.companyId, dto.warehouseId);
   }
 }

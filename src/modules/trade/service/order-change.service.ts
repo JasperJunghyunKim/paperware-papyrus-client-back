@@ -3,6 +3,7 @@ import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
+import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { ulid } from 'ulid';
 
@@ -11,6 +12,7 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly planChange: PlanChangeService,
+    private readonly stockChangeService: StockChangeService,
   ) {}
 
   /** 정상거래 주문 생성 */
@@ -276,8 +278,8 @@ export class OrderChangeService {
         await this.planChange.createPlanWithOrder(tx, {
           companyId: order.dstCompany.id,
           orderStockId: order.orderStock.id,
-          warehouseId: order.orderStock.warehouseId,
-          orderStockIdOrig: order.orderStock.orderStockId,
+          warehouseId: order.orderStock.warehouseId ?? null,
+          orderStockIdOrig: order.orderStock.orderStockId ?? null,
           productId: order.orderStock.productId,
           packagingId: order.orderStock.packagingId,
           grammage: order.orderStock.grammage,
@@ -406,7 +408,7 @@ export class OrderChangeService {
 
       // TODO: 상테 체크
 
-      await tx.stock.create({
+      const stock = await tx.stock.create({
         data: {
           company: {
             connect: {
@@ -440,6 +442,11 @@ export class OrderChangeService {
               unitPriceUnit: stockPrice.unitPriceUnit,
             },
           },
+          initialOrder: {
+            connect: {
+              id: orderId,
+            },
+          },
           stockEvent: {
             create: {
               change: quantity,
@@ -452,6 +459,10 @@ export class OrderChangeService {
             },
           },
         },
+      });
+
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: stock.id,
       });
     });
   }

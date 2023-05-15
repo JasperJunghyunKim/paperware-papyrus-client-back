@@ -45,8 +45,8 @@ export class StockChangeService {
     });
     return await tx.stock.update({
       data: {
-        cachedQuantity: quantity._sum.change,
-        cachedQuantityAvailable: quantityAvailable._sum.change,
+        cachedQuantity: quantity._sum.change || 0,
+        cachedQuantityAvailable: quantityAvailable._sum.change || 0,
       },
       where,
     });

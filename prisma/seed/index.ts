@@ -5,55 +5,24 @@ const prisma = new PrismaClient();
 
 async function main() {
   await prisma.company.createMany({
-    data: [
-      {
-        businessName: 'Apple',
-        companyRegistrationNumber: '123456789',
-        email: 'apple@test.paperware.kr',
-        phoneNo: '010-1234-5678',
-        faxNo: '02-1234-5678',
-      },
-      {
-        businessName: 'Google',
-        companyRegistrationNumber: '987654321',
-        email: 'google@test.paperware.kr',
-        phoneNo: '010-1234-5678',
-        faxNo: '02-1234-5678',
-      },
-      {
-        businessName: 'Microsoft',
-        companyRegistrationNumber: '123456788',
-        email: 'microsoft@test.paperware.kr',
-        phoneNo: '010-1234-5678',
-        faxNo: '02-1234-5678',
-      },
-    ],
+    data: Data.COMPANY.map<Prisma.CompanyCreateManyInput>((values) => ({
+      businessName: values[0],
+      companyRegistrationNumber: values[1],
+      phoneNo: values[2],
+      faxNo: values[3],
+      representative: values[4],
+      invoiceCode: values[5],
+    })),
   });
 
   await prisma.user.createMany({
-    data: [
-      {
-        username: 'apple',
-        password: '0000',
-        email: 'steve.apple@test.paperware.kr',
-        name: 'Steve Jobs',
-        companyId: 1,
-      },
-      {
-        username: 'google',
-        password: '0000',
-        email: 'sundar.google@test.paperware.kr',
-        name: 'Sundar Pichai',
-        companyId: 2,
-      },
-      {
-        username: 'microsoft',
-        password: '0000',
-        email: 'bill.microsoft@test.paperware.kr',
-        name: 'Bill Gates',
-        companyId: 3,
-      },
-    ],
+    data: Data.USER.map<Prisma.UserCreateManyInput>((values) => ({
+      companyId: values[0],
+      name: values[1],
+      username: values[2],
+      password: '0000',
+      email: values[3],
+    })),
   });
 
   await prisma.paperDomain.createMany({
@@ -68,27 +37,31 @@ async function main() {
   await prisma.paperType.createMany({
     data: Data.PAPER_TYPE.map((name) => ({ name })),
   });
+
+  Data.PRODUCT.forEach((product, i) => {
+    const data = {
+      paperDomainId:
+        Data.PAPER_DOMAIN.findIndex((name) => name === product[0]) + 1,
+      paperGroupId:
+        Data.PAPER_GROUP.findIndex((name) => name === product[1]) + 1,
+      paperTypeId: Data.PAPER_TYPE.findIndex((name) => name === product[2]) + 1,
+      manufacturerId:
+        Data.MANUFACTURER.findIndex((name) => name === product[3]) + 1,
+    };
+
+    console.log(i, data);
+  });
+
   await prisma.product.createMany({
-    data: [
-      {
-        paperDomainId: 1,
-        manufacturerId: 1,
-        paperGroupId: 1,
-        paperTypeId: 1,
-      },
-      {
-        paperDomainId: 1,
-        manufacturerId: 1,
-        paperGroupId: 1,
-        paperTypeId: 2,
-      },
-      {
-        paperDomainId: 2,
-        manufacturerId: 3,
-        paperGroupId: 1,
-        paperTypeId: 3,
-      },
-    ],
+    data: Data.PRODUCT.map((product) => ({
+      paperDomainId:
+        Data.PAPER_DOMAIN.findIndex((name) => name === product[0]) + 1,
+      paperGroupId:
+        Data.PAPER_GROUP.findIndex((name) => name === product[1]) + 1,
+      paperTypeId: Data.PAPER_TYPE.findIndex((name) => name === product[2]) + 1,
+      manufacturerId:
+        Data.MANUFACTURER.findIndex((name) => name === product[3]) + 1,
+    })),
   });
   await prisma.paperColorGroup.createMany({
     data: Data.PAPER_COLOR_GROUP.map((name) => ({ name })),

@@ -114,7 +114,7 @@ export class PartnerStockRetriveService {
                         , s.sizeY AS sizeY
 
                         , IFNULL(SUM(s.cachedQuantity), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS totalQuantity
-                        , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) AS availableQuantity
+                        , IFNULL(SUM(s.cachedQuantityAvailable), 0) / IF(packaging.type = ${PackagingType.ROLL}, 1000000, 1) + IFNULL(SUM(allocStockGroup.change), 0) AS availableQuantity
                         , COUNT(1) OVER() AS total
 
                   FROM Company                  AS c
@@ -135,6 +135,25 @@ export class PartnerStockRetriveService {
              LEFT JOIN PaperColor               AS paperColor       ON paperColor.id = s.paperColorId
              LEFT JOIN PaperPattern             AS paperPattern     ON paperPattern.id = s.paperPatternId
              LEFT JOIN PaperCert                AS paperCert        ON paperCert.id = s.paperCertId
+
+             # 부모재고 할당
+             LEFT JOIN (
+                SELECT StockGroup.*, SUM(StockGroupEvent.change) AS \`change\`
+                  FROM StockGroup
+                  JOIN StockGroupEvent ON StockGroupEvent.stockGroupId = StockGroup.id
+                GROUP BY StockGroup.id
+             ) AS allocStockGroup ON allocStockGroup.productId = s.productId
+                                  AND allocStockGroup.packagingId = s.packagingId
+                                  AND allocStockGroup.grammage = s.grammage
+                                  AND allocStockGroup.sizeX = s.sizeX
+                                  AND allocStockGroup.sizeY = s.sizeY
+                                  AND allocStockGroup.companyId = s.companyId
+                                  AND IF(s.paperColorGroupId IS NULL, allocStockGroup.paperColorGroupId IS NULL, allocStockGroup.paperColorGroupId = s.paperColorGroupId)
+                                  AND IF(s.paperColorId IS NULL, allocStockGroup.paperColorId IS NULL, allocStockGroup.paperColorId = s.paperColorId)
+                                  AND IF(s.paperPatternId IS NULL, allocStockGroup.paperPatternId IS NULL, allocStockGroup.paperPatternId = s.paperPatternId)
+                                  AND IF(s.paperCertId IS NULL, allocStockGroup.paperCertId IS NULL, allocStockGroup.paperCertId = s.paperCertId)
+                                  AND IF(s.warehouseId IS NULL, allocStockGroup.warehouseId IS NULL, allocStockGroup.warehouseId = s.warehouseId)
+                                  AND allocStockGroup.orderStockId IS NULL
 
                  WHERE c.id = ${companyId}
                    AND se.status IN (${StockEventStatus.NORMAL}, ${StockEventStatus.PENDING})

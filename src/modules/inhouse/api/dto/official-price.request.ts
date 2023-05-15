@@ -1,9 +1,8 @@
+import { PriceUnit } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsObject, IsOptional, IsPositive, Max, Min, ValidateNested } from "class-validator";
-import { PriceUnits } from "src/@shared/api";
-import { OfficialPriceCreateRequest, OfficialPriceListQuery } from "src/@shared/api/inhouse/official-price.request";
+import { OfficialPriceCreateRequest, OfficialPriceListQuery, OfficialPriceMappingQuery, OfficialPriceUpdateRequest } from "src/@shared/api/inhouse/official-price.request";
 import { OfficialPrice } from "src/@shared/models";
-import { PriceUnit } from "src/@shared/models/enum";
 
 /** 고시가 목록 */
 export class OfficialPriceListDto implements OfficialPriceListQuery {
@@ -36,7 +35,7 @@ export class OfficialPriceDto implements OfficialPrice {
     @Min(0)
     readonly officialPrice: number;
 
-    @IsEnum(PriceUnits)
+    @IsEnum(PriceUnit)
     readonly officialPriceUnit: PriceUnit;
 }
 
@@ -94,4 +93,66 @@ export class CreateOfficialPriceDto implements OfficialPriceCreateRequest {
     @ValidateNested()
     @Type(() => OfficialPriceDto)
     readonly retailPrice: OfficialPriceDto;
+}
+
+/** 고시가 수정 */
+export class OfficialPriceUpdateDto implements OfficialPriceUpdateRequest {
+    @IsObject()
+    @ValidateNested()
+    @Type(() => OfficialPriceDto)
+    readonly wholesalePrice: OfficialPriceDto;
+
+    @IsObject()
+    @ValidateNested()
+    @Type(() => OfficialPriceDto)
+    readonly retailPrice: OfficialPriceDto;
+}
+
+/** 고시가 매핑 */
+export class OfficialPriceMappingDto implements OfficialPriceMappingQuery {
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly productId: number;
+
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly grammage: number;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly sizeX: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly sizeY: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly paperColorGroupId: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly paperColorId: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly paperPatternId: number = null;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @IsPositive()
+    readonly paperCertId: number = null;
 }
