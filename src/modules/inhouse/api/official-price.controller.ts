@@ -19,7 +19,7 @@ export class OfficialPriceController {
         @Request() req: AuthType,
         @Query() query: OfficialPriceMappingDto
     ) {
-        const result = await this.officialPriceRetriveService.getMapping(
+        const target = await this.officialPriceRetriveService.getMapping(
             req.user.companyId,
             query.productId,
             query.grammage,
@@ -31,7 +31,7 @@ export class OfficialPriceController {
             query.paperCertId,
         );
 
-        return result;
+        return target.officialPriceMap;
     }
 
     @Get()
