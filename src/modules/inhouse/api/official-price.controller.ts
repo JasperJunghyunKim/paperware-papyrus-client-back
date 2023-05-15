@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, NotImplementedException, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
-import { OfficialPriceListResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
+import { OfficialPriceListResponse, OfficialPriceMappingResponse, OfficialPriceResponse } from "src/@shared/api/inhouse/official-price.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { OfficialPriceChangeService } from "../service/official-price-change.service";
@@ -18,7 +18,7 @@ export class OfficialPriceController {
     async getMapping(
         @Request() req: AuthType,
         @Query() query: OfficialPriceMappingDto
-    ) {
+    ): Promise<OfficialPriceMappingResponse> {
         const target = await this.officialPriceRetriveService.getMapping(
             req.user.companyId,
             query.productId,
@@ -31,7 +31,11 @@ export class OfficialPriceController {
             query.paperCertId,
         );
 
-        return target.officialPriceMap;
+        return target.officialPriceMap.map(opm => ({
+            officialPriceMapType: opm.officialPriceMapType,
+            officialPrice: opm.officialPrice,
+            officialPriceUnit: opm.officialPriceUnit,
+        }));
     }
 
     @Get()
