@@ -862,30 +862,30 @@ export class InternalController {
     return data;
   }
 
-  @UseGuards(AuthGuard)
-  @Post('company/virtual')
-  async createVirtualCompany(
-    @Request() req: AuthType,
-    @Body()
-    body: {
-      businessName: string;
-      phoneNo: string;
-      faxNo: string;
-      email: string;
-    },
-  ): Promise<Record.Company> {
-    return await this.staticService.createCompany({
-      businessName: body.businessName,
-      managedBy: {
-        connect: {
-          id: req.user.companyId,
-        },
-      },
-      phoneNo: body.phoneNo,
-      faxNo: body.faxNo,
-      email: body.email,
-    });
-  }
+  // @UseGuards(AuthGuard)
+  // @Post('company/virtual')
+  // async createVirtualCompany(
+  //   @Request() req: AuthType,
+  //   @Body()
+  //   body: {
+  //     businessName: string;
+  //     phoneNo: string;
+  //     faxNo: string;
+  //     email: string;
+  //   },
+  // ): Promise<Record.Company> {
+  //   return await this.staticService.createCompany({
+  //     businessName: body.businessName,
+  //     managedBy: {
+  //       connect: {
+  //         id: req.user.companyId,
+  //       },
+  //     },
+  //     phoneNo: body.phoneNo,
+  //     faxNo: body.faxNo,
+  //     email: body.email,
+  //   });
+  // }
 
   // #endregion
 
