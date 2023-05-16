@@ -301,7 +301,7 @@ model Company {
   StockGroup                     StockGroup[]
   TradePrice                     TradePrice[]
   OrderStockTradeAltBundle       OrderStockTradeAltBundle[]
-  Partner                        Partner[]
+  mananingPartners               Partner[]
 }
 
 model BusinessRelationship {

@@ -19,7 +19,6 @@ import { BusinessRelationshipRequestChangeService } from '../service/business-re
 import { BusinessRelationshipRequestRetriveService } from '../service/business-relationship-request-retrive.service';
 import {
   BusinessRelationshipRequestAcceptRequestDto,
-  BusinessRelationshipRequestCreateRequestDto,
   BusinessRelationshipRequestListQueryDto,
   BusinessRelationshipRequestRejectRequestDto,
 } from './dto/business-relationship-request.request';
@@ -31,7 +30,7 @@ export class BusinessRelationshipRequestRequestController {
     private readonly changeService: BusinessRelationshipRequestChangeService,
   ) {}
 
-  @Get()
+  @Get('received')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async getList(
@@ -42,6 +41,29 @@ export class BusinessRelationshipRequestRequestController {
       skip: query.skip,
       take: query.take,
       dstCompanyId: req.user.companyId,
+    });
+
+    const total = await this.retriveService.getCount({
+      dstCompanyId: req.user.companyId,
+    });
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  @Get('sended')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getSendedList(
+    @Request() req: AuthType,
+    @Query() query: BusinessRelationshipRequestListQueryDto,
+  ): Promise<BusinessRelationshipRequestListResponse> {
+    const items = await this.retriveService.getSendedList({
+      skip: query.skip,
+      take: query.take,
+      srcCompanyId: req.user.companyId,
     });
 
     const total = await this.retriveService.getCount({
@@ -67,21 +89,6 @@ export class BusinessRelationshipRequestRequestController {
     return {
       value,
     };
-  }
-
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @UseGuards(AuthGuard)
-  async create(
-    @Request() req: AuthType,
-    @Body() body: BusinessRelationshipRequestCreateRequestDto,
-  ) {
-    await this.changeService.upsert({
-      srcCompanyId: req.user.companyId,
-      dstCompanyId: body.companyId,
-      isPurchase: body.isPurchase,
-      isSales: body.isSales,
-    });
   }
 
   @Post('accept')

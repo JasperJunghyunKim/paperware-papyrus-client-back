@@ -19,6 +19,7 @@ import {
   BusinessRelationshipCompactListQueryDto,
   BusinessRelationshipCreateRequestDto,
   BusinessRelationshipListQueryDto,
+  RegisterPartnerRequestDto,
   SearchPartnerRequestDto,
 } from './dto/business-relationship.request';
 import {
@@ -137,6 +138,28 @@ export class BusinessRelationshipController {
     });
   }
 
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  async register(
+    @Request() req: AuthType,
+    @Body() body: RegisterPartnerRequestDto,
+  ) {
+    await this.changeService.register({
+      srcCompanyId: req.user.companyId,
+      create: body.create,
+      invoiceCode: body.invoiceCode,
+      partnerNickname: body.partnerNickname,
+      type: body.type,
+      address: body.address,
+      phoneNo: body.phoneNo,
+      faxNo: body.faxNo,
+      email: body.email,
+      companyRegistrationNumber: body.companyRegistrationNumber,
+      memo: body.memo,
+    });
+  }
+
   @Post('search')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -150,5 +173,26 @@ export class BusinessRelationshipController {
     });
 
     return cp;
+  }
+
+  @Post(':srcCompanyId/:dstCompanyId/deactive')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async deactive(
+    @Request() req: AuthType,
+    @Param('srcCompanyId') srcCompanyId: number,
+    @Param('dstCompanyId') dstCompanyId: number,
+  ) {
+    if (
+      dstCompanyId !== req.user.companyId &&
+      srcCompanyId !== req.user.companyId
+    ) {
+      throw new ForbiddenException();
+    }
+
+    await this.changeService.deactive({
+      srcCompanyId,
+      dstCompanyId,
+    });
   }
 }

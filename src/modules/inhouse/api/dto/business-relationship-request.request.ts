@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import {
   BusinessRelationshipRequestAcceptRequest,
-  BusinessRelationshipRequestCreateRequest,
   BusinessRelationshipRequestListQuery,
   BusinessRelationshipRequestRejectRequest,
   SearchPartnerRequest,
@@ -19,19 +18,6 @@ export class BusinessRelationshipRequestListQueryDto
   @Type(() => Number)
   @IsOptional()
   take: number = undefined;
-}
-
-export class BusinessRelationshipRequestCreateRequestDto
-  implements BusinessRelationshipRequestCreateRequest
-{
-  @IsInt()
-  companyId: number;
-
-  @IsBoolean()
-  isPurchase: boolean = false;
-
-  @IsBoolean()
-  isSales: boolean = false;
 }
 
 export class BusinessRelationshipRequestAcceptRequestDto

@@ -79,6 +79,8 @@ export class BusinessRelationshipRetriveService {
       LIMIT ${params.take} OFFSET ${params.skip}
       `;
 
+    console.log(items);
+
     return items.map((p) => ({
       ...p,
       flag: Number(p.flag),
@@ -117,7 +119,6 @@ export class BusinessRelationshipRetriveService {
     companyId: number;
     companyRegistrationNumber: string;
   }): Promise<Model.CompanyPartner> {
-    console.log('SEARCH', params);
     const partner = await this.prisma.partner.findUnique({
       select: Selector.PARTNER,
       where: {
@@ -135,8 +136,6 @@ export class BusinessRelationshipRetriveService {
         managedById: null,
       },
     });
-
-    console.log(partner, company);
 
     return {
       partner,
