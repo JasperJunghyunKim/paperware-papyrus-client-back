@@ -688,37 +688,23 @@ enum Bank {
 
 model BankAccount {
   /// 계좌 ID
-  id            Int         @id @default(autoincrement()) @map("id")
+  id            Int         @id @default(autoincrement())
   /// 회사 식별자
-  companyId     Int         @map("company_id")
+  companyId     Int
   /// 회사
   company       Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 은행
-  bankComapny   Bank        @map("bank_company")
+  bankComapny   Bank
   /// 계좌명
-  accountName   String      @map("account_nm") @db.VarChar(30)
+  accountName   String      @db.VarChar(30)
   /// 계좌 유형
-  accountType   AccountType @map("account_type")
+  accountType   AccountType
   /// 계좌 번호
-  accountNumber String      @map("account_no") @db.VarChar(30)
+  accountNumber String      @db.VarChar(30)
   /// 예금주명
-  accountHolder String      @map("account_holder") @db.VarChar(50)
+  accountHolder String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn     Boolean     @default(false) @map("deleted_yn")
-  /// 등록자 아이디
-  regId         String?     @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm         String?     @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId         String?     @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm         String?     @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt         DateTime    @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt         DateTime    @default(now()) @map("reg_dt")
-
-  @@map("bank_account")
+  deletedYn     Boolean     @default(false)
 }
 
 /// 카드사
@@ -746,35 +732,21 @@ enum CardCompany {
 /// 카드 정보
 model Card {
   /// 카드 ID
-  cardId      Int         @id @default(autoincrement()) @map("card_id")
+  cardId      Int         @id @default(autoincrement())
   /// 회사 식별자
-  companyId   Int         @map("company_id")
+  companyId   Int
   /// 회사
   company     Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 카드명
-  cardName    String      @map("card_nm") @db.VarChar(50)
+  cardName    String      @db.VarChar(50)
   /// 카드사
-  cardCompany CardCompany @map("card_company")
+  cardCompany CardCompany
   /// 카드 번호
-  cardNumber  String      @map("card_no") @db.VarChar(50)
+  cardNumber  String      @db.VarChar(50)
   /// 소유주명
-  cardHolder  String      @map("card_holder") @db.VarChar(50)
+  cardHolder  String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn   Boolean     @default(false) @map("deleted_yn")
-  /// 등록자 아이디
-  regId       String?     @map("reg_id") @db.VarChar(255)
-  /// 등록자 명
-  regNm       String?     @map("reg_nm") @db.VarChar(255)
-  /// 변경자 아이디
-  chgId       String?     @map("chg_id") @db.VarChar(255)
-  /// 변경자 명
-  chgNm       String?     @map("chg_nm") @db.VarChar(255)
-  /// 변경 일시
-  chgDt       DateTime    @updatedAt @map("chg_dt")
-  /// 등록 일시
-  regDt       DateTime    @default(now()) @map("reg_dt")
-
-  @@map("card")
+  deletedYn   Boolean     @default(false)
 }
 
 /// 계정 수단
@@ -836,25 +808,24 @@ model Partner {
   // id
   id                        Int         @id @default(autoincrement())
   /// 회사 식별자
-  companyId                 Int         @map("company_id")
+  companyId                 Int
   /// 회사
   company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 거래처 사업자 등록번호
   companyRegistrationNumber String
   /// 파트너 닉네임(회사 닉네임)
-  partnerNickName           String      @map("partner_nick_name") @db.VarChar(100)
+  partnerNickName           String      @db.VarChar(100)
   /// 여신한도
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
-  memo                      String      @map("memo") @db.VarChar(500)
+  memo                      String      @db.VarChar(500)
   /// 삭제 여부
-  isDeleted                 Boolean     @default(false) @map("is_deleted")
+  isDeleted                 Boolean     @default(false)
   /// 회계 목록
   accountedList             Accounted[]
 
   @@unique([companyId, companyRegistrationNumber])
-  @@map("partner")
 }
 
 /// 회계
@@ -862,19 +833,19 @@ model Accounted {
   /// 식별자
   id               Int           @id @default(autoincrement())
   /// 회계 타입
-  accountedType    AccountedType @map("accounted_type")
+  accountedType    AccountedType
   /// 회계 수단
-  accountedMethod  Method        @map("accounted_method")
+  accountedMethod  Method
   /// 회계 등록일
-  accountedDate    DateTime      @default(now()) @map("accounted_date")
+  accountedDate    DateTime      @default(now())
   /// 계정 과목
-  accountedSubject Subject       @map("accounted_subject")
+  accountedSubject Subject
   /// 메모
-  memo             String        @map("memo") @db.VarChar(500)
+  memo             String        @db.VarChar(500)
   /// 삭제 여부
-  isDeleted        Boolean       @default(false) @map("is_deleted")
+  isDeleted        Boolean       @default(false)
   /// 파트너 식별자
-  partnerId        Int           @map("partner_id")
+  partnerId        Int
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -882,8 +853,6 @@ model Accounted {
   byCash ByCash?
   /// 지급 기타
   byEtc  ByEtc?
-
-  @@map("accounted")
 }
 
 /// 현금
@@ -891,28 +860,24 @@ model ByCash {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 식별자
-  cashAmount  Int       @map("cash_amount")
+  cashAmount  Int
   /// 삭제 여부
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  isDeleted   Boolean   @default(false)
   /// 파트너 식별자
-  accountedId Int       @unique @map("accounted_id")
+  accountedId Int       @unique
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("by_cash")
 }
 
 model ByEtc {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 식별자
-  etcAmount   Int       @map("etc_amount")
+  etcAmount   Int
   /// 삭제 여부
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  isDeleted   Boolean   @default(false)
   /// 파트너 식별자
-  accountedId Int       @unique @map("accounted_id")
+  accountedId Int       @unique
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("by_etc")
 }
