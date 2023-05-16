@@ -16,7 +16,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { BankAccountChangeService } from '../service/bank-account-change.service';
 import { BankAccountRetriveService } from '../service/bank-account-retrive.service';
 import { BankAccountCreateRequestDto, BankAccountUpdateRequestDto } from './dto/bank-account.request';
-import { BankAccountResponseDto } from './dto/bank-account.response';
+import { BankAccountItemResponseDto, BankAccountListResponseDto } from './dto/bank-account.response';
 
 @Controller('/bank-account')
 export class BankAccountController {
@@ -29,8 +29,16 @@ export class BankAccountController {
   @UseGuards(AuthGuard)
   async getBankAccountList(
     @Request() req: AuthType,
-  ): Promise<BankAccountResponseDto[]> {
+  ): Promise<BankAccountListResponseDto> {
     return await this.bankAccountRetriveService.getBankAccountList(req.user.companyId);
+  }
+
+  @Get(':accountId')
+  @UseGuards(AuthGuard)
+  async getCardItem(
+    @Param('accountId') accountId: number,
+  ): Promise<BankAccountItemResponseDto> {
+    return await this.bankAccountRetriveService.getBankAccountItem(accountId);
   }
 
   @Post()

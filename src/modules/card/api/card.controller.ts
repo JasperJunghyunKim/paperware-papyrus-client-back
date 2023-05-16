@@ -11,12 +11,12 @@ import {
   Request,
   UseGuards
 } from '@nestjs/common';
+import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/card/card.request';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
-import { CardRetriveService } from '../service/card-retrive.service';
-import { CardResponseDto } from './dto/card.response';
 import { CardChangeService } from '../service/card-change.service';
-import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/card/card.request';
+import { CardRetriveService } from '../service/card-retrive.service';
+import { CardItemResponseDto, CardListResponseDto } from './dto/card.response';
 
 @Controller('/card')
 export class CardController {
@@ -29,8 +29,16 @@ export class CardController {
   @UseGuards(AuthGuard)
   async getCardList(
     @Request() req: AuthType,
-  ): Promise<CardResponseDto[]> {
+  ): Promise<CardListResponseDto> {
     return await this.cardRetriveService.getCardList(req.user.companyId);
+  }
+
+  @Get(':cardId')
+  @UseGuards(AuthGuard)
+  async getCardItem(
+    @Param('cardId') cardId: number,
+  ): Promise<CardItemResponseDto> {
+    return await this.cardRetriveService.getCardItem(cardId);
   }
 
   @Post()
