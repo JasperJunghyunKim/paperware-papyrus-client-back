@@ -1,10 +1,15 @@
+import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsEnum,
   IsInt,
+  IsNumber,
   IsObject,
   IsOptional,
+  IsPositive,
   IsString,
   MaxLength,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -14,6 +19,9 @@ import {
   OrderStockArrivalListQuery,
   OrderStockArrivalCreateRequest,
   StockCreateStockPriceRequest,
+  OrderStockTradeAltBundleUpdateRequest,
+  OrderStockTradePriceUpdateRequest,
+  TradePriceUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -41,8 +49,7 @@ export class OrderListQueryDto implements OrderListQuery {
 
 /** 정상거래 등록 요청 */
 export default class OrderStockCreateRequestDto
-  implements OrderStockCreateRequest
-{
+  implements OrderStockCreateRequest {
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -190,8 +197,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery
-{
+  implements OrderStockArrivalListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -204,8 +210,7 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest
-{
+  implements OrderStockArrivalCreateRequest {
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -255,4 +260,100 @@ export class OrderStockArrivalCreateRequestDto
   @ValidateNested()
   @Type(() => StockCreateStockPriceDto)
   stockPrice: StockCreateStockPriceDto;
+}
+
+export class OrderIdDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly orderId: number;
+}
+
+/** 거래금액 수정 */
+export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBundleUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeX: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeY: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altQuantity: number;
+}
+
+
+export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdateRequest {
+  @IsEnum(OfficialPriceType)
+  readonly officialPriceType: OfficialPriceType;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly officialPrice: number;
+
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
+
+  @IsEnum(DiscountType)
+  readonly discountType: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly discountPrice: number = 0;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly unitPrice: number = 0;
+
+  @IsEnum(PriceUnit)
+  readonly unitPriceUnit: PriceUnit;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly processPrice: number;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderStockTradeAltBundleDto)
+  readonly orderStockTradeAltBundle: UpdateOrderStockTradeAltBundleDto | null = null;
+}
+
+export class UpdateTradePriceDto implements TradePriceUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly orderId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly companyId: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly suppliedPrice: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly vatPrice: number;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderStockTradePriceDto)
+  readonly orderStockTradePrice: UpdateOrderStockTradePriceDto | null = null;
 }

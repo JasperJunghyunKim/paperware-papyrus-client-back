@@ -8,7 +8,6 @@ import { StockModule } from './stock/stock.module';
 import { WorkingModule } from './working/working.module';
 import { TradeModule } from './trade/trade.module';
 import { ShippingModule } from './shipping/shipping.module';
-import { TempModule } from './temp/temp.module';
 import { PartnerModule } from './partner/partner.module';
 import { AccountedModule } from './accounted/accounted.module';
 
@@ -23,9 +22,8 @@ import { AccountedModule } from './accounted/accounted.module';
     WorkingModule,
     TradeModule,
     ShippingModule,
-    TempModule,
     PartnerModule,
     AccountedModule,
   ],
 })
-export class BusinessModule {}
+export class BusinessModule { }

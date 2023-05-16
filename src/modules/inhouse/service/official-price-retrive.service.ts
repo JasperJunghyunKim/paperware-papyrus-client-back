@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { OfficialPriceCondition, OfficialPriceMap } from "@prisma/client";
 import { PrismaService } from "src/core";
 
@@ -124,7 +124,7 @@ export class OfficialPriceRetriveService {
         paperColorId: number,
         paperPatternId: number,
         paperCertId: number,
-    ): Promise<OfficialPriceWithMap | null> {
+    ): Promise<OfficialPriceMap[]> {
         const firstFiltered = await this.getFirstFiltering(companyId, productId, grammage);
         const secondFiltred = this.getSecondFiltering(
             firstFiltered,
@@ -136,17 +136,16 @@ export class OfficialPriceRetriveService {
             paperCertId,
         );
         console.log(`[second filterd]`, secondFiltred);
-
         const graph = this.createGraph(secondFiltred);
         console.log(`[graph]`, graph);
 
         const leafNodeIds = this.getLeafNodeIds(graph);
         if (leafNodeIds.length === 1) {
             const target = firstFiltered.find(fisrt => fisrt.id === leafNodeIds[0]);
-            return target;
+            return target.officialPriceMap;
         }
 
-        return null;
+        return [];
     }
 
     private async getFirstFiltering(

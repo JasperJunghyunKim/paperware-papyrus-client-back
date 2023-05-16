@@ -18,12 +18,14 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
+  OrderIdDto,
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockUpdateRequestDto,
+  UpdateTradePriceDto,
 } from './dto/order.request';
-import { OrderStockArrivalListResponse } from 'src/@shared/api';
+import { OrderStockArrivalListResponse, TradePriceResponse } from 'src/@shared/api';
 import { Api } from 'src/@shared';
 
 @Controller('/order')
@@ -320,5 +322,28 @@ export class OrderController {
       quantity: body.quantity,
       stockPrice: body.stockPrice,
     });
+  }
+
+  @Get('/:orderId/price')
+  @UseGuards(AuthGuard)
+  async getTradePrice(
+    @Request() req: AuthType,
+    @Param() dto: OrderIdDto,
+  ): Promise<TradePriceResponse> {
+    return await this.retrive.getTradePrice(req.user.companyId, dto.orderId);
+  }
+
+  @Put('/:orderId/price')
+  @UseGuards(AuthGuard)
+  async updateTradePrice(
+    @Request() req: AuthType,
+    @Param() parmDto: OrderIdDto,
+    @Body() dto: UpdateTradePriceDto,
+  ) {
+    await this.change.updateTradePrice(
+      req.user.companyId,
+      parmDto.orderId,
+      dto,
+    )
   }
 }

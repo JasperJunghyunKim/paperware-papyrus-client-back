@@ -13,7 +13,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { InvoiceChangeService } from '../service/invoice-change.service';
 import { InvoiceRetriveService } from '../service/invoice-retrive.service';
 import InvoiceListQueryDto, {
-  InvoiceDisconnectShippingRequestDto,
+  InvoiceDisconnectShippingRequestDto, UpdateInvoiceStatusDto,
 } from './dto/invoice.request';
 import { InvoiceListResponse } from 'src/@shared/api';
 
@@ -59,5 +59,23 @@ export class InvoiceController {
     await this.change.disconnectShipping({
       invoiceIds: body.invoiceIds,
     });
+  }
+
+  @Post('/forward')
+  @UseGuards(AuthGuard)
+  async forwardInvoiceStatus(
+    @Request() req: AuthType,
+    @Body() dto: UpdateInvoiceStatusDto,
+  ) {
+    await this.change.forwardInvoiceStatus(req.user.companyId, dto.invoiceIds);
+  }
+
+  @Post('/backward')
+  @UseGuards(AuthGuard)
+  async backwardInvoiceStatus(
+    @Request() req: AuthType,
+    @Body() dto: UpdateInvoiceStatusDto,
+  ) {
+    await this.change.backwardInvoiceStatus(req.user.companyId, dto.invoiceIds);
   }
 }
