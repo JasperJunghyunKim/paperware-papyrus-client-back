@@ -20,7 +20,7 @@ async function main() {
       companyId: values[0],
       name: values[1],
       username: values[2],
-      password: '0000',
+      password: '$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi',
       email: values[3],
     })),
   });

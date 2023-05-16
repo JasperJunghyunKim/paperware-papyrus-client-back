@@ -1,10 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/core/database/prisma.service';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwtService: JwtService) { }
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) { }
 
   async signIn(params: {
     username: string;
@@ -25,7 +29,7 @@ export class AuthService {
     //   access_token: this.jwtService.sign(payload),
     // };
 
-    if (!user || user.password !== password) {
+    if (!user || !(await this.comparePassword(password, user.password))) {
       throw new BadRequestException('Invalid username or password');
     }
 
@@ -50,5 +54,21 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  private async createSalt(): Promise<string> {
+    return await bcrypt.genSalt();
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const salt = await this.createSalt();
+    return bcrypt.hash(password, salt);
+  }
+
+  public async comparePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return await bcrypt.compare(password, hashedPassword);
   }
 }
