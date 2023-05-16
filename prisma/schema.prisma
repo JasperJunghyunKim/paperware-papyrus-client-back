@@ -302,6 +302,8 @@ model Company {
   TradePrice                     TradePrice[]
   OrderStockTradeAltBundle       OrderStockTradeAltBundle[]
   Partner                        Partner[]
+  BankAccount                    BankAccount[]
+  Card                           Card[]
 }
 
 model BusinessRelationship {
@@ -623,6 +625,130 @@ model Invoice {
   plan              Plan             @relation(fields: [planId], references: [id])
 }
 
+enum AccountType {
+  /// 예금
+  deposit
+}
+
+/// 은행
+enum Bank {
+  /// 카카오뱅크
+  KAKAOBANK
+  /// 국민은행
+  KOOKMINBANK
+  /// 기업은행
+  KEB_HANABANK
+  /// NH농협은행
+  NH_BANK
+  /// 신한은행
+  SHINHANBANK
+  /// 산업은행
+  IBK
+  /// 우리은행
+  WOORIBANK
+  /// 한국씨티은행
+  CITIBANK_KOREA
+  /// 하나은행
+  HANABANK
+  /// SC제일은행
+  SC_FIRSTBANK
+  /// 경남은행
+  KYONGNAM_BANK
+  /// 광주은행
+  KWANGJU_BANK
+  /// 대구은행
+  DAEGU_BANK
+  /// 도이치은행
+  DEUTSCHE_BANK
+  /// 뱅크오브아메리카
+  BANK_OF_AMERICA
+  /// 부산은행
+  BUSAN_BANK
+  /// 산림조합중앙회
+  NACF
+  /// 저축은행
+  SAVINGS_BANK
+  /// 새마을금고중앙회
+  NACCSF
+  /// 수협은행
+  SUHYUP_BANK
+  /// 신협중앙회
+  NACUFOK
+  /// 우체국
+  POST_OFFICE
+  /// 전북은행
+  JEONBUK_BANK
+  /// 제주은행
+  JEJU_BANK
+  /// 케이뱅크
+  K_BANK
+  /// 토스뱅크
+  TOS_BANK
+}
+
+model BankAccount {
+  /// 계좌 ID
+  id            Int         @id @default(autoincrement())
+  /// 회사 식별자
+  companyId     Int
+  /// 회사
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 은행
+  bankComapny   Bank
+  /// 계좌명
+  accountName   String      @db.VarChar(30)
+  /// 계좌 유형
+  accountType   AccountType
+  /// 계좌 번호
+  accountNumber String      @db.VarChar(30)
+  /// 예금주명
+  accountHolder String      @db.VarChar(50)
+  /// 삭제 여부
+  deletedYn     Boolean     @default(false)
+}
+
+/// 카드사
+enum CardCompany {
+  /// BC카드
+  BC_CARD
+  /// KB국민카드
+  KB_CARD
+  /// 삼성카드
+  SAMSUNG_CARD
+  /// 신한카드
+  SHINHAN_CARD
+  /// 우리카드
+  WOORI_CARD
+  /// 하나카드
+  HANA_CARD
+  /// 롯데카드
+  LOTTE_CARD
+  /// 현대카드
+  HYUNDAI_CARD
+  /// NH농협카드
+  NH_CARD
+}
+
+/// 카드 정보
+model Card {
+  /// 카드 ID
+  cardId      Int         @id @default(autoincrement())
+  /// 회사 식별자
+  companyId   Int
+  /// 회사
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 카드명
+  cardName    String      @db.VarChar(50)
+  /// 카드사
+  cardCompany CardCompany
+  /// 카드 번호
+  cardNumber  String      @db.VarChar(50)
+  /// 소유주명
+  cardHolder  String      @db.VarChar(50)
+  /// 삭제 여부
+  deletedYn   Boolean     @default(false)
+}
+
 /// 계정 수단
 enum Method {
   /// 계좌 이체
@@ -682,20 +808,20 @@ model Partner {
   // id
   id                        Int         @id @default(autoincrement())
   /// 회사 식별자
-  companyId                 Int         @map("company_id")
+  companyId                 Int
   /// 회사
   company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 거래처 사업자 등록번호
   companyRegistrationNumber String
   /// 파트너 닉네임(회사 닉네임)
-  partnerNickName           String      @map("partner_nick_name") @db.VarChar(100)
+  partnerNickName           String      @db.VarChar(100)
   /// 여신한도
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
-  memo                      String      @map("memo") @db.VarChar(500)
+  memo                      String      @db.VarChar(500)
   /// 삭제 여부
-  isDeleted                 Boolean     @default(false) @map("is_deleted")
+  isDeleted                 Boolean     @default(false)
   /// 회계 목록
   accountedList             Accounted[]
 
@@ -707,19 +833,19 @@ model Accounted {
   /// 식별자
   id               Int           @id @default(autoincrement())
   /// 회계 타입
-  accountedType    AccountedType @map("accounted_type")
+  accountedType    AccountedType
   /// 회계 수단
-  accountedMethod  Method        @map("accounted_method")
+  accountedMethod  Method
   /// 회계 등록일
-  accountedDate    DateTime      @default(now()) @map("accounted_date")
+  accountedDate    DateTime      @default(now())
   /// 계정 과목
-  accountedSubject Subject       @map("accounted_subject")
+  accountedSubject Subject
   /// 메모
-  memo             String        @map("memo") @db.VarChar(500)
+  memo             String        @db.VarChar(500)
   /// 삭제 여부
-  isDeleted        Boolean       @default(false) @map("is_deleted")
+  isDeleted        Boolean       @default(false)
   /// 파트너 식별자
-  partnerId        Int           @map("partner_id")
+  partnerId        Int
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -727,8 +853,6 @@ model Accounted {
   byCash ByCash?
   /// 지급 기타
   byEtc  ByEtc?
-
-  @@map("accounted")
 }
 
 /// 현금
@@ -736,28 +860,24 @@ model ByCash {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 식별자
-  cashAmount  Int       @map("cash_amount")
+  cashAmount  Int
   /// 삭제 여부
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  isDeleted   Boolean   @default(false)
   /// 파트너 식별자
-  accountedId Int       @unique @map("accounted_id")
+  accountedId Int       @unique
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("by_cash")
 }
 
 model ByEtc {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 식별자
-  etcAmount   Int       @map("etc_amount")
+  etcAmount   Int
   /// 삭제 여부
-  isDeleted   Boolean   @default(false) @map("is_deleted")
+  isDeleted   Boolean   @default(false)
   /// 파트너 식별자
-  accountedId Int       @unique @map("accounted_id")
+  accountedId Int       @unique
   /// 파트너
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@map("by_etc")
 }
