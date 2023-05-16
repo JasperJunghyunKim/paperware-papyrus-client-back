@@ -1,10 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import {
   BusinessRelationshipRequestAcceptRequest,
   BusinessRelationshipRequestCreateRequest,
   BusinessRelationshipRequestListQuery,
   BusinessRelationshipRequestRejectRequest,
+  SearchPartnerRequest,
 } from 'src/@shared/api';
 
 export class BusinessRelationshipRequestListQueryDto
@@ -25,6 +26,12 @@ export class BusinessRelationshipRequestCreateRequestDto
 {
   @IsInt()
   companyId: number;
+
+  @IsBoolean()
+  isPurchase: boolean = false;
+
+  @IsBoolean()
+  isSales: boolean = false;
 }
 
 export class BusinessRelationshipRequestAcceptRequestDto

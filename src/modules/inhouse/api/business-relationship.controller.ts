@@ -19,10 +19,12 @@ import {
   BusinessRelationshipCompactListQueryDto,
   BusinessRelationshipCreateRequestDto,
   BusinessRelationshipListQueryDto,
+  SearchPartnerRequestDto,
 } from './dto/business-relationship.request';
 import {
   BusinessRelationshipCompactListResponse,
   BusinessRelationshipListResponse,
+  SearchPartnerResponse,
 } from 'src/@shared/api';
 import { CompanyRetriveService } from '../service/company-retrive.service';
 
@@ -133,5 +135,20 @@ export class BusinessRelationshipController {
       srcCompanyId: body.srcCompanyId,
       dstCompanyId: body.dstCompanyId,
     });
+  }
+
+  @Post('search')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async search(
+    @Request() req: AuthType,
+    @Body() body: SearchPartnerRequestDto,
+  ): Promise<SearchPartnerResponse> {
+    const cp = await this.retriveService.searchPartner({
+      companyId: req.user.companyId,
+      companyRegistrationNumber: body.companyRegistrationNumber,
+    });
+
+    return cp;
   }
 }

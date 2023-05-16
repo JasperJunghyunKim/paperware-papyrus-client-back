@@ -79,6 +79,8 @@ export class BusinessRelationshipRequestRequestController {
     await this.changeService.upsert({
       srcCompanyId: req.user.companyId,
       dstCompanyId: body.companyId,
+      isPurchase: body.isPurchase,
+      isSales: body.isSales,
     });
   }
 

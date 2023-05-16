@@ -1,9 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import {
   BusinessRelationshipCompactListQuery,
   BusinessRelationshipCreateRequest,
   BusinessRelationshipListQuery,
+  SearchPartnerRequest,
 } from 'src/@shared/api';
 
 export class BusinessRelationshipListQueryDto
@@ -55,4 +56,9 @@ export class BusinessRelationshipCompactListQueryDto
   @Min(10)
   @Max(100)
   readonly take: number = undefined;
+}
+
+export class SearchPartnerRequestDto implements SearchPartnerRequest {
+  @IsString()
+  companyRegistrationNumber: string;
 }

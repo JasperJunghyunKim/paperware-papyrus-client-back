@@ -326,6 +326,8 @@ model BusinessRelationshipRequest {
   dstCompanyId Int
   dstCompany   Company                           @relation("dstBusinessRelationshipRequest", fields: [dstCompanyId], references: [id])
   status       BusinessRelationshipRequestStatus
+  isPurchase   Boolean                           @default(false)
+  isSales      Boolean                           @default(false)
   memo         String
 
   @@unique([srcCompanyId, dstCompanyId])

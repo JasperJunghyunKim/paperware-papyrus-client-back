@@ -21,6 +21,13 @@ export const COMPANY = {
   managedById: true,
 } satisfies Prisma.CompanySelect;
 
+export const PARTNER = {
+  companyId: true,
+  partnerNickName: true,
+  companyRegistrationNumber: true,
+  memo: true,
+} satisfies Prisma.PartnerSelect;
+
 export const BUSINESS_RELATIONSHIP = {
   srcCompany: {
     select: COMPANY,
@@ -37,6 +44,8 @@ export const BUSINESS_RELATIONSHIP_REQUEST = {
   dstCompany: {
     select: COMPANY,
   },
+  isPurchase: true,
+  isSales: true,
   status: true,
   memo: true,
 } satisfies Prisma.BusinessRelationshipRequestSelect;
