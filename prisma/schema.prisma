@@ -600,6 +600,17 @@ model Shipping {
   invoice    Invoice[]
 }
 
+enum InvoiceStatus {
+  // 상차대기
+  WAIT_LOADING
+  // 배송대기
+  WAIT_SHIPPING
+  // 배송중
+  ON_SHIPPING
+  // 배송완료
+  DONE_SHIPPING
+}
+
 model Invoice {
   id                Int              @id @default(autoincrement())
   invoiceNo         String           @unique
@@ -623,6 +634,7 @@ model Invoice {
   quantity          Int
   planId            Int
   plan              Plan             @relation(fields: [planId], references: [id])
+  invoiceStatus     InvoiceStatus    @default(WAIT_LOADING)
 }
 
 enum AccountType {

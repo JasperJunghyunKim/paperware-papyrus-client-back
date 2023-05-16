@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
@@ -7,6 +7,7 @@ import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { ulid } from 'ulid';
+import { TradePriceValidator } from './trade-price.validator';
 
 interface UpdateTradePriceParams {
   orderId: number;
@@ -36,6 +37,7 @@ export class OrderChangeService {
     private readonly prisma: PrismaService,
     private readonly planChange: PlanChangeService,
     private readonly stockChangeService: StockChangeService,
+    private readonly tradePriceValidator: TradePriceValidator,
   ) { }
 
   /** 정상거래 주문 생성 */
@@ -508,6 +510,11 @@ export class OrderChangeService {
               },
             },
           },
+          orderStock: {
+            include: {
+              packaging: true,
+            }
+          }
         },
         where: {
           id: orderId,
@@ -515,6 +522,9 @@ export class OrderChangeService {
         },
       });
       if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
+
+      // 금액정보 validation
+      this.tradePriceValidator.validateTradePrice(order.orderStock.packaging.type, tradePriceDto);
 
       const tradePrice =
         (await tx.tradePrice.findFirst({
@@ -557,6 +567,9 @@ export class OrderChangeService {
             },
           },
         }));
+      if (tradePrice.isBookClosed) {
+        throw new ConflictException(`이미 마감된 주문정보 입니다.`);
+      }
 
       if (tradePrice.orderStockTradePrice) {
         if (!tradePriceDto.orderStockTradePrice)
