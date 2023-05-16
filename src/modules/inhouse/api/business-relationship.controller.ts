@@ -16,10 +16,14 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { BusinessRelationshipChangeService } from '../service/business-relationship-change.service';
 import { BusinessRelationshipRetriveService } from '../service/business-relationship-retrive.service';
 import {
+  BusinessRelationshipCompactListQueryDto,
   BusinessRelationshipCreateRequestDto,
   BusinessRelationshipListQueryDto,
 } from './dto/business-relationship.request';
-import { BusinessRelationshipListResponse } from 'src/@shared/api';
+import {
+  BusinessRelationshipCompactListResponse,
+  BusinessRelationshipListResponse,
+} from 'src/@shared/api';
 import { CompanyRetriveService } from '../service/company-retrive.service';
 
 @Controller('inhouse/business-relationship')
@@ -54,6 +58,29 @@ export class BusinessRelationshipController {
     const total = await this.retriveService.getCount({
       dstCompanyId: query.dstCompanyId,
       srcCompanyId: query.srcCompanyId,
+    });
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  @Get('compact')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getCompactList(
+    @Request() req: AuthType,
+    @Query() query: BusinessRelationshipCompactListQueryDto,
+  ): Promise<BusinessRelationshipCompactListResponse> {
+    const items = await this.retriveService.getCompactList({
+      skip: query.skip,
+      take: query.take,
+      companyId: req.user.companyId,
+    });
+
+    const total = await this.retriveService.getCompactCount({
+      companyId: req.user.companyId,
     });
 
     return {
