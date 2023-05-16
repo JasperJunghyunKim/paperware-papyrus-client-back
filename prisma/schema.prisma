@@ -854,6 +854,7 @@ model Partner {
   accountedList             Accounted[]
 
   @@unique([companyId, companyRegistrationNumber])
+  @@map("partner")
 }
 
 /// 회계
