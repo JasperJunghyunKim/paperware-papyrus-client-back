@@ -627,31 +627,31 @@ model Invoice {
 
 enum AccountType {
   /// 예금
-  deposit
+  DEPOSIT
 }
 
 /// 은행
 enum Bank {
   /// 카카오뱅크
-  KAKAOBANK
+  KAKAO_BANK
   /// 국민은행
-  KOOKMINBANK
+  KOOKMIN_BANK
   /// 기업은행
-  KEB_HANABANK
+  KEB_HANA_BANK
   /// NH농협은행
   NH_BANK
   /// 신한은행
-  SHINHANBANK
+  SHINHAN_BANK
   /// 산업은행
   IBK
   /// 우리은행
-  WOORIBANK
+  WOORI_BANK
   /// 한국씨티은행
-  CITIBANK_KOREA
+  CITI_BANK_KOREA
   /// 하나은행
-  HANABANK
+  HANA_BANK
   /// SC제일은행
-  SC_FIRSTBANK
+  SC_FIRST_BANK
   /// 경남은행
   KYONGNAM_BANK
   /// 광주은행
@@ -704,7 +704,7 @@ model BankAccount {
   /// 예금주명
   accountHolder String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn     Boolean     @default(false)
+  isDeleted     Boolean     @default(false)
 }
 
 /// 카드사
@@ -732,7 +732,7 @@ enum CardCompany {
 /// 카드 정보
 model Card {
   /// 카드 ID
-  cardId      Int         @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   /// 회사 식별자
   companyId   Int
   /// 회사
@@ -746,7 +746,7 @@ model Card {
   /// 소유주명
   cardHolder  String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn   Boolean     @default(false)
+  isDeleted   Boolean     @default(false)
 }
 
 /// 계정 수단
