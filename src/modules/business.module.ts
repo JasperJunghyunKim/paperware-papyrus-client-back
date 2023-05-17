@@ -11,8 +11,6 @@ import { ShippingModule } from './shipping/shipping.module';
 import { TempModule } from './temp/temp.module';
 import { PartnerModule } from './partner/partner.module';
 import { AccountedModule } from './accounted/accounted.module';
-import { CardModule } from './card/card.module';
-import { BankAccountModule } from './bank-account/bank-account.module';
 
 @Module({
   imports: [
@@ -28,8 +26,6 @@ import { BankAccountModule } from './bank-account/bank-account.module';
     TempModule,
     PartnerModule,
     AccountedModule,
-    CardModule,
-    BankAccountModule,
   ],
 })
 export class BusinessModule { }

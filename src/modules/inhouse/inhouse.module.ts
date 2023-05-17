@@ -19,6 +19,12 @@ import { CompanyController } from './api/company.controller';
 import { OfficialPriceController } from './api/official-price.controller';
 import { OfficialPriceChangeService } from './service/official-price-change.service';
 import { OfficialPriceRetriveService } from './service/official-price-retrive.service';
+import { BankAccountChangeService } from './service/bank-account-change.service';
+import { BankAccountRetriveService } from './service/bank-account-retrive.service';
+import { CardChangeService } from './service/card-change.service';
+import { CardRetriveService } from './service/card-retrive.service';
+import { CardController } from './api/card.controller';
+import { BankAccountController } from './api/bank-account.controller';
 
 @Module({
   providers: [
@@ -35,6 +41,10 @@ import { OfficialPriceRetriveService } from './service/official-price-retrive.se
     WarehouseRetriveService,
     OfficialPriceChangeService,
     OfficialPriceRetriveService,
+    BankAccountRetriveService,
+    BankAccountChangeService,
+    CardRetriveService,
+    CardChangeService,
   ],
   controllers: [
     BusinessRelationshipController,
@@ -44,6 +54,8 @@ import { OfficialPriceRetriveService } from './service/official-price-retrive.se
     VirtualCompanyController,
     WarehouseController,
     OfficialPriceController,
+    CardController,
+    BankAccountController,
   ],
   exports: [
     BusinessRelationshipRetriveService,
