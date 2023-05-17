@@ -707,7 +707,7 @@ model BankAccount {
   isDeleted     Boolean     @default(false)
 
   /// 회계 계좌
-  byAccount ByBankAccount?
+  byBankAccount ByBankAccount?
 }
 
 /// 카드사
@@ -766,7 +766,7 @@ enum Method {
   /// 현금
   CASH
   /// 상계
-  SET_OFF
+  OFFSET
   /// 기타
   ETC
   /// 전체
@@ -801,7 +801,7 @@ enum Subject {
   COLLECTED_PREPAID_EXPENSES
   //// 잡손실
   COLLECTED_MISCELLANEOUS_LOSSES
-  /// 상품 매입"
+  /// 상품 매입
   COLLECTED_PRODUCT_PURCHASES
   /// 기타 (공통)
   ETC
@@ -856,15 +856,15 @@ model Accounted {
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   /// 현금
-  byCash    ByCash?
+  byCash        ByCash?
   /// 기타
-  byEtc     ByEtc?
+  byEtc         ByEtc?
   // 계좌
-  byAccount ByBankAccount?
+  byBankAccount ByBankAccount?
   /// 카드
-  byCard    ByCard?
+  byCard        ByCard?
   /// 상계
-  byOffset  ByOffset?
+  byOffset      ByOffset?
 }
 
 /// 현금

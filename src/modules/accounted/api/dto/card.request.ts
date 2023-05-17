@@ -1,9 +1,8 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByCashCreateRequest, ByCashUpdateRequest } from "src/@shared/api";
+import { IsBoolean, IsEnum, IsNumber, IsString } from "class-validator";
+import { ByCardCreateRequest, ByCardUpdateRequest } from "src/@shared/api/accounted/by-card.request";
 
-export class ByCashCreateRequestDto implements ByCashCreateRequest {
+export class ByCardCreateRequestDto implements ByCardCreateRequest {
   @IsNumber()
   readonly partnerId: number;
 
@@ -28,12 +27,24 @@ export class ByCashCreateRequestDto implements ByCashCreateRequest {
   @IsString()
   readonly memo: string;
 
-  @Type(() => Number)
+  @IsNumber()
   readonly amount: number;
+
+  @IsNumber()
+  readonly cardId: number;
+
+  @IsNumber()
+  readonly chargeAmount: number;
+
+  @IsBoolean()
+  readonly isCharge: boolean;
+
+  @IsString()
+  readonly approvalNumber: string;
 }
 
-export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
-  @IsOptional()
+export class ByCardUpdateRequestDto implements ByCardUpdateRequest {
+  @IsNumber()
   readonly accountedId: number;
 
   @IsEnum(AccountedType)
@@ -51,6 +62,18 @@ export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
   @IsString()
   readonly memo: string;
 
-  @Type(() => Number)
+  @IsNumber()
   readonly amount: number;
+
+  @IsNumber()
+  readonly cardId: number;
+
+  @IsNumber()
+  readonly chargeAmount: number;
+
+  @IsBoolean()
+  readonly isCharge: boolean;
+
+  @IsString()
+  readonly approvalNumber: string;
 }

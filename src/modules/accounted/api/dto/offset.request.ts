@@ -1,9 +1,8 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByCashCreateRequest, ByCashUpdateRequest } from "src/@shared/api";
+import { IsEnum, IsNumber, IsString } from "class-validator";
+import { ByOffsetCreateRequest, ByOffsetUpdateRequest } from "src/@shared/api/accounted/by-offset.request";
 
-export class ByCashCreateRequestDto implements ByCashCreateRequest {
+export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
   @IsNumber()
   readonly partnerId: number;
 
@@ -28,12 +27,12 @@ export class ByCashCreateRequestDto implements ByCashCreateRequest {
   @IsString()
   readonly memo: string;
 
-  @Type(() => Number)
+  @IsNumber()
   readonly amount: number;
 }
 
-export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
-  @IsOptional()
+export class ByOffsetUpdateRequestDto implements ByOffsetUpdateRequest {
+  @IsNumber()
   readonly accountedId: number;
 
   @IsEnum(AccountedType)
@@ -51,6 +50,6 @@ export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
   @IsString()
   readonly memo: string;
 
-  @Type(() => Number)
+  @IsNumber()
   readonly amount: number;
 }

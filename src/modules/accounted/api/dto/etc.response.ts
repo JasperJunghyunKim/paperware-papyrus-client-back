@@ -1,19 +1,14 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsString } from "class-validator";
 import { ByEtcItemResponse } from "src/@shared/api";
 
-export class EtcResponse implements ByEtcItemResponse {
-
-  @Type(() => Number)
+export class ByEtcResponse implements ByEtcItemResponse {
   @IsNumber()
   readonly partnerId: number;
 
   @IsString()
-  @IsOptional()
   readonly partnerNickName: string;
 
-  @Type(() => Number)
   @IsNumber()
   readonly accountedId: number;
 
@@ -30,7 +25,6 @@ export class EtcResponse implements ByEtcItemResponse {
   readonly accountedDate: string;
 
   @IsString()
-  @IsOptional()
   readonly memo: string;
 
   @IsNumber()

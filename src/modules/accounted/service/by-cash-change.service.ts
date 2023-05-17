@@ -1,32 +1,31 @@
 import { Injectable } from '@nestjs/common';
+import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { CashRequest } from '../api/dto/cash.request';
-import { EtcRequest } from '../api/dto/etc.request';
-import { AccountedType } from '@prisma/client';
+import { ByCashCreateRequestDto, ByCashUpdateRequestDto } from '../api/dto/cash.request';
 
 @Injectable()
 export class ByCashChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async createCash(accountedType: AccountedType, cashRequest: CashRequest): Promise<void> {
+  async createCash(accountedType: AccountedType, byCashCreateRequestDto: ByCashCreateRequestDto): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
           data: {
             partner: {
               connect: {
-                id: cashRequest.partnerId,
+                id: byCashCreateRequestDto.partnerId,
               },
             },
             accountedType,
-            accountedSubject: cashRequest.accountedSubject,
-            accountedMethod: cashRequest.accountedMethod,
-            accountedDate: cashRequest.accountedDate,
-            memo: cashRequest.memo ?? '',
+            accountedSubject: byCashCreateRequestDto.accountedSubject,
+            accountedMethod: byCashCreateRequestDto.accountedMethod,
+            accountedDate: byCashCreateRequestDto.accountedDate,
+            memo: byCashCreateRequestDto.memo ?? '',
             byCash: {
               create: {
-                cashAmount: cashRequest.amount,
+                cashAmount: byCashCreateRequestDto.amount,
               }
             },
           },
@@ -38,24 +37,19 @@ export class ByCashChangeService {
     );
   }
 
-  async updateCash(accountedType: AccountedType, accountedId: number, cashRequest: CashRequest): Promise<void> {
+  async updateCash(accountedType: AccountedType, accountedId: number, byCashUpdateRequestDto: ByCashUpdateRequestDto): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
           data: {
-            partner: {
-              connect: {
-                id: cashRequest.partnerId,
-              },
-            },
             accountedType,
-            accountedSubject: cashRequest.accountedSubject,
-            accountedMethod: cashRequest.accountedMethod,
-            accountedDate: cashRequest.accountedDate,
-            memo: cashRequest.memo ?? '',
+            accountedSubject: byCashUpdateRequestDto.accountedSubject,
+            accountedMethod: byCashUpdateRequestDto.accountedMethod,
+            accountedDate: byCashUpdateRequestDto.accountedDate,
+            memo: byCashUpdateRequestDto.memo ?? '',
             byCash: {
               update: {
-                cashAmount: cashRequest.amount,
+                cashAmount: byCashUpdateRequestDto.amount,
               }
             }
           },
@@ -95,98 +89,6 @@ export class ByCashChangeService {
           where: {
             id: result.byCash.id,
           }
-        })
-      )
-    );
-  }
-
-  async createEtc(accountedType: AccountedType, etcRequest: EtcRequest): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.accounted.create({
-          data: {
-            partner: {
-              connect: {
-                id: etcRequest.partnerId,
-              },
-            },
-            accountedType,
-            accountedSubject: etcRequest.accountedSubject,
-            accountedMethod: etcRequest.accountedMethod,
-            accountedDate: etcRequest.accountedDate,
-            memo: etcRequest.memo ?? '',
-            byEtc: {
-              create: {
-                etcAmount: etcRequest.amount,
-              }
-            }
-          },
-          select: {
-            id: true,
-          },
-        })
-      )
-    );
-  }
-
-  async updateEtc(accountedType: AccountedType, accountedId: number, etcRequest: EtcRequest): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.accounted.update({
-          data: {
-            partner: {
-              connect: {
-                id: etcRequest.partnerId,
-              },
-            },
-            accountedType,
-            accountedSubject: etcRequest.accountedSubject,
-            accountedMethod: etcRequest.accountedMethod,
-            accountedDate: etcRequest.accountedDate,
-            memo: etcRequest.memo ?? '',
-            byEtc: {
-              update: {
-                etcAmount: etcRequest.amount,
-              }
-            }
-          },
-          select: {
-            id: true,
-          },
-          where: {
-            id: accountedId
-          }
-        })
-      )
-    );
-  }
-
-  async deleteEtc(accountedType: AccountedType, accountedId: number): Promise<void> {
-    const result = await this.prisma.accounted.findFirst({
-      select: {
-        byEtc: true,
-      },
-      where: {
-        id: accountedId,
-        accountedType
-      }
-    });
-
-    await lastValueFrom(
-      from(
-        this.prisma.byEtc.update({
-          data: {
-            isDeleted: true,
-            accounted: {
-              update: {
-                isDeleted: true,
-              }
-            }
-          },
-          include: {
-            accounted: true,
-          },
-          where: { id: result.byEtc.id }
         })
       )
     );

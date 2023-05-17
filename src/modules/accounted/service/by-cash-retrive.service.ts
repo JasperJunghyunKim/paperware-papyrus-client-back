@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { EtcResponse } from '../api/dto/etc.response';
+import { ByEtcResponse } from '../api/dto/etc.response';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 
@@ -10,7 +10,7 @@ import { AccountedNotFoundException } from '../infrastructure/exception/accounte
 export class ByCashRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByCash(companyId: number, accountedType: AccountedType, accountedId: number): Promise<EtcResponse> {
+  async getAccountedByCash(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

@@ -4,8 +4,8 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { ByCashChangeService } from '../service/by-cash-change.service';
 import { ByCashRetriveService } from '../service/by-cash-retrive.service';
-import { CashRequest } from './dto/cash.request';
 import { CashResponse } from './dto/cash.response';
+import { ByCashCreateRequestDto, ByCashUpdateRequestDto } from './dto/cash.request';
 
 @Controller('/accounted')
 export class ByCashController {
@@ -24,8 +24,8 @@ export class ByCashController {
   @Post('accountedType/:accountedType/cash')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createCash(@Param('accountedType') accountedType: AccountedType, @Body() collectedCashRequest: CashRequest): Promise<void> {
-    await this.byCashChangeService.createCash(accountedType, collectedCashRequest);
+  async createCash(@Param('accountedType') accountedType: AccountedType, @Body() byCashCreateRequest: ByCashCreateRequestDto): Promise<void> {
+    await this.byCashChangeService.createCash(accountedType, byCashCreateRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/cash')
@@ -34,9 +34,9 @@ export class ByCashController {
   async updateCash(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-    @Body() collectedCashRequest: CashRequest,
+    @Body() byCashUpdateRequest: ByCashUpdateRequestDto,
   ): Promise<void> {
-    await this.byCashChangeService.updateCash(accountedType, accountedId, collectedCashRequest);
+    await this.byCashChangeService.updateCash(accountedType, accountedId, byCashUpdateRequest);
   }
 
   @Delete('accountedType/:accountedType/accountedId/:accountedId/cash')

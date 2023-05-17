@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByEtcResponse } from '../api/dto/etc.response';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
+import { ByOffsetItemResponseDto } from '../api/dto/offset.response';
 
 @Injectable()
-export class ByEtcRetriveService {
+export class ByOffsetAccountRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByEtc(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByEtcResponse> {
+  async getAccountedByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByOffsetItemResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -20,7 +20,7 @@ export class ByEtcRetriveService {
           accountedSubject: true,
           accountedMethod: true,
           memo: true,
-          byEtc: true,
+          byOffset: true,
           partner: {
             select: {
               id: true,
@@ -35,9 +35,6 @@ export class ByEtcRetriveService {
           accountedType,
           id: accountedId,
           isDeleted: false,
-          byEtc: {
-            isDeleted: false,
-          }
         }
       })
     ).pipe(
@@ -49,7 +46,7 @@ export class ByEtcRetriveService {
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,
-          amount: accounted.byEtc.etcAmount,
+          amount: accounted.byOffset.offsetAmount,
           memo: accounted.memo,
           partnerId: accounted.partner.id,
           partnerNickName: accounted.partner.partnerNickName,

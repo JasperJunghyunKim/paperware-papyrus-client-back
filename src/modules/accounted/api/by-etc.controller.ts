@@ -4,8 +4,8 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { ByEtcChangeService } from '../service/by-etc-change.service';
 import { ByEtcRetriveService } from '../service/by-etc-retrive.service';
-import { EtcRequest } from './dto/etc.request';
-import { EtcResponse } from './dto/etc.response';
+import { ByEtcCreateRequestDto, ByEtcUpdateRequestDto } from './dto/etc.request';
+import { ByEtcResponse } from './dto/etc.response';
 
 @Controller('/accounted')
 export class ByEtcController {
@@ -17,15 +17,15 @@ export class ByEtcController {
     @Request() req: AuthType,
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-  ): Promise<EtcResponse> {
+  ): Promise<ByEtcResponse> {
     return await this.byEtcRetriveService.getAccountedByEtc(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/etc')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() etcRequest: EtcRequest): Promise<void> {
-    await this.byEtcChangeService.createEtc(accountedType, etcRequest);
+  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() byEtcCreateRequest: ByEtcCreateRequestDto): Promise<void> {
+    await this.byEtcChangeService.createEtc(accountedType, byEtcCreateRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/etc')
@@ -34,9 +34,9 @@ export class ByEtcController {
   async updateEtc(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-    @Body() etcRequest: EtcRequest,
+    @Body() byEtcUpdateRequest: ByEtcUpdateRequestDto,
   ): Promise<void> {
-    await this.byEtcChangeService.updateEtc(accountedType, accountedId, etcRequest);
+    await this.byEtcChangeService.updateEtc(accountedType, accountedId, byEtcUpdateRequest);
   }
 
   @Delete('accountedType/:accountedType/accountedId/:accountedId/etc')

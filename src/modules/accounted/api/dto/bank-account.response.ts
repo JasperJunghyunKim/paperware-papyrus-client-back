@@ -1,16 +1,14 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString } from "class-validator";
-import { ByCashItemResponse } from "src/@shared/api";
+import { ByBankAccountItemResponse } from "src/@shared/api/accounted/by-bank-account.response";
 
-export class CashResponse implements ByCashItemResponse {
+export class ByBankAccountItemResponseDto implements ByBankAccountItemResponse {
   @IsNumber()
   readonly partnerId: number;
 
   @IsString()
   readonly partnerNickName: string;
 
-  @Type(() => Number)
   @IsNumber()
   readonly accountedId: number;
 
@@ -31,4 +29,7 @@ export class CashResponse implements ByCashItemResponse {
 
   @IsNumber()
   readonly amount: number;
+
+  @IsNumber()
+  readonly bankAccountId: number;
 }

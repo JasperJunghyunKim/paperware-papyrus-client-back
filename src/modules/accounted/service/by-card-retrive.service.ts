@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByEtcResponse } from '../api/dto/etc.response';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
+import { ByCardItemResponse } from 'src/@shared/api/accounted/by-card.response';
 
 @Injectable()
-export class ByEtcRetriveService {
+export class ByCardRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByEtc(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByEtcResponse> {
+  async getAccountedByCard(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByCardItemResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
@@ -20,7 +20,7 @@ export class ByEtcRetriveService {
           accountedSubject: true,
           accountedMethod: true,
           memo: true,
-          byEtc: true,
+          byCard: true,
           partner: {
             select: {
               id: true,
@@ -35,7 +35,7 @@ export class ByEtcRetriveService {
           accountedType,
           id: accountedId,
           isDeleted: false,
-          byEtc: {
+          byCard: {
             isDeleted: false,
           }
         }
@@ -49,10 +49,14 @@ export class ByEtcRetriveService {
           accountedDate: accounted.accountedDate.toISOString(),
           accountedSubject: accounted.accountedSubject,
           accountedMethod: accounted.accountedMethod,
-          amount: accounted.byEtc.etcAmount,
+          amount: accounted.byCard.cardAmount,
           memo: accounted.memo,
           partnerId: accounted.partner.id,
           partnerNickName: accounted.partner.partnerNickName,
+          cardId: accounted.byCard.cardId,
+          chargeAmount: accounted.byCard.chargeAmount,
+          isCharge: accounted.byCard.isCharge,
+          approvalNumber: accounted.byCard.approvalNumber,
         }
       }),
     ));
