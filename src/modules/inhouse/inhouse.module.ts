@@ -60,6 +60,8 @@ import { BankAccountController } from './api/bank-account.controller';
   exports: [
     BusinessRelationshipRetriveService,
     LocationRetriveService,
+    BankAccountRetriveService,
+    CardRetriveService,
   ]
 })
 export class InhouseModule { }
