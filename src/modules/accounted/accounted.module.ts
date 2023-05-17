@@ -7,12 +7,24 @@ import { ByCashRetriveService } from './service/by-cash-retrive.service';
 import { ByEtcRetriveService } from './service/by-etc-retrive.service';
 import { ByCashChangeService } from './service/by-cash-change.service';
 import { ByEtcChangeService } from './service/by-etc-change.service';
+import { ByBankAccountController } from './api/by-bank-account.controller';
+import { ByCardController } from './api/by-card.controller';
+import { ByOffsetController } from './api/by-offset.controller';
+import { ByCardChangeService } from './service/by-card-change.service';
+import { ByCardRetriveService } from './service/by-card-retrive.service';
+import { ByBankAccountRetriveService } from './service/by-bank-account-retrive.service';
+import { ByBankAccountChangeService } from './service/by-bank-account-change.service';
+import { ByOffsetChangeService } from './service/by-offset-change.service';
+import { ByOffsetAccountRetriveService } from './service/by-offset-retrive.service';
 
 @Module({
   controllers: [
     AccountedController,
     ByCashController,
     ByEtcController,
+    ByBankAccountController,
+    ByCardController,
+    ByOffsetController,
   ],
   providers: [
     AccountedRetriveService,
@@ -20,6 +32,12 @@ import { ByEtcChangeService } from './service/by-etc-change.service';
     ByCashChangeService,
     ByEtcRetriveService,
     ByEtcChangeService,
+    ByCardRetriveService,
+    ByCardChangeService,
+    ByBankAccountRetriveService,
+    ByBankAccountChangeService,
+    ByOffsetAccountRetriveService,
+    ByOffsetChangeService,
   ],
 })
 export class AccountedModule { }

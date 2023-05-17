@@ -1,6 +1,6 @@
 import { CardCompany } from "@prisma/client";
 import { IsArray, IsEnum, IsNumber, IsString } from "class-validator";
-import { CardItemResponse, CardListResponse } from "src/@shared/api/card/card.response";
+import { CardItemResponse, CardListResponse } from "src/@shared/api";
 import { Card } from "src/@shared/models";
 
 export class CardListResponseDto implements CardListResponse {

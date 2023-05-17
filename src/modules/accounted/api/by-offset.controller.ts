@@ -8,7 +8,7 @@ import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from './
 import { ByEtcResponse } from './dto/etc.response';
 
 @Controller('/accounted')
-export class ByEtcController {
+export class ByOffsetController {
   constructor(private readonly byBankAccountRetriveService: ByBankAccountRetriveService, private readonly byBankAccountChangeService: ByBankAccountChangeService) { }
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/offset')

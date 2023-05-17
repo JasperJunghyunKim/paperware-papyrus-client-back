@@ -8,7 +8,7 @@ import { ByCardRetriveService } from '../service/by-card-retrive.service';
 import { ByCardChangeService } from '../service/by-card-change.service';
 
 @Controller('/accounted')
-export class ByEtcController {
+export class ByCardController {
   constructor(private readonly byCardRetriveService: ByCardRetriveService, private readonly byCardChangeService: ByCardChangeService) { }
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/card')
