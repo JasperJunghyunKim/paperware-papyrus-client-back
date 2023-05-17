@@ -705,6 +705,9 @@ model BankAccount {
   accountHolder String      @db.VarChar(50)
   /// 삭제 여부
   isDeleted     Boolean     @default(false)
+
+  /// 회계 계좌
+  byAccount ByBankAccount?
 }
 
 /// 카드사
@@ -747,6 +750,9 @@ model Card {
   cardHolder  String      @db.VarChar(50)
   /// 삭제 여부
   isDeleted   Boolean     @default(false)
+
+  /// 카드
+  byCard ByCard?
 }
 
 /// 계정 수단
@@ -849,35 +855,97 @@ model Accounted {
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  /// 지급 현금 결제
-  byCash ByCash?
-  /// 지급 기타
-  byEtc  ByEtc?
+  /// 현금
+  byCash    ByCash?
+  /// 기타
+  byEtc     ByEtc?
+  // 계좌
+  byAccount ByBankAccount?
+  /// 카드
+  byCard    ByCard?
+  /// 상계
+  byOffset  ByOffset?
 }
 
 /// 현금
 model ByCash {
   /// 식별자
   id          Int       @id @default(autoincrement())
-  /// 식별자
+  /// 금액
   cashAmount  Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
-  /// 파트너 식별자
+  /// 회계 식별자
   accountedId Int       @unique
-  /// 파트너
+  /// 회계
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ByEtc {
   /// 식별자
   id          Int       @id @default(autoincrement())
-  /// 식별자
+  /// 금액
   etcAmount   Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
-  /// 파트너 식별자
+  /// 회계 식별자
   accountedId Int       @unique
-  /// 파트너
+  /// 회계
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// 계좌
+model ByBankAccount {
+  /// 식별자
+  id                Int         @id @default(autoincrement())
+  /// 금액
+  bankAccountAmount Int
+  /// 삭제 여부
+  isDeleted         Boolean     @default(false)
+  /// 회계 식별자
+  accountedId       Int         @unique
+  /// 회계
+  accounted         Accounted   @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 계좌 식별자
+  bankAccountId     Int         @unique
+  /// 계좌
+  bankAccount       BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// 카드
+model ByCard {
+  /// 식별자
+  id             Int       @id @default(autoincrement())
+  /// 금액
+  cardAmount     Int
+  /// 수수료 금액
+  chargeAmount   Int
+  /// 수수료 여부
+  isCharge       Boolean   @default(false)
+  /// 승인번호
+  approvalNumber String
+  /// 삭제 여부
+  isDeleted      Boolean   @default(false)
+  /// 회계 식별자
+  accountedId    Int       @unique
+  /// 회계
+  accounted      Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 계좌 식별자
+  cardId         Int       @unique
+  /// 계좌
+  card           Card      @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// 상계
+model ByOffset {
+  /// 식별자
+  id           Int       @id @default(autoincrement())
+  /// 금액
+  offsetAmount Int
+  /// 삭제 여부
+  isDeleted    Boolean   @default(false)
+  /// 회계 식별자
+  accountedId  Int       @unique
+  /// 회계
+  accounted    Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

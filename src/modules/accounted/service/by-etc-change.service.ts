@@ -6,7 +6,7 @@ import { EtcRequest } from '../api/dto/etc.request';
 import { AccountedType } from '@prisma/client';
 
 @Injectable()
-export class AccountedChangeService {
+export class ByEtcChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
   async createCash(accountedType: AccountedType, cashRequest: CashRequest): Promise<void> {
