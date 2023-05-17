@@ -1,6 +1,6 @@
 import { CardCompany } from "@prisma/client";
 import { IsEnum, IsNumber, IsString } from "class-validator";
-import { CardCreateRequest, CardUpdateRequest } from "src/@shared/api/card/card.request";
+import { CardCreateRequest, CardUpdateRequest } from "src/@shared/api/inhouse/card.request";
 
 export class CardCreateRequestDto implements CardCreateRequest {
   @IsNumber()

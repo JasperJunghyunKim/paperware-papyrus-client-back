@@ -11,7 +11,7 @@ import {
   Request,
   UseGuards
 } from '@nestjs/common';
-import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/card/card.request';
+import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/inhouse/card.request';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { CardChangeService } from '../service/card-change.service';

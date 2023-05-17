@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { from, lastValueFrom } from 'rxjs';
-import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/card/card.request';
+import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/inhouse/card.request';
 import { PrismaService } from 'src/core';
 
 @Injectable()
