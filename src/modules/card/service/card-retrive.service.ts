@@ -19,7 +19,7 @@ export class CardRetriveService {
         },
         where: {
           companyId,
-          isDeleted: true,
+          isDeleted: false,
         }
       })
     ).pipe(
@@ -53,7 +53,7 @@ export class CardRetriveService {
         },
         where: {
           id: cardId,
-          isDeleted: true,
+          isDeleted: false,
         }
       })
     ).pipe(

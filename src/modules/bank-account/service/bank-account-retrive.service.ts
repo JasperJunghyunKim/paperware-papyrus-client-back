@@ -20,7 +20,7 @@ export class BankAccountRetriveService {
         },
         where: {
           companyId,
-          isDeleted: true,
+          isDeleted: false,
         }
       })
     ).pipe(
@@ -56,7 +56,7 @@ export class BankAccountRetriveService {
         },
         where: {
           id: bankAccountId,
-          isDeleted: true,
+          isDeleted: false,
         }
       })
     ).pipe(
