@@ -1,5 +1,42 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, PackagingType, PriceUnit } from "@prisma/client";
 import { PrismaService } from "src/core";
+
+type Bit = '0' | '1';
+type DiscountRateConditionWithMap = DiscountRateCondition & { discountRateMap: DiscountRateMap[] }
+
+export interface DiscountRate {
+    discountRateMapType: DiscountRateMapType;
+    discountRate: number;
+    discountRateUnit: PriceUnit;
+}
+
+export class FisrtFiltered {
+    constructor(
+        private discountRateCondition: DiscountRateConditionWithMap,
+        private accordanceBits: string,
+        private count: number,
+    ) { }
+
+    getDiscountRateCondition = () => this.discountRateCondition;
+    getBits = () => this.accordanceBits;
+    getCount = () => this.count;
+
+    isParentOf = (other: FisrtFiltered): boolean => {
+        if (this.getCount() >= other.getCount()) return false;
+
+        for (let i = 0; i < this.getBits().length; i++) {
+            if (this.getBits()[i] === '1' && other.getBits()[i] !== '1')
+                return false;
+        }
+
+        return true;
+    };
+}
+
+interface ConditionId {
+    discountRateConditionId: number;
+}
 
 export interface DiscountRateClient {
     partnerId: number;
@@ -67,6 +104,7 @@ export class DiscountRateRetriveService {
             where: {
                 companyId,
                 companyRegistrationNumber,
+                isDeleted: false,
             }
         });
         if (!partner) throw new BadRequestException(`존재하지 않는 거래처입니다.`);
@@ -162,6 +200,7 @@ export class DiscountRateRetriveService {
                 id: discountRateConditionId,
                 partner: {
                     companyId,
+                    isDeleted: false,
                 }
             }
         });
@@ -180,5 +219,214 @@ export class DiscountRateRetriveService {
         delete condition.partner;
 
         return condition;
+    }
+
+    async mapping(
+        companyId: number,
+        companyRegistrationNumber: string,
+        isPurchase: boolean,
+        packagingType: PackagingType,
+        paperDomainId: number,
+        manufacturerId: number,
+        paperGroupId: number,
+        paperTypeId: number,
+        grammage: number,
+        sizeX: number,
+        sizeY: number,
+        paperColorGroupId: number,
+        paperColorId: number,
+        paperPatternId: number,
+        paperCertId: number,
+    ): Promise<DiscountRate[]> {
+        const partner = await this.prisma.partner.findFirst({
+            where: {
+                companyId,
+                companyRegistrationNumber,
+                isDeleted: false,
+            }
+        });
+        if (!partner) throw new BadRequestException(`존재하지 않는 거래처입니다.`);
+
+        const conditionIds: ConditionId[] = await this.prisma.$queryRaw`
+            SELECT drc.id AS discountRateConditionId
+              FROM DiscountRateCondition            AS drc
+              JOIN DiscountRateMap                  AS drm      ON drm.discountRateConditionId = drc.id 
+                                                                AND drm.isPurchase = ${isPurchase} 
+                                                                AND drm.isDeleted = ${false}
+
+            WHERE drc.partnerId = ${partner.id}
+              AND (drc.packagingType = ${packagingType} OR drc.packagingType IS NULL)
+              AND (drc.paperDomainId = ${paperDomainId} OR drc.paperDomainId IS NULL)
+              AND (drc.manufacturerId = ${manufacturerId} OR drc.manufacturerId IS NULL)
+              AND (drc.paperGroupId = ${paperGroupId} OR drc.paperGroupId IS NULL)
+              AND (drc.paperTypeId = ${paperTypeId} OR drc.paperTypeId IS NULL)
+              AND (drc.grammage = ${grammage} OR drc.grammage IS NULL)
+              AND (drc.sizeX = ${sizeX} OR drc.sizeX IS NULL)
+              AND (drc.sizeY = ${sizeY} OR drc.sizeY IS NULL)
+              AND (drc.paperColorGroupId = ${paperColorGroupId} OR drc.paperColorGroupId IS NULL)
+              AND (drc.paperColorId = ${paperColorId} OR drc.paperColorId IS NULL)
+              AND (drc.paperPatternId = ${paperPatternId} OR drc.paperPatternId IS NULL)
+              AND (drc.paperCertId = ${paperCertId} OR drc.paperCertId IS NULL)
+        `
+
+        const conditions = await this.prisma.discountRateCondition.findMany({
+            include: {
+                discountRateMap: {
+                    where: {
+                        isPurchase,
+                        isDeleted: false,
+                    }
+                }
+            },
+            where: {
+                partnerId: partner.id,
+                id: {
+                    in: conditionIds.map(id => id.discountRateConditionId)
+                }
+            }
+        });
+
+        const firstFiltered = this.getFirstFiltering(
+            conditions,
+            packagingType,
+            paperDomainId,
+            manufacturerId,
+            paperGroupId,
+            paperTypeId,
+            grammage,
+            sizeX,
+            sizeY,
+            paperColorGroupId,
+            paperColorId,
+            paperPatternId,
+            paperCertId,
+        );
+        console.log('[할인율 1st filtering]', firstFiltered.map(fisrt => ({ id: fisrt.getDiscountRateCondition().id, bits: fisrt.getBits() })));
+
+        const conditionMap = new Map<number, DiscountRateConditionWithMap>();
+        for (const first of firstFiltered) {
+            conditionMap.set(first.getDiscountRateCondition().id, first.getDiscountRateCondition());
+        }
+
+        const graph = this.createGraph(firstFiltered);
+        const leafNodeIds: number[] = [];
+        for (const key of graph.keys()) {
+            if (graph.get(key).length === 0) leafNodeIds.push(key);
+        }
+
+        return leafNodeIds.flatMap(id => {
+            return conditionMap.get(id)
+                .discountRateMap.map(map => ({
+                    discountRateMapType: map.discountRateMapType,
+                    discountRate: map.discountRate,
+                    discountRateUnit: map.discountRateUnit,
+                }));
+        })
+    }
+
+    private getFirstFiltering(
+        conditions: DiscountRateConditionWithMap[],
+        packagingType: PackagingType,
+        paperDomainId: number,
+        manufacturerId: number,
+        paperGroupId: number,
+        paperTypeId: number,
+        grammage: number,
+        sizeX: number,
+        sizeY: number,
+        paperColorGroupId: number,
+        paperColorId: number,
+        paperPatternId: number,
+        paperCertId: number,
+    ) {
+        const firstFiltered: FisrtFiltered[] = [];
+        for (const condition of conditions) {
+            if (condition.discountRateMap.length === 0) continue;
+
+            const packagingTypeBit = this.getAccordanceBit(condition.packagingType, packagingType);
+            const paperDomainIdBit = this.getAccordanceBit(condition.paperDomainId, paperDomainId);
+            const manufacturerIdBit = this.getAccordanceBit(condition.manufacturerId, manufacturerId);
+            const paperGroupIdBit = this.getAccordanceBit(condition.paperGroupId, paperGroupId);
+            const paperTypeIdBit = this.getAccordanceBit(condition.paperTypeId, paperTypeId);
+            const grammageBit = this.getAccordanceBit(condition.grammage, grammage);
+            const sizeXBit = this.getAccordanceBit(condition.sizeX, sizeX);
+            const sizeYBit = this.getAccordanceBit(condition.sizeY, sizeY);
+            const paperColorGroupIdBit = this.getAccordanceBit(condition.paperColorGroupId, paperColorGroupId);
+            const paperColorIdBit = this.getAccordanceBit(condition.paperColorId, paperColorId);
+            const paperPatternIdBit = this.getAccordanceBit(condition.paperPatternId, paperPatternId);
+            const paperCertIdBit = this.getAccordanceBit(condition.paperCertId, paperCertId);
+
+            const bits = [
+                packagingTypeBit,
+                paperDomainIdBit,
+                manufacturerIdBit,
+                paperGroupIdBit,
+                paperTypeIdBit,
+                grammageBit,
+                sizeXBit,
+                sizeYBit,
+                paperColorGroupIdBit,
+                paperColorIdBit,
+                paperPatternIdBit,
+                paperCertIdBit
+            ];
+            if (
+                sizeXBit &&
+                sizeYBit &&
+                paperColorGroupIdBit &&
+                paperColorIdBit &&
+                paperPatternIdBit &&
+                paperCertIdBit
+            ) {
+                firstFiltered.push(
+                    new FisrtFiltered(
+                        condition,
+                        bits.join(""),
+                        bits.filter(bit => bit === '1').length,
+                    )
+                );
+            }
+        }
+
+        return firstFiltered;
+    }
+
+    private getAccordanceBit(conditionField: number | PackagingType | null, queryParam: number | PackagingType | null): Bit | null {
+        // 3, 5 조건 걸러내기
+        if (
+            (conditionField && !queryParam) ||
+            (conditionField && queryParam && (conditionField !== queryParam))
+        ) return null;
+
+        // 고시가 조건이 없으면 0
+        if (!conditionField) return '0';
+        // 고시가조건 존재하고 쿼리와 같으면 1
+        else if (conditionField && queryParam && conditionField === queryParam) return '1';
+
+        return null;
+    }
+
+    private createGraph(firstFiltered: FisrtFiltered[]) {
+        // 1의 갯수순으로 정렬
+        firstFiltered.sort((a, b) => {
+            return a.getCount() - b.getCount();
+        });
+
+        const graph = new Map<number, number[]>();
+        for (const second of firstFiltered) {
+            graph.set(second.getDiscountRateCondition().id, []);
+        }
+
+        for (let i = 0; i < firstFiltered.length - 1; i++) {
+            for (let j = i + 1; j < firstFiltered.length; j++) {
+                const a = firstFiltered[i];
+                const b = firstFiltered[j];
+
+                if (a.isParentOf(b))
+                    graph.get(a.getDiscountRateCondition().id).push(b.getDiscountRateCondition().id)
+            }
+        }
+
+        return graph;
     }
 }
