@@ -183,4 +183,44 @@ export class DiscountRateChangeService {
             });
         });
     }
+
+    async deleteDiscountRate(
+        companyId: number,
+        isPurchase: boolean,
+        discountRateConditionId: number,
+    ) {
+        await this.prisma.$transaction(async tx => {
+            const condition = await tx.discountRateCondition.findFirst({
+                include: {
+                    partner: true,
+                    discountRateMap: {
+                        where: {
+                            isPurchase,
+                            isDeleted: false,
+                        }
+                    }
+                },
+                where: {
+                    id: discountRateConditionId,
+                    partner: {
+                        companyId,
+                    }
+                }
+            });
+            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+                throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
+            }
+
+            await tx.discountRateMap.updateMany({
+                data: {
+                    isDeleted: true,
+                },
+                where: {
+                    id: {
+                        in: condition.discountRateMap.map(map => map.id),
+                    },
+                },
+            });
+        });
+    }
 }

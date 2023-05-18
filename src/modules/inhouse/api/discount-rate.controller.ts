@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { DiscountRateListResponse, DiscountRateResponse } from "src/@shared/api/inhouse/discount-rate.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
@@ -270,6 +270,32 @@ export class DiscountRateController {
             param.discountRateConditionId,
             dto.basicDiscountRate,
             dto.specialDiscountRate,
+        );
+    }
+
+    @Delete('/sales/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async deleteSalesDiscountRate(
+        @Request() req: AuthType,
+        @Param() param: DiscountRateConditionIdDto,
+    ) {
+        await this.change.deleteDiscountRate(
+            req.user.companyId,
+            false,
+            param.discountRateConditionId,
+        );
+    }
+
+    @Delete('/purchase/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async deletePurchaseDiscountRate(
+        @Request() req: AuthType,
+        @Param() param: DiscountRateConditionIdDto,
+    ) {
+        await this.change.deleteDiscountRate(
+            req.user.companyId,
+            true,
+            param.discountRateConditionId,
         );
     }
 }
