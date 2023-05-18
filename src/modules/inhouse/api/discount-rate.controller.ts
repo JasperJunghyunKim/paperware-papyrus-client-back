@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
-import { DiscountRateListResponse, DiscountRateResponse } from "src/@shared/api/inhouse/discount-rate.response";
+import { DiscountRateListResponse, DiscountRateResponse, DisocuntRatePartnerListResponse } from "src/@shared/api/inhouse/discount-rate.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { DiscountRateChangeService } from "../service/discount-rate.change.service";
 import { DiscountRateRetriveService } from "../service/discount-rate.retrive.service";
-import { DiscountRateConditionIdDto, DiscountRateCreateDto, DiscountRateListDto, DiscountRateUpdateDto } from "./dto/discount-rate.request";
+import { DiscountRateConditionIdDto, DiscountRateCreateDto, DiscountRateListDto, DiscountRatePartnerListDto, DiscountRateUpdateDto } from "./dto/discount-rate.request";
 
 @Controller('/discount-rate')
 export class DiscountRateController {
@@ -12,6 +12,35 @@ export class DiscountRateController {
         private readonly change: DiscountRateChangeService,
         private readonly retrive: DiscountRateRetriveService,
     ) { }
+
+    @Get('/sales/partner')
+    @UseGuards(AuthGuard)
+    async getSalesDiscountRatePartnerList(
+        @Request() req: AuthType,
+        @Query() dto: DiscountRatePartnerListDto,
+    ): Promise<DisocuntRatePartnerListResponse> {
+        const { result, total } = await this.retrive.getClientList(
+            req.user.companyId,
+            false,
+            dto.skip,
+            dto.take,
+        );
+
+        return {
+            items: result.map(data => {
+                return {
+                    partner: {
+                        companyId: data.companyId,
+                        companyRegistrationNumber: data.companyRegistrationNumber,
+                        partnerNickName: data.partnerNickName,
+                        memo: data.partnerMemo,
+                    },
+                    discountRatecount: data.discountRateCount,
+                }
+            }),
+            total,
+        };
+    }
 
     @Post('/sales')
     @UseGuards(AuthGuard)

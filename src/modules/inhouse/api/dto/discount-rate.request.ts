@@ -1,7 +1,7 @@
 import { PackagingType, PriceUnit } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, Max, Min, ValidateNested } from "class-validator";
-import { DiscountRateCreateRequest, DiscountRateListQuery, DiscountRateUpdateRequest } from "src/@shared/api/inhouse/discount-rate.request";
+import { DiscountRateCreateRequest, DiscountRateListQuery, DiscountRatePartnerListQuery, DiscountRateUpdateRequest } from "src/@shared/api/inhouse/discount-rate.request";
 
 export class DiscountRateConditionIdDto {
     @IsInt()
@@ -139,4 +139,20 @@ export class DiscountRateUpdateDto implements DiscountRateUpdateRequest {
     @ValidateNested()
     @Type(() => DiscountRateDto)
     readonly specialDiscountRate: DiscountRateDto;
+}
+
+/** 할인율 거래처 목록 */
+export class DiscountRatePartnerListDto implements DiscountRatePartnerListQuery {
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(0)
+    readonly skip: number = 0;
+
+    @IsOptional()
+    @IsInt()
+    @Type(() => Number)
+    @Min(10)
+    @Max(100)
+    readonly take: number = 30;
 }

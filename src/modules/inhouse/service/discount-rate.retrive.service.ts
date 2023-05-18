@@ -1,11 +1,60 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/core";
 
+export interface DiscountRateClient {
+    partnerId: number;
+    companyId: number;
+    companyRegistrationNumber: string;
+    partnerNickName: string;
+    partnerMemo: string;
+    discountRateConditionId: number;
+    discountRateCount: number;
+    total: number;
+}
+
 @Injectable()
 export class DiscountRateRetriveService {
     constructor(
         private readonly prisma: PrismaService,
     ) { }
+
+    async getClientList(
+        companyId: number,
+        isPurchase: boolean,
+        skip: number,
+        take: number,
+    ) {
+        const result: DiscountRateClient[] = await this.prisma.$queryRaw`
+            SELECT p.id AS partnerId
+                    , p.companyId AS companyId
+                    , p.companyRegistrationNumber AS companyRegistrationNumber
+                    , p.partnerNickName AS paertnerNickName
+                    , p.memo AS partnerMemo
+                    , drc.id AS discountRateConditionId
+                    , (IFNULL(COUNT(CASE WHEN drm.id IS NOT NULL THEN 1 END), 0) / 2) AS discountRateCount
+
+                    , COUNT(1) OVER() AS total
+
+              FROM Partner                  AS p
+              
+              JOIN DiscountRateCondition    AS drc      ON drc.partnerId = p.id
+         LEFT JOIN discountRateMap          AS drm      ON drm.discountRateConditionId = drc.id 
+                                                        AND drm.isDeleted = ${false} 
+                                                        AND drm.isPurchase = ${isPurchase}
+             WHERE p.isDeleted = ${false}
+               AND p.companyId = ${companyId}
+
+            LIMIT ${skip}, ${take}
+        `;
+
+        const total = result.length === 0 ? 0 : Number(result[0].total);
+        for (const data of result) {
+            data.discountRateCount = Number(data.discountRateCount);
+            data.total = Number(data.total);
+        }
+
+        return { result, total };
+    }
 
     async getList(
         companyId: number,
