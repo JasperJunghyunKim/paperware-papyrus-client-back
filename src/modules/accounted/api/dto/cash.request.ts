@@ -7,12 +7,6 @@ export class ByCashCreateRequestDto implements ByCashCreateRequest {
   @IsNumber()
   readonly partnerId: number;
 
-  @IsString()
-  readonly partnerNickName: string;
-
-  @IsNumber()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 
@@ -26,6 +20,7 @@ export class ByCashCreateRequestDto implements ByCashCreateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @Type(() => Number)
@@ -49,6 +44,7 @@ export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @Type(() => Number)

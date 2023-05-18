@@ -7,10 +7,10 @@ import { AccountedNotFoundException } from '../infrastructure/exception/accounte
 import { ByOffsetItemResponseDto } from '../api/dto/offset.response';
 
 @Injectable()
-export class ByOffsetAccountRetriveService {
+export class ByOffsetRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByOffsetItemResponseDto> {
+  async getAccountedOffset(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByOffsetItemResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

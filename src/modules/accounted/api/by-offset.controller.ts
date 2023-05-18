@@ -2,14 +2,14 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post
 import { AccountedType } from '@prisma/client';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
-import { ByBankAccountChangeService } from '../service/by-bank-account-change.service';
-import { ByBankAccountRetriveService } from '../service/by-bank-account-retrive.service';
-import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from './dto/bank-account.request';
+import { ByOffsetChangeService } from '../service/by-offset-change.service';
+import { ByOffsetRetriveService } from '../service/by-offset-retrive.service';
 import { ByEtcResponse } from './dto/etc.response';
+import { ByOffsetCreateRequestDto, ByOffsetUpdateRequestDto } from './dto/offset.request';
 
 @Controller('/accounted')
 export class ByOffsetController {
-  constructor(private readonly byBankAccountRetriveService: ByBankAccountRetriveService, private readonly byBankAccountChangeService: ByBankAccountChangeService) { }
+  constructor(private readonly byOffsetRetriveService: ByOffsetRetriveService, private readonly byOffsetChangeService: ByOffsetChangeService) { }
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/offset')
   @UseGuards(AuthGuard)
@@ -18,14 +18,14 @@ export class ByOffsetController {
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<ByEtcResponse> {
-    return await this.byBankAccountRetriveService.getAccountedByBankAccount(req.user.companyId, accountedType, accountedId);
+    return await this.byOffsetRetriveService.getAccountedOffset(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/offset')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto): Promise<void> {
-    await this.byBankAccountChangeService.createBankAccount(accountedType, byBankAccountCreateRequest);
+  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() byOffsetCreateRequest: ByOffsetCreateRequestDto): Promise<void> {
+    await this.byOffsetChangeService.createOffset(accountedType, byOffsetCreateRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/offset')
@@ -34,15 +34,15 @@ export class ByOffsetController {
   async updateEtc(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-    @Body() byBankAccountUpdateRequest: ByBankAccountUpdateRequestDto,
+    @Body() byOffsetUpdateRequest: ByOffsetUpdateRequestDto,
   ): Promise<void> {
-    await this.byBankAccountChangeService.updateBankAccount(accountedType, accountedId, byBankAccountUpdateRequest);
+    await this.byOffsetChangeService.updateOffset(accountedType, accountedId, byOffsetUpdateRequest);
   }
 
   @Delete('accountedType/:accountedType/accountedId/:accountedId/offset')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async deleteEtc(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
-    await this.byBankAccountChangeService.deleteBankAccount(accountedType, accountedId);
+    await this.byOffsetChangeService.deleteOffset(accountedType, accountedId);
   }
 }

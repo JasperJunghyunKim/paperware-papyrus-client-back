@@ -27,8 +27,9 @@ export class ByCardChangeService {
               create: {
                 cardAmount: byCardCreateRequest.amount,
                 isCharge: byCardCreateRequest.isCharge,
-                chargeAmount: byCardCreateRequest.chargeAmount,
-                approvalNumber: byCardCreateRequest.approvalNumber,
+                chargeAmount: byCardCreateRequest.chargeAmount ?? 0,
+                totalAmount: byCardCreateRequest.totalAmount ?? 0,
+                approvalNumber: byCardCreateRequest.approvalNumber ?? '',
                 card: {
                   connect: {
                     id: byCardCreateRequest.cardId,

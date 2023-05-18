@@ -1,16 +1,10 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ByEtcCreateRequest, ByEtcUpdateRequest } from "src/@shared/api";
 
 export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
   @IsNumber()
   readonly partnerId: number;
-
-  @IsString()
-  readonly partnerNickName: string;
-
-  @IsNumber()
-  readonly accountedId: number;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
@@ -25,6 +19,7 @@ export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @IsNumber()
@@ -48,6 +43,7 @@ export class ByEtcUpdateRequestDto implements ByEtcUpdateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @IsNumber()

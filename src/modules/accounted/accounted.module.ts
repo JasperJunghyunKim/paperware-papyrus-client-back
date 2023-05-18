@@ -15,7 +15,7 @@ import { ByCardRetriveService } from './service/by-card-retrive.service';
 import { ByBankAccountRetriveService } from './service/by-bank-account-retrive.service';
 import { ByBankAccountChangeService } from './service/by-bank-account-change.service';
 import { ByOffsetChangeService } from './service/by-offset-change.service';
-import { ByOffsetAccountRetriveService } from './service/by-offset-retrive.service';
+import { ByOffsetRetriveService } from './service/by-offset-retrive.service';
 
 @Module({
   controllers: [
@@ -36,7 +36,7 @@ import { ByOffsetAccountRetriveService } from './service/by-offset-retrive.servi
     ByCardChangeService,
     ByBankAccountRetriveService,
     ByBankAccountChangeService,
-    ByOffsetAccountRetriveService,
+    ByOffsetRetriveService,
     ByOffsetChangeService,
   ],
 })

@@ -707,7 +707,7 @@ model BankAccount {
   isDeleted     Boolean     @default(false)
 
   /// 회계 계좌
-  byBankAccount ByBankAccount?
+  byBankAccountList ByBankAccount[]
 }
 
 /// 카드사
@@ -752,7 +752,7 @@ model Card {
   isDeleted   Boolean     @default(false)
 
   /// 카드
-  byCard ByCard?
+  byCardList ByCard[]
 }
 
 /// 계정 수단
@@ -907,7 +907,7 @@ model ByBankAccount {
   /// 회계
   accounted         Accounted   @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 계좌 식별자
-  bankAccountId     Int         @unique
+  bankAccountId     Int
   /// 계좌
   bankAccount       BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -920,6 +920,8 @@ model ByCard {
   cardAmount     Int
   /// 수수료 금액
   chargeAmount   Int
+  /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경)
+  totalAmount    Int
   /// 수수료 여부
   isCharge       Boolean   @default(false)
   /// 승인번호
@@ -931,7 +933,7 @@ model ByCard {
   /// 회계
   accounted      Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 계좌 식별자
-  cardId         Int       @unique
+  cardId         Int
   /// 계좌
   card           Card      @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -939,13 +941,30 @@ model ByCard {
 /// 상계
 model ByOffset {
   /// 식별자
-  id           Int       @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   /// 금액
-  offsetAmount Int
+  offsetAmount        Int
   /// 삭제 여부
-  isDeleted    Boolean   @default(false)
+  isDeleted           Boolean       @default(false)
   /// 회계 식별자
-  accountedId  Int       @unique
+  accountedId         Int           @unique
   /// 회계
-  accounted    Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounted           Accounted     @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 회계
+  offsetPaidPair      ByOffsetPair? @relation("paidRelation")
+  /// 회계
+  offsetCollectedPair ByOffsetPair? @relation("collectedRelation")
+}
+
+model ByOffsetPair {
+  /// 식별자
+  id                Int      @id @default(autoincrement())
+  /// 'paid' 거래의 ID
+  paidId            Int      @unique
+  /// 'collected' 거래의 ID
+  collectedId       Int      @unique
+  /// 'paid' 거래
+  byOffsetPaid      ByOffset @relation("paidRelation", fields: [paidId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 'collected' 거래
+  byOffsetCollected ByOffset @relation("collectedRelation", fields: [collectedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }

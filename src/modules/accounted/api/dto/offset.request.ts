@@ -1,16 +1,10 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ByOffsetCreateRequest, ByOffsetUpdateRequest } from "src/@shared/api/accounted/by-offset.request";
 
 export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
   @IsNumber()
   readonly partnerId: number;
-
-  @IsString()
-  readonly partnerNickName: string;
-
-  @IsNumber()
-  readonly accountedId: number;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
@@ -25,6 +19,7 @@ export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @IsNumber()
@@ -48,6 +43,7 @@ export class ByOffsetUpdateRequestDto implements ByOffsetUpdateRequest {
   readonly accountedDate: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 
   @IsNumber()

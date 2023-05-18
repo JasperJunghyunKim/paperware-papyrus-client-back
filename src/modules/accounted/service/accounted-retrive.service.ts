@@ -54,6 +54,9 @@ export class AccountedRetriveService {
           memo: true,
           byCash: true,
           byEtc: true,
+          byBankAccount: true,
+          byCard: true,
+          byOffset: true,
           partner: {
             select: {
               partnerNickName: true,
@@ -77,6 +80,22 @@ export class AccountedRetriveService {
       throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [paidRequest])),
       map((accountedList) => {
         const items = accountedList.map((accounted) => {
+
+          const getAmount = (method) => {
+            switch (method) {
+              case Method.CASH:
+                return accounted.byCash.cashAmount;
+              case Method.ETC:
+                return accounted.byEtc.etcAmount;
+              case Method.ACCOUNT_TRANSFER:
+                return accounted.byBankAccount.bankAccountAmount;
+              case Method.CARD_PAYMENT:
+                return accounted.byCard.cardAmount;
+              case Method.OFFSET:
+                return accounted.byOffset.offsetAmount;
+            }
+          }
+
           return {
             partnerId: accounted.partner.id,
             partnerNickName: accounted.partner.partnerNickName,
@@ -85,7 +104,7 @@ export class AccountedRetriveService {
             accountedDate: accounted.accountedDate.toISOString(),
             accountedMethod: accounted.accountedMethod,
             accountedSubject: accounted.accountedSubject,
-            amount: accounted.accountedMethod === Method.CASH ? accounted.byCash.cashAmount : accounted.byEtc.etcAmount,
+            amount: getAmount(accounted.accountedMethod),
             memo: accounted.memo,
             gubun: '',
           }

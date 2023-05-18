@@ -54,6 +54,7 @@ export class ByCardRetriveService {
           partnerId: accounted.partner.id,
           partnerNickName: accounted.partner.partnerNickName,
           cardId: accounted.byCard.cardId,
+          totalAmount: accounted.byCard.totalAmount,
           chargeAmount: accounted.byCard.chargeAmount,
           isCharge: accounted.byCard.isCharge,
           approvalNumber: accounted.byCard.approvalNumber,

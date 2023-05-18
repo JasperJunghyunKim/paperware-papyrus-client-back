@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AccountedType } from '@prisma/client';
+import { AccountedType, Prisma } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { ByOffsetCreateRequestDto, ByOffsetUpdateRequestDto } from '../api/dto/offset.request';
@@ -9,29 +9,45 @@ export class ByOffsetChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
   async createOffset(accountedType: AccountedType, byOffsetCreateRequest: ByOffsetCreateRequestDto): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.accounted.create({
-          data: {
-            partner: {
-              connect: {
-                id: byOffsetCreateRequest.partnerId,
-              },
-            },
-            accountedType,
-            accountedSubject: byOffsetCreateRequest.accountedSubject,
-            accountedMethod: byOffsetCreateRequest.accountedMethod,
-            accountedDate: byOffsetCreateRequest.accountedDate,
-            memo: byOffsetCreateRequest.memo ?? '',
-            byOffset: {
-              create: {
-                offsetAmount: byOffsetCreateRequest.amount,
-              }
-            }
-          },
-        })
-      )
-    );
+    const param: Prisma.AccountedCreateInput = {
+      partner: {
+        connect: {
+          id: byOffsetCreateRequest.partnerId,
+        },
+      },
+      accountedType: 'PAID',
+      accountedSubject: byOffsetCreateRequest.accountedSubject,
+      accountedMethod: byOffsetCreateRequest.accountedMethod,
+      accountedDate: byOffsetCreateRequest.accountedDate,
+      memo: byOffsetCreateRequest.memo ?? '',
+      byOffset: {
+        create: {
+          offsetAmount: byOffsetCreateRequest.amount,
+        }
+      }
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.accounted.create({
+        data: {
+          ...param,
+          accountedType: 'PAID',
+        },
+      }),
+      this.prisma.accounted.create({
+        data: {
+          ...param,
+          accountedType: 'COLLECTED',
+        },
+      })
+    ]).then(async ([paid, collected]) => {
+      await this.prisma.byOffsetPair.create({
+        data: {
+          paidId: paid.id,
+          collectedId: collected.id,
+        },
+      })
+    })
   }
 
   async updateOffset(accountedType: AccountedType, accountedId: number, byOffsetUpdateRequest: ByOffsetUpdateRequestDto): Promise<void> {
@@ -46,7 +62,24 @@ export class ByOffsetChangeService {
             memo: byOffsetUpdateRequest.memo ?? '',
             byOffset: {
               update: {
-                offsetAmount: byOffsetUpdateRequest.amount,
+                offsetCollectedPair: {
+                  update: {
+                    byOffsetPaid: {
+                      update: {
+                        offsetAmount: byOffsetUpdateRequest.amount,
+                      }
+                    }
+                  }
+                },
+                offsetPaidPair: {
+                  update: {
+                    byOffsetCollected: {
+                      update: {
+                        offsetAmount: byOffsetUpdateRequest.amount,
+                      }
+                    }
+                  }
+                }
               }
             }
           },
@@ -68,26 +101,48 @@ export class ByOffsetChangeService {
         accountedType,
       }
     });
+    console.log(result)
 
-    await lastValueFrom(
-      from(
-        this.prisma.byOffset.update({
-          data: {
-            isDeleted: true,
-            accounted: {
-              update: {
-                isDeleted: true,
-              }
+    const x = await this.prisma.byOffsetPair.findMany({
+      select: {
+        byOffsetCollected: true,
+        byOffsetPaid: true,
+      },
+      where: {
+        OR: [
+          {
+            byOffsetPaid: {
+              accountedId
+            },
+            byOffsetCollected: {
+              accountedId
             }
-          },
-          include: {
-            accounted: true,
-          },
-          where: {
-            id: result.byOffset.id,
           }
-        })
-      )
-    );
+        ]
+      }
+    })
+
+    console.log(x);
+
+    // await lastValueFrom(
+    //   from(
+    //     this.prisma.byOffset.update({
+    //       data: {
+    //         isDeleted: true,
+    //         accounted: {
+    //           update: {
+    //             isDeleted: true,
+    //           }
+    //         }
+    //       },
+    //       include: {
+    //         accounted: true,
+    //       },
+    //       where: {
+    //         id: result.byOffset.id,
+    //       }
+    //     })
+    //   )
+    // );
   }
 }

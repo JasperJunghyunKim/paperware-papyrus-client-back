@@ -3,6 +3,7 @@ import { IsBoolean, IsEnum, IsNumber, IsString } from "class-validator";
 import { ByCardItemResponse } from "src/@shared/api/accounted/by-card.response";
 
 export class ByCardResponseDto implements ByCardItemResponse {
+
   @IsNumber()
   readonly partnerId: number;
 
@@ -29,6 +30,9 @@ export class ByCardResponseDto implements ByCardItemResponse {
 
   @IsNumber()
   readonly amount: number;
+
+  @IsNumber()
+  readonly totalAmount: number;
 
   @IsNumber()
   readonly cardId: number;
