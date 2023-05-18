@@ -42,6 +42,35 @@ export class DiscountRateController {
         };
     }
 
+    @Get('/purchase/partner')
+    @UseGuards(AuthGuard)
+    async getPurchaseDiscountRatePartnerList(
+        @Request() req: AuthType,
+        @Query() dto: DiscountRatePartnerListDto,
+    ): Promise<DisocuntRatePartnerListResponse> {
+        const { result, total } = await this.retrive.getClientList(
+            req.user.companyId,
+            true,
+            dto.skip,
+            dto.take,
+        );
+
+        return {
+            items: result.map(data => {
+                return {
+                    partner: {
+                        companyId: data.companyId,
+                        companyRegistrationNumber: data.companyRegistrationNumber,
+                        partnerNickName: data.partnerNickName,
+                        memo: data.partnerMemo,
+                    },
+                    discountRatecount: data.discountRateCount,
+                }
+            }),
+            total,
+        };
+    }
+
     @Post('/sales')
     @UseGuards(AuthGuard)
     async createSalesDiscountRate(
