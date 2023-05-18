@@ -1,9 +1,10 @@
-import { Body, Controller, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Request, UseGuards } from "@nestjs/common";
+import { DiscountRateListResponse } from "src/@shared/api/inhouse/discount-rate.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { DiscountRateChangeService } from "../service/discount-rate.change.service";
 import { DiscountRateRetriveService } from "../service/discount-rate.retrive.service";
-import { DiscountRateCreateDto } from "./dto/discount-rate.request";
+import { DiscountRateCreateDto, DiscountRateListDto } from "./dto/discount-rate.request";
 
 @Controller('/discount-rate')
 export class DiscountRateController {
@@ -66,4 +67,67 @@ export class DiscountRateController {
         );
     }
 
+    @Get('/sales')
+    @UseGuards(AuthGuard)
+    async getSalesDiscountRateList(
+        @Request() req: AuthType,
+        @Query() dto: DiscountRateListDto,
+    ): Promise<DiscountRateListResponse> {
+        const { conditions, total } = await this.retrive.getList(
+            req.user.companyId,
+            false,
+            dto.companyRegistrationNumber,
+            dto.skip,
+            dto.take,
+        );
+
+        return {
+            items: conditions.map(condition => {
+                const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+                const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+
+                return {
+                    id: condition.id,
+                    packagingType: condition.packagingType,
+                    paperDomain: condition.paperDomain,
+                    manufacturer: condition.manufacturer,
+                    paperGroup: condition.paperGroup,
+                    paperType: condition.paperType,
+                    grammage: condition.grammage,
+                    sizeX: condition.sizeX,
+                    sizeY: condition.sizeY,
+                    paperColorGroup: condition.paperColorGroup,
+                    paperColor: condition.paperColor,
+                    paperPattern: condition.paperPattern,
+                    paperCert: condition.paperCert,
+                    basicDiscountRate: {
+                        discountRate: basic.discountRate,
+                        discountRateUnit: basic.discountRateUnit,
+                    },
+                    specialDiscountRate: {
+                        discountRate: special.discountRate,
+                        discountRateUnit: special.discountRateUnit,
+                    },
+                }
+            }),
+            total,
+        };
+    }
+
+    @Get('/purchase')
+    @UseGuards(AuthGuard)
+    async getPurchaseDiscountRateList(
+        @Request() req: AuthType,
+        @Query() dto: DiscountRateListDto,
+    ) {
+        const result = await this.retrive.getList(
+            req.user.companyId,
+            true,
+            dto.companyRegistrationNumber,
+            dto.skip,
+            dto.take,
+        );
+
+        return result;
+    }
 }

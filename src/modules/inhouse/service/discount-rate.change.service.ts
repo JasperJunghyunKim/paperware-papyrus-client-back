@@ -33,8 +33,17 @@ export class DiscountRateChangeService {
         specialDiscountRate: DiscountRateDto,
     ) {
         await this.prisma.$transaction(async tx => {
+            const partner = await tx.partner.findFirst({
+                where: {
+                    companyId,
+                    companyRegistrationNumber,
+                }
+            });
+            if (!partner) throw new NotFoundException(`존재하지 않는 거래처입니다`);
+
             const condition = await tx.discountRateCondition.findFirst({
                 where: {
+                    partnerId: partner.id,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -50,6 +59,7 @@ export class DiscountRateChangeService {
                 }
             }) || await tx.discountRateCondition.create({
                 data: {
+                    partnerId: partner.id,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -65,18 +75,9 @@ export class DiscountRateChangeService {
                 }
             });
 
-            const partner = await tx.partner.findFirst({
-                where: {
-                    companyId,
-                    companyRegistrationNumber,
-                }
-            });
-            if (!partner) throw new NotFoundException(`존재하지 않는 거래처입니다`);
-
             const maps = await tx.discountRateMap.findMany({
                 where: {
                     discountRateConditionId: condition.id,
-                    partnerId: partner.id,
                     isPurchase,
                 }
             });
@@ -84,7 +85,6 @@ export class DiscountRateChangeService {
                 await tx.discountRateMap.createMany({
                     data: [
                         {
-                            partnerId: partner.id,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'BASIC',
                             isPurchase,
@@ -92,7 +92,6 @@ export class DiscountRateChangeService {
                             discountRateUnit: basicDiscountRate.discountRateUnit,
                         },
                         {
-                            partnerId: partner.id,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'SPECIAL',
                             isPurchase,
@@ -111,6 +110,7 @@ export class DiscountRateChangeService {
                     data: {
                         discountRate: basicDiscountRate.discountRate,
                         discountRateUnit: basicDiscountRate.discountRateUnit,
+                        isDeleted: false,
                     },
                     where: {
                         id: basic.id
@@ -121,6 +121,7 @@ export class DiscountRateChangeService {
                     data: {
                         discountRate: specialDiscountRate.discountRate,
                         discountRateUnit: specialDiscountRate.discountRateUnit,
+                        isDeleted: false,
                     },
                     where: {
                         id: special.id
