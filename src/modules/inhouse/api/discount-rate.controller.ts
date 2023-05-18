@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { DiscountRateListResponse } from "src/@shared/api/inhouse/discount-rate.response";
+import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { DiscountRateListResponse, DiscountRateResponse } from "src/@shared/api/inhouse/discount-rate.response";
 import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { DiscountRateChangeService } from "../service/discount-rate.change.service";
 import { DiscountRateRetriveService } from "../service/discount-rate.retrive.service";
-import { DiscountRateCreateDto, DiscountRateListDto } from "./dto/discount-rate.request";
+import { DiscountRateConditionIdDto, DiscountRateCreateDto, DiscountRateListDto, DiscountRateUpdateDto } from "./dto/discount-rate.request";
 
 @Controller('/discount-rate')
 export class DiscountRateController {
@@ -119,8 +119,8 @@ export class DiscountRateController {
     async getPurchaseDiscountRateList(
         @Request() req: AuthType,
         @Query() dto: DiscountRateListDto,
-    ) {
-        const result = await this.retrive.getList(
+    ): Promise<DiscountRateListResponse> {
+        const { conditions, total } = await this.retrive.getList(
             req.user.companyId,
             true,
             dto.companyRegistrationNumber,
@@ -128,6 +128,148 @@ export class DiscountRateController {
             dto.take,
         );
 
-        return result;
+        return {
+            items: conditions.map(condition => {
+                const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+                const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+
+                return {
+                    id: condition.id,
+                    packagingType: condition.packagingType,
+                    paperDomain: condition.paperDomain,
+                    manufacturer: condition.manufacturer,
+                    paperGroup: condition.paperGroup,
+                    paperType: condition.paperType,
+                    grammage: condition.grammage,
+                    sizeX: condition.sizeX,
+                    sizeY: condition.sizeY,
+                    paperColorGroup: condition.paperColorGroup,
+                    paperColor: condition.paperColor,
+                    paperPattern: condition.paperPattern,
+                    paperCert: condition.paperCert,
+                    basicDiscountRate: {
+                        discountRate: basic.discountRate,
+                        discountRateUnit: basic.discountRateUnit,
+                    },
+                    specialDiscountRate: {
+                        discountRate: special.discountRate,
+                        discountRateUnit: special.discountRateUnit,
+                    },
+                }
+            }),
+            total,
+        };
+    }
+
+    @Get('/sales/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async getSalesDiscountRate(
+        @Request() req: AuthType,
+        @Param() dto: DiscountRateConditionIdDto,
+    ): Promise<DiscountRateResponse> {
+        const condition = await this.retrive.get(
+            req.user.companyId,
+            false,
+            dto.discountRateConditionId,
+        );
+
+        const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+        const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+
+        return {
+            id: condition.id,
+            packagingType: condition.packagingType,
+            paperDomain: condition.paperDomain,
+            manufacturer: condition.manufacturer,
+            paperGroup: condition.paperGroup,
+            paperType: condition.paperType,
+            grammage: condition.grammage,
+            sizeX: condition.sizeX,
+            sizeY: condition.sizeY,
+            paperColorGroup: condition.paperColorGroup,
+            paperColor: condition.paperColor,
+            paperPattern: condition.paperPattern,
+            paperCert: condition.paperCert,
+            basicDiscountRate: {
+                discountRate: basic.discountRate,
+                discountRateUnit: basic.discountRateUnit,
+            },
+            specialDiscountRate: {
+                discountRate: special.discountRate,
+                discountRateUnit: special.discountRateUnit,
+            },
+        }
+    }
+
+    @Get('/purchase/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async getPurchaseDiscountRate(
+        @Request() req: AuthType,
+        @Param() dto: DiscountRateConditionIdDto,
+    ): Promise<DiscountRateResponse> {
+        const condition = await this.retrive.get(
+            req.user.companyId,
+            true,
+            dto.discountRateConditionId,
+        );
+
+        const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+        const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+
+        return {
+            id: condition.id,
+            packagingType: condition.packagingType,
+            paperDomain: condition.paperDomain,
+            manufacturer: condition.manufacturer,
+            paperGroup: condition.paperGroup,
+            paperType: condition.paperType,
+            grammage: condition.grammage,
+            sizeX: condition.sizeX,
+            sizeY: condition.sizeY,
+            paperColorGroup: condition.paperColorGroup,
+            paperColor: condition.paperColor,
+            paperPattern: condition.paperPattern,
+            paperCert: condition.paperCert,
+            basicDiscountRate: {
+                discountRate: basic.discountRate,
+                discountRateUnit: basic.discountRateUnit,
+            },
+            specialDiscountRate: {
+                discountRate: special.discountRate,
+                discountRateUnit: special.discountRateUnit,
+            },
+        }
+    }
+
+    @Put('/sales/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async updateSalesDiscountRate(
+        @Request() req: AuthType,
+        @Param() param: DiscountRateConditionIdDto,
+        @Body() dto: DiscountRateUpdateDto,
+    ) {
+        await this.change.updateDiscountRate(
+            req.user.companyId,
+            false,
+            param.discountRateConditionId,
+            dto.basicDiscountRate,
+            dto.specialDiscountRate,
+        );
+    }
+
+    @Put('/purchase/:discountRateConditionId')
+    @UseGuards(AuthGuard)
+    async updatePurchaseDiscountRate(
+        @Request() req: AuthType,
+        @Param() param: DiscountRateConditionIdDto,
+        @Body() dto: DiscountRateUpdateDto,
+    ) {
+        await this.change.updateDiscountRate(
+            req.user.companyId,
+            true,
+            param.discountRateConditionId,
+            dto.basicDiscountRate,
+            dto.specialDiscountRate,
+        );
     }
 }

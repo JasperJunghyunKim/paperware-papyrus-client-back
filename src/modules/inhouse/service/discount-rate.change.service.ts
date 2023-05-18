@@ -130,4 +130,57 @@ export class DiscountRateChangeService {
             }
         });
     }
+
+    async updateDiscountRate(
+        companyId: number,
+        isPurchase: boolean,
+        discountRateConditionId: number,
+        basicDiscountRate: DiscountRateDto,
+        specialDiscountRate: DiscountRateDto,
+    ) {
+        await this.prisma.$transaction(async tx => {
+            const condition = await tx.discountRateCondition.findFirst({
+                include: {
+                    partner: true,
+                    discountRateMap: {
+                        where: {
+                            isPurchase,
+                            isDeleted: false,
+                        }
+                    }
+                },
+                where: {
+                    id: discountRateConditionId,
+                    partner: {
+                        companyId,
+                    }
+                }
+            });
+            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+                throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
+            }
+
+            const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC') || null;
+            const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL') || null;
+
+            await tx.discountRateMap.update({
+                data: {
+                    discountRate: basicDiscountRate.discountRate,
+                    discountRateUnit: basicDiscountRate.discountRateUnit,
+                },
+                where: {
+                    id: basic.id,
+                }
+            });
+            await tx.discountRateMap.update({
+                data: {
+                    discountRate: specialDiscountRate.discountRate,
+                    discountRateUnit: specialDiscountRate.discountRateUnit,
+                },
+                where: {
+                    id: special.id,
+                }
+            });
+        });
+    }
 }

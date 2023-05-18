@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/core";
 
 @Injectable()
@@ -84,5 +84,52 @@ export class DiscountRateRetriveService {
         }
 
         return { conditions, total: total / 2 };
+    }
+
+    async get(
+        companyId: number,
+        isPurchase: boolean,
+        discountRateConditionId: number,
+    ) {
+        const condition = await this.prisma.discountRateCondition.findFirst({
+            include: {
+                partner: true,
+                paperDomain: true,
+                manufacturer: true,
+                paperGroup: true,
+                paperType: true,
+                paperColorGroup: true,
+                paperColor: true,
+                paperPattern: true,
+                paperCert: true,
+                discountRateMap: {
+                    where: {
+                        isPurchase,
+                        isDeleted: false,
+                    }
+                }
+            },
+            where: {
+                id: discountRateConditionId,
+                partner: {
+                    companyId,
+                }
+            }
+        });
+        if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+            throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
+        }
+
+        delete condition.paperDomainId;
+        delete condition.manufacturerId;
+        delete condition.paperGroupId;
+        delete condition.paperTypeId;
+        delete condition.paperColorGroupId;
+        delete condition.paperColorId;
+        delete condition.paperPatternId;
+        delete condition.paperCertId;
+        delete condition.partner;
+
+        return condition;
     }
 }
