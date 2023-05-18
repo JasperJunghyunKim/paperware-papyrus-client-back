@@ -9,7 +9,7 @@ export class PlanChangeService {
   constructor(
     private prisma: PrismaService,
     private stockChangeService: StockChangeService,
-  ) {}
+  ) { }
 
   async createPlan(params: {
     companyId: number;
@@ -276,6 +276,7 @@ export class PlanChangeService {
         },
         select: {
           status: true,
+          targetStockGroupEvent: true,
         },
       });
 
@@ -295,6 +296,10 @@ export class PlanChangeService {
           },
         },
       });
+
+      // TODO... StockGroup 가용량 +해주어야함
+
+
 
       await this.stockChangeService.cacheStockQuantityTx(tx, {
         id: se.stockId,

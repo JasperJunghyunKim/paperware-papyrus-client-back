@@ -266,7 +266,7 @@ export class StockRetriveService {
                     , COUNT(1) OVER() AS total
 
               FROM Stock                    AS s
-              JOIN StockEvent               AS se                 ON se.stockId = s.id
+              JOIN StockEvent               AS se                 ON se.id = (SELECT id FROM StockEvent WHERE stockId = s.id LIMIT 1)
          LEFT JOIN Warehouse                AS w                  ON w.id = s.warehouseId
 
             # 메타데이터
