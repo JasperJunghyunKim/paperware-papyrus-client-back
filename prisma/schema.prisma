@@ -362,12 +362,13 @@ model Location {
 enum OfficialPriceType {
   NONE
   MANUAL_NONE
-  MANUAL_DEFAULT
   RETAIL
   WHOLESALE
 }
 
 enum DiscountType {
+  NONE
+  MANUAL_NONE
   DEFAULT
   SPECIAL
 }

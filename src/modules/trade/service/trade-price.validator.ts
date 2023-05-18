@@ -42,7 +42,6 @@ export class TradePriceValidator {
         switch (orderStockTradePrice.officialPriceType) {
             // TODO...
             case 'MANUAL_NONE':
-            case 'MANUAL_DEFAULT':
             case 'NONE':
             case 'RETAIL':
             case 'WHOLESALE':
