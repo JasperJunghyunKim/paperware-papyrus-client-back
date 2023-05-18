@@ -31,35 +31,8 @@ ALTER TABLE `accounted` DROP FOREIGN KEY `accounted_partner_id_fkey`;
 ALTER TABLE `partner` DROP FOREIGN KEY `partner_company_id_fkey`;
 
 -- AlterTable
-ALTER TABLE `BusinessRelationship` ADD COLUMN `isActivated` BOOLEAN NOT NULL DEFAULT true;
-
--- AlterTable
 ALTER TABLE `Company` MODIFY `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     MODIFY `invoiceCode` VARCHAR(191) NOT NULL;
-
--- AlterTable
-ALTER TABLE `accounted` DROP COLUMN `chg_dt`,
-    DROP COLUMN `chg_id`,
-    DROP COLUMN `chg_nm`,
-    DROP COLUMN `reg_dt`,
-    DROP COLUMN `reg_id`,
-    DROP COLUMN `reg_nm`;
-
--- AlterTable
-ALTER TABLE `by_cash` DROP COLUMN `chg_dt`,
-    DROP COLUMN `chg_id`,
-    DROP COLUMN `chg_nm`,
-    DROP COLUMN `reg_dt`,
-    DROP COLUMN `reg_id`,
-    DROP COLUMN `reg_nm`;
-
--- AlterTable
-ALTER TABLE `by_etc` DROP COLUMN `chg_dt`,
-    DROP COLUMN `chg_id`,
-    DROP COLUMN `chg_nm`,
-    DROP COLUMN `reg_dt`,
-    DROP COLUMN `reg_id`,
-    DROP COLUMN `reg_nm`;
 
 -- DropTable
 DROP TABLE `partner`;

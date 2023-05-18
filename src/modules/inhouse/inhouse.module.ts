@@ -19,6 +19,9 @@ import { CompanyController } from './api/company.controller';
 import { OfficialPriceController } from './api/official-price.controller';
 import { OfficialPriceChangeService } from './service/official-price-change.service';
 import { OfficialPriceRetriveService } from './service/official-price-retrive.service';
+import { DiscountRateChangeService } from './service/discount-rate.change.service';
+import { DiscountRateRetriveService } from './service/discount-rate.retrive.service';
+import { DiscountRateController } from './api/discount-rate.controller';
 
 @Module({
   providers: [
@@ -35,6 +38,8 @@ import { OfficialPriceRetriveService } from './service/official-price-retrive.se
     WarehouseRetriveService,
     OfficialPriceChangeService,
     OfficialPriceRetriveService,
+    DiscountRateChangeService,
+    DiscountRateRetriveService,
   ],
   controllers: [
     BusinessRelationshipController,
@@ -44,6 +49,7 @@ import { OfficialPriceRetriveService } from './service/official-price-retrive.se
     VirtualCompanyController,
     WarehouseController,
     OfficialPriceController,
+    DiscountRateController,
   ],
   exports: [
     BusinessRelationshipRetriveService,
