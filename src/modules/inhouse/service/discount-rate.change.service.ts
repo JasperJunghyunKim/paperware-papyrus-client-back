@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { DiscountRateUnit, PackagingType, PriceUnit } from "@prisma/client";
+import { DiscountRateUnit, PackagingType } from "@prisma/client";
 import { PrismaService } from "src/core";
 
 interface DiscountRateDto {
