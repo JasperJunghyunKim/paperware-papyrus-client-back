@@ -25,7 +25,7 @@ ALTER TABLE `by_etc` DROP FOREIGN KEY `by_etc_accounted_id_fkey`;
 ALTER TABLE `card` DROP FOREIGN KEY `card_company_id_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `partner` DROP FOREIGN KEY `partner_company_id_fkey`;
+ALTER TABLE `Partner` DROP FOREIGN KEY `partner_company_id_fkey`;
 
 -- DropTable
 DROP TABLE `accounted`;
@@ -43,7 +43,7 @@ DROP TABLE `by_etc`;
 DROP TABLE `card`;
 
 -- DropTable
-DROP TABLE `partner`;
+DROP TABLE `Partner`;
 
 -- CreateTable
 CREATE TABLE `BankAccount` (

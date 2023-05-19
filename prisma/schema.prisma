@@ -953,6 +953,13 @@ enum DiscountRateMapType {
   SPECIAL
 }
 
+enum DiscountRateUnit {
+  WON_PER_TON
+  WON_PER_REAM
+  WON_PER_BOX
+  PERCENT
+}
+
 model DiscountRateMap {
   /// 식별자
   id                      Int                   @id @default(autoincrement())
@@ -966,7 +973,7 @@ model DiscountRateMap {
   /// 할인율
   discountRate            Float
   /// 할인율 단위
-  discountRateUnit        PriceUnit
+  discountRateUnit        DiscountRateUnit
   /// 삭제여부
   isDeleted               Boolean               @default(false)
 

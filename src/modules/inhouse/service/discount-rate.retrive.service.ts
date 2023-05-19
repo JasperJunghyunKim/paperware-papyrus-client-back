@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, PackagingType, PriceUnit } from "@prisma/client";
+import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, DiscountRateUnit, PackagingType, PriceUnit } from "@prisma/client";
 import { PrismaService } from "src/core";
 
 type Bit = '0' | '1';
@@ -8,7 +8,7 @@ type DiscountRateConditionWithMap = DiscountRateCondition & { discountRateMap: D
 export interface DiscountRate {
     discountRateMapType: DiscountRateMapType;
     discountRate: number;
-    discountRateUnit: PriceUnit;
+    discountRateUnit: DiscountRateUnit;
 }
 
 export class FisrtFiltered {
@@ -75,7 +75,7 @@ export class DiscountRateRetriveService {
               FROM Partner                  AS p
               
               JOIN DiscountRateCondition    AS drc      ON drc.partnerId = p.id
-         LEFT JOIN discountRateMap          AS drm      ON drm.discountRateConditionId = drc.id 
+         LEFT JOIN DiscountRateMap          AS drm      ON drm.discountRateConditionId = drc.id 
                                                         AND drm.isDeleted = ${false} 
                                                         AND drm.isPurchase = ${isPurchase}
              WHERE p.isDeleted = ${false}
