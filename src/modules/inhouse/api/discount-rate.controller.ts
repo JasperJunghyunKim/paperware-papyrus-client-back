@@ -88,6 +88,7 @@ export class DiscountRateController {
 
                 return {
                     id: condition.id,
+                    partner: condition.partner,
                     packagingType: condition.packagingType,
                     paperDomain: condition.paperDomain,
                     manufacturer: condition.manufacturer,
@@ -132,6 +133,7 @@ export class DiscountRateController {
 
         return {
             id: condition.id,
+            partner: condition.partner,
             packagingType: condition.packagingType,
             paperDomain: condition.paperDomain,
             manufacturer: condition.manufacturer,
