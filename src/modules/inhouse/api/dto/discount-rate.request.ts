@@ -1,4 +1,4 @@
-import { PackagingType, PriceUnit } from "@prisma/client";
+import { DiscountRateUnit, PackagingType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, Max, Min, ValidateNested } from "class-validator";
 import { DiscountRateCreateRequest, DiscountRateListQuery, DiscountRateMappingQuery, DiscountRatePartnerListQuery, DiscountRateUpdateRequest } from "src/@shared/api/inhouse/discount-rate.request";
@@ -18,8 +18,8 @@ export class DiscountRateDto {
     @Max(100)
     readonly discountRate: number;
 
-    @IsEnum(PriceUnit)
-    readonly discountRateUnit: PriceUnit;
+    @IsEnum(DiscountRateUnit)
+    readonly discountRateUnit: DiscountRateUnit;
 }
 
 export class DiscountRateCreateDto implements DiscountRateCreateRequest {

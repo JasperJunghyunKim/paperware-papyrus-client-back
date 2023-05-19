@@ -1,10 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { PackagingType, PriceUnit } from "@prisma/client";
+import { DiscountRateUnit, PackagingType, PriceUnit } from "@prisma/client";
 import { PrismaService } from "src/core";
 
 interface DiscountRateDto {
     discountRate: number;
-    discountRateUnit: PriceUnit;
+    discountRateUnit: DiscountRateUnit;
 }
 
 @Injectable()
