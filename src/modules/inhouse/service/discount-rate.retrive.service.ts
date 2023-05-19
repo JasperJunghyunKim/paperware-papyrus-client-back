@@ -163,6 +163,14 @@ export class DiscountRateRetriveService {
 
         const conditions = await this.prisma.discountRateCondition.findMany({
             include: {
+                partner: {
+                    select: {
+                        companyId: true,
+                        companyRegistrationNumber: true,
+                        partnerNickName: true,
+                        memo: true,
+                    },
+                },
                 paperDomain: true,
                 manufacturer: true,
                 paperGroup: true,
@@ -211,7 +219,14 @@ export class DiscountRateRetriveService {
     ) {
         const condition = await this.prisma.discountRateCondition.findFirst({
             include: {
-                partner: true,
+                partner: {
+                    select: {
+                        companyId: true,
+                        companyRegistrationNumber: true,
+                        partnerNickName: true,
+                        memo: true,
+                    }
+                },
                 paperDomain: true,
                 manufacturer: true,
                 paperGroup: true,
@@ -247,7 +262,6 @@ export class DiscountRateRetriveService {
         delete condition.paperColorId;
         delete condition.paperPatternId;
         delete condition.paperCertId;
-        delete condition.partner;
 
         return condition;
     }
