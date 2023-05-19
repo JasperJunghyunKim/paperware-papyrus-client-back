@@ -26,23 +26,46 @@ export class ByOffsetChangeService {
       }
     }
 
-    await this.prisma.$transaction(async (prismaTa) => {
-      const paid = await prismaTa.accounted.create({
+    await this.prisma.$transaction(async (tx) => {
+      const paid = await tx.accounted.create({
         data: {
           ...param,
           accountedType: 'PAID',
         },
+        select: {
+          id: true,
+        }
       })
 
-      const collected = await prismaTa.accounted.create({
+      const collected = await tx.accounted.create({
         data: {
           ...param,
           accountedType: 'COLLECTED',
         },
+        select: {
+          id: true,
+        }
       })
 
-      await prismaTa.byOffsetPair.create({
+      await tx.byOffsetPair.create({
         data: {
+          byOffsetPair: {
+            connect: {
+              id: paid.id,
+            }
+          },
+          paidId: paid.id,
+          collectedId: collected.id,
+        },
+      })
+
+      await tx.byOffsetPair.create({
+        data: {
+          byOffsetPair: {
+            connect: {
+              id: collected.id,
+            }
+          },
           paidId: paid.id,
           collectedId: collected.id,
         },
@@ -51,98 +74,155 @@ export class ByOffsetChangeService {
   }
 
   async updateOffset(accountedType: AccountedType, accountedId: number, byOffsetUpdateRequest: ByOffsetUpdateRequestDto): Promise<void> {
-    // await lastValueFrom(
-    //   from(
-    //     this.prisma.accounted.update({
-    //       data: {
-    //         accountedType,
-    //         accountedSubject: byOffsetUpdateRequest.accountedSubject,
-    //         accountedMethod: byOffsetUpdateRequest.accountedMethod,
-    //         accountedDate: byOffsetUpdateRequest.accountedDate,
-    //         memo: byOffsetUpdateRequest.memo ?? '',
-    //         byOffset: {
-    //           update: {
-    //             offsetCollectedPair: {
-    //               update: {
-    //                 byOffsetPaid: {
-    //                   update: {
-    //                     offsetAmount: byOffsetUpdateRequest.amount,
-    //                   }
-    //                 }
-    //               }
-    //             },
-    //             offsetPaidPair: {
-    //               update: {
-    //                 byOffsetCollected: {
-    //                   update: {
-    //                     offsetAmount: byOffsetUpdateRequest.amount,
-    //                   }
-    //                 }
-    //               }
-    //             }
-    //           }
-    //         }
-    //       },
-    //       where: {
-    //         id: accountedId
-    //       }
-    //     })
-    //   )
-    // );
+    await this.prisma.$transaction(async (tx) => {
+      let result;
+      if (accountedType === 'PAID') {
+        result = await this.paidByCollected(accountedId);
+      } else {
+        result = await this.collectedByPaid(accountedId);
+      }
+
+      await tx.accounted.update({
+        data: {
+          accountedSubject: byOffsetUpdateRequest.accountedSubject,
+          accountedMethod: byOffsetUpdateRequest.accountedMethod,
+          accountedDate: byOffsetUpdateRequest.accountedDate,
+          memo: byOffsetUpdateRequest.memo,
+          byOffset: {
+            update: {
+              offsetAmount: byOffsetUpdateRequest.amount,
+            }
+          }
+        },
+        where: {
+          id: result[0].id,
+        }
+      })
+
+      await tx.accounted.update({
+        data: {
+          accountedSubject: byOffsetUpdateRequest.accountedSubject,
+          accountedMethod: byOffsetUpdateRequest.accountedMethod,
+          accountedDate: byOffsetUpdateRequest.accountedDate,
+          memo: byOffsetUpdateRequest.memo,
+          byOffset: {
+            update: {
+              offsetAmount: byOffsetUpdateRequest.amount,
+            }
+          }
+        },
+        where: {
+          id: result[1].id,
+        }
+      })
+    })
   }
 
   async deleteOffset(accountedType: AccountedType, accountedId: number): Promise<void> {
-    const result = await this.prisma.accounted.findFirst({
+    await this.prisma.$transaction(async (tx) => {
+      let result;
+      if (accountedType === 'PAID') {
+        result = await this.paidByCollected(accountedId);
+      } else {
+        result = await this.collectedByPaid(accountedId);
+      }
+
+      await tx.accounted.update({
+        data: {
+          isDeleted: true,
+          byOffset: {
+            update: {
+              isDeleted: true,
+            }
+          }
+        },
+        where: {
+          id: result[0].id,
+        }
+      })
+
+      await tx.accounted.update({
+        data: {
+          isDeleted: true,
+          byOffset: {
+            update: {
+              isDeleted: true,
+            }
+          }
+        },
+        where: {
+          id: result[1].id,
+        }
+      })
+    })
+
+  }
+
+  private async paidByCollected(accountedId: number) {
+    const paid = await this.prisma.accounted.findFirst({
       select: {
-        byOffset: true,
+        id: true,
+        byOffset: {
+          include: {
+            offsetPair: true,
+          }
+        },
+
       },
       where: {
         id: accountedId,
-        accountedType,
+        accountedType: 'PAID',
       }
     });
-    console.log(result)
 
-    const x = await this.prisma.byOffsetPair.findMany({
+    const collected = await this.prisma.accounted.findFirst({
       select: {
-        byOffsetCollected: true,
-        byOffsetPaid: true,
+        id: true,
+        byOffset: {
+          include: {
+            offsetPair: true,
+          }
+        },
       },
       where: {
-        OR: [
-          {
-            byOffsetPaid: {
-              accountedId
-            },
-            byOffsetCollected: {
-              accountedId
-            }
-          }
-        ]
+        id: paid.byOffset.offsetPair.collectedId,
       }
-    })
+    });
 
-    console.log(x);
+    return [paid, collected]
+  }
 
-    // await lastValueFrom(
-    //   from(
-    //     this.prisma.byOffset.update({
-    //       data: {
-    //         isDeleted: true,
-    //         accounted: {
-    //           update: {
-    //             isDeleted: true,
-    //           }
-    //         }
-    //       },
-    //       include: {
-    //         accounted: true,
-    //       },
-    //       where: {
-    //         id: result.byOffset.id,
-    //       }
-    //     })
-    //   )
-    // );
+  private async collectedByPaid(accountedId: number) {
+    const collected = await this.prisma.accounted.findFirst({
+      select: {
+        id: true,
+        byOffset: {
+          include: {
+            offsetPair: true,
+          }
+        },
+      },
+      where: {
+        id: accountedId,
+        accountedType: 'COLLECTED',
+      }
+    });
+
+    const paid = await this.prisma.accounted.findFirst({
+      select: {
+        id: true,
+        byOffset: {
+          include: {
+            offsetPair: true,
+          }
+        },
+
+      },
+      where: {
+        id: collected.byOffset.offsetPair.paidId,
+      }
+    });
+
+    return [paid, collected]
   }
 }

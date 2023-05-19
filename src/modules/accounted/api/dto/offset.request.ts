@@ -27,9 +27,6 @@ export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
 }
 
 export class ByOffsetUpdateRequestDto implements ByOffsetUpdateRequest {
-  @IsNumber()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 

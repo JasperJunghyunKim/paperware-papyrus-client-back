@@ -27,9 +27,6 @@ export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
 }
 
 export class ByEtcUpdateRequestDto implements ByEtcUpdateRequest {
-  @IsNumber()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 

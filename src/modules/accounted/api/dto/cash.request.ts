@@ -28,9 +28,6 @@ export class ByCashCreateRequestDto implements ByCashCreateRequest {
 }
 
 export class ByCashUpdateRequestDto implements ByCashUpdateRequest {
-  @IsOptional()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 
