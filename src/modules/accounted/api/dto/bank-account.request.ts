@@ -29,9 +29,6 @@ export class ByBankAccountCreateRequestDto implements ByBankAccountCreateRequest
 }
 
 export class ByBankAccountUpdateRequestDto implements ByBankAccountUpdateRequest {
-  @IsNumber()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 

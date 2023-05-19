@@ -47,9 +47,6 @@ export class ByCardCreateRequestDto implements ByCardCreateRequest {
 }
 
 export class ByCardUpdateRequestDto implements ByCardUpdateRequest {
-  @IsNumber()
-  readonly accountedId: number;
-
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 

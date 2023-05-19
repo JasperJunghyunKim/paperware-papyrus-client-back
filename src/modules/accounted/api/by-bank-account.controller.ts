@@ -5,7 +5,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { ByBankAccountChangeService } from '../service/by-bank-account-change.service';
 import { ByBankAccountRetriveService } from '../service/by-bank-account-retrive.service';
 import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from './dto/bank-account.request';
-import { ByEtcResponse } from './dto/etc.response';
+import { ByBankAccountItemResponseDto } from './dto/bank-account.response';
 
 @Controller('/accounted')
 export class ByBankAccountController {
@@ -17,7 +17,7 @@ export class ByBankAccountController {
     @Request() req: AuthType,
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
-  ): Promise<ByEtcResponse> {
+  ): Promise<ByBankAccountItemResponseDto> {
     return await this.byBankAccountRetriveService.getAccountedByBankAccount(req.user.companyId, accountedType, accountedId);
   }
 
