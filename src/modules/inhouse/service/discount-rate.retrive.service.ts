@@ -74,7 +74,7 @@ export class DiscountRateRetriveService {
 
               FROM Partner                  AS p
               
-              JOIN DiscountRateCondition    AS drc      ON drc.partnerId = p.id
+         LEFT JOIN DiscountRateCondition    AS drc      ON drc.partnerId = p.id
          LEFT JOIN DiscountRateMap          AS drm      ON drm.discountRateConditionId = drc.id 
                                                         AND drm.isDeleted = ${false} 
                                                         AND drm.isPurchase = ${isPurchase}
