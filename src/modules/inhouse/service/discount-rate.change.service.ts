@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { DiscountRateUnit, PackagingType } from "@prisma/client";
+import { DiscountRateType, DiscountRateUnit, PackagingType } from "@prisma/client";
 import { PrismaService } from "src/core";
 
 interface DiscountRateDto {
@@ -15,7 +15,7 @@ export class DiscountRateChangeService {
 
     async createDiscountRate(
         companyId: number,
-        isPurchase: boolean,
+        discountRateType: DiscountRateType,
         companyRegistrationNumber: string,
         packagingType: PackagingType,
         paperDomainId: number,
@@ -78,7 +78,7 @@ export class DiscountRateChangeService {
             const maps = await tx.discountRateMap.findMany({
                 where: {
                     discountRateConditionId: condition.id,
-                    isPurchase,
+                    discountRateType,
                 }
             });
             if (maps.length === 0) {
@@ -87,14 +87,14 @@ export class DiscountRateChangeService {
                         {
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'BASIC',
-                            isPurchase,
+                            discountRateType,
                             discountRate: basicDiscountRate.discountRate,
                             discountRateUnit: basicDiscountRate.discountRateUnit,
                         },
                         {
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'SPECIAL',
-                            isPurchase,
+                            discountRateType,
                             discountRate: specialDiscountRate.discountRate,
                             discountRateUnit: specialDiscountRate.discountRateUnit,
                         },
@@ -133,7 +133,7 @@ export class DiscountRateChangeService {
 
     async updateDiscountRate(
         companyId: number,
-        isPurchase: boolean,
+        discountRateType: DiscountRateType,
         discountRateConditionId: number,
         basicDiscountRate: DiscountRateDto,
         specialDiscountRate: DiscountRateDto,
@@ -144,7 +144,7 @@ export class DiscountRateChangeService {
                     partner: true,
                     discountRateMap: {
                         where: {
-                            isPurchase,
+                            discountRateType,
                             isDeleted: false,
                         }
                     }
@@ -186,7 +186,7 @@ export class DiscountRateChangeService {
 
     async deleteDiscountRate(
         companyId: number,
-        isPurchase: boolean,
+        discountRateType: DiscountRateType,
         discountRateConditionId: number,
     ) {
         await this.prisma.$transaction(async tx => {
@@ -195,7 +195,7 @@ export class DiscountRateChangeService {
                     partner: true,
                     discountRateMap: {
                         where: {
-                            isPurchase,
+                            discountRateType,
                             isDeleted: false,
                         }
                     }
