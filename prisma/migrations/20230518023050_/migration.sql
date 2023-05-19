@@ -32,7 +32,6 @@ CREATE TABLE `DiscountRateMap` (
     `discountRateUnit` ENUM('WON_PER_TON', 'WON_PER_REAM', 'WON_PER_BOX') NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
 
-    UNIQUE INDEX `DiscountRateMap_discountRateConditionId_discountRateMapType__key`(`discountRateConditionId`, `discountRateMapType`, `isPurchase`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

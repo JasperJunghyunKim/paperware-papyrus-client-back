@@ -960,16 +960,21 @@ enum DiscountRateUnit {
   PERCENT
 }
 
+enum DiscountRateType {
+  SALES
+  PURCHASE
+}
+
 model DiscountRateMap {
   /// 식별자
   id                      Int                   @id @default(autoincrement())
   /// 할인율 조건
   discountRateConditionId Int
   discountRateCondition   DiscountRateCondition @relation(fields: [discountRateConditionId], references: [id])
+  /// 할인율 타입 (매입/매출)
+  discountRateType        DiscountRateType
   /// 할인율 타입
   discountRateMapType     DiscountRateMapType
-  /// 매출 할인율 여부
-  isPurchase              Boolean
   /// 할인율
   discountRate            Float
   /// 할인율 단위
@@ -977,5 +982,5 @@ model DiscountRateMap {
   /// 삭제여부
   isDeleted               Boolean               @default(false)
 
-  @@unique([discountRateConditionId, discountRateMapType, isPurchase])
+  @@unique([discountRateConditionId, discountRateMapType, discountRateType])
 }

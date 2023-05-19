@@ -1,7 +1,7 @@
-import { DiscountRateUnit, PackagingType } from "@prisma/client";
+import { DiscountRateType, DiscountRateUnit, PackagingType } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, IsString, Length, Max, Min, ValidateNested } from "class-validator";
-import { DiscountRateCreateRequest, DiscountRateListQuery, DiscountRateMappingQuery, DiscountRatePartnerListQuery, DiscountRateUpdateRequest } from "src/@shared/api/inhouse/discount-rate.request";
+import { DiscountRateCreateRequest, DiscountRateDeleteQuery, DiscountRateDetailQuery, DiscountRateListQuery, DiscountRateMappingQuery, DiscountRatePartnerListQuery, DiscountRateUpdateRequest } from "src/@shared/api/inhouse/discount-rate.request";
 
 export class DiscountRateConditionIdDto {
     @IsInt()
@@ -23,6 +23,9 @@ export class DiscountRateDto {
 }
 
 export class DiscountRateCreateDto implements DiscountRateCreateRequest {
+    @IsEnum(DiscountRateType)
+    readonly discountRateType: DiscountRateType;
+
     @IsString()
     @Length(10, 10)
     readonly companyRegistrationNumber: string;
@@ -110,9 +113,13 @@ export class DiscountRateCreateDto implements DiscountRateCreateRequest {
 
 /** 할인율 조회 */
 export class DiscountRateListDto implements DiscountRateListQuery {
+    @IsOptional()
     @IsString()
     @Length(10, 10)
-    readonly companyRegistrationNumber: string;
+    readonly companyRegistrationNumber: string = null;
+
+    @IsEnum(DiscountRateType)
+    discountRateType: DiscountRateType;
 
     @IsOptional()
     @IsInt()
@@ -128,8 +135,17 @@ export class DiscountRateListDto implements DiscountRateListQuery {
     readonly take: number = 30;
 }
 
+/** 할인율 상세 */
+export class DiscountRateDetailDto implements DiscountRateDetailQuery {
+    @IsEnum(DiscountRateType)
+    readonly discountRateType: DiscountRateType;
+}
+
 /** 할인율 수정 */
 export class DiscountRateUpdateDto implements DiscountRateUpdateRequest {
+    @IsEnum(DiscountRateType)
+    readonly discountRateType: DiscountRateType;
+
     @IsObject()
     @ValidateNested()
     @Type(() => DiscountRateDto)
@@ -141,20 +157,10 @@ export class DiscountRateUpdateDto implements DiscountRateUpdateRequest {
     readonly specialDiscountRate: DiscountRateDto;
 }
 
-/** 할인율 거래처 목록 */
-export class DiscountRatePartnerListDto implements DiscountRatePartnerListQuery {
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @Min(0)
-    readonly skip: number = 0;
-
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @Min(10)
-    @Max(100)
-    readonly take: number = 30;
+/** 할인율 삭제 */
+export class DiscountRateDeleteDto implements DiscountRateDeleteQuery {
+    @IsEnum(DiscountRateType)
+    readonly discountRateType: DiscountRateType;
 }
 
 /** 할인율 매핑 */
@@ -162,6 +168,9 @@ export class DiscountRateMappingDto implements DiscountRateMappingQuery {
     @IsString()
     @Length(10, 10)
     readonly companyRegistrationNumber: string;
+
+    @IsEnum(DiscountRateType)
+    readonly discountRateType: DiscountRateType;
 
     @IsOptional()
     @IsEnum(PackagingType)
