@@ -312,6 +312,7 @@ model Company {
   Partner                        Partner[]
   BankAccount                    BankAccount[]
   Card                           Card[]
+  Securities                     Securities[]
 }
 
 model BusinessRelationship {
@@ -796,6 +797,51 @@ enum Method {
   All
 }
 
+model Securities {
+  /// 식별자
+  id               Int      @id @default(autoincrement())
+  /// 증권 타입(enum)
+  securitiesType   String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  /// 증권 번호
+  securitiesSerial String
+  /// 증권 금액
+  securitiesAmount Float
+  /// 증권 상태(enum)
+  securitiesStatus String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  /// 발행 상태(enum)
+  drawedStatus     String
+  /// 발행일
+  drawedDate       DateTime
+  /// 발행 은행(enum)
+  drawedBank       String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  /// 발행 은행 지점
+  drawedBankBranch String
+  /// 발행지
+  drawedRegion     String
+  /// 발행인
+  drawer           String
+  /// 만기일
+  maturedDate      DateTime
+  /// 지급은행
+  payingBank       String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  /// 지급은행 지점명
+  payingBankBranch String
+  /// 지급인
+  payer            String
+  /// 메모
+  memo             String
+  /// 삭제 여부
+  isDeleted        Boolean  @default(false)
+
+  /// 회사 식별자
+  companyId Int
+  /// 회사
+  company   Company @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  /// 회계 유가증권 목록
+  bySecuritiesList BySecurities[]
+}
+
 /// 회계 타입
 enum AccountedType {
   /// 지급
@@ -879,6 +925,8 @@ model Accounted {
   byCard        ByCard?
   /// 상계
   byOffset      ByOffset?
+  /// 상계
+  bySecurities  BySecurities?
 }
 
 /// 현금
@@ -979,7 +1027,40 @@ model ByOffsetPair {
   byOffsetId  Int      @unique
   /// 'paid' 거래
   byOffset    ByOffset @relation(fields: [byOffsetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  // 할인율
+}
+
+/// 유가증권
+model BySecurities {
+  /// 식별자
+  id               Int               @id @default(autoincrement())
+  /// 배서구분 (enum)
+  endorsementType  String
+  /// 배서자
+  endorsement      String
+  /// 유가증권 식별자
+  securitiesId     Int
+  /// 유가증권
+  securities       Securities        @relation(fields: [securitiesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 회계 식별자
+  accountedId      Int               @unique
+  /// 회계
+  accounted        Accounted         @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 유가증권 페어
+  bySecuritiesPair BySecuritiesPair?
+}
+
+/// 유가증권 페어
+model BySecuritiesPair {
+  /// 식별자
+  id             Int          @id @default(autoincrement())
+  /// 'paid' 거래의 ID
+  paidId         Int
+  /// 'collected' 거래의 ID
+  collectedId    Int
+  /// 회계 유가증권 id
+  bySecuritiesId Int          @unique
+  /// 회계 유가증권 거래
+  bySecurities   BySecurities @relation(fields: [bySecuritiesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model DiscountRateCondition {
