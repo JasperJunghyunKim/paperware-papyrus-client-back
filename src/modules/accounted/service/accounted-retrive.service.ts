@@ -12,7 +12,7 @@ export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
   async getAccountedList(companyId: number, accountedType: AccountedType, paidRequest: AccountedRequest): Promise<AccountedListResponse> {
-    const { companyRegistrationNumber, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+    const { companyId: conditionCompanyId, companyRegistrationNumber, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
     const param: any = {
       accountedType,
       isDeleted: false,
@@ -67,8 +67,11 @@ export class AccountedRetriveService {
         },
         where: {
           partner: {
-            companyId,
+            companyId: conditionCompanyId !== 0 ? conditionCompanyId : undefined,
             companyRegistrationNumber: companyRegistrationNumber !== '' ? companyRegistrationNumber : undefined,
+            company: {
+              id: companyId,
+            }
           },
           ...param,
         }
