@@ -404,6 +404,7 @@ export class OrderChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
+    isSyncPrice: boolean;
     stockPrice: StockCreateStockPriceRequest;
   }) {
     const {
@@ -418,6 +419,7 @@ export class OrderChangeService {
       paperPatternId,
       paperCertId,
       quantity,
+      isSyncPrice,
       stockPrice,
     } = params;
 
@@ -466,6 +468,8 @@ export class OrderChangeService {
           warehouseId: null,
           orderStockId: order.orderStock.id,
           companyId: order.srcCompanyId,
+          isArrived: false,
+          isSyncPrice,
           stockGroupEvent: {
             create: {
               change: quantity,
@@ -485,64 +489,6 @@ export class OrderChangeService {
           }
         }
       });
-
-
-      // const stock = await tx.stock.create({
-      //   data: {
-      //     company: {
-      //       connect: {
-      //         id: order.srcCompanyId,
-      //       },
-      //     },
-      //     serial: ulid(),
-      //     product: { connect: { id: productId } },
-      //     packaging: { connect: { id: packagingId } },
-      //     grammage,
-      //     sizeX,
-      //     sizeY,
-      //     paperColorGroup: paperColorGroupId
-      //       ? { connect: { id: paperColorGroupId } }
-      //       : undefined,
-      //     paperColor: paperColorId
-      //       ? { connect: { id: paperColorId } }
-      //       : undefined,
-      //     paperPattern: paperPatternId
-      //       ? { connect: { id: paperPatternId } }
-      //       : undefined,
-      //     paperCert: paperCertId ? { connect: { id: paperCertId } } : undefined,
-      //     stockPrice: {
-      //       create: {
-      //         officialPriceType: stockPrice.officialPriceType,
-      //         officialPrice: stockPrice.officialPrice,
-      //         officialPriceUnit: stockPrice.officialPriceUnit,
-      //         discountType: stockPrice.discountType,
-      //         discountPrice: stockPrice.discountPrice,
-      //         unitPrice: stockPrice.unitPrice,
-      //         unitPriceUnit: stockPrice.unitPriceUnit,
-      //       },
-      //     },
-      //     initialOrder: {
-      //       connect: {
-      //         id: orderId,
-      //       },
-      //     },
-      //     stockEvent: {
-      //       create: {
-      //         change: quantity,
-      //         status: 'PENDING',
-      //         orderStockArrival: {
-      //           connect: {
-      //             orderId,
-      //           },
-      //         },
-      //       },
-      //     },
-      //   },
-      // });
-
-      // await this.stockChangeService.cacheStockQuantityTx(tx, {
-      //   id: stock.id,
-      // });
     });
   }
 

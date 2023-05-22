@@ -1,6 +1,7 @@
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -255,6 +256,9 @@ export class OrderStockArrivalCreateRequestDto
   @IsInt()
   @Type(() => Number)
   quantity: number;
+
+  @IsBoolean()
+  isSyncPrice: boolean;
 
   @IsObject()
   @ValidateNested()

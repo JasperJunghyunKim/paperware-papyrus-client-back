@@ -243,10 +243,14 @@ model StockGroup {
   orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
-  isArrived         Boolean?
   stockGroupEvent   StockGroupEvent[]
   orderStocks       OrderStock[]
   stockGroupPrice   StockGroupPrice[]
+
+  /// 도착예정재고일때만 사용
+  isArrived        Boolean?
+  isDirectShipping Boolean?
+  isSyncPrice      Boolean?
 
   @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
 }
