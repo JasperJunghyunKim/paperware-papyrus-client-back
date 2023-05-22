@@ -1,10 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import {
   BusinessRelationshipRequestAcceptRequest,
-  BusinessRelationshipRequestCreateRequest,
   BusinessRelationshipRequestListQuery,
   BusinessRelationshipRequestRejectRequest,
+  SearchPartnerRequest,
 } from 'src/@shared/api';
 
 export class BusinessRelationshipRequestListQueryDto
@@ -18,13 +18,6 @@ export class BusinessRelationshipRequestListQueryDto
   @Type(() => Number)
   @IsOptional()
   take: number = undefined;
-}
-
-export class BusinessRelationshipRequestCreateRequestDto
-  implements BusinessRelationshipRequestCreateRequest
-{
-  @IsInt()
-  companyId: number;
 }
 
 export class BusinessRelationshipRequestAcceptRequestDto

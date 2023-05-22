@@ -8,6 +8,13 @@ export const USER = {
   email: true,
 } satisfies Prisma.UserSelect;
 
+export const PARTNER = {
+  companyId: true,
+  companyRegistrationNumber: true,
+  partnerNickName: true,
+  memo: true,
+} satisfies Prisma.PartnerSelect;
+
 export const COMPANY = {
   id: true,
   businessName: true,
@@ -37,6 +44,8 @@ export const BUSINESS_RELATIONSHIP_REQUEST = {
   dstCompany: {
     select: COMPANY,
   },
+  isPurchase: true,
+  isSales: true,
   status: true,
   memo: true,
 } satisfies Prisma.BusinessRelationshipRequestSelect;

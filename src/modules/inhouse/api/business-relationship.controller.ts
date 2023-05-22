@@ -16,10 +16,17 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { BusinessRelationshipChangeService } from '../service/business-relationship-change.service';
 import { BusinessRelationshipRetriveService } from '../service/business-relationship-retrive.service';
 import {
+  BusinessRelationshipCompactListQueryDto,
   BusinessRelationshipCreateRequestDto,
   BusinessRelationshipListQueryDto,
+  RegisterPartnerRequestDto,
+  SearchPartnerRequestDto,
 } from './dto/business-relationship.request';
-import { BusinessRelationshipListResponse } from 'src/@shared/api';
+import {
+  BusinessRelationshipCompactListResponse,
+  BusinessRelationshipListResponse,
+  SearchPartnerResponse,
+} from 'src/@shared/api';
 import { CompanyRetriveService } from '../service/company-retrive.service';
 
 @Controller('inhouse/business-relationship')
@@ -54,6 +61,29 @@ export class BusinessRelationshipController {
     const total = await this.retriveService.getCount({
       dstCompanyId: query.dstCompanyId,
       srcCompanyId: query.srcCompanyId,
+    });
+
+    return {
+      items,
+      total,
+    };
+  }
+
+  @Get('compact')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getCompactList(
+    @Request() req: AuthType,
+    @Query() query: BusinessRelationshipCompactListQueryDto,
+  ): Promise<BusinessRelationshipCompactListResponse> {
+    const items = await this.retriveService.getCompactList({
+      skip: query.skip,
+      take: query.take,
+      companyId: req.user.companyId,
+    });
+
+    const total = await this.retriveService.getCompactCount({
+      companyId: req.user.companyId,
     });
 
     return {
@@ -105,6 +135,64 @@ export class BusinessRelationshipController {
     await this.changeService.create({
       srcCompanyId: body.srcCompanyId,
       dstCompanyId: body.dstCompanyId,
+    });
+  }
+
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  async register(
+    @Request() req: AuthType,
+    @Body() body: RegisterPartnerRequestDto,
+  ) {
+    await this.changeService.register({
+      srcCompanyId: req.user.companyId,
+      create: body.create,
+      invoiceCode: body.invoiceCode,
+      partnerNickname: body.partnerNickname,
+      type: body.type,
+      address: body.address,
+      phoneNo: body.phoneNo,
+      faxNo: body.faxNo,
+      email: body.email,
+      companyRegistrationNumber: body.companyRegistrationNumber,
+      memo: body.memo,
+    });
+  }
+
+  @Post('search')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async search(
+    @Request() req: AuthType,
+    @Body() body: SearchPartnerRequestDto,
+  ): Promise<SearchPartnerResponse> {
+    const cp = await this.retriveService.searchPartner({
+      companyId: req.user.companyId,
+      companyRegistrationNumber: body.companyRegistrationNumber,
+    });
+
+    return cp;
+  }
+
+  @Post(':srcCompanyId/:dstCompanyId/deactive')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async deactive(
+    @Request() req: AuthType,
+    @Param('srcCompanyId') srcCompanyId: number,
+    @Param('dstCompanyId') dstCompanyId: number,
+  ) {
+    if (
+      dstCompanyId !== req.user.companyId &&
+      srcCompanyId !== req.user.companyId
+    ) {
+      throw new ForbiddenException();
+    }
+
+    await this.changeService.deactive({
+      srcCompanyId,
+      dstCompanyId,
     });
   }
 }

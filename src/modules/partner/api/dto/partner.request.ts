@@ -1,10 +1,16 @@
-import { IsNumber, IsString } from "class-validator";
-import { PartnerResponse } from "src/@shared/api";
+import { IsNumber, IsString } from 'class-validator';
+import { PartnerResponse } from 'src/@shared/api';
 
 export class PartnerResponseDto implements PartnerResponse {
   @IsNumber()
-  partnerId: number;
+  companyId: number;
+
+  @IsString()
+  companyRegistrationNumber: string;
 
   @IsString()
   partnerNickName: string;
+
+  @IsString()
+  memo: string = '';
 }

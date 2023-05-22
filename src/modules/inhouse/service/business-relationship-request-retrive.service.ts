@@ -18,6 +18,22 @@ export class BusinessRelationshipRequestRetriveService {
     });
   }
 
+  async getSendedList(params: {
+    skip: number;
+    take: number;
+    srcCompanyId?: number;
+  }) {
+    return await this.prisma.businessRelationshipRequest.findMany({
+      select: Selector.BUSINESS_RELATIONSHIP_REQUEST,
+      where: {
+        srcCompanyId: params.srcCompanyId,
+        status: 'PENDING',
+      },
+      skip: params.skip,
+      take: params.take,
+    });
+  }
+
   async getCount(params: { dstCompanyId?: number }) {
     return await this.prisma.businessRelationshipRequest.count({
       where: {
