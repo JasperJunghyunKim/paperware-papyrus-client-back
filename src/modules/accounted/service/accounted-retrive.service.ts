@@ -87,7 +87,7 @@ export class AccountedRetriveService {
               case Method.ACCOUNT_TRANSFER:
                 return accounted.byBankAccount.bankAccountAmount;
               case Method.CARD_PAYMENT:
-                return accounted.byCard.cardAmount;
+                return accounted.byCard.isCharge ? accounted.byCard.totalAmount : accounted.byCard.cardAmount;
               case Method.OFFSET:
                 return accounted.byOffset.offsetAmount;
             }
