@@ -298,6 +298,7 @@ export class OrderController {
     @Param('id') id: string,
     @Body() body: OrderStockArrivalCreateRequestDto,
   ) {
+    body.validate();
     const order = await this.retrive.getItem({ orderId: Number(id) });
 
     if (!order) {

@@ -469,6 +469,7 @@ export class OrderChangeService {
           orderStockId: order.orderStock.id,
           companyId: order.srcCompanyId,
           isArrived: false,
+          isDirectShipping: false,
           isSyncPrice,
           stockGroupEvent: {
             create: {
@@ -476,7 +477,7 @@ export class OrderChangeService {
               status: 'PENDING',
             }
           },
-          stockGroupPrice: {
+          stockGroupPrice: stockPrice ? {
             create: {
               officialPriceType: stockPrice.officialPriceType,
               officialPrice: stockPrice.officialPrice,
@@ -486,7 +487,7 @@ export class OrderChangeService {
               unitPrice: stockPrice.unitPrice,
               unitPriceUnit: stockPrice.unitPriceUnit,
             },
-          }
+          } : undefined,
         }
       });
     });
