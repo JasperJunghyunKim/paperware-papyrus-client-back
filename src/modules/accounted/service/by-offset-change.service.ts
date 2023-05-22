@@ -11,7 +11,10 @@ export class ByOffsetChangeService {
     const param: Prisma.AccountedCreateInput = {
       partner: {
         connect: {
-          id: byOffsetCreateRequest.partnerId,
+          companyId_companyRegistrationNumber: {
+            companyRegistrationNumber: byOffsetCreateRequest.companyRegistrationNumber,
+            companyId: byOffsetCreateRequest.companyId,
+          }
         },
       },
       accountedType: 'PAID',

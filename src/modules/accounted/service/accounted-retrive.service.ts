@@ -53,6 +53,7 @@ export class AccountedRetriveService {
           byOffset: true,
           partner: {
             select: {
+              companyId: true,
               companyRegistrationNumber: true,
               partnerNickName: true,
               id: true,
@@ -93,6 +94,7 @@ export class AccountedRetriveService {
           }
 
           return {
+            companyId: accounted.partner.companyId,
             companyRegistrationNumber: accounted.partner.companyRegistrationNumber,
             partnerNickName: accounted.partner.partnerNickName,
             accountedId: accounted.id,

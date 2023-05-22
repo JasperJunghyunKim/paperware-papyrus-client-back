@@ -15,7 +15,10 @@ export class ByCashChangeService {
           data: {
             partner: {
               connect: {
-                id: byCashCreateRequestDto.partnerId,
+                companyId_companyRegistrationNumber: {
+                  companyRegistrationNumber: byCashCreateRequestDto.companyRegistrationNumber,
+                  companyId: byCashCreateRequestDto.companyId,
+                }
               },
             },
             accountedType,

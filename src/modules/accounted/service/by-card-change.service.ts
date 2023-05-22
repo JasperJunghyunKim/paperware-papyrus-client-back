@@ -15,7 +15,10 @@ export class ByCardChangeService {
           data: {
             partner: {
               connect: {
-                id: byCardCreateRequest.partnerId,
+                companyId_companyRegistrationNumber: {
+                  companyRegistrationNumber: byCardCreateRequest.companyRegistrationNumber,
+                  companyId: byCardCreateRequest.companyId,
+                }
               },
             },
             accountedType,

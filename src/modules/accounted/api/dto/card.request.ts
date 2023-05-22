@@ -3,9 +3,11 @@ import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validat
 import { ByCardCreateRequest, ByCardUpdateRequest } from "src/@shared/api/accounted/by-card.request";
 
 export class ByCardCreateRequestDto implements ByCardCreateRequest {
-
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;

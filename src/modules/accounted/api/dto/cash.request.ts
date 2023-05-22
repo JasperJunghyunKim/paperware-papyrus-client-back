@@ -5,7 +5,10 @@ import { ByCashCreateRequest, ByCashUpdateRequest } from "src/@shared/api";
 
 export class ByCashCreateRequestDto implements ByCashCreateRequest {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;

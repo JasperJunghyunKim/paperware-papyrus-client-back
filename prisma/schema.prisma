@@ -864,7 +864,7 @@ model Accounted {
   memo             String        @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
-  /// 파트너 식별자
+  /// 사업자번호
   partnerId        Int
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)

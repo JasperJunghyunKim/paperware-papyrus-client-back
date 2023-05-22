@@ -16,7 +16,10 @@ export class ByBankAccountChangeService {
           data: {
             partner: {
               connect: {
-                id: byBankCreateRequest.partnerId,
+                companyId_companyRegistrationNumber: {
+                  companyRegistrationNumber: byBankCreateRequest.companyRegistrationNumber,
+                  companyId: byBankCreateRequest.companyId,
+                }
               },
             },
             accountedType,

@@ -4,7 +4,10 @@ import { ByEtcItemResponse } from "src/@shared/api";
 
 export class ByEtcResponse implements ByEtcItemResponse {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsString()
   readonly partnerNickName: string;
