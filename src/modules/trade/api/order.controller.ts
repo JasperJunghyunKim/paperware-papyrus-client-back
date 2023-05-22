@@ -309,6 +309,7 @@ export class OrderController {
     }
 
     await this.change.createArrival({
+      // companyId: req.user.companyId,
       orderId: Number(id),
       productId: body.productId,
       packagingId: body.packagingId,
