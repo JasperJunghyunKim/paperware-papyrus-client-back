@@ -245,7 +245,7 @@ model StockGroup {
   company           Company           @relation(fields: [companyId], references: [id])
   stockGroupEvent   StockGroupEvent[]
   orderStocks       OrderStock[]
-  stockGroupPrice   StockGroupPrice[]
+  stockGroupPrice   StockGroupPrice?
 
   /// 도착예정재고일때만 사용
   isArrived        Boolean?

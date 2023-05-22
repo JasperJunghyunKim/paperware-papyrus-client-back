@@ -117,9 +117,7 @@ export class StockArrivalChangeService {
         },
       });
 
-      console.log(storedStockGroup);
-
-      // 재고 생성
+      // 재고 생성 
       await tx.stock.create({
         data: {
           serial: ulid(),
@@ -166,8 +164,23 @@ export class StockArrivalChangeService {
               id: stockGroup.paperCertId,
             },
           } : undefined,
+          isSyncPrice: stockGroup.isSyncPrice,
+          stockPrice: !stockGroup.isSyncPrice ? {
+            create: {
+              officialPriceType: stockGroup.stockGroupPrice.officialPriceType,
+              officialPrice: stockGroup.stockGroupPrice.officialPrice,
+              officialPriceUnit: stockGroup.stockGroupPrice.officialPriceUnit,
+              discountType: stockGroup.stockGroupPrice.discountType,
+              unitPrice: stockGroup.stockGroupPrice.unitPrice,
+              discountPrice: stockGroup.stockGroupPrice.discountPrice,
+              unitPriceUnit: stockGroup.stockGroupPrice.unitPriceUnit,
+            }
+          } : undefined,
+          // stock event 추가
         },
       });
+
+      // 재고그룹에 이벤트 생성 (다른작업에 배정되어 마이너스 된것. 가상.)
 
 
       // const se = await tx.stockEvent.update({
