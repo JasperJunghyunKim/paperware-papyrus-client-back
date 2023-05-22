@@ -3,9 +3,11 @@ import { IsBoolean, IsEnum, IsNumber, IsString } from "class-validator";
 import { ByCardItemResponse } from "src/@shared/api/accounted/by-card.response";
 
 export class ByCardResponseDto implements ByCardItemResponse {
-
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsString()
   readonly partnerNickName: string;

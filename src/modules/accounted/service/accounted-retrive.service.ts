@@ -12,7 +12,7 @@ export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
   async getAccountedList(companyId: number, accountedType: AccountedType, paidRequest: AccountedRequest): Promise<AccountedListResponse> {
-    const { companyRegistrationNumber, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
+    const { companyId: conditionCompanyId, companyRegistrationNumber, accountedSubject, accountedMethod, accountedFromDate, accountedToDate } = paidRequest;
     const param: any = {
       accountedType,
       isDeleted: false,
@@ -53,6 +53,7 @@ export class AccountedRetriveService {
           byOffset: true,
           partner: {
             select: {
+              companyId: true,
               companyRegistrationNumber: true,
               partnerNickName: true,
               id: true,
@@ -66,8 +67,11 @@ export class AccountedRetriveService {
         },
         where: {
           partner: {
-            companyId,
+            companyId: conditionCompanyId !== 0 ? conditionCompanyId : undefined,
             companyRegistrationNumber: companyRegistrationNumber !== '' ? companyRegistrationNumber : undefined,
+            company: {
+              id: companyId,
+            }
           },
           ...param,
         }
@@ -86,13 +90,14 @@ export class AccountedRetriveService {
               case Method.ACCOUNT_TRANSFER:
                 return accounted.byBankAccount.bankAccountAmount;
               case Method.CARD_PAYMENT:
-                return accounted.byCard.cardAmount;
+                return accounted.byCard.isCharge ? accounted.byCard.totalAmount : accounted.byCard.cardAmount;
               case Method.OFFSET:
                 return accounted.byOffset.offsetAmount;
             }
           }
 
           return {
+            companyId: accounted.partner.companyId,
             companyRegistrationNumber: accounted.partner.companyRegistrationNumber,
             partnerNickName: accounted.partner.partnerNickName,
             accountedId: accounted.id,

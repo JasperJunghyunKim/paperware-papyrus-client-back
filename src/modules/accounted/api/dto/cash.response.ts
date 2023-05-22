@@ -5,7 +5,10 @@ import { ByCashItemResponse } from "src/@shared/api";
 
 export class CashResponse implements ByCashItemResponse {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsString()
   readonly partnerNickName: string;

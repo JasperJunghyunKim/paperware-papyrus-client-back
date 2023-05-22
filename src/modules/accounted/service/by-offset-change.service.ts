@@ -11,7 +11,10 @@ export class ByOffsetChangeService {
     const param: Prisma.AccountedCreateInput = {
       partner: {
         connect: {
-          id: byOffsetCreateRequest.partnerId,
+          companyId_companyRegistrationNumber: {
+            companyRegistrationNumber: byOffsetCreateRequest.companyRegistrationNumber,
+            companyId: byOffsetCreateRequest.companyId,
+          }
         },
       },
       accountedType: 'PAID',
@@ -25,52 +28,77 @@ export class ByOffsetChangeService {
         }
       }
     }
+    let paid;
+    let collected;
 
-    await this.prisma.$transaction(async (tx) => {
-      const paid = await tx.accounted.create({
+    try {
+      paid = await this.prisma.accounted.create({
         data: {
           ...param,
           accountedType: 'PAID',
         },
         select: {
           id: true,
+          byOffset: {
+            select: {
+              id: true,
+            }
+          }
         }
       })
 
-      const collected = await tx.accounted.create({
+      collected = await this.prisma.accounted.create({
         data: {
           ...param,
           accountedType: 'COLLECTED',
         },
         select: {
           id: true,
+          byOffset: {
+            select: {
+              id: true,
+            }
+          }
+        },
+      })
+
+      await this.prisma.byOffsetPair.create({
+        data: {
+          byOffsetPair: {
+            connect: {
+              id: paid.byOffset.id,
+            }
+          },
+          paidId: paid.id,
+          collectedId: collected.id,
+        },
+      })
+
+      await this.prisma.byOffsetPair.create({
+        data: {
+          byOffsetPair: {
+            connect: {
+              id: collected.byOffset.id,
+            }
+          },
+          paidId: paid.id,
+          collectedId: collected.id,
+        },
+      })
+    } catch (err) {
+      await this.prisma.accounted.delete({
+        where: {
+          id: paid.id,
+        }
+      })
+      await this.prisma.accounted.delete({
+        where: {
+          id: collected.id,
         }
       })
 
-      await tx.byOffsetPair.create({
-        data: {
-          byOffsetPair: {
-            connect: {
-              id: paid.id,
-            }
-          },
-          paidId: paid.id,
-          collectedId: collected.id,
-        },
-      })
-
-      await tx.byOffsetPair.create({
-        data: {
-          byOffsetPair: {
-            connect: {
-              id: collected.id,
-            }
-          },
-          paidId: paid.id,
-          collectedId: collected.id,
-        },
-      })
-    })
+      throw err;
+    }
   }
 
   async updateOffset(accountedType: AccountedType, accountedId: number, byOffsetUpdateRequest: ByOffsetUpdateRequestDto): Promise<void> {

@@ -15,7 +15,10 @@ export class ByEtcChangeService {
           data: {
             partner: {
               connect: {
-                id: byEtcCreateRequest.partnerId,
+                companyId_companyRegistrationNumber: {
+                  companyRegistrationNumber: byEtcCreateRequest.companyRegistrationNumber,
+                  companyId: byEtcCreateRequest.companyId,
+                }
               },
             },
             accountedType,

@@ -4,7 +4,10 @@ import { ByEtcCreateRequest, ByEtcUpdateRequest } from "src/@shared/api";
 
 export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
