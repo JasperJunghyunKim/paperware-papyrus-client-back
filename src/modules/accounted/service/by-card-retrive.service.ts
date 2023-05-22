@@ -25,6 +25,13 @@ export class ByCardRetriveService {
             select: {
               id: true,
               partnerNickName: true,
+              companyRegistrationNumber: true,
+              company: {
+                select: {
+                  id: true,
+                  companyRegistrationNumber: true,
+                }
+              }
             }
           }
         },
@@ -44,6 +51,8 @@ export class ByCardRetriveService {
       throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [accountedId])),
       map((accounted) => {
         return {
+          companyId: accounted.partner.company.id,
+          companyRegistrationNumber: accounted.partner.company.companyRegistrationNumber,
           accountedId: accounted.id,
           accountedType: accounted.accountedType,
           accountedDate: accounted.accountedDate.toISOString(),
@@ -51,7 +60,6 @@ export class ByCardRetriveService {
           accountedMethod: accounted.accountedMethod,
           amount: accounted.byCard.cardAmount,
           memo: accounted.memo,
-          partnerId: accounted.partner.id,
           partnerNickName: accounted.partner.partnerNickName,
           cardId: accounted.byCard.cardId,
           totalAmount: accounted.byCard.totalAmount,

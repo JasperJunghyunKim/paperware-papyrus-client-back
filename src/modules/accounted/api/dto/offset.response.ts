@@ -4,7 +4,10 @@ import { ByOffsetItemResponse } from "src/@shared/api/accounted/by-offset.respon
 
 export class ByOffsetItemResponseDto implements ByOffsetItemResponse {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsString()
   readonly partnerNickName: string;

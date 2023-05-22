@@ -4,7 +4,10 @@ import { ByOffsetCreateRequest, ByOffsetUpdateRequest } from "src/@shared/api/ac
 
 export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;

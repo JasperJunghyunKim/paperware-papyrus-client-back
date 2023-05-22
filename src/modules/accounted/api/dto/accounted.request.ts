@@ -12,6 +12,10 @@ export class AccountedRequest implements AccountedQuery {
   @IsNumber()
   readonly take: number;
 
+  @Type(() => Number)
+  @IsNumber()
+  readonly companyId: number;
+
   @IsString()
   readonly companyRegistrationNumber: string;
 

@@ -4,7 +4,10 @@ import { ByBankAccountItemResponse } from "src/@shared/api/accounted/by-bank-acc
 
 export class ByBankAccountItemResponseDto implements ByBankAccountItemResponse {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsString()
   readonly partnerNickName: string;

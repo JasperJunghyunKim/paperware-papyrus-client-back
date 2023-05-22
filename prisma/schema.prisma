@@ -882,7 +882,7 @@ model Accounted {
   memo             String        @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
-  /// 파트너 식별자
+  /// 사업자번호
   partnerId        Int
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -988,15 +988,15 @@ model ByOffset {
 
 model ByOffsetPair {
   /// 식별자
-  id             Int      @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   /// 'paid' 거래의 ID
-  paidId         Int
+  paidId      Int
   /// 'collected' 거래의 ID
-  collectedId    Int
+  collectedId Int
   /// 상계 매핑
-  byOffsetPairId Int      @unique
+  byOffsetId  Int      @unique
   /// 'paid' 거래
-  byOffsetPair   ByOffset @relation(fields: [byOffsetPairId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  byOffset    ByOffset @relation(fields: [byOffsetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   // 할인율
 }
 

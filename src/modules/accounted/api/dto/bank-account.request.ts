@@ -3,7 +3,10 @@ import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { ByBankAccountCreateRequest, ByBankAccountUpdateRequest } from "src/@shared/api/accounted/by-bank-account.request";
 export class ByBankAccountCreateRequestDto implements ByBankAccountCreateRequest {
   @IsNumber()
-  readonly partnerId: number;
+  readonly companyId: number;
+
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;

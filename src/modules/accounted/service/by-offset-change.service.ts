@@ -11,7 +11,10 @@ export class ByOffsetChangeService {
     const param: Prisma.AccountedCreateInput = {
       partner: {
         connect: {
-          id: byOffsetCreateRequest.partnerId,
+          companyId_companyRegistrationNumber: {
+            companyRegistrationNumber: byOffsetCreateRequest.companyRegistrationNumber,
+            companyId: byOffsetCreateRequest.companyId,
+          }
         },
       },
       accountedType: 'PAID',
@@ -34,6 +37,11 @@ export class ByOffsetChangeService {
         },
         select: {
           id: true,
+          byOffset: {
+            select: {
+              id: true
+            }
+          }
         }
       })
 
@@ -44,14 +52,19 @@ export class ByOffsetChangeService {
         },
         select: {
           id: true,
+          byOffset: {
+            select: {
+              id: true
+            }
+          }
         }
       })
 
       await tx.byOffsetPair.create({
         data: {
-          byOffsetPair: {
+          byOffset: {
             connect: {
-              id: paid.id,
+              id: paid.byOffset.id,
             }
           },
           paidId: paid.id,
@@ -61,9 +74,9 @@ export class ByOffsetChangeService {
 
       await tx.byOffsetPair.create({
         data: {
-          byOffsetPair: {
+          byOffset: {
             connect: {
-              id: collected.id,
+              id: collected.byOffset.id,
             }
           },
           paidId: paid.id,
