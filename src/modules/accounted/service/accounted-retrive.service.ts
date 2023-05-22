@@ -18,12 +18,6 @@ export class AccountedRetriveService {
       isDeleted: false,
     }
 
-    if (companyRegistrationNumber !== '') {
-      param.companyRegistrationNumber = {
-        equals: companyRegistrationNumber,
-      };
-    }
-
     if (accountedSubject !== 'All') {
       param.accountedSubject = {
         equals: accountedSubject,
@@ -72,7 +66,8 @@ export class AccountedRetriveService {
         },
         where: {
           partner: {
-            companyId
+            companyId,
+            companyRegistrationNumber: companyRegistrationNumber !== '' ? companyRegistrationNumber : undefined,
           },
           ...param,
         }
