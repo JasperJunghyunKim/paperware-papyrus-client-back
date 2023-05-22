@@ -28,11 +28,9 @@ export class ByOffsetChangeService {
         }
       }
     }
-    let paid;
-    let collected;
 
-    try {
-      paid = await this.prisma.accounted.create({
+    await this.prisma.$transaction(async (tx) => {
+      const paid = await tx.accounted.create({
         data: {
           ...param,
           accountedType: 'PAID',
@@ -41,13 +39,13 @@ export class ByOffsetChangeService {
           id: true,
           byOffset: {
             select: {
-              id: true,
+              id: true
             }
           }
         }
       })
 
-      collected = await this.prisma.accounted.create({
+      const collected = await tx.accounted.create({
         data: {
           ...param,
           accountedType: 'COLLECTED',
@@ -56,15 +54,15 @@ export class ByOffsetChangeService {
           id: true,
           byOffset: {
             select: {
-              id: true,
+              id: true
             }
           }
-        },
+        }
       })
 
-      await this.prisma.byOffsetPair.create({
+      await tx.byOffsetPair.create({
         data: {
-          byOffsetPair: {
+          byOffset: {
             connect: {
               id: paid.byOffset.id,
             }
@@ -74,9 +72,9 @@ export class ByOffsetChangeService {
         },
       })
 
-      await this.prisma.byOffsetPair.create({
+      await tx.byOffsetPair.create({
         data: {
-          byOffsetPair: {
+          byOffset: {
             connect: {
               id: collected.byOffset.id,
             }
@@ -85,20 +83,7 @@ export class ByOffsetChangeService {
           collectedId: collected.id,
         },
       })
-    } catch (err) {
-      await this.prisma.accounted.delete({
-        where: {
-          id: paid.id,
-        }
-      })
-      await this.prisma.accounted.delete({
-        where: {
-          id: collected.id,
-        }
-      })
-
-      throw err;
-    }
+    })
   }
 
   async updateOffset(accountedType: AccountedType, accountedId: number, byOffsetUpdateRequest: ByOffsetUpdateRequestDto): Promise<void> {
