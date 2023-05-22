@@ -243,10 +243,18 @@ model StockGroup {
   orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
-  StockGroupEvent   StockGroupEvent[]
+  isArrived         Boolean?
+  stockGroupEvent   StockGroupEvent[]
   orderStocks       OrderStock[]
+  stockGroupPrice   StockGroupPrice[]
 
   @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
+}
+
+enum StockGroupEventStatus {
+  NORMAL
+  CANCELLED
+  PENDING
 }
 
 model StockGroupEvent {
@@ -259,10 +267,16 @@ model StockGroupEvent {
   planId       Int?
 }
 
-enum StockGroupEventStatus {
-  NORMAL
-  CANCELLED
-  PENDING
+model StockGroupPrice {
+  stockGruopId      Int               @id
+  stockGroup        StockGroup        @relation(fields: [stockGruopId], references: [id])
+  officialPriceType OfficialPriceType @default(NONE)
+  officialPrice     Float             @default(0)
+  officialPriceUnit PriceUnit
+  discountType      DiscountType      @default(DEFAULT)
+  unitPrice         Float
+  discountPrice     Float             @default(0)
+  unitPriceUnit     PriceUnit
 }
 
 // User

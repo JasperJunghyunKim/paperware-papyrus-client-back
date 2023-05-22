@@ -90,44 +90,41 @@ export class OrderRetriveService {
     skip?: number;
     take?: number;
     orderId: number;
-  }): Promise<Model.StockEvent[]> {
+  }): Promise<Model.StockGroupEvent[]> {
     const { orderId } = params;
 
-    const stockEvents = await this.prisma.stockEvent.findMany({
-      select: Selector.STOCK_EVENT,
+    const stockGroupEvent = await this.prisma.stockGroupEvent.findMany({
+      select: Selector.STOCK_GROUP_EVENT,
       where: {
-        orderStockArrival: {
-          some: {
-            orderId,
-          },
+        status: {
+          not: 'CANCELLED'
         },
+        stockGroup: {
+          orderStock: {
+            orderId,
+          }
+        }
       },
     });
 
-    return stockEvents.map((stockEvent) => ({
-      ...stockEvent,
-      stock: {
-        ...stockEvent.stock,
-        initialOrder: {
-          ...stockEvent.stock.initialOrder,
-          wantedDate: Util.dateToIso8601(
-            stockEvent.stock.initialOrder?.wantedDate,
-          ),
-        },
-      },
+    return stockGroupEvent.map(sge => ({
+      ...sge
     }));
   }
 
   async getOrderStockArrivalCount(params: { orderId: number }) {
     const { orderId } = params;
 
-    const count = await this.prisma.stockEvent.count({
+    const count = await this.prisma.stockGroupEvent.count({
       where: {
-        orderStockArrival: {
-          some: {
-            orderId,
-          },
+        status: {
+          not: 'CANCELLED',
         },
+        stockGroup: {
+          orderStock: {
+            orderId,
+          }
+        }
       },
     });
 

@@ -5,50 +5,43 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class StockArrivalRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getStockArrivalList(params: {
     skip?: number;
     take?: number;
     companyId: number;
-  }): Promise<Model.StockEvent[]> {
-    const { skip, take } = params;
+  }): Promise<Model.StockGroupEvent[]> {
+    const { skip, take, companyId } = params;
 
-    const items = await this.prisma.stockEvent.findMany({
+    const items = await this.prisma.stockGroupEvent.findMany({
       skip,
       take,
+      select: Selector.STOCK_GROUP_EVENT,
       orderBy: {
-        id: 'desc',
+        id: 'desc'
       },
-      select: Selector.STOCK_EVENT,
       where: {
         status: 'PENDING',
-        stock: {
-          companyId: params.companyId,
+        stockGroup: {
+          companyId,
         },
         change: {
           gt: 0,
-        },
-      },
+        }
+      }
     });
 
-    return items.map((item) => ({
-      ...item,
-      stock: {
-        ...item.stock,
-        initialOrder: {
-          ...item.stock.initialOrder,
-          wantedDate: Util.dateToIso8601(item.stock.initialOrder?.wantedDate),
-        },
-      },
+    return items.map(item => ({
+      ...item
     }));
   }
 
   async getStockArrivalCount(params: { companyId: number }) {
-    return await this.prisma.stockEvent.count({
+    return await this.prisma.stockGroupEvent.count({
       where: {
         status: 'PENDING',
-        stock: {
+        stockGroup: {
           companyId: params.companyId,
         },
         change: {
