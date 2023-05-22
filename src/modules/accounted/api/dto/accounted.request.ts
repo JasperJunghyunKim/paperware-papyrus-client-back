@@ -12,9 +12,8 @@ export class AccountedRequest implements AccountedQuery {
   @IsNumber()
   readonly take: number;
 
-  @Type(() => Number)
-  @IsNumber()
-  readonly partnerId: number;
+  @IsString()
+  readonly companyRegistrationNumber: string;
 
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;

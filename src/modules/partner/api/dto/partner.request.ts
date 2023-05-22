@@ -11,6 +11,7 @@ export class PartnerResponseDto implements PartnerResponse {
   @IsString()
   partnerNickName: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
   @IsString()
   memo: string = '';
 }
