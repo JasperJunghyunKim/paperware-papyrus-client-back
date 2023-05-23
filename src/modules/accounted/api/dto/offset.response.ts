@@ -1,9 +1,8 @@
 import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString } from "class-validator";
-import { ByCashItemResponse } from "src/@shared/api";
+import { ByOffsetItemResponse } from "src/@shared/api/accounted/by-offset.response";
 
-export class CashResponse implements ByCashItemResponse {
+export class ByOffsetItemResponseDto implements ByOffsetItemResponse {
   @IsNumber()
   readonly companyId: number;
 
@@ -13,7 +12,6 @@ export class CashResponse implements ByCashItemResponse {
   @IsString()
   readonly partnerNickName: string;
 
-  @Type(() => Number)
   @IsNumber()
   readonly accountedId: number;
 

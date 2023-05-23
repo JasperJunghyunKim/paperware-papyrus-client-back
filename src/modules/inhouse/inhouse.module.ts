@@ -19,6 +19,12 @@ import { CompanyController } from './api/company.controller';
 import { OfficialPriceController } from './api/official-price.controller';
 import { OfficialPriceChangeService } from './service/official-price-change.service';
 import { OfficialPriceRetriveService } from './service/official-price-retrive.service';
+import { BankAccountChangeService } from './service/bank-account-change.service';
+import { BankAccountRetriveService } from './service/bank-account-retrive.service';
+import { CardChangeService } from './service/card-change.service';
+import { CardRetriveService } from './service/card-retrive.service';
+import { CardController } from './api/card.controller';
+import { BankAccountController } from './api/bank-account.controller';
 import { DiscountRateChangeService } from './service/discount-rate.change.service';
 import { DiscountRateRetriveService } from './service/discount-rate.retrive.service';
 import { DiscountRateController } from './api/discount-rate.controller';
@@ -38,6 +44,10 @@ import { DiscountRateController } from './api/discount-rate.controller';
     WarehouseRetriveService,
     OfficialPriceChangeService,
     OfficialPriceRetriveService,
+    BankAccountRetriveService,
+    BankAccountChangeService,
+    CardRetriveService,
+    CardChangeService,
     DiscountRateChangeService,
     DiscountRateRetriveService,
   ],
@@ -49,11 +59,15 @@ import { DiscountRateController } from './api/discount-rate.controller';
     VirtualCompanyController,
     WarehouseController,
     OfficialPriceController,
+    CardController,
+    BankAccountController,
     DiscountRateController,
   ],
   exports: [
     BusinessRelationshipRetriveService,
     LocationRetriveService,
+    BankAccountRetriveService,
+    CardRetriveService,
   ]
 })
 export class InhouseModule { }

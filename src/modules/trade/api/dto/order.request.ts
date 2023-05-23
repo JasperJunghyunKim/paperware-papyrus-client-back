@@ -1,6 +1,8 @@
+import { BadRequestException } from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -256,10 +258,21 @@ export class OrderStockArrivalCreateRequestDto
   @Type(() => Number)
   quantity: number;
 
+  @IsBoolean()
+  isSyncPrice: boolean;
+
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => StockCreateStockPriceDto)
-  stockPrice: StockCreateStockPriceDto;
+  stockPrice: StockCreateStockPriceDto = null;
+
+  validate() {
+    if (!this.isSyncPrice && !this.stockPrice) {
+      throw new BadRequestException(`매입금액 동기화 미사용시 재고금액을 입력해야합니다.`);
+    }
+    if (this.isSyncPrice) this.stockPrice = null;
+  }
 }
 
 export class OrderIdDto {

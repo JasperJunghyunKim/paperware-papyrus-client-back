@@ -404,6 +404,7 @@ export class OrderChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
+    isSyncPrice: boolean;
     stockPrice: StockCreateStockPriceRequest;
   }) {
     const {
@@ -418,6 +419,7 @@ export class OrderChangeService {
       paperPatternId,
       paperCertId,
       quantity,
+      isSyncPrice,
       stockPrice,
     } = params;
 
@@ -428,35 +430,54 @@ export class OrderChangeService {
         },
         select: {
           srcCompanyId: true,
+          orderStock: true,
         },
       });
 
-      // TODO: 상테 체크
+      // TODO: 상태 체크
 
-      const stock = await tx.stock.create({
-        data: {
-          company: {
-            connect: {
-              id: order.srcCompanyId,
-            },
-          },
-          serial: ulid(),
-          product: { connect: { id: productId } },
-          packaging: { connect: { id: packagingId } },
+      const stockGroup = await tx.stockGroup.findFirst({
+        where: {
+          productId,
+          packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroup: paperColorGroupId
-            ? { connect: { id: paperColorGroupId } }
-            : undefined,
-          paperColor: paperColorId
-            ? { connect: { id: paperColorId } }
-            : undefined,
-          paperPattern: paperPatternId
-            ? { connect: { id: paperPatternId } }
-            : undefined,
-          paperCert: paperCertId ? { connect: { id: paperCertId } } : undefined,
-          stockPrice: {
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          warehouseId: null,
+          orderStockId: order.orderStock.id,
+          companyId: order.srcCompanyId,
+        }
+      });
+      if (stockGroup) throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
+
+      await tx.stockGroup.create({
+        data: {
+          productId,
+          packagingId,
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          warehouseId: null,
+          orderStockId: order.orderStock.id,
+          companyId: order.srcCompanyId,
+          isArrived: false,
+          isDirectShipping: false,
+          isSyncPrice,
+          stockGroupEvent: {
+            create: {
+              change: quantity,
+              status: 'PENDING',
+            }
+          },
+          stockGroupPrice: stockPrice ? {
             create: {
               officialPriceType: stockPrice.officialPriceType,
               officialPrice: stockPrice.officialPrice,
@@ -466,28 +487,8 @@ export class OrderChangeService {
               unitPrice: stockPrice.unitPrice,
               unitPriceUnit: stockPrice.unitPriceUnit,
             },
-          },
-          initialOrder: {
-            connect: {
-              id: orderId,
-            },
-          },
-          stockEvent: {
-            create: {
-              change: quantity,
-              status: 'PENDING',
-              orderStockArrival: {
-                connect: {
-                  orderId,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      await this.stockChangeService.cacheStockQuantityTx(tx, {
-        id: stock.id,
+          } : undefined,
+        }
       });
     });
   }

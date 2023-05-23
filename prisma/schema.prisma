@@ -243,10 +243,22 @@ model StockGroup {
   orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
-  StockGroupEvent   StockGroupEvent[]
+  stockGroupEvent   StockGroupEvent[]
   orderStocks       OrderStock[]
+  stockGroupPrice   StockGroupPrice[]
+
+  /// 도착예정재고일때만 사용
+  isArrived        Boolean?
+  isDirectShipping Boolean?
+  isSyncPrice      Boolean?
 
   @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
+}
+
+enum StockGroupEventStatus {
+  NORMAL
+  CANCELLED
+  PENDING
 }
 
 model StockGroupEvent {
@@ -259,10 +271,16 @@ model StockGroupEvent {
   planId       Int?
 }
 
-enum StockGroupEventStatus {
-  NORMAL
-  CANCELLED
-  PENDING
+model StockGroupPrice {
+  stockGruopId      Int               @id
+  stockGroup        StockGroup        @relation(fields: [stockGruopId], references: [id])
+  officialPriceType OfficialPriceType @default(NONE)
+  officialPrice     Float             @default(0)
+  officialPriceUnit PriceUnit
+  discountType      DiscountType      @default(DEFAULT)
+  unitPrice         Float
+  discountPrice     Float             @default(0)
+  unitPriceUnit     PriceUnit
 }
 
 // User
@@ -655,31 +673,31 @@ model Invoice {
 
 enum AccountType {
   /// 예금
-  deposit
+  DEPOSIT
 }
 
 /// 은행
 enum Bank {
   /// 카카오뱅크
-  KAKAOBANK
+  KAKAO_BANK
   /// 국민은행
-  KOOKMINBANK
+  KOOKMIN_BANK
   /// 기업은행
-  KEB_HANABANK
+  KEB_HANA_BANK
   /// NH농협은행
   NH_BANK
   /// 신한은행
-  SHINHANBANK
+  SHINHAN_BANK
   /// 산업은행
   IBK
   /// 우리은행
-  WOORIBANK
+  WOORI_BANK
   /// 한국씨티은행
-  CITIBANK_KOREA
+  CITI_BANK_KOREA
   /// 하나은행
-  HANABANK
+  HANA_BANK
   /// SC제일은행
-  SC_FIRSTBANK
+  SC_FIRST_BANK
   /// 경남은행
   KYONGNAM_BANK
   /// 광주은행
@@ -732,7 +750,10 @@ model BankAccount {
   /// 예금주명
   accountHolder String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn     Boolean     @default(false)
+  isDeleted     Boolean     @default(false)
+
+  /// 회계 계좌
+  byBankAccountList ByBankAccount[]
 }
 
 /// 카드사
@@ -760,7 +781,7 @@ enum CardCompany {
 /// 카드 정보
 model Card {
   /// 카드 ID
-  cardId      Int         @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   /// 회사 식별자
   companyId   Int
   /// 회사
@@ -774,7 +795,10 @@ model Card {
   /// 소유주명
   cardHolder  String      @db.VarChar(50)
   /// 삭제 여부
-  deletedYn   Boolean     @default(false)
+  isDeleted   Boolean     @default(false)
+
+  /// 카드
+  byCardList ByCard[]
 }
 
 /// 계정 수단
@@ -788,7 +812,7 @@ enum Method {
   /// 현금
   CASH
   /// 상계
-  SET_OFF
+  OFFSET
   /// 기타
   ETC
   /// 전체
@@ -805,27 +829,17 @@ enum AccountedType {
 
 /// 계정 과목
 enum Subject {
-  /// 외상 매출금
-  PAID_ACCOUNTS_RECEIVABLE
-  /// 미수금
-  PAID_UNPAID_AMOUNTS
-  /// 선수금
-  PAID_ADVANCES
-  /// 잡이익
-  PAID_MISCELLANEOUS_INCOME
-  /// 상품 매출
-  PAID_PRODUCT_SALES
-  /// 외상 매입금
-  COLLECTED_ACCOUNTS_RECEIVABLE
-  /// 미지급금
-  COLLECTED_UNPAID_EXPENSES
-  /// 선지급금
-  COLLECTED_PREPAID_EXPENSES
-  //// 잡손실
-  COLLECTED_MISCELLANEOUS_LOSSES
-  /// 상품 매입"
-  COLLECTED_PRODUCT_PURCHASES
-  /// 기타 (공통)
+  /// paid: 외상 매출금 collected: 외상 매입금
+  ACCOUNTS_RECEIVABLE
+  /// paid: 미수금 collected: 미지급금
+  UNPAID
+  /// paid: 선수금 collected: 선지급금
+  ADVANCES
+  /// paid: 잡이익 collected: 잡손실
+  MISCELLANEOUS_INCOME
+  /// paid: 상품 매출 collected: 상품 매입
+  PRODUCT_SALES
+  /// 기타
   ETC
   /// 전체
   All
@@ -873,45 +887,124 @@ model Accounted {
   memo             String        @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
-  /// 파트너 식별자
+  /// 사업자번호
   partnerId        Int
   /// 파트너
   partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  /// 지급 현금 결제
-  byCash ByCash?
-  /// 지급 기타
-  byEtc  ByEtc?
+  /// 현금
+  byCash        ByCash?
+  /// 기타
+  byEtc         ByEtc?
+  // 계좌
+  byBankAccount ByBankAccount?
+  /// 카드
+  byCard        ByCard?
+  /// 상계
+  byOffset      ByOffset?
 }
 
 /// 현금
 model ByCash {
   /// 식별자
   id          Int       @id @default(autoincrement())
-  /// 식별자
+  /// 금액
   cashAmount  Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
-  /// 파트너 식별자
+  /// 회계 식별자
   accountedId Int       @unique
-  /// 파트너
+  /// 회계
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model ByEtc {
   /// 식별자
   id          Int       @id @default(autoincrement())
-  /// 식별자
+  /// 금액
   etcAmount   Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
-  /// 파트너 식별자
+  /// 회계 식별자
   accountedId Int       @unique
-  /// 파트너
+  /// 회계
   accounted   Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-// 할인율
+/// 계좌
+model ByBankAccount {
+  /// 식별자
+  id                Int         @id @default(autoincrement())
+  /// 금액
+  bankAccountAmount Int
+  /// 삭제 여부
+  isDeleted         Boolean     @default(false)
+  /// 회계 식별자
+  accountedId       Int         @unique
+  /// 회계
+  accounted         Accounted   @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 계좌 식별자
+  bankAccountId     Int
+  /// 계좌
+  bankAccount       BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// 카드
+model ByCard {
+  /// 식별자
+  id             Int       @id @default(autoincrement())
+  /// 금액
+  cardAmount     Int
+  /// 수수료 금액
+  chargeAmount   Int
+  /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경)
+  totalAmount    Int
+  /// 수수료 여부
+  isCharge       Boolean   @default(false)
+  /// 승인번호
+  approvalNumber String
+  /// 삭제 여부
+  isDeleted      Boolean   @default(false)
+  /// 회계 식별자
+  accountedId    Int       @unique
+  /// 회계
+  accounted      Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 계좌 식별자
+  cardId         Int
+  /// 계좌
+  card           Card      @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// 상계
+model ByOffset {
+  /// 식별자
+  id           Int           @id @default(autoincrement())
+  /// 금액
+  offsetAmount Int
+  /// 삭제 여부
+  isDeleted    Boolean       @default(false)
+  /// 회계 식별자
+  accountedId  Int           @unique
+  /// 회계
+  accounted    Accounted     @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 상계 '지급' 식별자
+  offsetPair   ByOffsetPair?
+}
+
+model ByOffsetPair {
+  /// 식별자
+  id          Int      @id @default(autoincrement())
+  /// 'paid' 거래의 ID
+  paidId      Int
+  /// 'collected' 거래의 ID
+  collectedId Int
+  /// 상계 매핑
+  byOffsetId  Int      @unique
+  /// 'paid' 거래
+  byOffset    ByOffset @relation(fields: [byOffsetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  // 할인율
+}
+
 model DiscountRateCondition {
   /// 식별자
   id                Int               @id @default(autoincrement())
