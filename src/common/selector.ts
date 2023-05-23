@@ -3,6 +3,11 @@ import { Prisma } from '@prisma/client';
 export const USER = {
   id: true,
   companyId: true,
+  company: {
+    select: {
+      companyRegistrationNumber: true,
+    },
+  },
   username: true,
   name: true,
   email: true,
