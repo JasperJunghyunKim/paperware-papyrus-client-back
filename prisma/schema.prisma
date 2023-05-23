@@ -312,7 +312,7 @@ model Company {
   Partner                        Partner[]
   BankAccount                    BankAccount[]
   Card                           Card[]
-  Securities                     Securities[]
+  security                       Security[]
 }
 
 model BusinessRelationship {
@@ -797,23 +797,69 @@ enum Method {
   All
 }
 
-model Securities {
+/// 증권타입
+enum SecurityType {
+  /// 약속어음
+  PROMISSORY_NOTE
+  /// 전자 어음
+  ELECTRONIC_NOTE
+  /// 전자 채권
+  ELECTRONIC_BOND
+  /// 자기앞 수표
+  PERSONAL_CHECK
+  /// 당좌 수표
+  DEMAND_DRAFT
+  /// 가계 수표
+  HOUSEHOLD_CHECK
+  /// 문방구 어음
+  STATIONERY_NOTE
+  /// 기타
+  ETC
+}
+
+/// 증권 상태
+enum SecurityStatus {
+  /// 기본
+  BASE
+  /// 배서지급
+  ENDORSED
+  /// 정상 결제
+  NORMAL_PAYMENT
+  /// 할인 결제
+  DISCOUNT_PAYMENT
+  /// 부도
+  INSOLVENCY
+  /// 분실
+  LOST
+  /// 보관
+  SAFEKEEPING
+}
+
+/// 발행 상태
+enum DrawedStatus {
+  /// 자사로 등록
+  SELF
+  /// 수금으로 등록
+  ACCOUNTED
+}
+
+model Security {
   /// 식별자
-  id               Int      @id @default(autoincrement())
-  /// 증권 타입(enum)
-  securitiesType   String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  id               Int            @id @default(autoincrement())
+  /// 증권 타입
+  securityType     SecurityType
   /// 증권 번호
-  securitiesSerial String
+  securitySerial   String
   /// 증권 금액
-  securitiesAmount Float
-  /// 증권 상태(enum)
-  securitiesStatus String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
-  /// 발행 상태(enum)
-  drawedStatus     String
+  securityAmount   Float
+  /// 증권 상태
+  securityStatus   SecurityStatus
+  /// 발행 상태
+  drawedStatus     DrawedStatus
   /// 발행일
   drawedDate       DateTime
-  /// 발행 은행(enum)
-  drawedBank       String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  /// 발행 은행
+  drawedBank       Bank
   /// 발행 은행 지점
   drawedBankBranch String
   /// 발행지
@@ -823,7 +869,7 @@ model Securities {
   /// 만기일
   maturedDate      DateTime
   /// 지급은행
-  payingBank       String // ENUM 형식이 필요하면 String 대신 실제 ENUM 형식을 사용하세요
+  payingBank       Bank
   /// 지급은행 지점명
   payingBankBranch String
   /// 지급인
@@ -831,7 +877,7 @@ model Securities {
   /// 메모
   memo             String
   /// 삭제 여부
-  isDeleted        Boolean  @default(false)
+  isDeleted        Boolean        @default(false)
 
   /// 회사 식별자
   companyId Int
@@ -839,7 +885,7 @@ model Securities {
   company   Company @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   /// 회계 유가증권 목록
-  bySecuritiesList BySecurities[]
+  bySecurityList BySecurity[]
 }
 
 /// 회계 타입
@@ -926,7 +972,7 @@ model Accounted {
   /// 상계
   byOffset      ByOffset?
   /// 상계
-  bySecurities  BySecurities?
+  bySecurity    BySecurity?
 }
 
 /// 현금
@@ -1029,38 +1075,48 @@ model ByOffsetPair {
   byOffset    ByOffset @relation(fields: [byOffsetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
+/// 배서 타입
+enum EndorsementType {
+  /// 선택안함
+  NONE
+  /// 자수
+  SELF_NOTE
+  /// 타수
+  OTHERS_NOTE
+}
+
 /// 유가증권
-model BySecurities {
+model BySecurity {
   /// 식별자
-  id               Int               @id @default(autoincrement())
-  /// 배서구분 (enum)
-  endorsementType  String
+  id              Int             @id @default(autoincrement())
+  /// 배서구분
+  endorsementType EndorsementType
   /// 배서자
-  endorsement      String
+  endorsement     String
   /// 유가증권 식별자
-  securitiesId     Int
+  securityId      Int
   /// 유가증권
-  securities       Securities        @relation(fields: [securitiesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  security        Security        @relation(fields: [securityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 회계 식별자
-  accountedId      Int               @unique
+  accountedId     Int             @unique
   /// 회계
-  accounted        Accounted         @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounted       Accounted       @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 유가증권 페어
-  bySecuritiesPair BySecuritiesPair?
+  bySecurityPair  BySecurityPair?
 }
 
 /// 유가증권 페어
-model BySecuritiesPair {
+model BySecurityPair {
   /// 식별자
-  id             Int          @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   /// 'paid' 거래의 ID
-  paidId         Int
+  paidId       Int
   /// 'collected' 거래의 ID
-  collectedId    Int
+  collectedId  Int
   /// 회계 유가증권 id
-  bySecuritiesId Int          @unique
+  bySecurityId Int        @unique
   /// 회계 유가증권 거래
-  bySecurities   BySecurities @relation(fields: [bySecuritiesId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  bySecurity   BySecurity @relation(fields: [bySecurityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model DiscountRateCondition {
