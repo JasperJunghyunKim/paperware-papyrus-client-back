@@ -10,7 +10,7 @@ import { ByOffsetItemResponseDto } from '../api/dto/offset.response';
 export class ByOffsetRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedOffset(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByOffsetItemResponseDto> {
+  async getOffset(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByOffsetItemResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

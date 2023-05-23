@@ -819,8 +819,8 @@ enum SecurityType {
 
 /// 증권 상태
 enum SecurityStatus {
-  /// 기본
-  BASE
+  /// 사용안함
+  NONE
   /// 배서지급
   ENDORSED
   /// 정상 결제
@@ -853,29 +853,29 @@ model Security {
   /// 증권 금액
   securityAmount   Float
   /// 증권 상태
-  securityStatus   SecurityStatus
+  securityStatus   SecurityStatus @default(NONE)
   /// 발행 상태
   drawedStatus     DrawedStatus
   /// 발행일
-  drawedDate       DateTime
+  drawedDate       DateTime?
   /// 발행 은행
-  drawedBank       Bank
+  drawedBank       Bank?
   /// 발행 은행 지점
-  drawedBankBranch String
+  drawedBankBranch String?
   /// 발행지
-  drawedRegion     String
+  drawedRegion     String?
   /// 발행인
-  drawer           String
+  drawer           String?
   /// 만기일
-  maturedDate      DateTime
+  maturedDate      DateTime?
   /// 지급은행
-  payingBank       Bank
+  payingBank       Bank?
   /// 지급은행 지점명
-  payingBankBranch String
+  payingBankBranch String?
   /// 지급인
-  payer            String
+  payer            String?
   /// 메모
-  memo             String
+  memo             String         @default("") @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean        @default(false)
 
@@ -953,7 +953,7 @@ model Accounted {
   /// 계정 과목
   accountedSubject Subject
   /// 메모
-  memo             String        @db.VarChar(500)
+  memo             String        @default("") @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
   /// 사업자번호
@@ -971,7 +971,7 @@ model Accounted {
   byCard        ByCard?
   /// 상계
   byOffset      ByOffset?
-  /// 상계
+  /// 유가증권
   bySecurity    BySecurity?
 }
 
@@ -1093,6 +1093,8 @@ model BySecurity {
   endorsementType EndorsementType
   /// 배서자
   endorsement     String
+  /// 삭제 여부
+  isDeleted       Boolean         @default(false)
   /// 유가증권 식별자
   securityId      Int
   /// 유가증권

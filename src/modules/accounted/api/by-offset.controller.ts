@@ -13,25 +13,25 @@ export class ByOffsetController {
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/offset')
   @UseGuards(AuthGuard)
-  async getcollectedByEtc(
+  async getByOffset(
     @Request() req: AuthType,
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<ByEtcResponse> {
-    return await this.byOffsetRetriveService.getAccountedOffset(req.user.companyId, accountedType, accountedId);
+    return await this.byOffsetRetriveService.getOffset(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/offset')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() byOffsetCreateRequest: ByOffsetCreateRequestDto): Promise<void> {
+  async createByOffset(@Param('accountedType') accountedType: AccountedType, @Body() byOffsetCreateRequest: ByOffsetCreateRequestDto): Promise<void> {
     await this.byOffsetChangeService.createOffset(accountedType, byOffsetCreateRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/offset')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async updateEtc(
+  async updateByOffset(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
     @Body() byOffsetUpdateRequest: ByOffsetUpdateRequestDto,
@@ -42,7 +42,7 @@ export class ByOffsetController {
   @Delete('accountedType/:accountedType/accountedId/:accountedId/offset')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async deleteEtc(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
+  async deleteByOffset(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
     await this.byOffsetChangeService.deleteOffset(accountedType, accountedId);
   }
 }

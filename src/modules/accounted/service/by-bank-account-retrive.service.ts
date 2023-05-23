@@ -10,7 +10,7 @@ import { ByBankAccountItemResponseDto } from '../api/dto/bank-account.response';
 export class ByBankAccountRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByBankAccountItemResponseDto> {
+  async getByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByBankAccountItemResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

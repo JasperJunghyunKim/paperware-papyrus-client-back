@@ -10,7 +10,7 @@ import { AccountedNotFoundException } from '../infrastructure/exception/accounte
 export class ByCashRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByCash(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByEtcResponse> {
+  async getByCash(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByEtcResponse> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {

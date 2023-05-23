@@ -13,25 +13,25 @@ export class ByBankAccountController {
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/bank-account')
   @UseGuards(AuthGuard)
-  async getcollectedByEtc(
+  async getByBankAccount(
     @Request() req: AuthType,
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<ByBankAccountItemResponseDto> {
-    return await this.byBankAccountRetriveService.getAccountedByBankAccount(req.user.companyId, accountedType, accountedId);
+    return await this.byBankAccountRetriveService.getByBankAccount(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/bank-account')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createEtc(@Param('accountedType') accountedType: AccountedType, @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto): Promise<void> {
+  async createByBankAccount(@Param('accountedType') accountedType: AccountedType, @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto): Promise<void> {
     await this.byBankAccountChangeService.createBankAccount(accountedType, byBankAccountCreateRequest);
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/bank-account')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async updateEtc(
+  async updateByBankAccount(
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
     @Body() byBankAccountUpdateRequest: ByBankAccountUpdateRequestDto,
@@ -42,7 +42,7 @@ export class ByBankAccountController {
   @Delete('accountedType/:accountedType/accountedId/:accountedId/bank-account')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async deleteEtc(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
+  async deleteByBankAccount(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
     await this.byBankAccountChangeService.deleteBankAccount(accountedType, accountedId);
   }
 }

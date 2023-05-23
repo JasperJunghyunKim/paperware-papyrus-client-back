@@ -18,7 +18,7 @@ export class ByCashController {
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<CashResponse> {
-    return await this.byCashRetriveService.getAccountedByCash(req.user.companyId, accountedType, accountedId);
+    return await this.byCashRetriveService.getByCash(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/cash')

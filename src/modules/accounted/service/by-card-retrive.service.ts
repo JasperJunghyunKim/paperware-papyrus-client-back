@@ -4,13 +4,13 @@ import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
-import { ByCardItemResponse } from 'src/@shared/api/accounted/by-card.response';
+import { ByCardResponseDto } from '../api/dto/card.response';
 
 @Injectable()
 export class ByCardRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByCard(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByCardItemResponse> {
+  async getByCard(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByCardResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
