@@ -328,11 +328,10 @@ export class StockRetriveService {
             WHERE sg.companyId = ${companyId}
 
             GROUP BY sg.id
+           # HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}
     `;
-
-    console.log(111, stockGroups)
 
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
     for (const stockGroup of stockGroups) {
