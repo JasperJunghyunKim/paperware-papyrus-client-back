@@ -66,6 +66,41 @@ export class StockChangeService {
 
       this.stockValidator.validateQuantity(packaging, quantity);
 
+      console.log(1111)
+      const stockGroup = await tx.stockGroup.findFirst({
+        where: {
+          productId: stockData.product.connect.id,
+          packagingId: stockData.packaging.connect.id,
+          grammage: stockData.grammage,
+          sizeX: stockData.sizeX,
+          sizeY: stockData.sizeY,
+          paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
+          paperColorId: stockData.paperColor?.connect.id || null,
+          paperPatternId: stockData.paperPattern?.connect.id || null,
+          paperCertId: stockData.paperCert?.connect.id || null,
+          warehouseId: stockData.warehouse.connect.id,
+          companyId: stockData.company.connect.id,
+          orderStockId: null,
+          isArrived: null,
+          isDirectShipping: null,
+        }
+      }) || await tx.stockGroup.create({
+        data: {
+          productId: stockData.product.connect.id,
+          packagingId: stockData.packaging.connect.id,
+          grammage: stockData.grammage,
+          sizeX: stockData.sizeX,
+          sizeY: stockData.sizeY,
+          paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
+          paperColorId: stockData.paperColor?.connect.id || null,
+          paperPatternId: stockData.paperPattern?.connect.id || null,
+          paperCertId: stockData.paperCert?.connect.id || null,
+          warehouseId: stockData.warehouse.connect.id,
+          companyId: stockData.company.connect.id,
+        },
+      });
+      console.log(22222)
+
       const stock = await tx.stock.create({
         data: stockData,
         select: {
