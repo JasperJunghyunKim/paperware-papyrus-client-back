@@ -471,6 +471,7 @@ model OrderStock {
   order             Order            @relation(fields: [orderId], references: [id])
   dstLocationId     Int?
   dstLocation       Location?        @relation(fields: [dstLocationId], references: [id])
+  isDirectShipping  Boolean          @default(false)
   planId            Int?             @unique
   plan              Plan?            @relation(fields: [planId], references: [id])
   // 정상매입의 입고 예정 재고 이벤트
