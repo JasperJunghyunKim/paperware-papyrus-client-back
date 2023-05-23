@@ -31,7 +31,7 @@ export class LocationRetriveService {
     });
   }
 
-  // 자사의 기타 도착지 (isPublic = false) 및 거래처(targetCompanyId)의 도착지 (isPublic = true)를 모두 가져온다.
+  // 자사의 기타 도착지 (isPublic = true) 및 거래처(targetCompanyId)의 도착지 (isPublic = false)를 모두 가져온다.
   async getListForSales(params: {
     skip: number;
     take: number;
@@ -44,12 +44,10 @@ export class LocationRetriveService {
         isDeleted: false,
         OR: [
           {
-            isPublic: false,
-            companyId: params.companyId,
+            AND: [{ isPublic: true }, { companyId: params.companyId }],
           },
           {
-            isPublic: true,
-            companyId: params.targetCompanyId,
+            AND: [{ isPublic: false }, { companyId: params.targetCompanyId }],
           },
         ],
       },
