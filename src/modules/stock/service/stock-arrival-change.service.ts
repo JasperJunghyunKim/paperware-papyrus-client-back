@@ -117,10 +117,11 @@ export class StockArrivalChangeService {
         },
       });
 
-      console.log(storedStockGroup);
-
-      // 재고 생성
-      await tx.stock.create({
+      // 재고 생성 
+      const newStock = await tx.stock.create({
+        select: {
+          id: true,
+        },
         data: {
           serial: ulid(),
           company: {
@@ -166,34 +167,45 @@ export class StockArrivalChangeService {
               id: stockGroup.paperCertId,
             },
           } : undefined,
+          isSyncPrice: stockGroup.isSyncPrice,
+          stockPrice: !stockGroup.isSyncPrice ? {
+            create: {
+              officialPriceType: stockGroup.stockGroupPrice.officialPriceType,
+              officialPrice: stockGroup.stockGroupPrice.officialPrice,
+              officialPriceUnit: stockGroup.stockGroupPrice.officialPriceUnit,
+              discountType: stockGroup.stockGroupPrice.discountType,
+              unitPrice: stockGroup.stockGroupPrice.unitPrice,
+              discountPrice: stockGroup.stockGroupPrice.discountPrice,
+              unitPriceUnit: stockGroup.stockGroupPrice.unitPriceUnit,
+            }
+          } : undefined,
+          stockEvent: {
+            create: {
+              change: stockGroup.stockGroupEvent
+                .find(e => e.status === 'PENDING' && e.change > 0).change,
+              status: 'NORMAL',
+            }
+          }
         },
       });
 
+      await this.stock.cacheStockQuantityTx(tx, {
+        id: newStock.id,
+      });
 
-      // const se = await tx.stockEvent.update({
-      //   where: {
-      //     id,
-      //   },
-      //   data: {
-      //     status: 'NORMAL',
-      //   },
-      //   select: {
-      //     stockId: true,
-      //   },
-      // });
+      // 재고그룹에 이벤트 생성 (다른작업에 배정되어 마이너스 된것. 가상.)
+      await tx.stockGroupEvent.createMany({
+        data: stockGroup.stockGroupEvent.filter(e => e.status === 'PENDING' && e.change < 0)
+          .map(e => {
+            return {
+              stockGroupId: storedStockGroup.id,
+              status: 'PENDING',
+              change: e.change,
+              planId: e.planId,
+            }
+          }),
+      });
 
-      // await tx.stock.update({
-      //   data: {
-      //     warehouseId,
-      //   },
-      //   where: {
-      //     id: se.stockId,
-      //   },
-      // });
-
-      // await this.stock.cacheStockQuantityTx(tx, {
-      //   id: se.stockId,
-      // });
     });
   }
 }

@@ -97,6 +97,8 @@ export class StockController {
 
     return {
       items: stockGroups.map((sg) => ({
+        id: sg.stockGroupId,
+        company: null,
         orderCompanyInfo: sg.partnerCompanyId
           ? {
             id: sg.partnerCompanyId,
@@ -124,6 +126,7 @@ export class StockController {
             code: sg.warehouseCode,
             isPublic: sg.warehouseIsPublic,
             address: sg.warehouseAddress,
+            company: null,
           }
           : null,
         product: {
