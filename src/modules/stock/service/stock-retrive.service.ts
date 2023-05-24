@@ -327,6 +327,7 @@ export class StockRetriveService {
                                                                   # 주문관련은 필터링 필요
             
             WHERE sg.companyId = ${companyId}
+              AND (sg.isArrived = ${false} OR sg.isArrived IS NULL)
 
             GROUP BY sg.id
            # HAVING totalQuantity != 0 OR availableQuantity != 0

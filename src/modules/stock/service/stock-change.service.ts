@@ -3,6 +3,7 @@ import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
 import { ulid } from 'ulid';
+import { PrismaTransaction } from 'src/common/types';
 
 @Injectable()
 export class StockChangeService {
@@ -12,10 +13,7 @@ export class StockChangeService {
   ) { }
 
   async cacheStockQuantityTx(
-    tx: Omit<
-      PrismaService,
-      '$on' | '$connect' | '$disconnect' | '$use' | '$transaction'
-    >,
+    tx: PrismaTransaction,
     where: Prisma.StockWhereUniqueInput,
   ) {
     const quantity = await tx.stockEvent.aggregate({
@@ -66,7 +64,6 @@ export class StockChangeService {
 
       this.stockValidator.validateQuantity(packaging, quantity);
 
-      console.log(1111)
       const stockGroup = await tx.stockGroup.findFirst({
         where: {
           productId: stockData.product.connect.id,

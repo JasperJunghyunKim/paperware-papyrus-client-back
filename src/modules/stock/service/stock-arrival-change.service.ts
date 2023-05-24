@@ -118,7 +118,10 @@ export class StockArrivalChangeService {
       });
 
       // 재고 생성 
-      await tx.stock.create({
+      const newStock = await tx.stock.create({
+        select: {
+          id: true,
+        },
         data: {
           serial: ulid(),
           company: {
@@ -176,37 +179,33 @@ export class StockArrivalChangeService {
               unitPriceUnit: stockGroup.stockGroupPrice.unitPriceUnit,
             }
           } : undefined,
-          // stock event 추가
+          stockEvent: {
+            create: {
+              change: stockGroup.stockGroupEvent
+                .find(e => e.status === 'PENDING' && e.change > 0).change,
+              status: 'NORMAL',
+            }
+          }
         },
       });
 
+      await this.stock.cacheStockQuantityTx(tx, {
+        id: newStock.id,
+      });
+
       // 재고그룹에 이벤트 생성 (다른작업에 배정되어 마이너스 된것. 가상.)
+      await tx.stockGroupEvent.createMany({
+        data: stockGroup.stockGroupEvent.filter(e => e.status === 'PENDING' && e.change < 0)
+          .map(e => {
+            return {
+              stockGroupId: storedStockGroup.id,
+              status: 'PENDING',
+              change: e.change,
+              planId: e.planId,
+            }
+          }),
+      });
 
-
-      // const se = await tx.stockEvent.update({
-      //   where: {
-      //     id,
-      //   },
-      //   data: {
-      //     status: 'NORMAL',
-      //   },
-      //   select: {
-      //     stockId: true,
-      //   },
-      // });
-
-      // await tx.stock.update({
-      //   data: {
-      //     warehouseId,
-      //   },
-      //   where: {
-      //     id: se.stockId,
-      //   },
-      // });
-
-      // await this.stock.cacheStockQuantityTx(tx, {
-      //   id: se.stockId,
-      // });
     });
   }
 }
