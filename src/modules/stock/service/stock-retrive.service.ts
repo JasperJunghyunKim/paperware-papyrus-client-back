@@ -329,7 +329,7 @@ export class StockRetriveService {
             WHERE sg.companyId = ${companyId}
               AND (sg.isArrived = ${false} OR sg.isArrived IS NULL)
 
-            GROUP BY sg.id
+            GROUP BY sg.id, partnerCompany.id
            # HAVING totalQuantity != 0 OR availableQuantity != 0
 
              ${limit}

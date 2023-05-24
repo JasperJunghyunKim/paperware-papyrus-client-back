@@ -107,6 +107,7 @@ export class OrderChangeService {
       select: Selector.ORDER,
       data: {
         orderNo: ulid(),
+        orderType: 'NORMAL',
         srcCompany: {
           connect: {
             id: srcCompanyId,

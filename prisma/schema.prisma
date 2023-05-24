@@ -50,6 +50,7 @@ model PaperColorGroup {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
+  Deposit                Deposit[]
 }
 
 model PaperColor {
@@ -61,6 +62,7 @@ model PaperColor {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
+  Deposit                Deposit[]
 }
 
 model PaperPattern {
@@ -72,6 +74,7 @@ model PaperPattern {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
+  Deposit                Deposit[]
 }
 
 model PaperCert {
@@ -83,6 +86,7 @@ model PaperCert {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
+  Deposit                Deposit[]
 }
 
 enum PackagingType {
@@ -102,6 +106,7 @@ model Packaging {
   StockGroup StockGroup[]
   Invoice    Invoice[]
   OrderStock OrderStock[]
+  Deposit    Deposit[]
 
   @@unique([type, packA, packB])
 }
@@ -121,6 +126,7 @@ model Product {
   Invoice                Invoice[]
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
+  Deposit                Deposit[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -447,8 +453,15 @@ enum OrderStatus {
   OFFER_CANCELLED
 }
 
+enum OrderType {
+  NORMAL
+  DEPOSIT
+  WITHDRAW
+}
+
 model Order {
   id                     Int          @id @default(autoincrement())
+  orderType              OrderType
   orderNo                String       @unique
   srcCompanyId           Int
   srcCompany             Company      @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
@@ -463,6 +476,7 @@ model Order {
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   stock                  Stock[]
+  Deposit                Deposit[]
 }
 
 model OrderStock {
@@ -868,6 +882,7 @@ model Partner {
   /// 회계 목록
   accountedList             Accounted[]
   discountRateCondition     DiscountRateCondition[]
+  Deposit                   Deposit[]
 
   @@unique([companyId, companyRegistrationNumber])
 }
@@ -1082,4 +1097,33 @@ model DiscountRateMap {
   isDeleted               Boolean               @default(false)
 
   @@unique([discountRateConditionId, discountRateMapType, discountRateType])
+}
+
+model Deposit {
+  /// 파트너
+  partnerId         Int              @id
+  partner           Partner          @relation(fields: [partnerId], references: [id])
+  /// 재고스펙
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  /// 수량
+  quantity          Int
+  /// 주문
+  orderId           Int?
+  order             Order?           @relation(fields: [orderId], references: [id])
+  /// 메모 (강제 증감시 메모)
+  memo              String           @default("") @db.VarChar(200)
 }
