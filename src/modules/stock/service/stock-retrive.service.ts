@@ -6,6 +6,7 @@ import { StockNotFoundException } from '../infrastructure/exception/stock-notfou
 import { Selector } from 'src/common';
 
 interface StockGroupFromDB {
+  stockGroupId: number;
   warehouseId: number;
   warehouseName: string;
   warehouseCode: string;

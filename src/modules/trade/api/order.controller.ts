@@ -208,6 +208,7 @@ export class OrderController {
     }
 
     const items = await this.retrive.getOrderStockArrivalList({
+      companyId: req.user.companyId,
       skip: query.skip,
       take: query.take,
       orderId: Number(id),
@@ -218,7 +219,7 @@ export class OrderController {
     });
 
     return {
-      items,
+      items, // TODO... 도착예정재고 수정필요
       total,
     };
   }
