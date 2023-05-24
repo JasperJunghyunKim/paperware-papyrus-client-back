@@ -875,7 +875,7 @@ model Security {
   /// 지급인
   payer            String?
   /// 메모
-  memo             String         @db.VarChar(500)
+  memo             String?        @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean        @default(false)
 

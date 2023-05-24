@@ -1,5 +1,5 @@
 import { Bank, DrawedStatus, SecurityStatus, SecurityType } from "@prisma/client";
-import { IsEnum, IsNumber, IsString } from "class-validator";
+import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { SecurityCreateRequest, SecurityUpdateRequest, SecurityUpdateStatusRequest } from "src/@shared/api/inhouse/security.request";
 
 export class SecurityCreateRequestDto implements SecurityCreateRequest {
@@ -12,44 +12,49 @@ export class SecurityCreateRequestDto implements SecurityCreateRequest {
   @IsNumber()
   readonly securityAmount: number;
 
-  @IsEnum(SecurityStatus)
-  readonly securityStatus: SecurityStatus;
-
-  @IsEnum(DrawedStatus)
-  readonly drawedStatus: DrawedStatus;
-
   @IsString()
+  @IsOptional()
   readonly drawedDate: string;
 
   @IsEnum(Bank)
+  @IsOptional()
   readonly drawedBank: Bank;
 
   @IsString()
+  @IsOptional()
   readonly drawedBankBranch: string;
 
   @IsString()
+  @IsOptional()
   readonly drawedRegion: string;
 
   @IsString()
+  @IsOptional()
   readonly drawer: string;
 
   @IsString()
+  @IsOptional()
   readonly maturedDate: string;
 
   @IsEnum(Bank)
+  @IsOptional()
   readonly payingBank: Bank;
 
   @IsString()
+  @IsOptional()
   readonly payingBankBranch: string;
 
   @IsString()
+  @IsOptional()
   readonly payer: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 }
 
 export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
+
   @IsEnum(SecurityType)
   readonly securityType: SecurityType;
 
@@ -59,37 +64,52 @@ export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
   @IsNumber()
   readonly securityAmount: number;
 
+  @IsEnum(SecurityStatus)
+  @IsOptional()
+  readonly securityStatus: SecurityStatus;
+
   @IsEnum(DrawedStatus)
+  @IsOptional()
   readonly drawedStatus: DrawedStatus;
 
   @IsString()
+  @IsOptional()
   readonly drawedDate: string;
 
   @IsEnum(Bank)
+  @IsOptional()
   readonly drawedBank: Bank;
 
   @IsString()
+  @IsOptional()
   readonly drawedBankBranch: string;
 
   @IsString()
+  @IsOptional()
   readonly drawedRegion: string;
 
   @IsString()
+  @IsOptional()
   readonly drawer: string;
 
   @IsString()
+  @IsOptional()
   readonly maturedDate: string;
 
   @IsEnum(Bank)
+  @IsOptional()
   readonly payingBank: Bank;
 
   @IsString()
+  @IsOptional()
   readonly payingBankBranch: string;
 
   @IsString()
+  @IsOptional()
   readonly payer: string;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 }
 
@@ -98,5 +118,6 @@ export class SecurityUpdateStatusRequestDto implements SecurityUpdateStatusReque
   readonly securityStatus: SecurityStatus;
 
   @IsString()
+  @IsOptional()
   readonly memo: string;
 }

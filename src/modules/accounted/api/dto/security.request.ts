@@ -33,6 +33,7 @@ export class BySecurityCreateRequestDto implements BySecurityCreateRequest {
   readonly endorsementType: EndorsementType;
 
   @IsString()
+  @IsOptional()
   readonly endorsement: string;
 
   @IsOptional()
