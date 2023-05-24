@@ -6,7 +6,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getList(params: {
     skip?: number;
@@ -97,18 +97,18 @@ export class OrderRetriveService {
       select: Selector.STOCK_GROUP_EVENT,
       where: {
         status: {
-          not: 'CANCELLED'
+          not: 'CANCELLED',
         },
         stockGroup: {
           orderStock: {
             orderId,
-          }
-        }
+          },
+        },
       },
     });
 
-    return stockGroupEvent.map(sge => ({
-      ...sge
+    return stockGroupEvent.map((sge) => ({
+      ...sge,
     }));
   }
 
@@ -123,8 +123,8 @@ export class OrderRetriveService {
         stockGroup: {
           orderStock: {
             orderId,
-          }
-        }
+          },
+        },
       },
     });
 
