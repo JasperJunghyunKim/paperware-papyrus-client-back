@@ -50,7 +50,6 @@ export class StockArrivalController {
     @Body() dto: StockArrivalApplyDto,
   ): Promise<any> {
     // TODO: 권한 체크
-    // throw new NotImplementedException();
     await this.change.applyStockArrival(stockGroupId, req.user.companyId, dto.warehouseId);
   }
 }

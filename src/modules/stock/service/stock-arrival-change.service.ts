@@ -179,6 +179,11 @@ export class StockArrivalChangeService {
               unitPriceUnit: stockGroup.stockGroupPrice.unitPriceUnit,
             }
           } : undefined,
+          initialOrder: stockGroup.orderStock?.order ? {
+            connect: {
+              id: stockGroup.orderStock.order.id,
+            }
+          } : undefined,
           stockEvent: {
             create: {
               change: stockGroup.stockGroupEvent

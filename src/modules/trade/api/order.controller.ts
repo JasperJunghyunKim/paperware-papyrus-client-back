@@ -219,7 +219,7 @@ export class OrderController {
     });
 
     return {
-      items, // TODO... 도착예정재고 수정필요
+      items,
       total,
     };
   }
