@@ -126,7 +126,7 @@ export class PartnerStockRetriveService {
                   JOIN BusinessRelationship         AS br                 ON br.dstCompanyId = c.id
                   JOIN Company                      AS srcCompany         ON srcCompany.id = br.srcCompanyId
                   JOIN StockGroup                   AS sg                 ON sg.companyId = srcCompany.id
-             LEFT JOIN warehouse                    AS w                  ON w.id = sg.warehouseId
+             LEFT JOIN Warehouse                    AS w                  ON w.id = sg.warehouseId
 
               # 메타데이터
                   JOIN Product                      AS product            ON product.id = sg.productId

@@ -268,7 +268,7 @@ export class StockRetriveService {
                     , COUNT(1) OVER() AS total
 
               FROM StockGroup               AS sg
-         LEFT JOIN warehouse                AS w                  ON w.id = sg.warehouseId
+         LEFT JOIN Warehouse                AS w                  ON w.id = sg.warehouseId
 
               # 메타데이터
               JOIN Product                  AS product            ON product.id = sg.productId
