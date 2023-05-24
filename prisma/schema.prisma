@@ -875,7 +875,7 @@ model Security {
   /// 지급인
   payer            String?
   /// 메모
-  memo             String         @default("") @db.VarChar(500)
+  memo             String         @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean        @default(false)
 
@@ -1103,22 +1103,6 @@ model BySecurity {
   accountedId     Int             @unique
   /// 회계
   accounted       Accounted       @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 유가증권 페어
-  bySecurityPair  BySecurityPair?
-}
-
-/// 유가증권 페어
-model BySecurityPair {
-  /// 식별자
-  id           Int        @id @default(autoincrement())
-  /// 'paid' 거래의 ID
-  paidId       Int
-  /// 'collected' 거래의 ID
-  collectedId  Int
-  /// 회계 유가증권 id
-  bySecurityId Int        @unique
-  /// 회계 유가증권 거래
-  bySecurity   BySecurity @relation(fields: [bySecurityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model DiscountRateCondition {

@@ -22,9 +22,6 @@ export class BySecurityCreateRequestDto implements BySecurityCreateRequest {
   @IsString()
   readonly accountedDate: string;
 
-  @IsNumber()
-  readonly cardId: number;
-
   @IsString()
   @IsOptional()
   readonly memo: string;
@@ -71,7 +68,7 @@ export class BySecurityUpdateRequestDto implements BySecurityUpdateRequest {
 
   @IsNumber()
   @IsOptional()
-  readonly securityId?: number;
+  readonly bySecurityId?: number;
 
   @IsOptional()
   readonly security: Security;
