@@ -25,7 +25,10 @@ import OrderStockCreateRequestDto, {
   OrderStockUpdateRequestDto,
   UpdateTradePriceDto,
 } from './dto/order.request';
-import { OrderStockArrivalListResponse, TradePriceResponse } from 'src/@shared/api';
+import {
+  OrderStockArrivalListResponse,
+  TradePriceResponse,
+} from 'src/@shared/api';
 import { Api } from 'src/@shared';
 
 @Controller('/order')
@@ -33,7 +36,7 @@ export class OrderController {
   constructor(
     private readonly change: OrderChangeService,
     private readonly retrive: OrderRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -53,21 +56,21 @@ export class OrderController {
 
     const status: OrderStatus[] = isSales
       ? [
-        'OFFER_PREPARING',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-        'ACCEPTED',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-      ]
+          'OFFER_PREPARING',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+          'ACCEPTED',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+        ]
       : [
-        'ORDER_PREPARING',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-        'ACCEPTED',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-      ];
+          'ORDER_PREPARING',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+          'ACCEPTED',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+        ];
 
     const items = await this.retrive.getList({
       skip: query.skip,
@@ -170,10 +173,11 @@ export class OrderController {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
 
-    this.change.updateStockOrder({
+    await this.change.updateStockOrder({
       orderId: Number(id),
       locationId: body.locationId,
       warehouseId: body.warehouseId,
+      orderStockId: body.orderStockId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -347,6 +351,6 @@ export class OrderController {
       req.user.companyId,
       parmDto.orderId,
       dto,
-    )
+    );
   }
 }

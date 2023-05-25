@@ -27,21 +27,7 @@ export class InvoiceRetriveService {
       select: Selector.INVOICE,
     });
 
-    return invoices.map((invoice) => ({
-      ...invoice,
-      plan: {
-        ...invoice.plan,
-        orderStock: {
-          order: {
-            ...invoice.plan.orderStock.order,
-            wantedDate: Util.dateToIso8601(
-              invoice.plan.orderStock.order.wantedDate,
-            ),
-          },
-        },
-        createdAt: Util.dateToIso8601(invoice.plan.createdAt),
-      },
-    }));
+    return invoices.map(Util.serialize);
   }
 
   async getCount(params: {

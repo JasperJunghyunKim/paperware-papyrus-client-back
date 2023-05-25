@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PackagingType, Prisma, StockEventStatus, StockGroupEventStatus } from '@prisma/client';
+import {
+  PackagingType,
+  Prisma,
+  StockEventStatus,
+  StockGroupEventStatus,
+} from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockError } from '../infrastructure/constants/stock-error.enum';
 import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
@@ -109,7 +114,7 @@ interface StockGroupFromDB {
 
 @Injectable()
 export class StockRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getStockList(data: Prisma.StockWhereInput) {
     const stocks = await this.prisma.stock.findMany({
@@ -380,5 +385,54 @@ export class StockRetriveService {
     if (!stock)
       throw new StockNotFoundException(StockError.STOCK001, [stockId]);
     return stock;
+  }
+
+  async getStockGroupQuantity(params: {
+    warehouseId: number | null;
+    initialOrderId: number | null;
+    productId: number | null;
+    packagingId: number | null;
+    grammage: number | null;
+    sizeX: number | null;
+    sizeY: number | null;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+  }) {
+    const quantity = await this.prisma.stockEvent.findMany({
+      where: {
+        stock: {
+          warehouseId: params.warehouseId,
+          initialOrderId: params.initialOrderId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+        },
+      },
+      select: {
+        change: true,
+        status: true,
+      },
+    });
+
+    const availableQuantity = quantity.reduce((acc, cur) => {
+      return acc + (cur.status !== 'CANCELLED' ? cur.change : 0);
+    }, 0);
+
+    const totalQuantity = quantity.reduce((acc, cur) => {
+      return acc + (cur.status === 'NORMAL' ? cur.change : 0);
+    }, 0);
+
+    return {
+      availableQuantity,
+      totalQuantity,
+    };
   }
 }

@@ -15,6 +15,7 @@ import {
   StockCreateRequest,
   StockCreateStockPriceRequest,
   StockGroupListQuery,
+  StockGroupQuantityQuery,
   StockListQuery,
 } from 'src/@shared/api/stock/stock.request';
 
@@ -114,7 +115,7 @@ export class StockCreateStockPriceDto implements StockCreateStockPriceRequest {
   readonly officialPriceUnit: PriceUnit;
 
   @IsEnum(DiscountType)
-  readonly discountType: DiscountType
+  readonly discountType: DiscountType;
 
   @IsOptional()
   @IsNumber()
@@ -188,4 +189,59 @@ export class StockCreateRequestDto implements StockCreateRequest {
   readonly stockPrice: StockCreateStockPriceDto;
 }
 
+export class StockGroupQuantityQueryDto implements StockGroupQuantityQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly warehouseId: number | null = null;
 
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly initialOrderId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
+}

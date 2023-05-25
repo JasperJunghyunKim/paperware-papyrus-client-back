@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
+import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
@@ -33,10 +34,7 @@ export class OrderRetriveService {
       },
     });
 
-    return orders.map((order) => ({
-      ...order,
-      wantedDate: Util.dateToIso8601(order.wantedDate),
-    }));
+    return orders.map(Util.serialize);
   }
 
   async getCount(params: {
@@ -75,15 +73,7 @@ export class OrderRetriveService {
       return null;
     }
 
-    const a: Model.Order = {
-      ...order,
-      wantedDate: Util.dateToIso8601(order.wantedDate),
-    };
-
-    return {
-      ...order,
-      wantedDate: Util.dateToIso8601(order.wantedDate),
-    };
+    return Util.serialize(order);
   }
 
   async getOrderStockArrivalList(params: {

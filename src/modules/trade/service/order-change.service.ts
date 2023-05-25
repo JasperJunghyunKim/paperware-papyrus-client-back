@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
@@ -27,8 +32,8 @@ interface UpdateTradePriceParams {
       altSizeX: number;
       altSizeY: number;
       altQuantity: number;
-    }
-  }
+    };
+  };
 }
 
 @Injectable()
@@ -38,7 +43,7 @@ export class OrderChangeService {
     private readonly planChange: PlanChangeService,
     private readonly stockChangeService: StockChangeService,
     private readonly tradePriceValidator: TradePriceValidator,
-  ) { }
+  ) {}
 
   /** 정상거래 주문 생성 */
   async createStockOrder(params: {
@@ -80,6 +85,21 @@ export class OrderChangeService {
       memo,
       wantedDate,
     } = params;
+
+    await this.checkStock({
+      warehouseId,
+      orderStockId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    });
 
     const isEntrusted =
       !!(
@@ -142,16 +162,14 @@ export class OrderChangeService {
       },
     });
 
-    return {
-      ...created,
-      wantedDate: Util.dateToIso8601(created.wantedDate),
-    };
+    return Util.serialize(created);
   }
 
   async updateStockOrder(params: {
     orderId: number;
     locationId: number;
-    warehouseId: number;
+    warehouseId: number | null;
+    orderStockId: number | null;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -169,6 +187,7 @@ export class OrderChangeService {
       orderId,
       locationId,
       warehouseId,
+      orderStockId,
       productId,
       packagingId,
       grammage,
@@ -183,6 +202,21 @@ export class OrderChangeService {
       wantedDate,
     } = params;
 
+    await this.checkStock({
+      warehouseId,
+      orderStockId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    });
+
     await this.prisma.order.update({
       where: {
         id: orderId,
@@ -194,6 +228,7 @@ export class OrderChangeService {
           update: {
             dstLocationId: locationId,
             warehouseId,
+            orderStockId,
             productId,
             packagingId,
             grammage,
@@ -208,6 +243,64 @@ export class OrderChangeService {
         },
       },
     });
+  }
+
+  async checkStock(params: {
+    warehouseId: number | null;
+    orderStockId: number | null;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }) {
+    const order = params.orderStockId
+      ? await this.prisma.orderStock.findUnique({
+          where: {
+            id: params.orderStockId,
+          },
+          select: {
+            orderId: true,
+          },
+        })
+      : null;
+
+    const quantity = await this.prisma.stockEvent.findMany({
+      where: {
+        stock: {
+          warehouseId: params.warehouseId,
+          initialOrderId: order?.orderId ?? null,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+        },
+      },
+      select: {
+        change: true,
+        status: true,
+      },
+    });
+
+    const total = quantity.reduce((acc, cur) => {
+      return acc + (cur.status === 'CANCELLED' ? 0 : cur.change);
+    }, 0);
+
+    if (total < params.quantity) {
+      throw new BadRequestException(
+        `재고가 부족합니다. 가용수량 이내로 수량을 입력해주세요.`,
+      );
+    }
   }
 
   async request(params: { orderId: number }) {
@@ -451,9 +544,10 @@ export class OrderChangeService {
           warehouseId: null,
           orderStockId: order.orderStock.id,
           companyId: order.srcCompanyId,
-        }
+        },
       });
-      if (stockGroup) throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
+      if (stockGroup)
+        throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
 
       await tx.stockGroup.create({
         data: {
@@ -476,20 +570,22 @@ export class OrderChangeService {
             create: {
               change: quantity,
               status: 'PENDING',
-            }
-          },
-          stockGroupPrice: stockPrice ? {
-            create: {
-              officialPriceType: stockPrice.officialPriceType,
-              officialPrice: stockPrice.officialPrice,
-              officialPriceUnit: stockPrice.officialPriceUnit,
-              discountType: stockPrice.discountType,
-              discountPrice: stockPrice.discountPrice,
-              unitPrice: stockPrice.unitPrice,
-              unitPriceUnit: stockPrice.unitPriceUnit,
             },
-          } : undefined,
-        }
+          },
+          stockGroupPrice: stockPrice
+            ? {
+                create: {
+                  officialPriceType: stockPrice.officialPriceType,
+                  officialPrice: stockPrice.officialPrice,
+                  officialPriceUnit: stockPrice.officialPriceUnit,
+                  discountType: stockPrice.discountType,
+                  discountPrice: stockPrice.discountPrice,
+                  unitPrice: stockPrice.unitPrice,
+                  unitPriceUnit: stockPrice.unitPriceUnit,
+                },
+              }
+            : undefined,
+        },
       });
     });
   }
@@ -515,8 +611,8 @@ export class OrderChangeService {
           orderStock: {
             include: {
               packaging: true,
-            }
-          }
+            },
+          },
         },
         where: {
           id: orderId,
@@ -526,7 +622,10 @@ export class OrderChangeService {
       if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
 
       // 금액정보 validation
-      this.tradePriceValidator.validateTradePrice(order.orderStock.packaging.type, tradePriceDto);
+      this.tradePriceValidator.validateTradePrice(
+        order.orderStock.packaging.type,
+        tradePriceDto,
+      );
 
       const tradePrice =
         (await tx.tradePrice.findFirst({
