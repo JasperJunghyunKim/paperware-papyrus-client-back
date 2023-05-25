@@ -1,8 +1,10 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AccountedType, DrawedStatus, Prisma, SecurityStatus } from '@prisma/client';
+import { isNil } from 'lodash';
 import { PrismaService } from 'src/core';
 import { BySecurityCreateRequestDto, BySecurityUpdateRequestDto } from '../api/dto/security.request';
-import { isNil } from 'lodash';
+import { BySecurityError } from '../infrastructure/constants/by-security-error.enum';
+import { BySecurityException } from '../infrastructure/exception/by-security-status.exception';
 
 @Injectable()
 export class BySecurityChangeService {
@@ -118,7 +120,7 @@ export class BySecurityChangeService {
       // 1.  지급일때...
       // 1.1 유가증권의 상태가 배서지급일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
       if (!isNil(resultSecurity)) {
-        throw new HttpException('유가증권이 배서지급에 할당 되어 수정이 되지 않습니다.', 400);
+        throw new BySecurityException(BySecurityError.BY_SECURITY_001, { bySecurityId: bySecurityUpdateRequest.security.securityId });
       }
 
       await this.prisma.accounted.update({
@@ -127,7 +129,7 @@ export class BySecurityChangeService {
           accountedSubject: bySecurityUpdateRequest.accountedSubject,
           accountedMethod: bySecurityUpdateRequest.accountedMethod,
           accountedDate: bySecurityUpdateRequest.accountedDate,
-          memo: bySecurityUpdateRequest.memo ?? '',
+          memo: bySecurityUpdateRequest.memo,
           bySecurity: {
             update: {
               securityId: bySecurityUpdateRequest.security.securityId,
@@ -171,7 +173,7 @@ export class BySecurityChangeService {
 
       // 해당 row가 있으면 지급에 등록된 정보가 있다는 뜻이다.
       if (!isNil(resultAccounted)) {
-        throw new HttpException('유가증권이 이미 사용 상태로 확인 됩니다. 유가증권 관리에 상태를 변경해서 사용하세요', 400);
+        throw new BySecurityException(BySecurityError.BY_SECURITY_002, { bySecurityId: bySecurityUpdateRequest.security.securityId });
       }
 
       this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -181,7 +183,7 @@ export class BySecurityChangeService {
             accountedSubject: bySecurityUpdateRequest.accountedSubject,
             accountedMethod: bySecurityUpdateRequest.accountedMethod,
             accountedDate: bySecurityUpdateRequest.accountedDate,
-            memo: bySecurityUpdateRequest.memo ?? '',
+            memo: bySecurityUpdateRequest.memo,
             bySecurity: {
               update: {
                 endorsement: bySecurityUpdateRequest.endorsement,
@@ -212,7 +214,7 @@ export class BySecurityChangeService {
             payingBank: bySecurityUpdateRequest.security.payingBank,
             payingBankBranch: bySecurityUpdateRequest.security.payingBankBranch,
             payer: bySecurityUpdateRequest.security.payer,
-            memo: bySecurityUpdateRequest.memo ?? '',
+            memo: bySecurityUpdateRequest.memo,
           },
           where: {
             id: bySecurityUpdateRequest.security.securityId,
@@ -301,8 +303,8 @@ export class BySecurityChangeService {
           }
         });
 
-        if (result.bySecurity.security.securityStatus !== SecurityStatus.NONE) {
-          throw new HttpException('유가증권이 이미 사용 상태로 확인 됩니다. 유가증권 관리에 상태를 변경해서 사용하세요', 400);
+        if (result?.bySecurity?.security?.securityStatus !== SecurityStatus.NONE) {
+          throw new BySecurityException(BySecurityError.BY_SECURITY_002, { bySecurityId: result.bySecurity.id });
         }
 
         await tx.accounted.update({

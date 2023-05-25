@@ -3,7 +3,7 @@ import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
+import { AccountedNotFoundException } from '../infrastructure/exception/by-security-status.exception';
 import { ByBankAccountItemResponseDto } from '../api/dto/bank-account.response';
 
 @Injectable()

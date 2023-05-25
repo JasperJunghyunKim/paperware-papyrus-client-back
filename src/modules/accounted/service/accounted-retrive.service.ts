@@ -5,7 +5,7 @@ import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import { AccountedRequest } from '../api/dto/accounted.request';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
+import { AccountedNotFoundException } from '../infrastructure/exception/by-security-status.exception';
 
 @Injectable()
 export class AccountedRetriveService {
