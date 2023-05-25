@@ -10,33 +10,40 @@ export class BySecurityChangeService {
 
   async createBySecurity(accountedType: AccountedType, bySecurityCreateRequest: BySecurityCreateRequestDto): Promise<void> {
     if (accountedType === AccountedType.PAID) {
-      // 지급일때...
-      await this.prisma.accounted.create({
-        data: {
-          partner: {
-            connect: {
-              companyId_companyRegistrationNumber: {
-                companyRegistrationNumber: bySecurityCreateRequest.companyRegistrationNumber,
-                companyId: bySecurityCreateRequest.companyId,
-              }
+
+      this.prisma.$transaction(async (tx) => {
+        // 지급일때...
+        await tx.accounted.create({
+          data: {
+            partner: {
+              connect: {
+                companyId_companyRegistrationNumber: {
+                  companyRegistrationNumber: bySecurityCreateRequest.companyRegistrationNumber,
+                  companyId: bySecurityCreateRequest.companyId,
+                }
+              },
+            },
+            accountedType,
+            accountedSubject: bySecurityCreateRequest.accountedSubject,
+            accountedMethod: bySecurityCreateRequest.accountedMethod,
+            accountedDate: bySecurityCreateRequest.accountedDate,
+            memo: bySecurityCreateRequest.memo,
+            bySecurity: {
+              create: {
+                securityId: bySecurityCreateRequest.security.securityId,
+              },
             },
           },
-          accountedType,
-          accountedSubject: bySecurityCreateRequest.accountedSubject,
-          accountedMethod: bySecurityCreateRequest.accountedMethod,
-          accountedDate: bySecurityCreateRequest.accountedDate,
-          memo: bySecurityCreateRequest.memo,
-          bySecurity: {
-            create: {
-              endorsement: bySecurityCreateRequest.endorsement,
-              endorsementType: bySecurityCreateRequest.endorsementType,
-              securityId: bySecurityCreateRequest.security.securityId,
-            },
-            connect: {
-              id: bySecurityCreateRequest.security.securityId,
-            }
+        })
+
+        await tx.security.update({
+          data: {
+            securityStatus: SecurityStatus.ENDORSED,
           },
-        },
+          where: {
+            id: bySecurityCreateRequest.security.securityId,
+          }
+        })
       })
     } else {
       // 수금일때...
@@ -102,12 +109,15 @@ export class BySecurityChangeService {
         },
         where: {
           id: bySecurityUpdateRequest.security.securityId,
+          NOT: {
+            securityStatus: SecurityStatus.ENDORSED,
+          }
         }
       })
 
       // 1.  지급일때...
       // 1.1 유가증권의 상태가 배서지급일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
-      if (resultSecurity.securityStatus !== SecurityStatus.ENDORSED) {
+      if (!isNil(resultSecurity)) {
         throw new HttpException('유가증권이 배서지급에 할당 되어 수정이 되지 않습니다.', 400);
       }
 
@@ -120,13 +130,7 @@ export class BySecurityChangeService {
           memo: bySecurityUpdateRequest.memo ?? '',
           bySecurity: {
             update: {
-              endorsement: bySecurityUpdateRequest.endorsement,
-              endorsementType: bySecurityUpdateRequest.endorsementType,
-              security: {
-                update: {
-                  id: bySecurityUpdateRequest.security.securityId,
-                }
-              }
+              securityId: bySecurityUpdateRequest.security.securityId,
             }
           },
         },

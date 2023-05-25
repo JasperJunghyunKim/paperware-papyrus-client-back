@@ -30,11 +30,16 @@ export class BySecurityCreateRequestDto implements BySecurityCreateRequest {
   readonly amount: number;
 
   @IsEnum(EndorsementType)
+  @IsOptional()
   readonly endorsementType: EndorsementType;
 
   @IsString()
   @IsOptional()
   readonly endorsement: string;
+
+  @IsNumber()
+  @IsOptional()
+  readonly bySecurityId?: number;
 
   @IsOptional()
   readonly security: Security;
@@ -62,6 +67,7 @@ export class BySecurityUpdateRequestDto implements BySecurityUpdateRequest {
   readonly amount: number;
 
   @IsEnum(EndorsementType)
+  @IsOptional()
   readonly endorsementType: EndorsementType;
 
   @IsString()

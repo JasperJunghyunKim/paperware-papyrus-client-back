@@ -1088,21 +1088,21 @@ enum EndorsementType {
 /// 유가증권
 model BySecurity {
   /// 식별자
-  id              Int             @id @default(autoincrement())
+  id              Int              @id @default(autoincrement())
   /// 배서구분
-  endorsementType EndorsementType
+  endorsementType EndorsementType?
   /// 배서자
   endorsement     String?
   /// 삭제 여부
-  isDeleted       Boolean         @default(false)
+  isDeleted       Boolean          @default(false)
   /// 유가증권 식별자
   securityId      Int
   /// 유가증권
-  security        Security        @relation(fields: [securityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  security        Security         @relation(fields: [securityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 회계 식별자
-  accountedId     Int             @unique
+  accountedId     Int              @unique
   /// 회계
-  accounted       Accounted       @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounted       Accounted        @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model DiscountRateCondition {
