@@ -88,7 +88,7 @@ export class BySecurityRetriveService {
           memo: accounted.memo,
           amount: accounted.bySecurity.security.securityAmount,
           endorsementType: accounted.bySecurity.endorsementType,
-          endorsement: accounted.bySecurity.endorsementType,
+          endorsement: accounted.bySecurity.endorsement,
           security: {
             securityId: accounted.bySecurity.securityId,
             securityType: accounted.bySecurity.security.securityType,
