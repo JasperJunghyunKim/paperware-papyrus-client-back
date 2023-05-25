@@ -8,7 +8,7 @@ import { ByCashCreateRequestDto, ByCashUpdateRequestDto } from '../api/dto/cash.
 export class ByCashChangeService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async createCash(accountedType: AccountedType, byCashCreateRequestDto: ByCashCreateRequestDto): Promise<void> {
+  async createCash(accountedType: AccountedType, byCashCreateRequest: ByCashCreateRequestDto): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -16,19 +16,19 @@ export class ByCashChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: byCashCreateRequestDto.companyRegistrationNumber,
-                  companyId: byCashCreateRequestDto.companyId,
+                  companyRegistrationNumber: byCashCreateRequest.companyRegistrationNumber,
+                  companyId: byCashCreateRequest.companyId,
                 }
               },
             },
             accountedType,
-            accountedSubject: byCashCreateRequestDto.accountedSubject,
-            accountedMethod: byCashCreateRequestDto.accountedMethod,
-            accountedDate: byCashCreateRequestDto.accountedDate,
-            memo: byCashCreateRequestDto.memo ?? '',
+            accountedSubject: byCashCreateRequest.accountedSubject,
+            accountedMethod: byCashCreateRequest.accountedMethod,
+            accountedDate: byCashCreateRequest.accountedDate,
+            memo: byCashCreateRequest.memo,
             byCash: {
               create: {
-                cashAmount: byCashCreateRequestDto.amount,
+                cashAmount: byCashCreateRequest.amount,
               }
             },
           },
@@ -49,7 +49,7 @@ export class ByCashChangeService {
             accountedSubject: byCashUpdateRequestDto.accountedSubject,
             accountedMethod: byCashUpdateRequestDto.accountedMethod,
             accountedDate: byCashUpdateRequestDto.accountedDate,
-            memo: byCashUpdateRequestDto.memo ?? '',
+            memo: byCashUpdateRequestDto.memo,
             byCash: {
               update: {
                 cashAmount: byCashUpdateRequestDto.amount,

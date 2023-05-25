@@ -25,7 +25,7 @@ export class ByCardChangeService {
             accountedSubject: byCardCreateRequest.accountedSubject,
             accountedMethod: byCardCreateRequest.accountedMethod,
             accountedDate: byCardCreateRequest.accountedDate,
-            memo: byCardCreateRequest.memo ?? '',
+            memo: byCardCreateRequest.memo,
             byCard: {
               create: {
                 cardAmount: byCardCreateRequest.amount,
@@ -55,7 +55,7 @@ export class ByCardChangeService {
             accountedSubject: byCardUpdateRequest.accountedSubject,
             accountedMethod: byCardUpdateRequest.accountedMethod,
             accountedDate: byCardUpdateRequest.accountedDate,
-            memo: byCardUpdateRequest.memo ?? '',
+            memo: byCardUpdateRequest.memo,
             byCard: {
               update: {
                 cardAmount: byCardUpdateRequest.amount,

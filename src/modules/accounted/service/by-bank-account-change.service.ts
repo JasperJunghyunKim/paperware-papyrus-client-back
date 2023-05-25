@@ -26,7 +26,7 @@ export class ByBankAccountChangeService {
             accountedSubject: byBankCreateRequest.accountedSubject,
             accountedMethod: byBankCreateRequest.accountedMethod,
             accountedDate: byBankCreateRequest.accountedDate,
-            memo: byBankCreateRequest.memo ?? '',
+            memo: byBankCreateRequest.memo,
             byBankAccount: {
               create: {
                 bankAccountAmount: byBankCreateRequest.amount,
@@ -52,7 +52,7 @@ export class ByBankAccountChangeService {
             accountedSubject: byBankUpdateRequest.accountedSubject,
             accountedMethod: byBankUpdateRequest.accountedMethod,
             accountedDate: byBankUpdateRequest.accountedDate,
-            memo: byBankUpdateRequest.memo ?? '',
+            memo: byBankUpdateRequest.memo,
             byBankAccount: {
               update: {
                 bankAccountAmount: byBankUpdateRequest.amount,

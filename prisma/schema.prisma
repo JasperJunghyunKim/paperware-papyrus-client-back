@@ -953,7 +953,7 @@ model Accounted {
   /// 계정 과목
   accountedSubject Subject
   /// 메모
-  memo             String        @default("") @db.VarChar(500)
+  memo             String?       @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
   /// 사업자번호
@@ -1092,7 +1092,7 @@ model BySecurity {
   /// 배서구분
   endorsementType EndorsementType
   /// 배서자
-  endorsement     String
+  endorsement     String?
   /// 삭제 여부
   isDeleted       Boolean         @default(false)
   /// 유가증권 식별자

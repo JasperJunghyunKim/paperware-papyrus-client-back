@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { AccountedType, DrawedStatus, Prisma, SecurityStatus } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { BySecurityCreateRequestDto, BySecurityUpdateRequestDto } from '../api/dto/security.request';
+import { isNil } from 'lodash';
 
 @Injectable()
 export class BySecurityChangeService {
@@ -24,7 +25,7 @@ export class BySecurityChangeService {
           accountedSubject: bySecurityCreateRequest.accountedSubject,
           accountedMethod: bySecurityCreateRequest.accountedMethod,
           accountedDate: bySecurityCreateRequest.accountedDate,
-          memo: bySecurityCreateRequest.memo ?? '',
+          memo: bySecurityCreateRequest.memo,
           bySecurity: {
             create: {
               endorsement: bySecurityCreateRequest.endorsement,
@@ -155,6 +156,7 @@ export class BySecurityChangeService {
         },
         where: {
           id: accountedId,
+          accountedType: AccountedType.PAID,
           bySecurity: {
             security: {
               id: bySecurityUpdateRequest.security.securityId,
@@ -163,7 +165,8 @@ export class BySecurityChangeService {
         }
       });
 
-      if (resultAccounted.bySecurity.security.securityStatus !== SecurityStatus.NONE || resultAccounted.accountedType === AccountedType.PAID) {
+      // 해당 row가 있으면 지급에 등록된 정보가 있다는 뜻이다.
+      if (!isNil(resultAccounted)) {
         throw new HttpException('유가증권이 이미 사용 상태로 확인 됩니다. 유가증권 관리에 상태를 변경해서 사용하세요', 400);
       }
 

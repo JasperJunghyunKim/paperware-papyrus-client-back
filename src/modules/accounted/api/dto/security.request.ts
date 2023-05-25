@@ -65,6 +65,7 @@ export class BySecurityUpdateRequestDto implements BySecurityUpdateRequest {
   readonly endorsementType: EndorsementType;
 
   @IsString()
+  @IsOptional()
   readonly endorsement: string;
 
   @IsNumber()

@@ -25,7 +25,7 @@ export class ByEtcChangeService {
             accountedSubject: byEtcCreateRequest.accountedSubject,
             accountedMethod: byEtcCreateRequest.accountedMethod,
             accountedDate: byEtcCreateRequest.accountedDate,
-            memo: byEtcCreateRequest.memo ?? '',
+            memo: byEtcCreateRequest.memo,
             byEtc: {
               create: {
                 etcAmount: byEtcCreateRequest.amount,
