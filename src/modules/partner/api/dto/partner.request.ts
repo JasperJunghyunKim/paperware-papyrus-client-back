@@ -3,18 +3,15 @@ import { PartnerResponse } from 'src/@shared/api';
 
 export class PartnerResponseDto implements PartnerResponse {
   @IsNumber()
-  partnerId: number;
-
-  @IsNumber()
-  companyId: number;
+  readonly companyId: number;
 
   @IsString()
-  companyRegistrationNumber: string;
+  readonly companyRegistrationNumber: string;
 
   @IsString()
-  partnerNickName: string;
+  readonly partnerNickName: string;
 
   // eslint-disable-next-line @typescript-eslint/no-inferrable-types
   @IsString()
-  memo: string = '';
+  readonly memo: string = '';
 }

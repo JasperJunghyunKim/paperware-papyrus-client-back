@@ -12,7 +12,6 @@ export class PartnerRetriveService {
       from(
         this.prisma.partner.findMany({
           select: {
-            id: true,
             companyId: true,
             partnerNickName: true,
             companyRegistrationNumber: true,
@@ -26,7 +25,6 @@ export class PartnerRetriveService {
         map((partner) => {
           return partner.map((partner) => {
             return {
-              partnerId: partner.id,
               companyId: partner.companyId,
               companyRegistrationNumber: partner.companyRegistrationNumber,
               partnerNickName: partner.partnerNickName,

@@ -3,7 +3,9 @@ import { Type } from "class-transformer";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 import { AccountedQuery } from "src/@shared/api";
 
-export class AccountedRequest implements AccountedQuery {
+type AccountedRequestDto = Omit<AccountedQuery, 'partnerNickName'>;
+
+export class AccountedRequest implements AccountedRequestDto {
   @Type(() => Number)
   @IsNumber()
   readonly skip: number;
