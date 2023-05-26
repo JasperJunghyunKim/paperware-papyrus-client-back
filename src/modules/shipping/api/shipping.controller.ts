@@ -73,4 +73,26 @@ export class ShippingController {
       invoiceIds: body.invoiceIds,
     });
   }
+
+  @Post(':id/forward')
+  @UseGuards(AuthGuard)
+  async forward(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+  ): Promise<void> {
+    await this.change.forward({
+      shippingId: id,
+    });
+  }
+
+  @Post(':id/backward')
+  @UseGuards(AuthGuard)
+  async backward(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+  ): Promise<void> {
+    await this.change.backward({
+      shippingId: id,
+    });
+  }
 }

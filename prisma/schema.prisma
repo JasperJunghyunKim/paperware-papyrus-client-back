@@ -643,10 +643,11 @@ enum ShippingStatus {
 }
 
 model Shipping {
-  id         Int       @id @default(autoincrement())
-  shippingNo String    @unique
+  id         Int            @id @default(autoincrement())
+  shippingNo String         @unique
   companyId  Int
-  company    Company   @relation(fields: [companyId], references: [id])
+  status     ShippingStatus @default(PREPARING)
+  company    Company        @relation(fields: [companyId], references: [id])
   invoice    Invoice[]
 }
 

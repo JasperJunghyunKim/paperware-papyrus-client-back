@@ -443,6 +443,7 @@ export const TASK = {
 export const SHIPPING = {
   id: true,
   shippingNo: true,
+  status: true,
   company: {
     select: COMPANY,
   },
