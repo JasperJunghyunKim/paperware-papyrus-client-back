@@ -3,6 +3,9 @@ import { PartnerResponse } from 'src/@shared/api';
 
 export class PartnerResponseDto implements PartnerResponse {
   @IsNumber()
+  partnerId: number;
+
+  @IsNumber()
   companyId: number;
 
   @IsString()

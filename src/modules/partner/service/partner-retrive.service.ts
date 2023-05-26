@@ -5,13 +5,14 @@ import { PartnerResponseDto } from '../api/dto/partner.request';
 
 @Injectable()
 export class PartnerRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getPartnerList(companyId: number): Promise<PartnerResponseDto[]> {
     return await lastValueFrom(
       from(
         this.prisma.partner.findMany({
           select: {
+            id: true,
             companyId: true,
             partnerNickName: true,
             companyRegistrationNumber: true,
@@ -25,6 +26,7 @@ export class PartnerRetriveService {
         map((partner) => {
           return partner.map((partner) => {
             return {
+              partnerId: partner.id,
               companyId: partner.companyId,
               companyRegistrationNumber: partner.companyRegistrationNumber,
               partnerNickName: partner.partnerNickName,
