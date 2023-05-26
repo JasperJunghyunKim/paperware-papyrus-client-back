@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetriveService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getPlanList(params: {
     companyId: number;

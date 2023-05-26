@@ -50,7 +50,8 @@ model PaperColorGroup {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
-  Deposit                Deposit[]
+  deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
 }
 
 model PaperColor {
@@ -62,7 +63,8 @@ model PaperColor {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
-  Deposit                Deposit[]
+  deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
 }
 
 model PaperPattern {
@@ -74,7 +76,8 @@ model PaperPattern {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
-  Deposit                Deposit[]
+  deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
 }
 
 model PaperCert {
@@ -86,7 +89,8 @@ model PaperCert {
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
-  Deposit                Deposit[]
+  deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
 }
 
 enum PackagingType {
@@ -97,16 +101,17 @@ enum PackagingType {
 }
 
 model Packaging {
-  id         Int           @id @default(autoincrement())
-  name       String
-  type       PackagingType
-  packA      Int
-  packB      Int
-  stock      Stock[]
-  StockGroup StockGroup[]
-  Invoice    Invoice[]
-  OrderStock OrderStock[]
-  Deposit    Deposit[]
+  id           Int            @id @default(autoincrement())
+  name         String
+  type         PackagingType
+  packA        Int
+  packB        Int
+  stock        Stock[]
+  StockGroup   StockGroup[]
+  Invoice      Invoice[]
+  OrderStock   OrderStock[]
+  deposit      Deposit[]
+  orderDeposit OrderDeposit[]
 
   @@unique([type, packA, packB])
 }
@@ -126,7 +131,8 @@ model Product {
   Invoice                Invoice[]
   OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
-  Deposit                Deposit[]
+  deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -460,23 +466,24 @@ enum OrderType {
 }
 
 model Order {
-  id                     Int          @id @default(autoincrement())
+  id                     Int            @id @default(autoincrement())
   orderType              OrderType
-  orderNo                String       @unique
+  orderNo                String         @unique
   srcCompanyId           Int
-  srcCompany             Company      @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
+  srcCompany             Company        @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId           Int
-  dstCompany             Company      @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
-  status                 OrderStatus  @default(ORDER_PREPARING)
-  isEntrusted            Boolean      @default(false)
+  dstCompany             Company        @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
+  status                 OrderStatus    @default(ORDER_PREPARING)
+  isEntrusted            Boolean        @default(false)
   memo                   String
   wantedDate             DateTime?
   stockAcceptedCompanyId Int?
-  isStockRejected        Boolean      @default(false)
+  isStockRejected        Boolean        @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   stock                  Stock[]
-  Deposit                Deposit[]
+  orderDeposit           OrderDeposit[]
+  DepositEvent           DepositEvent[]
 }
 
 model OrderStock {
@@ -881,7 +888,7 @@ model Partner {
   /// 회계 목록
   accountedList             Accounted[]
   discountRateCondition     DiscountRateCondition[]
-  Deposit                   Deposit[]
+  deposit                   Deposit[]
 
   @@unique([companyId, companyRegistrationNumber])
 }
@@ -1098,10 +1105,11 @@ model DiscountRateMap {
   @@unique([discountRateConditionId, discountRateMapType, discountRateType])
 }
 
-model Deposit {
-  /// 파트너
-  partnerId         Int              @id
-  partner           Partner          @relation(fields: [partnerId], references: [id])
+model OrderDeposit {
+  id                Int              @id @default(autoincrement())
+  /// 주문
+  orderId           Int
+  order             Order            @relation(fields: [orderId], references: [id])
   /// 재고스펙
   productId         Int
   product           Product          @relation(fields: [productId], references: [id])
@@ -1120,9 +1128,51 @@ model Deposit {
   paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
   /// 수량
   quantity          Int
+}
+
+enum DepositType {
+  PURCHASE
+  SALES
+}
+
+model Deposit {
+  id                Int              @id
+  /// 파트너
+  partnerId         Int
+  partner           Partner          @relation(fields: [partnerId], references: [id])
+  /// 타입
+  depositType       DepositType
+  /// 재고스펙
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  depositEvents     DepositEvent[]
+}
+
+model DepositEvent {
+  id        Int      @id
+  /// 보관
+  depositId Int
+  deposit   Deposit  @relation(fields: [depositId], references: [id])
+  /// 수량
+  change    Int
   /// 주문
-  orderId           Int?
-  order             Order?           @relation(fields: [orderId], references: [id])
+  orderId   Int?
+  order     Order?   @relation(fields: [orderId], references: [id])
   /// 메모 (강제 증감시 메모)
-  memo              String           @default("") @db.VarChar(200)
+  memo      String   @default("") @db.VarChar(200)
+  /// 생성일
+  createdAt DateTime @default(now())
 }
