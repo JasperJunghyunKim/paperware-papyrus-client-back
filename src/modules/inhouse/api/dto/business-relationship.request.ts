@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -80,8 +81,9 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   type: 'PURCHASE' | 'SALES' | 'BOTH';
   @IsString()
   partnerNickname: string;
+  @Optional()
   @IsString()
-  invoiceCode: string;
+  invoiceCode: string = '';
   @IsString()
   address: string;
   @IsOptional()

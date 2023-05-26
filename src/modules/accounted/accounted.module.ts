@@ -16,6 +16,9 @@ import { ByBankAccountRetriveService } from './service/by-bank-account-retrive.s
 import { ByBankAccountChangeService } from './service/by-bank-account-change.service';
 import { ByOffsetChangeService } from './service/by-offset-change.service';
 import { ByOffsetRetriveService } from './service/by-offset-retrive.service';
+import { BySecurityController } from './api/by-security.controller';
+import { BySecurityChangeService } from './service/by-security-change.service';
+import { BySecurityRetriveService } from './service/by-security-retrive.service';
 
 @Module({
   controllers: [
@@ -25,6 +28,7 @@ import { ByOffsetRetriveService } from './service/by-offset-retrive.service';
     ByBankAccountController,
     ByCardController,
     ByOffsetController,
+    BySecurityController,
   ],
   providers: [
     AccountedRetriveService,
@@ -38,6 +42,8 @@ import { ByOffsetRetriveService } from './service/by-offset-retrive.service';
     ByBankAccountChangeService,
     ByOffsetRetriveService,
     ByOffsetChangeService,
+    BySecurityRetriveService,
+    BySecurityChangeService,
   ],
 })
 export class AccountedModule { }

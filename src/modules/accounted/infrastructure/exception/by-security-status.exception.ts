@@ -1,10 +1,10 @@
-import { NotFoundException } from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { AppError } from 'src/@shared/models/error';
 
 /**
- * 회계 데이터 없음(`NOT_FOUND: 404`) 에러이다.
+ * 유가증권 상태 변경 에러이다.
  */
-export class AccountedNotFoundException extends NotFoundException {
+export class BySecurityException extends UnprocessableEntityException {
   // eslint-disable-next-line constructor-super
   constructor(
     errData?: AppError | string,
@@ -21,5 +21,3 @@ export class AccountedNotFoundException extends NotFoundException {
     }
   }
 }
-
-

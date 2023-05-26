@@ -6,7 +6,6 @@ import { PrismaService } from 'src/core';
 import { AccountedRequest } from '../api/dto/accounted.request';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
 import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
-
 @Injectable()
 export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) { }
@@ -51,6 +50,16 @@ export class AccountedRetriveService {
           byBankAccount: true,
           byCard: true,
           byOffset: true,
+          bySecurity: {
+            select: {
+              security: {
+                select: {
+                  securityAmount: true,
+                  securityStatus: true,
+                }
+              }
+            }
+          },
           partner: {
             select: {
               companyId: true,
@@ -85,6 +94,8 @@ export class AccountedRetriveService {
             switch (method) {
               case Method.CASH:
                 return accounted.byCash.cashAmount;
+              case Method.PROMISSORY_NOTE:
+                return accounted.bySecurity.security.securityAmount;
               case Method.ETC:
                 return accounted.byEtc.etcAmount;
               case Method.ACCOUNT_TRANSFER:
@@ -108,6 +119,7 @@ export class AccountedRetriveService {
             amount: getAmount(accounted.accountedMethod),
             memo: accounted.memo,
             gubun: '',
+            securityStatus: accounted.accountedMethod === Method.PROMISSORY_NOTE ? accounted.bySecurity.security.securityStatus : undefined,
           }
         })
 

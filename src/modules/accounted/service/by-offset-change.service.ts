@@ -21,7 +21,7 @@ export class ByOffsetChangeService {
       accountedSubject: byOffsetCreateRequest.accountedSubject,
       accountedMethod: byOffsetCreateRequest.accountedMethod,
       accountedDate: byOffsetCreateRequest.accountedDate,
-      memo: byOffsetCreateRequest.memo ?? '',
+      memo: byOffsetCreateRequest.memo,
       byOffset: {
         create: {
           offsetAmount: byOffsetCreateRequest.amount,

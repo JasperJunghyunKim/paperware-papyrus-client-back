@@ -5,29 +5,29 @@ import { BankAccount } from "src/@shared/models";
 
 export class BankAccountListResponseDto implements BankAccountListResponse {
   @IsArray()
-  items: BankAccount[];
+  readonly items: BankAccount[];
 
   @IsNumber()
-  total: number;
+  readonly total: number;
 }
 
 
 export class BankAccountItemResponseDto implements BankAccountItemResponse {
   @IsNumber()
-  accountId: number;
+  readonly accountId: number;
 
   @IsEnum(Bank)
-  bankComapny: Bank;
+  readonly bankComapny: Bank;
 
   @IsString()
-  accountName: string;
+  readonly accountName: string;
 
   @IsEnum(AccountType)
-  accountType: AccountType;
+  readonly accountType: AccountType;
 
   @IsString()
-  accountNumber: string;
+  readonly accountNumber: string;
 
   @IsString()
-  accountHolder: string;
+  readonly accountHolder: string;
 }

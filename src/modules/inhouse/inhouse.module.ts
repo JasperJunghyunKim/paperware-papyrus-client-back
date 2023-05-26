@@ -28,6 +28,9 @@ import { BankAccountController } from './api/bank-account.controller';
 import { DiscountRateChangeService } from './service/discount-rate.change.service';
 import { DiscountRateRetriveService } from './service/discount-rate.retrive.service';
 import { DiscountRateController } from './api/discount-rate.controller';
+import { SecurityController } from './api/security.controller';
+import { SecurityChangeService } from './service/security-change.service';
+import { SecurityRetriveService } from './service/security-retrive.service';
 
 @Module({
   providers: [
@@ -50,6 +53,8 @@ import { DiscountRateController } from './api/discount-rate.controller';
     CardChangeService,
     DiscountRateChangeService,
     DiscountRateRetriveService,
+    SecurityRetriveService,
+    SecurityChangeService,
   ],
   controllers: [
     BusinessRelationshipController,
@@ -62,6 +67,7 @@ import { DiscountRateController } from './api/discount-rate.controller';
     CardController,
     BankAccountController,
     DiscountRateController,
+    SecurityController
   ],
   exports: [
     BusinessRelationshipRetriveService,

@@ -342,6 +342,7 @@ model Company {
   Partner                        Partner[]
   BankAccount                    BankAccount[]
   Card                           Card[]
+  security                       Security[]
 }
 
 model BusinessRelationship {
@@ -843,6 +844,97 @@ enum Method {
   All
 }
 
+/// 증권타입
+enum SecurityType {
+  /// 약속어음
+  PROMISSORY_NOTE
+  /// 전자 어음
+  ELECTRONIC_NOTE
+  /// 전자 채권
+  ELECTRONIC_BOND
+  /// 자기앞 수표
+  PERSONAL_CHECK
+  /// 당좌 수표
+  DEMAND_DRAFT
+  /// 가계 수표
+  HOUSEHOLD_CHECK
+  /// 문방구 어음
+  STATIONERY_NOTE
+  /// 기타
+  ETC
+}
+
+/// 증권 상태
+enum SecurityStatus {
+  /// 사용안함
+  NONE
+  /// 배서지급
+  ENDORSED
+  /// 정상 결제
+  NORMAL_PAYMENT
+  /// 할인 결제
+  DISCOUNT_PAYMENT
+  /// 부도
+  INSOLVENCY
+  /// 분실
+  LOST
+  /// 보관
+  SAFEKEEPING
+}
+
+/// 발행 상태
+enum DrawedStatus {
+  /// 자사로 등록
+  SELF
+  /// 수금으로 등록
+  ACCOUNTED
+}
+
+model Security {
+  /// 식별자
+  id               Int            @id @default(autoincrement())
+  /// 증권 타입
+  securityType     SecurityType
+  /// 증권 번호
+  securitySerial   String
+  /// 증권 금액
+  securityAmount   Float
+  /// 증권 상태
+  securityStatus   SecurityStatus @default(NONE)
+  /// 발행 상태
+  drawedStatus     DrawedStatus
+  /// 발행일
+  drawedDate       DateTime?
+  /// 발행 은행
+  drawedBank       Bank?
+  /// 발행 은행 지점
+  drawedBankBranch String?
+  /// 발행지
+  drawedRegion     String?
+  /// 발행인
+  drawer           String?
+  /// 만기일
+  maturedDate      DateTime?
+  /// 지급은행
+  payingBank       Bank?
+  /// 지급은행 지점명
+  payingBankBranch String?
+  /// 지급인
+  payer            String?
+  /// 메모
+  memo             String?        @db.VarChar(500)
+  /// 삭제 여부
+  isDeleted        Boolean        @default(false)
+
+  /// 회사 식별자
+  companyId Int
+  /// 회사
+  company   Company @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  /// 회계 유가증권 목록
+  bySecurityList BySecurity[]
+}
+
 /// 회계 타입
 enum AccountedType {
   /// 지급
@@ -909,7 +1001,7 @@ model Accounted {
   /// 계정 과목
   accountedSubject Subject
   /// 메모
-  memo             String        @db.VarChar(500)
+  memo             String?       @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
   /// 사업자번호
@@ -927,6 +1019,8 @@ model Accounted {
   byCard        ByCard?
   /// 상계
   byOffset      ByOffset?
+  /// 유가증권
+  bySecurity    BySecurity?
 }
 
 /// 현금
@@ -982,9 +1076,9 @@ model ByCard {
   cardAmount     Int
   /// 수수료 금액
   chargeAmount   Int
-  /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경)
+  /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경) 수수료가 포함 안되면 0
   totalAmount    Int
-  /// 수수료 여부
+  /// 수수료 포함 여부
   isCharge       Boolean   @default(false)
   /// 승인번호
   approvalNumber String
@@ -1027,7 +1121,36 @@ model ByOffsetPair {
   byOffsetId  Int      @unique
   /// 'paid' 거래
   byOffset    ByOffset @relation(fields: [byOffsetId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  // 할인율
+}
+
+/// 배서 타입
+enum EndorsementType {
+  /// 선택안함
+  NONE
+  /// 자수
+  SELF_NOTE
+  /// 타수
+  OTHERS_NOTE
+}
+
+/// 유가증권
+model BySecurity {
+  /// 식별자
+  id              Int              @id @default(autoincrement())
+  /// 배서구분
+  endorsementType EndorsementType?
+  /// 배서자
+  endorsement     String?
+  /// 삭제 여부
+  isDeleted       Boolean          @default(false)
+  /// 유가증권 식별자
+  securityId      Int
+  /// 유가증권
+  security        Security         @relation(fields: [securityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 회계 식별자
+  accountedId     Int              @unique
+  /// 회계
+  accounted       Accounted        @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model DiscountRateCondition {

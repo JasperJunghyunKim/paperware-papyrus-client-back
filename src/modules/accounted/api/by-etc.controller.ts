@@ -13,12 +13,12 @@ export class ByEtcController {
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/etc')
   @UseGuards(AuthGuard)
-  async getcollectedByEtc(
+  async getByEtc(
     @Request() req: AuthType,
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<ByEtcResponse> {
-    return await this.byEtcRetriveService.getAccountedByEtc(req.user.companyId, accountedType, accountedId);
+    return await this.byEtcRetriveService.getByEtc(req.user.companyId, accountedType, accountedId);
   }
 
   @Post('accountedType/:accountedType/etc')

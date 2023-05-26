@@ -3,14 +3,14 @@ import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 import { ByBankAccountItemResponseDto } from '../api/dto/bank-account.response';
+import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 
 @Injectable()
 export class ByBankAccountRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getAccountedByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByBankAccountItemResponseDto> {
+  async getByBankAccount(companyId: number, accountedType: AccountedType, accountedId: number): Promise<ByBankAccountItemResponseDto> {
     return await lastValueFrom(from(
       this.prisma.accounted.findFirst({
         select: {
