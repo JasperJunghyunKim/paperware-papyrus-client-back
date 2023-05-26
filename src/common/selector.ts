@@ -3,6 +3,11 @@ import { Prisma } from '@prisma/client';
 export const USER = {
   id: true,
   companyId: true,
+  company: {
+    select: {
+      companyRegistrationNumber: true,
+    },
+  },
   username: true,
   name: true,
   email: true,
@@ -362,6 +367,21 @@ export const ORDER_STOCK = {
   },
 } satisfies Prisma.OrderStockSelect;
 
+export const ORDER_DEPOSIT = {
+  product: {
+    select: PRODUCT,
+  },
+  packaging: true,
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: true,
+  paperColor: true,
+  paperPattern: true,
+  paperCert: true,
+  quantity: true,
+} satisfies Prisma.OrderDepositSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -380,6 +400,9 @@ export const ORDER = {
   orderStock: {
     select: ORDER_STOCK,
   },
+  orderDeposit: {
+    select: ORDER_DEPOSIT,
+  }
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -438,6 +461,7 @@ export const TASK = {
 export const SHIPPING = {
   id: true,
   shippingNo: true,
+  status: true,
   company: {
     select: COMPANY,
   },

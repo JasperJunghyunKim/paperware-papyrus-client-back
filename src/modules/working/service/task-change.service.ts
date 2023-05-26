@@ -290,6 +290,8 @@ export class TaskChangeService {
           task.id,
         );
 
+        console.log('Task Completed: ', result);
+
         const packaging = await tx.packaging.findFirstOrThrow({
           select: {
             id: true,
@@ -298,8 +300,6 @@ export class TaskChangeService {
             type: task.plan.targetStockGroupEvent.stockGroup.packaging.type,
           },
         });
-
-        console.log(':::', task.plan.targetStockGroupEvent.stockGroup);
 
         if (task.plan.orderStock) {
           // 송장 맹글기
@@ -358,7 +358,7 @@ export class TaskChangeService {
                     },
                   }
                 : undefined,
-              quantity: -task.plan.targetStockGroupEvent.change,
+              quantity: result.quantity,
             },
           });
         } else {

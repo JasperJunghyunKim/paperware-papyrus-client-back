@@ -37,4 +37,52 @@ export class ShippingChangeService {
 
     return shippings;
   }
+
+  async forward(params: { shippingId: number }) {
+    const { shippingId } = params;
+
+    const shipping = await this.prisma.shipping.findUnique({
+      where: {
+        id: shippingId,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    await this.prisma.shipping.update({
+      where: {
+        id: shippingId,
+      },
+      data: {
+        status: shipping.status == 'PREPARING' ? 'PROGRESSING' : 'DONE',
+      },
+    });
+
+    return shipping;
+  }
+
+  async backward(params: { shippingId: number }) {
+    const { shippingId } = params;
+
+    const shipping = await this.prisma.shipping.findUnique({
+      where: {
+        id: shippingId,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    await this.prisma.shipping.update({
+      where: {
+        id: shippingId,
+      },
+      data: {
+        status: shipping.status == 'DONE' ? 'PROGRESSING' : 'PREPARING',
+      },
+    });
+
+    return shipping;
+  }
 }

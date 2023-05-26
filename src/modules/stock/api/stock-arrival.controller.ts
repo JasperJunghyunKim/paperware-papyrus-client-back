@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotImplementedException,
   Param,
   Post,
   Query,
@@ -41,14 +42,14 @@ export class StockArrivalController {
     return { items, total };
   }
 
-  @Post(':id/apply')
+  @Post(':stockGroupId/apply')
   @UseGuards(AuthGuard)
   async applyStockArrival(
     @Request() req: AuthType,
-    @Param('id') id: number,
+    @Param('stockGroupId') stockGroupId: number,
     @Body() dto: StockArrivalApplyDto,
   ): Promise<any> {
     // TODO: 권한 체크
-    await this.change.applyStockArrival(id, req.user.companyId, dto.warehouseId);
+    await this.change.applyStockArrival(stockGroupId, req.user.companyId, dto.warehouseId);
   }
 }

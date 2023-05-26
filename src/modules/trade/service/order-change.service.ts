@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
@@ -27,8 +32,8 @@ interface UpdateTradePriceParams {
       altSizeX: number;
       altSizeY: number;
       altQuantity: number;
-    }
-  }
+    };
+  };
 }
 
 @Injectable()
@@ -81,6 +86,21 @@ export class OrderChangeService {
       wantedDate,
     } = params;
 
+    await this.checkStock({
+      warehouseId,
+      orderStockId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    });
+
     const isEntrusted =
       !!(
         await this.prisma.company.findUnique({
@@ -107,6 +127,7 @@ export class OrderChangeService {
       select: Selector.ORDER,
       data: {
         orderNo: ulid(),
+        orderType: 'NORMAL',
         srcCompany: {
           connect: {
             id: srcCompanyId,
@@ -141,16 +162,14 @@ export class OrderChangeService {
       },
     });
 
-    return {
-      ...created,
-      wantedDate: Util.dateToIso8601(created.wantedDate),
-    };
+    return Util.serialize(created);
   }
 
   async updateStockOrder(params: {
     orderId: number;
     locationId: number;
-    warehouseId: number;
+    warehouseId: number | null;
+    orderStockId: number | null;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -168,6 +187,7 @@ export class OrderChangeService {
       orderId,
       locationId,
       warehouseId,
+      orderStockId,
       productId,
       packagingId,
       grammage,
@@ -182,6 +202,21 @@ export class OrderChangeService {
       wantedDate,
     } = params;
 
+    await this.checkStock({
+      warehouseId,
+      orderStockId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    });
+
     await this.prisma.order.update({
       where: {
         id: orderId,
@@ -193,6 +228,7 @@ export class OrderChangeService {
           update: {
             dstLocationId: locationId,
             warehouseId,
+            orderStockId,
             productId,
             packagingId,
             grammage,
@@ -207,6 +243,64 @@ export class OrderChangeService {
         },
       },
     });
+  }
+
+  async checkStock(params: {
+    warehouseId: number | null;
+    orderStockId: number | null;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }) {
+    const order = params.orderStockId
+      ? await this.prisma.orderStock.findUnique({
+        where: {
+          id: params.orderStockId,
+        },
+        select: {
+          orderId: true,
+        },
+      })
+      : null;
+
+    const quantity = await this.prisma.stockEvent.findMany({
+      where: {
+        stock: {
+          warehouseId: params.warehouseId,
+          initialOrderId: order?.orderId ?? null,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+        },
+      },
+      select: {
+        change: true,
+        status: true,
+      },
+    });
+
+    const total = quantity.reduce((acc, cur) => {
+      return acc + (cur.status === 'CANCELLED' ? 0 : cur.change);
+    }, 0);
+
+    if (total < params.quantity) {
+      throw new BadRequestException(
+        `재고가 부족합니다. 가용수량 이내로 수량을 입력해주세요.`,
+      );
+    }
   }
 
   async request(params: { orderId: number }) {
@@ -404,6 +498,7 @@ export class OrderChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
+    isSyncPrice: boolean;
     stockPrice: StockCreateStockPriceRequest;
   }) {
     const {
@@ -418,6 +513,7 @@ export class OrderChangeService {
       paperPatternId,
       paperCertId,
       quantity,
+      isSyncPrice,
       stockPrice,
     } = params;
 
@@ -428,66 +524,68 @@ export class OrderChangeService {
         },
         select: {
           srcCompanyId: true,
+          orderStock: true,
         },
       });
 
-      // TODO: 상테 체크
+      // TODO: 상태 체크
 
-      const stock = await tx.stock.create({
-        data: {
-          company: {
-            connect: {
-              id: order.srcCompanyId,
-            },
-          },
-          serial: ulid(),
-          product: { connect: { id: productId } },
-          packaging: { connect: { id: packagingId } },
+      const stockGroup = await tx.stockGroup.findFirst({
+        where: {
+          productId,
+          packagingId,
           grammage,
           sizeX,
           sizeY,
-          paperColorGroup: paperColorGroupId
-            ? { connect: { id: paperColorGroupId } }
-            : undefined,
-          paperColor: paperColorId
-            ? { connect: { id: paperColorId } }
-            : undefined,
-          paperPattern: paperPatternId
-            ? { connect: { id: paperPatternId } }
-            : undefined,
-          paperCert: paperCertId ? { connect: { id: paperCertId } } : undefined,
-          stockPrice: {
-            create: {
-              officialPriceType: stockPrice.officialPriceType,
-              officialPrice: stockPrice.officialPrice,
-              officialPriceUnit: stockPrice.officialPriceUnit,
-              discountType: stockPrice.discountType,
-              discountPrice: stockPrice.discountPrice,
-              unitPrice: stockPrice.unitPrice,
-              unitPriceUnit: stockPrice.unitPriceUnit,
-            },
-          },
-          initialOrder: {
-            connect: {
-              id: orderId,
-            },
-          },
-          stockEvent: {
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          warehouseId: null,
+          orderStockId: order.orderStock.id,
+          companyId: order.srcCompanyId,
+        },
+      });
+      if (stockGroup)
+        throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
+
+      await tx.stockGroup.create({
+        data: {
+          productId,
+          packagingId,
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          warehouseId: null,
+          orderStockId: order.orderStock.id,
+          companyId: order.srcCompanyId,
+          isArrived: false,
+          isDirectShipping: false,
+          isSyncPrice,
+          stockGroupEvent: {
             create: {
               change: quantity,
               status: 'PENDING',
-              orderStockArrival: {
-                connect: {
-                  orderId,
-                },
-              },
             },
           },
+          stockGroupPrice: stockPrice
+            ? {
+              create: {
+                officialPriceType: stockPrice.officialPriceType,
+                officialPrice: stockPrice.officialPrice,
+                officialPriceUnit: stockPrice.officialPriceUnit,
+                discountType: stockPrice.discountType,
+                discountPrice: stockPrice.discountPrice,
+                unitPrice: stockPrice.unitPrice,
+                unitPriceUnit: stockPrice.unitPriceUnit,
+              },
+            }
+            : undefined,
         },
-      });
-
-      await this.stockChangeService.cacheStockQuantityTx(tx, {
-        id: stock.id,
       });
     });
   }
@@ -513,8 +611,8 @@ export class OrderChangeService {
           orderStock: {
             include: {
               packaging: true,
-            }
-          }
+            },
+          },
         },
         where: {
           id: orderId,
@@ -524,7 +622,10 @@ export class OrderChangeService {
       if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
 
       // 금액정보 validation
-      this.tradePriceValidator.validateTradePrice(order.orderStock.packaging.type, tradePriceDto);
+      this.tradePriceValidator.validateTradePrice(
+        order.orderStock.packaging.type,
+        tradePriceDto,
+      );
 
       const tradePrice =
         (await tx.tradePrice.findFirst({
@@ -631,6 +732,132 @@ export class OrderChangeService {
             companyId: tradePriceDto.companyId,
           },
         },
+      });
+    });
+  }
+
+  /** 보관 등록 */
+  async createDepositOrder(
+    srcCompanyId: number,
+    dstCompanyId: number,
+    isOffer: boolean,
+    productId: number,
+    packagingId: number,
+    grammage: number,
+    sizeX: number,
+    sizeY: number,
+    paperColorGroupId: number | null,
+    paperColorId: number | null,
+    paperPatternId: number | null,
+    paperCertId: number | null,
+    quantity: number,
+  ) {
+    await this.prisma.$transaction(async tx => {
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: dstCompanyId,
+        }
+      });
+      if (!dstCompany) throw new NotFoundException(`등록되지 않은 거래처입니다.`);
+      const partner = await tx.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: srcCompanyId,
+            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
+          }
+        }
+      })
+      if (!partner) throw new NotFoundException(`등록되지 않은 거래처입니다.`);
+
+      const isEntrusted =
+        !!(
+          await tx.company.findUnique({
+            where: {
+              id: srcCompanyId,
+            },
+            select: {
+              managedById: true,
+            },
+          })
+        ).managedById ||
+        !!(
+          await tx.company.findUnique({
+            where: {
+              id: dstCompanyId,
+            },
+            select: {
+              managedById: true,
+            },
+          })
+        ).managedById;
+
+      // 주문 생성
+      const order = await tx.order.create({
+        select: {
+          id: true,
+        },
+        data: {
+          orderNo: ulid(),
+          orderType: 'DEPOSIT',
+          srcCompany: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          dstCompany: {
+            connect: {
+              id: dstCompanyId,
+            }
+          },
+          status: isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
+          isEntrusted,
+          memo: '',
+        }
+      });
+
+      // order deposit 생성
+      await tx.orderDeposit.create({
+        data: {
+          product: {
+            connect: {
+              id: productId,
+            }
+          },
+          packaging: {
+            connect: {
+              id: packagingId,
+            }
+          },
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroup: paperColorGroupId ? {
+            connect: {
+              id: paperColorGroupId,
+            }
+          } : undefined,
+          paperColor: paperColorId ? {
+            connect: {
+              id: paperColorId,
+            }
+          } : undefined,
+          paperPattern: paperPatternId ? {
+            connect: {
+              id: paperPatternId,
+            }
+          } : undefined,
+          paperCert: paperCertId ? {
+            connect: {
+              id: paperCertId,
+            }
+          } : undefined,
+          quantity,
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+        }
       });
     });
   }

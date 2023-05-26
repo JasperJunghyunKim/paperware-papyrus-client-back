@@ -11,7 +11,7 @@ export class ShippingRetriveService {
     skip?: number;
     take?: number;
     companyId?: number;
-  }): Promise<Model.Shipping[]> {
+  }): Promise<Model.ShippingItem[]> {
     const { companyId } = params;
 
     const shippings = await this.prisma.shipping.findMany({
@@ -20,10 +20,20 @@ export class ShippingRetriveService {
       },
       skip: params.skip,
       take: params.take,
-      select: Selector.SHIPPING,
+      select: {
+        ...Selector.SHIPPING,
+        _count: {
+          select: {
+            invoice: true,
+          },
+        },
+      },
     });
 
-    return shippings;
+    return shippings.map((shipping) => ({
+      ...shipping,
+      invoiceCount: shipping._count.invoice,
+    }));
   }
 
   async getCount(params: { companyId?: number }): Promise<number> {

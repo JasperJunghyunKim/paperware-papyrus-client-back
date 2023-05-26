@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetriveService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getPlanList(params: {
     companyId: number;
@@ -65,16 +65,7 @@ export class PlanRetriveService {
       },
     });
 
-    return planInput.map((input) => ({
-      ...input,
-      stock: {
-        ...input.stock,
-        initialOrder: {
-          ...input.stock.initialOrder,
-          wantedDate: Util.dateToIso8601(input.stock.initialOrder?.wantedDate),
-        },
-      },
-    }));
+    return planInput.map(Util.serialize);
   }
 
   async getPlanInputCount(params: { planId: number }) {

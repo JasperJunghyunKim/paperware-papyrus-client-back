@@ -18,6 +18,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
+  OrderDepositCreateDto,
   OrderIdDto,
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
@@ -25,7 +26,10 @@ import OrderStockCreateRequestDto, {
   OrderStockUpdateRequestDto,
   UpdateTradePriceDto,
 } from './dto/order.request';
-import { OrderStockArrivalListResponse, TradePriceResponse } from 'src/@shared/api';
+import {
+  OrderStockArrivalListResponse,
+  TradePriceResponse,
+} from 'src/@shared/api';
 import { Api } from 'src/@shared';
 
 @Controller('/order')
@@ -33,7 +37,7 @@ export class OrderController {
   constructor(
     private readonly change: OrderChangeService,
     private readonly retrive: OrderRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -53,21 +57,21 @@ export class OrderController {
 
     const status: OrderStatus[] = isSales
       ? [
-        'OFFER_PREPARING',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-        'ACCEPTED',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-      ]
+          'OFFER_PREPARING',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+          'ACCEPTED',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+        ]
       : [
-        'ORDER_PREPARING',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-        'ACCEPTED',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-      ];
+          'ORDER_PREPARING',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+          'ACCEPTED',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+        ];
 
     const items = await this.retrive.getList({
       skip: query.skip,
@@ -170,10 +174,11 @@ export class OrderController {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
 
-    this.change.updateStockOrder({
+    await this.change.updateStockOrder({
       orderId: Number(id),
       locationId: body.locationId,
       warehouseId: body.warehouseId,
+      orderStockId: body.orderStockId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -208,6 +213,7 @@ export class OrderController {
     }
 
     const items = await this.retrive.getOrderStockArrivalList({
+      companyId: req.user.companyId,
       skip: query.skip,
       take: query.take,
       orderId: Number(id),
@@ -298,6 +304,7 @@ export class OrderController {
     @Param('id') id: string,
     @Body() body: OrderStockArrivalCreateRequestDto,
   ) {
+    body.validate();
     const order = await this.retrive.getItem({ orderId: Number(id) });
 
     if (!order) {
@@ -320,6 +327,7 @@ export class OrderController {
       paperPatternId: body.paperPatternId,
       paperCertId: body.paperCertId,
       quantity: body.quantity,
+      isSyncPrice: body.isSyncPrice,
       stockPrice: body.stockPrice,
     });
   }
@@ -344,6 +352,41 @@ export class OrderController {
       req.user.companyId,
       parmDto.orderId,
       dto,
-    )
+    );
+  }
+
+  /** 매입/매출 보관 */
+  @Post('/deposit')
+  @UseGuards(AuthGuard)
+  async createDepositOrder(
+    @Request() req: AuthType,
+    @Body() dto: OrderDepositCreateDto,
+  ) {
+    if (
+      dto.srcCompanyId !== req.user.companyId &&
+      dto.dstCompanyId !== req.user.companyId
+    ) {
+      throw new ForbiddenException(
+        '매입처와 매출처 중 하나는 귀사로 지정되어야합니다.',
+      );
+    }
+
+    const isOffer = dto.dstCompanyId === req.user.companyId;
+
+    await this.change.createDepositOrder(
+      dto.srcCompanyId,
+      dto.dstCompanyId,
+      isOffer,
+      dto.productId,
+      dto.packagingId,
+      dto.grammage,
+      dto.sizeX,
+      dto.sizeY,
+      dto.paperColorGroupId,
+      dto.paperColorId,
+      dto.paperPatternId,
+      dto.paperCertId,
+      dto.quantity,
+    );
   }
 }

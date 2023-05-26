@@ -1,6 +1,8 @@
-import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import { BadRequestException } from '@nestjs/common';
+import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -8,6 +10,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
   MaxLength,
   Min,
   ValidateNested,
@@ -22,6 +25,7 @@ import {
   OrderStockTradeAltBundleUpdateRequest,
   OrderStockTradePriceUpdateRequest,
   TradePriceUpdateRequest,
+  OrderDepositCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -256,10 +260,21 @@ export class OrderStockArrivalCreateRequestDto
   @Type(() => Number)
   quantity: number;
 
+  @IsBoolean()
+  isSyncPrice: boolean;
+
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => StockCreateStockPriceDto)
-  stockPrice: StockCreateStockPriceDto;
+  stockPrice: StockCreateStockPriceDto = null;
+
+  validate() {
+    if (!this.isSyncPrice && !this.stockPrice) {
+      throw new BadRequestException(`매입금액 동기화 미사용시 재고금액을 입력해야합니다.`);
+    }
+    if (this.isSyncPrice) this.stockPrice = null;
+  }
 }
 
 export class OrderIdDto {
@@ -356,4 +371,72 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @ValidateNested()
   @Type(() => UpdateOrderStockTradePriceDto)
   readonly orderStockTradePrice: UpdateOrderStockTradePriceDto | null = null;
+}
+
+/** 보관등록 */
+export class OrderDepositCreateDto implements OrderDepositCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+
 }

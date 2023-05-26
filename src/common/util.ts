@@ -38,3 +38,32 @@ export function parseNumber(
 export function inc<T extends string>(value: T, ...array: T[]): boolean {
   return array.includes(value);
 }
+
+export type Serialized<T> = {
+  [K in keyof T]: T[K] extends Date
+    ? string
+    : T[K] extends Array<infer U>
+    ? Array<Serialized<U>>
+    : T[K] extends object
+    ? Serialized<T[K]>
+    : T[K] extends T | null | undefined
+    ? Serialized<T>
+    : T[K];
+};
+
+export function serialize<T extends object>(obj: T): Serialized<T> {
+  const newObj: any = {};
+  for (const key in obj) {
+    const value = obj[key];
+    if (value instanceof Date) {
+      newObj[key] = dateToIso8601(value);
+    } else if (Array.isArray(value)) {
+      newObj[key] = value.map((v) => serialize(v));
+    } else if (typeof value === 'object' && value !== null) {
+      newObj[key] = serialize(value);
+    } else {
+      newObj[key] = value;
+    }
+  }
+  return newObj;
+}

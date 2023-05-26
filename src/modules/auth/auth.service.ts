@@ -5,10 +5,7 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-  ) { }
+  constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
   async signIn(params: {
     username: string;
@@ -36,6 +33,7 @@ export class AuthService {
     return await this.jwtService.signAsync({
       id: user.id,
       companyId: user.company.id,
+      companyRegistrationNumber: user.company.companyRegistrationNumber,
     });
   }
 
