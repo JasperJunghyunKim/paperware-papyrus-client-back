@@ -4,7 +4,7 @@ import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { ByEtcResponse } from '../api/dto/etc.response';
 import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/by-security-status.exception';
+import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 
 @Injectable()
 export class ByCashRetriveService {
