@@ -482,7 +482,7 @@ model Order {
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   stock                  Stock[]
-  orderDeposit           OrderDeposit[]
+  orderDeposit           OrderDeposit?
   DepositEvent           DepositEvent[]
 }
 
@@ -1111,7 +1111,7 @@ model DiscountRateMap {
 model OrderDeposit {
   id                Int              @id @default(autoincrement())
   /// 주문
-  orderId           Int
+  orderId           Int              @unique
   order             Order            @relation(fields: [orderId], references: [id])
   /// 재고스펙
   productId         Int
