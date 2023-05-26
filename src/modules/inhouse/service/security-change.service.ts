@@ -1,8 +1,10 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { DrawedStatus, SecurityStatus } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { SecurityCreateRequestDto, SecurityUpdateRequestDto, SecurityUpdateStatusRequestDto } from '../api/dto/security.request';
-import { DrawedStatus, SecurityStatus } from '@prisma/client';
+import { SecurityError } from '../infrastructure/constants/security-error.enum';
+import { SecurityPaidException } from '../infrastructure/exception/security-paid.exception';
 
 @Injectable()
 export class SecurityChangeService {
@@ -42,6 +44,7 @@ export class SecurityChangeService {
   async updateSecurity(securityId: number, securityUpdateRequest: SecurityUpdateRequestDto): Promise<void> {
     const result = await this.prisma.security.findUnique({
       select: {
+        securitySerial: true,
         drawedStatus: true,
         securityStatus: true,
         bySecurityList: {
@@ -57,15 +60,15 @@ export class SecurityChangeService {
     });
 
     if (result.drawedStatus !== DrawedStatus.SELF) {
-      throw new HttpException('자사 발행이 아닌 경우 수정할 수 없습니다. 수금내역조회에서 수정하세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_001, result.securitySerial)
     }
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new HttpException('해당 유가증권은 사용되었습니다. 지급에서 사용을 삭제한 후 변경하여 다시 시도해주세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
     }
 
     if (result.securityStatus !== SecurityStatus.NONE) {
-      throw new HttpException('유가증권은 사용되었습니다. 상태를 변경하고 다시 시도해주세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_003, result.securitySerial)
     }
 
     await lastValueFrom(
@@ -100,6 +103,7 @@ export class SecurityChangeService {
   async updateSecurityStatus(securityId: number, securityUpdateStatusRequest: SecurityUpdateStatusRequestDto): Promise<void> {
     const result = await this.prisma.security.findFirst({
       select: {
+        securitySerial: true,
         drawedStatus: true,
         securityStatus: true,
       },
@@ -109,7 +113,7 @@ export class SecurityChangeService {
     });
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new HttpException('해당 유가증권은 사용되었습니다. 지급에서 사용을 삭제한 후 변경하여 다시 시도해주세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
     }
 
     await lastValueFrom(
@@ -133,6 +137,7 @@ export class SecurityChangeService {
   async deleteSecurity(securityId: number): Promise<void> {
     const result = await this.prisma.security.findFirst({
       select: {
+        securitySerial: true,
         drawedStatus: true,
         securityStatus: true,
       },
@@ -142,15 +147,15 @@ export class SecurityChangeService {
     });
 
     if (result.drawedStatus !== DrawedStatus.SELF) {
-      throw new HttpException('자사 발행이 아닌 경우 삭제할 수 없습니다. 수금내역조회에서 삭제 하세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_001, result.securitySerial)
     }
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new HttpException('해당 유가증권은 사용되었습니다. 지급에서 사용을 삭제한 후 변경하여 다시 시도해주세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
     }
 
     if (result.securityStatus !== SecurityStatus.NONE) {
-      throw new HttpException('유가증권은 사용되었습니다. 상태를 변경하고 다시 시도해주세요.', 400);
+      throw new SecurityPaidException(SecurityError.SECURITY_003, result.securitySerial)
     }
 
     await lastValueFrom(
