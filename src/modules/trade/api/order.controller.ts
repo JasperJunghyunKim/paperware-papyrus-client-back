@@ -18,6 +18,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
+  OrderDepositCreateDto,
   OrderIdDto,
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
@@ -223,7 +224,7 @@ export class OrderController {
     });
 
     return {
-      items, // TODO... 도착예정재고 수정필요
+      items,
       total,
     };
   }
@@ -351,6 +352,41 @@ export class OrderController {
       req.user.companyId,
       parmDto.orderId,
       dto,
+    );
+  }
+
+  /** 매입/매출 보관 */
+  @Post('/deposit')
+  @UseGuards(AuthGuard)
+  async createDepositOrder(
+    @Request() req: AuthType,
+    @Body() dto: OrderDepositCreateDto,
+  ) {
+    if (
+      dto.srcCompanyId !== req.user.companyId &&
+      dto.dstCompanyId !== req.user.companyId
+    ) {
+      throw new ForbiddenException(
+        '매입처와 매출처 중 하나는 귀사로 지정되어야합니다.',
+      );
+    }
+
+    const isOffer = dto.dstCompanyId === req.user.companyId;
+
+    await this.change.createDepositOrder(
+      dto.srcCompanyId,
+      dto.dstCompanyId,
+      isOffer,
+      dto.productId,
+      dto.packagingId,
+      dto.grammage,
+      dto.sizeX,
+      dto.sizeY,
+      dto.paperColorGroupId,
+      dto.paperColorId,
+      dto.paperPatternId,
+      dto.paperCertId,
+      dto.quantity,
     );
   }
 }

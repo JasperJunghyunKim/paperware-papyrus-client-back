@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  Length,
   MaxLength,
   Min,
   ValidateNested,
@@ -24,6 +25,7 @@ import {
   OrderStockTradeAltBundleUpdateRequest,
   OrderStockTradePriceUpdateRequest,
   TradePriceUpdateRequest,
+  OrderDepositCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -369,4 +371,72 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @ValidateNested()
   @Type(() => UpdateOrderStockTradePriceDto)
   readonly orderStockTradePrice: UpdateOrderStockTradePriceDto | null = null;
+}
+
+/** 보관등록 */
+export class OrderDepositCreateDto implements OrderDepositCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+
 }
