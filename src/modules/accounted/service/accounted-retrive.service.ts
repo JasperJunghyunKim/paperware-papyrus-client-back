@@ -47,8 +47,29 @@ export class AccountedRetriveService {
           memo: true,
           byCash: true,
           byEtc: true,
-          byBankAccount: true,
-          byCard: true,
+          byBankAccount: {
+            select: {
+              bankAccountAmount: true,
+              bankAccount: {
+                select: {
+                  accountName: true,
+                }
+              }
+            }
+          },
+          byCard: {
+            select: {
+              isCharge: true,
+              cardAmount: true,
+              chargeAmount: true,
+              totalAmount: true,
+              card: {
+                select: {
+                  cardName: true,
+                }
+              }
+            }
+          },
           byOffset: true,
           bySecurity: {
             select: {
@@ -56,6 +77,7 @@ export class AccountedRetriveService {
                 select: {
                   securityAmount: true,
                   securityStatus: true,
+                  securitySerial: true,
                 }
               }
             }
@@ -90,7 +112,7 @@ export class AccountedRetriveService {
       map((accountedList) => {
         const items = accountedList.map((accounted) => {
 
-          const getAmount = (method) => {
+          const getAmount = (method): number => {
             switch (method) {
               case Method.CASH:
                 return accounted.byCash.cashAmount;
@@ -107,6 +129,23 @@ export class AccountedRetriveService {
             }
           }
 
+          const getGubun = (method): string => {
+            switch (method) {
+              case Method.CASH:
+                return '';
+              case Method.PROMISSORY_NOTE:
+                return accounted.bySecurity.security.securitySerial;
+              case Method.ETC:
+                return '';
+              case Method.ACCOUNT_TRANSFER:
+                return accounted.byBankAccount.bankAccount.accountName;
+              case Method.CARD_PAYMENT:
+                return accounted.byCard.card.cardName;
+              case Method.OFFSET:
+                return '';
+            }
+          }
+
           return {
             companyId: accounted.partner.companyId,
             companyRegistrationNumber: accounted.partner.companyRegistrationNumber,
@@ -118,7 +157,7 @@ export class AccountedRetriveService {
             accountedSubject: accounted.accountedSubject,
             amount: getAmount(accounted.accountedMethod),
             memo: accounted.memo,
-            gubun: '',
+            gubun: getGubun(accounted.accountedMethod),
             securityStatus: accounted.accountedMethod === Method.PROMISSORY_NOTE ? accounted.bySecurity.security.securityStatus : undefined,
           }
         })
