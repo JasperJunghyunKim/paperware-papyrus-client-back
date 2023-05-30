@@ -1,4 +1,4 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
+import { AccountedType, CardCompany, Method, Subject } from "@prisma/client";
 import { IsBoolean, IsEnum, IsNumber, IsString } from "class-validator";
 import { ByCardItemResponse } from "src/@shared/api/accounted/by-card.response";
 
@@ -38,6 +38,15 @@ export class ByCardResponseDto implements ByCardItemResponse {
 
   @IsNumber()
   readonly cardId: number;
+
+  @IsString()
+  readonly cardName: string;
+
+  @IsString()
+  readonly cardNumber: string;
+
+  @IsEnum(CardCompany)
+  readonly cardCompany: CardCompany;
 
   @IsNumber()
   readonly chargeAmount: number;

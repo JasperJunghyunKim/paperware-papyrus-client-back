@@ -62,11 +62,6 @@ export class ByCardChangeService {
                 isCharge: byCardUpdateRequest.isCharge,
                 chargeAmount: byCardUpdateRequest.chargeAmount,
                 approvalNumber: byCardUpdateRequest.approvalNumber,
-                card: {
-                  connect: {
-                    id: byCardUpdateRequest.cardId,
-                  },
-                },
               }
             },
           },

@@ -20,7 +20,20 @@ export class ByBankAccountRetriveService {
           accountedSubject: true,
           accountedMethod: true,
           memo: true,
-          byBankAccount: true,
+          byBankAccount: {
+            select: {
+              id: true,
+              bankAccountId: true,
+              bankAccountAmount: true,
+              bankAccount: {
+                select: {
+                  accountName: true,
+                  accountNumber: true,
+                  bankComapny: true,
+                }
+              }
+            }
+          },
           partner: {
             select: {
               id: true,
@@ -62,6 +75,9 @@ export class ByBankAccountRetriveService {
           memo: accounted.memo,
           partnerNickName: accounted.partner.partnerNickName,
           bankAccountId: accounted.byBankAccount.bankAccountId,
+          accountName: accounted.byBankAccount.bankAccount.accountName,
+          accountNumber: accounted.byBankAccount.bankAccount.accountNumber,
+          bankComapny: accounted.byBankAccount.bankAccount.bankComapny,
         }
       }),
     ));

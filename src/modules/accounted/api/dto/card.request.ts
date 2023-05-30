@@ -73,9 +73,6 @@ export class ByCardUpdateRequestDto implements ByCardUpdateRequest {
   readonly totalAmount: number;
 
   @IsNumber()
-  readonly cardId: number;
-
-  @IsNumber()
   @IsOptional()
   readonly chargeAmount: number;
 

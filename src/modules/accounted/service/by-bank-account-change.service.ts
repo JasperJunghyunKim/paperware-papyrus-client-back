@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByBankAccountCreateRequestDto } from '../api/dto/bank-account.request';
-import { ByBankAccountUpdateRequestDto } from '../api/dto/bank-account.request';
+import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from '../api/dto/bank-account.request';
 
 @Injectable()
 export class ByBankAccountChangeService {
@@ -56,11 +55,6 @@ export class ByBankAccountChangeService {
             byBankAccount: {
               update: {
                 bankAccountAmount: byBankUpdateRequest.amount,
-                bankAccount: {
-                  connect: {
-                    id: byBankUpdateRequest.bankAccountId,
-                  },
-                },
               }
             },
           },

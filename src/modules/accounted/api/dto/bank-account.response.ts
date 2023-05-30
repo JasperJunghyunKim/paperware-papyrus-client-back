@@ -1,4 +1,4 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
+import { AccountedType, Bank, Method, Subject } from "@prisma/client";
 import { IsEnum, IsNumber, IsString } from "class-validator";
 import { ByBankAccountItemResponse } from "src/@shared/api/accounted/by-bank-account.response";
 
@@ -35,4 +35,13 @@ export class ByBankAccountItemResponseDto implements ByBankAccountItemResponse {
 
   @IsNumber()
   readonly bankAccountId: number;
+
+  @IsString()
+  readonly accountName: string;
+
+  @IsString()
+  readonly accountNumber: string;
+
+  @IsEnum(Bank)
+  readonly bankComapny: Bank;
 }

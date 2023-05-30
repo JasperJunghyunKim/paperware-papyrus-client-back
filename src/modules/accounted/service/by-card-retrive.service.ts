@@ -20,7 +20,23 @@ export class ByCardRetriveService {
           accountedSubject: true,
           accountedMethod: true,
           memo: true,
-          byCard: true,
+          byCard: {
+            select: {
+              cardAmount: true,
+              totalAmount: true,
+              approvalNumber: true,
+              isCharge: true,
+              chargeAmount: true,
+              card: {
+                select: {
+                  id: true,
+                  cardName: true,
+                  cardCompany: true,
+                  cardNumber: true,
+                }
+              }
+            }
+          },
           partner: {
             select: {
               id: true,
@@ -61,7 +77,10 @@ export class ByCardRetriveService {
           amount: accounted.byCard.cardAmount,
           memo: accounted.memo,
           partnerNickName: accounted.partner.partnerNickName,
-          cardId: accounted.byCard.cardId,
+          cardId: accounted.byCard.card.id,
+          cardName: accounted.byCard.card.cardName,
+          cardNumber: accounted.byCard.card.cardNumber,
+          cardCompany: accounted.byCard.card.cardCompany,
           totalAmount: accounted.byCard.totalAmount,
           chargeAmount: accounted.byCard.chargeAmount,
           isCharge: accounted.byCard.isCharge,

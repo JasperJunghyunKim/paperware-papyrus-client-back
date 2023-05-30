@@ -50,7 +50,4 @@ export class ByBankAccountUpdateRequestDto implements ByBankAccountUpdateRequest
 
   @IsNumber()
   readonly amount: number;
-
-  @IsNumber()
-  readonly bankAccountId: number;
 }
