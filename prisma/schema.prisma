@@ -226,10 +226,9 @@ model StockEvent {
   change            Int
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
-  planIn            Plan[]           @relation("StockEventInPlan")
-  planOut           Plan[]           @relation("StockEventOutPlan")
-
-  @@unique([id, stockId])
+  planId            Int
+  plan              Plan             @relation(fields: [planId], references: [id])
+  taskInitiate      TaskInitiate?
 }
 
 model StockGroup {
@@ -251,8 +250,8 @@ model StockGroup {
   paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
   warehouseId       Int?
   warehouse         Warehouse?        @relation(fields: [warehouseId], references: [id])
-  orderStockId      Int?
-  orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
+  planId            Int
+  plan              Plan              @relation(fields: [planId], references: [id])
   companyId         Int
   company           Company           @relation(fields: [companyId], references: [id])
   stockGroupEvent   StockGroupEvent[]
@@ -260,11 +259,10 @@ model StockGroup {
   stockGroupPrice   StockGroupPrice?
 
   /// 도착예정재고일때만 사용
-  isArrived        Boolean?
   isDirectShipping Boolean?
   isSyncPrice      Boolean?
 
-  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
+  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, planId, companyId])
 }
 
 enum StockGroupEventStatus {
@@ -274,13 +272,14 @@ enum StockGroupEventStatus {
 }
 
 model StockGroupEvent {
-  id           Int                   @id @default(autoincrement())
-  change       Int
-  status       StockGroupEventStatus
-  stockGroupId Int
-  stockGroup   StockGroup            @relation(fields: [stockGroupId], references: [id])
-  Plan         Plan?
-  planId       Int?
+  id            Int                   @id @default(autoincrement())
+  change        Int
+  status        StockGroupEventStatus
+  stockGroupId  Int
+  stockGroup    StockGroup            @relation(fields: [stockGroupId], references: [id])
+  Plan          Plan?                 @relation(fields: [planId], references: [id])
+  planId        Int?
+  taskReceiving TaskReceiving?
 }
 
 model StockGroupPrice {
@@ -494,8 +493,7 @@ model OrderStock {
   dstLocationId     Int?
   dstLocation       Location?        @relation(fields: [dstLocationId], references: [id])
   isDirectShipping  Boolean          @default(false)
-  planId            Int?             @unique
-  plan              Plan?            @relation(fields: [planId], references: [id])
+  plan              Plan[]
   // 정상매입의 입고 예정 재고 이벤트
   arrivalStockEvent StockEvent[]
   // 정상거래의 주문 원지 정보
@@ -519,7 +517,6 @@ model OrderStock {
   paperCertId       Int?
   paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
   quantity          Int              @default(0)
-  stockGroups       StockGroup[]     @relation("OrderStockStockGroup")
   StockGroup        StockGroup?      @relation(fields: [stockGroupId], references: [id])
   stockGroupId      Int?
   OrderStock        OrderStock[]     @relation("orig")
@@ -571,39 +568,48 @@ model OrderStockTradeAltBundle {
 }
 
 enum TaskType {
-  CONVERTING
-  GUILLOTINE
-  QUANTITY
-}
-
-enum PlanStatus {
-  PREPARING
-  PROGRESSING
-  PROGRESSED
-}
-
-model Plan {
-  id                      Int             @id @default(autoincrement())
-  planNo                  String          @unique
-  companyId               Int
-  company                 Company         @relation(fields: [companyId], references: [id])
-  status                  PlanStatus      @default(PREPARING)
-  isDeleted               Boolean         @default(false)
-  memo                    String          @default("")
-  createdAt               DateTime        @default(now())
-  task                    Task[]
-  stockEventIn            StockEvent[]    @relation("StockEventInPlan")
-  stockEventOut           StockEvent[]    @relation("StockEventOutPlan")
-  orderStock              OrderStock?
-  targetStockGroupEventId Int             @unique
-  targetStockGroupEvent   StockGroupEvent @relation(fields: [targetStockGroupEventId], references: [id])
-  invoice                 Invoice[]
+  CONVERTING // 재단 크기
+  GUILLOTINE // 재단 크기
+  RELEASE // 수량
+  RECEVING // StockGroupEvent
+  INSTANTIATE // StockEvent
 }
 
 enum TaskStatus {
   PREPARING
   PROGRESSING
   PROGRESSED
+  CANCELLED
+}
+
+enum PlanType {
+  INHOUSE_CREATE
+  INHOUSE_MODIFY
+  INHOUSE_RELOCATION
+  INHOUSE_PROCESS
+  TRADE_NORMAL_SELLER
+  TRADE_NORMAL_BUYER
+  TRADE_WITHDRAW_SELLER // 보관 출고
+  TRADE_WITHDRAW_BUYER // 보관 입고
+  TRADE_OUTSOURCE_PROCESS_SELLER // 외주 공정
+  TRADE_OUTSOURCE_PROCESS_BUYER // 외주 매입
+}
+
+model Plan {
+  id                    Int               @id @default(autoincrement())
+  planNo                String            @unique
+  type                  PlanType
+  companyId             Int
+  company               Company           @relation(fields: [companyId], references: [id])
+  isDeleted             Boolean           @default(false)
+  createdAt             DateTime          @default(now())
+  task                  Task[]
+  targetStockGroupEvent StockGroupEvent[]
+  invoice               Invoice[]
+  stockGroup            StockGroup[] // StockGroup쪽에 PlanId를 써야해서 만듦
+  orderStockId          Int?
+  orderStock            OrderStock?       @relation(fields: [orderStockId], references: [id])
+  targetStockEvent      StockEvent[] // 실투입
 }
 
 model Task {
@@ -612,11 +618,12 @@ model Task {
   planId         Int
   plan           Plan            @relation(fields: [planId], references: [id])
   type           TaskType
-  isDeleted      Boolean         @default(false)
   status         TaskStatus
   taskConverting TaskConverting?
   taskGuillotine TaskGuillotine?
   taskQuantity   TaskQuantity?
+  taskReceiving  TaskReceiving?
+  taskInitiate   TaskInitiate?
   parentTaskId   Int?
   parentTask     Task?           @relation("TaskRelation", fields: [parentTaskId], references: [id])
   childTasks     Task[]          @relation("TaskRelation")
@@ -642,6 +649,20 @@ model TaskQuantity {
   taskId   Int  @id
   task     Task @relation(fields: [taskId], references: [id])
   quantity Int
+}
+
+model TaskReceiving {
+  taskId            Int             @id
+  task              Task            @relation(fields: [taskId], references: [id])
+  stockGroupEventId Int             @unique
+  stockGroupEvent   StockGroupEvent @relation(fields: [stockGroupEventId], references: [id])
+}
+
+model TaskInitiate {
+  taskId       Int        @id
+  task         Task       @relation(fields: [taskId], references: [id])
+  stockEventId Int        @unique
+  stockEvent   StockEvent @relation(fields: [stockEventId], references: [id])
 }
 
 enum ShippingStatus {
