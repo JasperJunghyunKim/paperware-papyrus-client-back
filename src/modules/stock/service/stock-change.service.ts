@@ -1,5 +1,5 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
-import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { PlanType, Prisma, StockEventStatus, TaskStatus, TaskType } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
 import { ulid } from 'ulid';
@@ -64,6 +64,29 @@ export class StockChangeService {
 
       this.stockValidator.validateQuantity(packaging, quantity);
 
+      const plan = await tx.plan.create({
+        select: {
+          id: true,
+          task: true,
+        },
+        data: {
+          planNo: ulid(),
+          type: PlanType.INHOUSE_CREATE,
+          company: {
+            connect: {
+              id: stockData.company.connect.id,
+            }
+          },
+          task: {
+            create: {
+              taskNo: ulid(),
+              type: TaskType.INSTANTIATE,
+              status: TaskStatus.PROGRESSED,
+            }
+          }
+        }
+      });
+
       const stockGroup = await tx.stockGroup.findFirst({
         where: {
           productId: stockData.product.connect.id,
@@ -77,8 +100,6 @@ export class StockChangeService {
           paperCertId: stockData.paperCert?.connect.id || null,
           warehouseId: stockData.warehouse.connect.id,
           companyId: stockData.company.connect.id,
-          orderStockId: null,
-          isArrived: null,
           isDirectShipping: null,
         }
       }) || await tx.stockGroup.create({
@@ -94,9 +115,9 @@ export class StockChangeService {
           paperCertId: stockData.paperCert?.connect.id || null,
           warehouseId: stockData.warehouse.connect.id,
           companyId: stockData.company.connect.id,
+          planId: null,
         },
       });
-      console.log(22222)
 
       const stock = await tx.stock.create({
         data: stockData,
@@ -115,7 +136,7 @@ export class StockChangeService {
         },
       });
 
-      await tx.stockEvent.create({
+      const stockEvent = await tx.stockEvent.create({
         data: {
           stock: {
             connect: {
@@ -124,11 +145,31 @@ export class StockChangeService {
           },
           change: quantity,
           status: StockEventStatus.NORMAL,
+          plan: {
+            connect: {
+              id: plan.id,
+            }
+          }
         },
         select: {
           id: true,
         },
       });
+
+      await tx.taskInitiate.create({
+        data: {
+          task: {
+            connect: {
+              id: plan.task[0].id
+            }
+          },
+          stockEvent: {
+            connect: {
+              id: stockEvent.id,
+            }
+          }
+        }
+      })
 
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
