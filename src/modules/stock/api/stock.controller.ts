@@ -102,6 +102,7 @@ export class StockController {
     await this.stockChangeService.create({
       companyId: req.user.companyId,
       ...dto,
+      sizeY: dto.sizeY || 0,
       price: dto.stockPrice,
     });
   }
