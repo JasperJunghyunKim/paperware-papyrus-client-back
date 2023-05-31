@@ -281,50 +281,18 @@ export const STOCK_EVENT = {
   status: true,
 } satisfies Prisma.StockEventSelect;
 
-const ORDER_STOCK_BASE = {
+export const ORDER_STOCK = {
   id: true,
   orderId: true,
   dstLocation: {
     select: LOCATION,
   },
-  // warehouse: {
-  //   select: WAREHOUSE,
-  // },
-  // product: {
-  //   select: PRODUCT,
-  // },
-  // packaging: {
-  //   select: PACKAGING,
-  // },
-  // grammage: true,
-  // sizeX: true,
-  // sizeY: true,
-  // paperColorGroup: {
-  //   select: PAPER_COLOR_GROUP,
-  // },
-  // paperColor: {
-  //   select: PAPER_COLOR,
-  // },
-  // paperPattern: {
-  //   select: PAPER_PATTERN,
-  // },
-  // paperCert: {
-  //   select: PAPER_CERT,
-  // },
-  // quantity: true,
   plan: {
     select: {
       id: true,
       planNo: true,
     },
   },
-} satisfies Prisma.OrderStockSelect;
-
-export const ORDER_STOCK = {
-  ...ORDER_STOCK_BASE,
-  // orderStock: {
-  //   select: ORDER_STOCK_BASE,
-  // },
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER_DEPOSIT = {
@@ -362,7 +330,7 @@ export const ORDER = {
   },
   orderDeposit: {
     select: ORDER_DEPOSIT,
-  }
+  },
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -391,6 +359,16 @@ export const PLAN = {
     select: COMPANY,
   },
   createdAt: true,
+  targetStockEvent: {
+    select: STOCK_EVENT,
+  },
+  OrderStock: {
+    select: {
+      order: {
+        select: ORDER,
+      },
+    },
+  },
 } satisfies Prisma.PlanSelect;
 
 export const TASK = {
