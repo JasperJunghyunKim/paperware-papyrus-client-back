@@ -502,7 +502,7 @@ model Plan {
   task             Task[]
   invoice          Invoice[]
   targetStockEvent StockEvent[] // 실투입
-  Stock            Stock[]
+  stock            Stock[]
   orderStock       OrderStock?  @relation(fields: [orderStockId], references: [id])
   orderStockId     Int?
 }
