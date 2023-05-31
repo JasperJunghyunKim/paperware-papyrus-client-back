@@ -281,77 +281,37 @@ export const STOCK_EVENT = {
   status: true,
 } satisfies Prisma.StockEventSelect;
 
-export const STOCK_GROUP = {
-  id: true,
-  company: {
-    select: COMPANY,
-  },
-  product: {
-    select: PRODUCT,
-  },
-  packaging: {
-    select: PACKAGING,
-  },
-  grammage: true,
-  sizeX: true,
-  sizeY: true,
-  paperColorGroup: {
-    select: PAPER_COLOR_GROUP,
-  },
-  paperColor: {
-    select: PAPER_COLOR,
-  },
-  paperPattern: {
-    select: PAPER_PATTERN,
-  },
-  paperCert: {
-    select: PAPER_CERT,
-  },
-  warehouse: {
-    select: WAREHOUSE,
-  },
-} satisfies Prisma.StockGroupSelect;
-
-export const STOCK_GROUP_EVENT = {
-  id: true,
-  stockGroup: {
-    select: STOCK_GROUP,
-  },
-  change: true,
-  status: true,
-} satisfies Prisma.StockGroupEventSelect;
-
 const ORDER_STOCK_BASE = {
   id: true,
   orderId: true,
   dstLocation: {
     select: LOCATION,
   },
-  warehouse: {
-    select: WAREHOUSE,
-  },
-  product: {
-    select: PRODUCT,
-  },
-  packaging: {
-    select: PACKAGING,
-  },
-  grammage: true,
-  sizeX: true,
-  sizeY: true,
-  paperColorGroup: {
-    select: PAPER_COLOR_GROUP,
-  },
-  paperColor: {
-    select: PAPER_COLOR,
-  },
-  paperPattern: {
-    select: PAPER_PATTERN,
-  },
-  paperCert: {
-    select: PAPER_CERT,
-  },
-  quantity: true,
+  // warehouse: {
+  //   select: WAREHOUSE,
+  // },
+  // product: {
+  //   select: PRODUCT,
+  // },
+  // packaging: {
+  //   select: PACKAGING,
+  // },
+  // grammage: true,
+  // sizeX: true,
+  // sizeY: true,
+  // paperColorGroup: {
+  //   select: PAPER_COLOR_GROUP,
+  // },
+  // paperColor: {
+  //   select: PAPER_COLOR,
+  // },
+  // paperPattern: {
+  //   select: PAPER_PATTERN,
+  // },
+  // paperCert: {
+  //   select: PAPER_CERT,
+  // },
+  // quantity: true,
   plan: {
     select: {
       id: true,
@@ -362,9 +322,9 @@ const ORDER_STOCK_BASE = {
 
 export const ORDER_STOCK = {
   ...ORDER_STOCK_BASE,
-  orderStock: {
-    select: ORDER_STOCK_BASE,
-  },
+  // orderStock: {
+  //   select: ORDER_STOCK_BASE,
+  // },
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER_DEPOSIT = {
@@ -430,18 +390,7 @@ export const PLAN = {
   company: {
     select: COMPANY,
   },
-  status: true,
   createdAt: true,
-  targetStockGroupEvent: {
-    select: STOCK_GROUP_EVENT,
-  },
-  orderStock: {
-    select: {
-      order: {
-        select: ORDER,
-      },
-    },
-  },
 } satisfies Prisma.PlanSelect;
 
 export const TASK = {

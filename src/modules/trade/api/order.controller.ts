@@ -37,7 +37,7 @@ export class OrderController {
   constructor(
     private readonly change: OrderChangeService,
     private readonly retrive: OrderRetriveService,
-  ) {}
+  ) { }
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -57,21 +57,21 @@ export class OrderController {
 
     const status: OrderStatus[] = isSales
       ? [
-          'OFFER_PREPARING',
-          'OFFER_REQUESTED',
-          'OFFER_REJECTED',
-          'ACCEPTED',
-          'ORDER_REQUESTED',
-          'ORDER_REJECTED',
-        ]
+        'OFFER_PREPARING',
+        'OFFER_REQUESTED',
+        'OFFER_REJECTED',
+        'ACCEPTED',
+        'ORDER_REQUESTED',
+        'ORDER_REJECTED',
+      ]
       : [
-          'ORDER_PREPARING',
-          'ORDER_REQUESTED',
-          'ORDER_REJECTED',
-          'ACCEPTED',
-          'OFFER_REQUESTED',
-          'OFFER_REJECTED',
-        ];
+        'ORDER_PREPARING',
+        'ORDER_REQUESTED',
+        'ORDER_REJECTED',
+        'ACCEPTED',
+        'OFFER_REQUESTED',
+        'OFFER_REJECTED',
+      ];
 
     const items = await this.retrive.getList({
       skip: query.skip,
@@ -212,19 +212,19 @@ export class OrderController {
       throw new ForbiddenException('조회 권한이 없습니다.');
     }
 
-    const items = await this.retrive.getOrderStockArrivalList({
-      companyId: req.user.companyId,
-      skip: query.skip,
-      take: query.take,
-      orderId: Number(id),
-    });
+    // const items = await this.retrive.getOrderStockArrivalList({
+    //   companyId: req.user.companyId,
+    //   skip: query.skip,
+    //   take: query.take,
+    //   orderId: Number(id),
+    // });
 
     const total = await this.retrive.getOrderStockArrivalCount({
       orderId: Number(id),
     });
 
     return {
-      items,
+      items: [],
       total,
     };
   }

@@ -60,34 +60,34 @@ export class StockQuantityCheckerService {
         if (stockGroups.length === 0) throw new StockGroupNotFoundException(StockError.STOCK002);
         const selectedStockGroup = stockGroups[0]
 
-        const inputStockGroup = await tx.stockGroupEvent.groupBy({
-            by: ['stockGroupId'],
-            _sum: {
-                change: true,
-            },
-            where: {
-                stockGroup: {
-                    warehouseId: stockGroup.warehouseId,
-                    productId: stockGroup.productId,
-                    packagingId: stockGroup.packagingId,
-                    grammage: stockGroup.grammage,
-                    sizeX: stockGroup.sizeX,
-                    sizeY: stockGroup.sizeY,
-                    paperColorGroupId: stockGroup.paperColorGroupId,
-                    paperColorId: stockGroup.paperColorId,
-                    paperPatternId: stockGroup.paperPatternId,
-                    paperCertId: stockGroup.paperCertId,
-                    companyId: companyId,
-                }
-            }
-        });
-        const availableQuantity =
-            selectedStockGroup._sum.cachedQuantityAvailable + (inputStockGroup.length === 0 ? 0 : inputStockGroup[0]._sum.change);
+        // const inputStockGroup = await tx.stockGroupEvent.groupBy({
+        //     by: ['stockGroupId'],
+        //     _sum: {
+        //         change: true,
+        //     },
+        //     where: {
+        //         stockGroup: {
+        //             warehouseId: stockGroup.warehouseId,
+        //             productId: stockGroup.productId,
+        //             packagingId: stockGroup.packagingId,
+        //             grammage: stockGroup.grammage,
+        //             sizeX: stockGroup.sizeX,
+        //             sizeY: stockGroup.sizeY,
+        //             paperColorGroupId: stockGroup.paperColorGroupId,
+        //             paperColorId: stockGroup.paperColorId,
+        //             paperPatternId: stockGroup.paperPatternId,
+        //             paperCertId: stockGroup.paperCertId,
+        //             companyId: companyId,
+        //         }
+        //     }
+        // });
+        // const availableQuantity =
+        //     selectedStockGroup._sum.cachedQuantityAvailable + (inputStockGroup.length === 0 ? 0 : inputStockGroup[0]._sum.change);
 
-        if (quantity > availableQuantity) {
-            console.log(`재고수량부족 (사용예정: ${quantity}, 가용수량: ${availableQuantity})`);
-            throw new InsufficientStockQuantityException(StockError.STOCK003, [quantity, availableQuantity])
-        }
+        // if (quantity > availableQuantity) {
+        //     console.log(`재고수량부족 (사용예정: ${quantity}, 가용수량: ${availableQuantity})`);
+        //     throw new InsufficientStockQuantityException(StockError.STOCK003, [quantity, availableQuantity])
+        // }
 
         return selectedStockGroup;
     }

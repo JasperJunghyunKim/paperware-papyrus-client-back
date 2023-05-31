@@ -86,83 +86,84 @@ export class OrderChangeService {
       wantedDate,
     } = params;
 
-    await this.checkStock({
-      warehouseId,
-      orderStockId,
-      productId,
-      packagingId,
-      grammage,
-      sizeX,
-      sizeY,
-      paperColorGroupId,
-      paperColorId,
-      paperPatternId,
-      paperCertId,
-      quantity,
-    });
+    // await this.checkStock({
+    //   warehouseId,
+    //   orderStockId,
+    //   productId,
+    //   packagingId,
+    //   grammage,
+    //   sizeX,
+    //   sizeY,
+    //   paperColorGroupId,
+    //   paperColorId,
+    //   paperPatternId,
+    //   paperCertId,
+    //   quantity,
+    // });
 
-    const isEntrusted =
-      !!(
-        await this.prisma.company.findUnique({
-          where: {
-            id: srcCompanyId,
-          },
-          select: {
-            managedById: true,
-          },
-        })
-      ).managedById ||
-      !!(
-        await this.prisma.company.findUnique({
-          where: {
-            id: dstCompanyId,
-          },
-          select: {
-            managedById: true,
-          },
-        })
-      ).managedById;
+    // const isEntrusted =
+    //   !!(
+    //     await this.prisma.company.findUnique({
+    //       where: {
+    //         id: srcCompanyId,
+    //       },
+    //       select: {
+    //         managedById: true,
+    //       },
+    //     })
+    //   ).managedById ||
+    //   !!(
+    //     await this.prisma.company.findUnique({
+    //       where: {
+    //         id: dstCompanyId,
+    //       },
+    //       select: {
+    //         managedById: true,
+    //       },
+    //     })
+    //   ).managedById;
 
-    const created = await this.prisma.order.create({
-      select: Selector.ORDER,
-      data: {
-        orderNo: ulid(),
-        orderType: 'NORMAL',
-        srcCompany: {
-          connect: {
-            id: srcCompanyId,
-          },
-        },
-        dstCompany: {
-          connect: {
-            id: dstCompanyId,
-          },
-        },
-        status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
-        isEntrusted,
-        memo,
-        wantedDate,
-        orderStock: {
-          create: {
-            dstLocationId: locationId,
-            warehouseId,
-            orderStockId,
-            productId,
-            packagingId,
-            grammage,
-            sizeX,
-            sizeY,
-            paperColorGroupId,
-            paperColorId,
-            paperPatternId,
-            paperCertId,
-            quantity,
-          },
-        },
-      },
-    });
+    // const created = await this.prisma.order.create({
+    //   select: Selector.ORDER,
+    //   data: {
+    //     orderNo: ulid(),
+    //     orderType: 'NORMAL',
+    //     srcCompany: {
+    //       connect: {
+    //         id: srcCompanyId,
+    //       },
+    //     },
+    //     dstCompany: {
+    //       connect: {
+    //         id: dstCompanyId,
+    //       },
+    //     },
+    //     status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
+    //     isEntrusted,
+    //     memo,
+    //     wantedDate,
+    //     orderStock: {
+    //       create: {
+    //         dstLocationId: locationId,
+    //         warehouseId,
+    //         orderStockId,
+    //         productId,
+    //         packagingId,
+    //         grammage,
+    //         sizeX,
+    //         sizeY,
+    //         paperColorGroupId,
+    //         paperColorId,
+    //         paperPatternId,
+    //         paperCertId,
+    //         quantity,
+    //       },
+    //     },
+    //   },
+    // });
 
-    return Util.serialize(created);
+    // return Util.serialize(created);
+    return null;
   }
 
   async updateStockOrder(params: {
@@ -202,47 +203,47 @@ export class OrderChangeService {
       wantedDate,
     } = params;
 
-    await this.checkStock({
-      warehouseId,
-      orderStockId,
-      productId,
-      packagingId,
-      grammage,
-      sizeX,
-      sizeY,
-      paperColorGroupId,
-      paperColorId,
-      paperPatternId,
-      paperCertId,
-      quantity,
-    });
+    // await this.checkStock({
+    //   warehouseId,
+    //   orderStockId,
+    //   productId,
+    //   packagingId,
+    //   grammage,
+    //   sizeX,
+    //   sizeY,
+    //   paperColorGroupId,
+    //   paperColorId,
+    //   paperPatternId,
+    //   paperCertId,
+    //   quantity,
+    // });
 
-    await this.prisma.order.update({
-      where: {
-        id: orderId,
-      },
-      data: {
-        memo,
-        wantedDate,
-        orderStock: {
-          update: {
-            dstLocationId: locationId,
-            warehouseId,
-            orderStockId,
-            productId,
-            packagingId,
-            grammage,
-            sizeX,
-            sizeY,
-            paperColorGroupId,
-            paperColorId,
-            paperPatternId,
-            paperCertId,
-            quantity,
-          },
-        },
-      },
-    });
+    // await this.prisma.order.update({
+    //   where: {
+    //     id: orderId,
+    //   },
+    //   data: {
+    //     memo,
+    //     wantedDate,
+    //     orderStock: {
+    //       update: {
+    //         dstLocationId: locationId,
+    //         warehouseId,
+    //         orderStockId,
+    //         productId,
+    //         packagingId,
+    //         grammage,
+    //         sizeX,
+    //         sizeY,
+    //         paperColorGroupId,
+    //         paperColorId,
+    //         paperPatternId,
+    //         paperCertId,
+    //         quantity,
+    //       },
+    //     },
+    //   },
+    // });
   }
 
   async checkStock(params: {
@@ -368,60 +369,60 @@ export class OrderChangeService {
   async accept(params: { orderId: number }) {
     const { orderId } = params;
 
-    await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: {
-          id: orderId,
-        },
-        select: {
-          status: true,
-          dstCompany: true,
-          orderStock: true,
-        },
-      });
+    // await this.prisma.$transaction(async (tx) => {
+    //   const order = await tx.order.findUnique({
+    //     where: {
+    //       id: orderId,
+    //     },
+    //     select: {
+    //       status: true,
+    //       dstCompany: true,
+    //       orderStock: true,
+    //     },
+    //   });
 
-      if (
-        !Util.inc(
-          order.status,
-          'OFFER_REQUESTED',
-          'ORDER_REQUESTED',
-          'OFFER_PREPARING',
-          'ORDER_PREPARING',
-        )
-      ) {
-        throw new Error('Invalid order status');
-      }
+    //   if (
+    //     !Util.inc(
+    //       order.status,
+    //       'OFFER_REQUESTED',
+    //       'ORDER_REQUESTED',
+    //       'OFFER_PREPARING',
+    //       'ORDER_PREPARING',
+    //     )
+    //   ) {
+    //     throw new Error('Invalid order status');
+    //   }
 
-      if (!order.dstCompany.managedById && order.orderStock) {
-        // TODO: Plan 생성
-        await this.planChange.createPlanWithOrder(tx, {
-          companyId: order.dstCompany.id,
-          orderStockId: order.orderStock.id,
-          warehouseId: order.orderStock.warehouseId ?? null,
-          orderStockIdOrig: order.orderStock.orderStockId ?? null,
-          productId: order.orderStock.productId,
-          packagingId: order.orderStock.packagingId,
-          grammage: order.orderStock.grammage,
-          sizeX: order.orderStock.sizeX,
-          sizeY: order.orderStock.sizeY,
-          paperColorGroupId: order.orderStock.paperColorGroupId,
-          paperColorId: order.orderStock.paperColorId,
-          paperPatternId: order.orderStock.paperPatternId,
-          paperCertId: order.orderStock.paperCertId,
-          quantity: order.orderStock.quantity,
-          memo: '',
-        });
-      }
+    //   if (!order.dstCompany.managedById && order.orderStock) {
+    //     // TODO: Plan 생성
+    //     await this.planChange.createPlanWithOrder(tx, {
+    //       companyId: order.dstCompany.id,
+    //       orderStockId: order.orderStock.id,
+    //       warehouseId: order.orderStock.warehouseId ?? null,
+    //       orderStockIdOrig: order.orderStock.orderStockId ?? null,
+    //       productId: order.orderStock.productId,
+    //       packagingId: order.orderStock.packagingId,
+    //       grammage: order.orderStock.grammage,
+    //       sizeX: order.orderStock.sizeX,
+    //       sizeY: order.orderStock.sizeY,
+    //       paperColorGroupId: order.orderStock.paperColorGroupId,
+    //       paperColorId: order.orderStock.paperColorId,
+    //       paperPatternId: order.orderStock.paperPatternId,
+    //       paperCertId: order.orderStock.paperCertId,
+    //       quantity: order.orderStock.quantity,
+    //       memo: '',
+    //     });
+    //   }
 
-      await tx.order.update({
-        where: {
-          id: orderId,
-        },
-        data: {
-          status: 'ACCEPTED',
-        },
-      });
-    });
+    //   await tx.order.update({
+    //     where: {
+    //       id: orderId,
+    //     },
+    //     data: {
+    //       status: 'ACCEPTED',
+    //     },
+    //   });
+    // });
   }
 
   async reject(params: { orderId: number }) {
@@ -517,77 +518,77 @@ export class OrderChangeService {
       stockPrice,
     } = params;
 
-    await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: {
-          id: orderId,
-        },
-        select: {
-          srcCompanyId: true,
-          orderStock: true,
-        },
-      });
+    // await this.prisma.$transaction(async (tx) => {
+    //   const order = await tx.order.findUnique({
+    //     where: {
+    //       id: orderId,
+    //     },
+    //     select: {
+    //       srcCompanyId: true,
+    //       orderStock: true,
+    //     },
+    //   });
 
-      // TODO: 상태 체크
+    //   // TODO: 상태 체크
 
-      const stockGroup = await tx.stockGroup.findFirst({
-        where: {
-          productId,
-          packagingId,
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroupId,
-          paperColorId,
-          paperPatternId,
-          paperCertId,
-          warehouseId: null,
-          orderStockId: order.orderStock.id,
-          companyId: order.srcCompanyId,
-        },
-      });
-      if (stockGroup)
-        throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
+    //   const stockGroup = await tx.stockGroup.findFirst({
+    //     where: {
+    //       productId,
+    //       packagingId,
+    //       grammage,
+    //       sizeX,
+    //       sizeY,
+    //       paperColorGroupId,
+    //       paperColorId,
+    //       paperPatternId,
+    //       paperCertId,
+    //       warehouseId: null,
+    //       orderStockId: order.orderStock.id,
+    //       companyId: order.srcCompanyId,
+    //     },
+    //   });
+    //   if (stockGroup)
+    //     throw new ConflictException(`이미 존재하는 재고스펙입니다.`);
 
-      await tx.stockGroup.create({
-        data: {
-          productId,
-          packagingId,
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroupId,
-          paperColorId,
-          paperPatternId,
-          paperCertId,
-          warehouseId: null,
-          orderStockId: order.orderStock.id,
-          companyId: order.srcCompanyId,
-          isArrived: false,
-          isDirectShipping: false,
-          isSyncPrice,
-          stockGroupEvent: {
-            create: {
-              change: quantity,
-              status: 'PENDING',
-            },
-          },
-          stockGroupPrice: stockPrice
-            ? {
-              create: {
-                officialPriceType: stockPrice.officialPriceType,
-                officialPrice: stockPrice.officialPrice,
-                officialPriceUnit: stockPrice.officialPriceUnit,
-                discountType: stockPrice.discountType,
-                discountPrice: stockPrice.discountPrice,
-                unitPrice: stockPrice.unitPrice,
-                unitPriceUnit: stockPrice.unitPriceUnit,
-              },
-            }
-            : undefined,
-        },
-      });
-    });
+    //   await tx.stockGroup.create({
+    //     data: {
+    //       productId,
+    //       packagingId,
+    //       grammage,
+    //       sizeX,
+    //       sizeY,
+    //       paperColorGroupId,
+    //       paperColorId,
+    //       paperPatternId,
+    //       paperCertId,
+    //       warehouseId: null,
+    //       orderStockId: order.orderStock.id,
+    //       companyId: order.srcCompanyId,
+    //       isArrived: false,
+    //       isDirectShipping: false,
+    //       isSyncPrice,
+    //       stockGroupEvent: {
+    //         create: {
+    //           change: quantity,
+    //           status: 'PENDING',
+    //         },
+    //       },
+    //       stockGroupPrice: stockPrice
+    //         ? {
+    //           create: {
+    //             officialPriceType: stockPrice.officialPriceType,
+    //             officialPrice: stockPrice.officialPrice,
+    //             officialPriceUnit: stockPrice.officialPriceUnit,
+    //             discountType: stockPrice.discountType,
+    //             discountPrice: stockPrice.discountPrice,
+    //             unitPrice: stockPrice.unitPrice,
+    //             unitPriceUnit: stockPrice.unitPriceUnit,
+    //           },
+    //         }
+    //         : undefined,
+    //     },
+    //   });
+    // });
   }
 
   /** 거래금액 수정 */
@@ -596,144 +597,144 @@ export class OrderChangeService {
     orderId: number,
     tradePriceDto: UpdateTradePriceParams,
   ) {
-    await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findFirst({
-        include: {
-          tradePrice: {
-            include: {
-              orderStockTradePrice: {
-                include: {
-                  orderStockTradeAltBundle: true,
-                },
-              },
-            },
-          },
-          orderStock: {
-            include: {
-              packaging: true,
-            },
-          },
-        },
-        where: {
-          id: orderId,
-          OR: [{ srcCompanyId: companyId }, { dstCompanyId: companyId }],
-        },
-      });
-      if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
+    // await this.prisma.$transaction(async (tx) => {
+    //   const order = await tx.order.findFirst({
+    //     include: {
+    //       tradePrice: {
+    //         include: {
+    //           orderStockTradePrice: {
+    //             include: {
+    //               orderStockTradeAltBundle: true,
+    //             },
+    //           },
+    //         },
+    //       },
+    //       orderStock: {
+    //         include: {
+    //           packaging: true,
+    //         },
+    //       },
+    //     },
+    //     where: {
+    //       id: orderId,
+    //       OR: [{ srcCompanyId: companyId }, { dstCompanyId: companyId }],
+    //     },
+    //   });
+    //   if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
 
-      // 금액정보 validation
-      this.tradePriceValidator.validateTradePrice(
-        order.orderStock.packaging.type,
-        tradePriceDto,
-      );
+    //   // 금액정보 validation
+    //   this.tradePriceValidator.validateTradePrice(
+    //     order.orderStock.packaging.type,
+    //     tradePriceDto,
+    //   );
 
-      const tradePrice =
-        (await tx.tradePrice.findFirst({
-          where: {
-            orderId: order.id,
-            companyId: companyId,
-          },
-          include: {
-            orderStockTradePrice: {
-              include: {
-                orderStockTradeAltBundle: true,
-              },
-            },
-          },
-        })) ??
-        (await tx.tradePrice.create({
-          data: {
-            orderId: order.id,
-            companyId: companyId,
-            orderStockTradePrice: {
-              create: {
-                officialPriceType:
-                  tradePriceDto.orderStockTradePrice.officialPriceType,
-                officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
-                officialPriceUnit:
-                  tradePriceDto.orderStockTradePrice.officialPriceUnit,
-                discountType: tradePriceDto.orderStockTradePrice.discountType,
-                discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
-                unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
-                unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
-                processPrice: tradePriceDto.orderStockTradePrice.processPrice,
-              },
-            },
-          },
-          include: {
-            orderStockTradePrice: {
-              include: {
-                orderStockTradeAltBundle: true,
-              },
-            },
-          },
-        }));
-      if (tradePrice.isBookClosed) {
-        throw new ConflictException(`이미 마감된 주문정보 입니다.`);
-      }
+    //   const tradePrice =
+    //     (await tx.tradePrice.findFirst({
+    //       where: {
+    //         orderId: order.id,
+    //         companyId: companyId,
+    //       },
+    //       include: {
+    //         orderStockTradePrice: {
+    //           include: {
+    //             orderStockTradeAltBundle: true,
+    //           },
+    //         },
+    //       },
+    //     })) ??
+    //     (await tx.tradePrice.create({
+    //       data: {
+    //         orderId: order.id,
+    //         companyId: companyId,
+    //         orderStockTradePrice: {
+    //           create: {
+    //             officialPriceType:
+    //               tradePriceDto.orderStockTradePrice.officialPriceType,
+    //             officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
+    //             officialPriceUnit:
+    //               tradePriceDto.orderStockTradePrice.officialPriceUnit,
+    //             discountType: tradePriceDto.orderStockTradePrice.discountType,
+    //             discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
+    //             unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
+    //             unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
+    //             processPrice: tradePriceDto.orderStockTradePrice.processPrice,
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         orderStockTradePrice: {
+    //           include: {
+    //             orderStockTradeAltBundle: true,
+    //           },
+    //         },
+    //       },
+    //     }));
+    //   if (tradePrice.isBookClosed) {
+    //     throw new ConflictException(`이미 마감된 주문정보 입니다.`);
+    //   }
 
-      if (tradePrice.orderStockTradePrice) {
-        if (!tradePriceDto.orderStockTradePrice)
-          throw new BadRequestException(`orderStockTradePrice가 필요합니다.`); // TODO... Exception 추가
+    //   if (tradePrice.orderStockTradePrice) {
+    //     if (!tradePriceDto.orderStockTradePrice)
+    //       throw new BadRequestException(`orderStockTradePrice가 필요합니다.`); // TODO... Exception 추가
 
-        await tx.orderStockTradePrice.update({
-          data: {
-            officialPriceType:
-              tradePriceDto.orderStockTradePrice.officialPriceType,
-            officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
-            officialPriceUnit:
-              tradePriceDto.orderStockTradePrice.officialPriceUnit,
-            discountType: tradePriceDto.orderStockTradePrice.discountType,
-            discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
-            unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
-            unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
-            processPrice: tradePriceDto.orderStockTradePrice.processPrice,
-          },
-          where: {
-            orderId_companyId: {
-              orderId: tradePriceDto.orderId,
-              companyId: tradePriceDto.companyId,
-            },
-          },
-        });
+    //     await tx.orderStockTradePrice.update({
+    //       data: {
+    //         officialPriceType:
+    //           tradePriceDto.orderStockTradePrice.officialPriceType,
+    //         officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
+    //         officialPriceUnit:
+    //           tradePriceDto.orderStockTradePrice.officialPriceUnit,
+    //         discountType: tradePriceDto.orderStockTradePrice.discountType,
+    //         discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
+    //         unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
+    //         unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
+    //         processPrice: tradePriceDto.orderStockTradePrice.processPrice,
+    //       },
+    //       where: {
+    //         orderId_companyId: {
+    //           orderId: tradePriceDto.orderId,
+    //           companyId: tradePriceDto.companyId,
+    //         },
+    //       },
+    //     });
 
-        if (tradePrice.orderStockTradePrice.orderStockTradeAltBundle) {
-          await tx.orderStockTradeAltBundle.delete({
-            where: {
-              orderId_companyId: {
-                orderId: tradePriceDto.orderId,
-                companyId: tradePriceDto.companyId,
-              },
-            },
-          });
-        }
+    //     if (tradePrice.orderStockTradePrice.orderStockTradeAltBundle) {
+    //       await tx.orderStockTradeAltBundle.delete({
+    //         where: {
+    //           orderId_companyId: {
+    //             orderId: tradePriceDto.orderId,
+    //             companyId: tradePriceDto.companyId,
+    //           },
+    //         },
+    //       });
+    //     }
 
-        const altBundle =
-          tradePriceDto.orderStockTradePrice.orderStockTradeAltBundle;
-        if (altBundle) {
-          await tx.orderStockTradeAltBundle.create({
-            data: {
-              ...altBundle,
-              orderId: tradePriceDto.orderId,
-              companyId: tradePriceDto.companyId,
-            },
-          });
-        }
-      }
+    //     const altBundle =
+    //       tradePriceDto.orderStockTradePrice.orderStockTradeAltBundle;
+    //     if (altBundle) {
+    //       await tx.orderStockTradeAltBundle.create({
+    //         data: {
+    //           ...altBundle,
+    //           orderId: tradePriceDto.orderId,
+    //           companyId: tradePriceDto.companyId,
+    //         },
+    //       });
+    //     }
+    //   }
 
-      await tx.tradePrice.update({
-        data: {
-          suppliedPrice: tradePriceDto.suppliedPrice,
-          vatPrice: tradePriceDto.vatPrice,
-        },
-        where: {
-          orderId_companyId: {
-            orderId: tradePriceDto.orderId,
-            companyId: tradePriceDto.companyId,
-          },
-        },
-      });
-    });
+    //   await tx.tradePrice.update({
+    //     data: {
+    //       suppliedPrice: tradePriceDto.suppliedPrice,
+    //       vatPrice: tradePriceDto.vatPrice,
+    //     },
+    //     where: {
+    //       orderId_companyId: {
+    //         orderId: tradePriceDto.orderId,
+    //         companyId: tradePriceDto.companyId,
+    //       },
+    //     },
+    //   });
+    // });
   }
 
   /** 보관 등록 */

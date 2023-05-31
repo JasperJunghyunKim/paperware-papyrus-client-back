@@ -49,38 +49,39 @@ export class PlanRetriveService {
   }): Promise<StockEvent[]> {
     const { planId, skip, take } = params;
 
-    const planInput = await this.prisma.stockEvent.findMany({
-      select: Selector.STOCK_EVENT,
-      where: {
-        planIn: {
-          some: {
-            id: planId,
-          },
-        },
-      },
-      skip,
-      take,
-      orderBy: {
-        id: 'desc',
-      },
-    });
+    // const planInput = await this.prisma.stockEvent.findMany({
+    //   select: Selector.STOCK_EVENT,
+    //   where: {
+    //     planIn: {
+    //       some: {
+    //         id: planId,
+    //       },
+    //     },
+    //   },
+    //   skip,
+    //   take,
+    //   orderBy: {
+    //     id: 'desc',
+    //   },
+    // });
 
-    return planInput.map(Util.serialize);
+    // return planInput.map(Util.serialize);
+    return [];
   }
 
   async getPlanInputCount(params: { planId: number }) {
-    const { planId } = params;
+    // const { planId } = params;
 
-    const count = await this.prisma.stockEvent.count({
-      where: {
-        planIn: {
-          some: {
-            id: planId,
-          },
-        },
-      },
-    });
+    // const count = await this.prisma.stockEvent.count({
+    //   where: {
+    //     planIn: {
+    //       some: {
+    //         id: planId,
+    //       },
+    //     },
+    //   },
+    // });
 
-    return count;
+    return 0;
   }
 }
