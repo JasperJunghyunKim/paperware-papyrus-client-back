@@ -469,8 +469,6 @@ enum TaskType {
   CONVERTING // 재단 크기
   GUILLOTINE // 재단 크기
   RELEASE // 수량
-  RECEIVING // StockEvent
-  INSTANTIATE // StockEvent
 }
 
 enum TaskStatus {
