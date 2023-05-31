@@ -9,7 +9,7 @@ export class PlanChangeService {
   constructor(
     private prisma: PrismaService,
     private stockChangeService: StockChangeService,
-  ) { }
+  ) {}
 
   async createPlan(params: {
     companyId: number;
@@ -41,8 +41,6 @@ export class PlanChangeService {
       memo,
       quantity,
     } = params;
-
-    console.log('TEST', params);
 
     await this.prisma.$transaction(async (tx) => {
       const sg =
@@ -234,34 +232,6 @@ export class PlanChangeService {
     });
   }
 
-  async completePlan(params: { planId: number }) {
-    const { planId } = params;
-
-    const plan = await this.prisma.plan.findUnique({
-      where: {
-        id: planId,
-      },
-      select: {
-        status: true,
-      },
-    });
-
-    if (plan.status !== 'PROGRESSING') {
-      throw new Error('완료할 수 없는 Plan입니다.');
-    }
-
-    return await this.prisma.plan.update({
-      where: {
-        id: planId,
-      },
-      data: {
-        status: 'PROGRESSED',
-      },
-    });
-
-    // TODO: 입고 가능한 Release 재고를 생성합니다.
-  }
-
   async registerInputStock(params: {
     planId: number;
     stockId: number;
@@ -276,12 +246,12 @@ export class PlanChangeService {
         },
         select: {
           status: true,
-          targetStockGroupEvent: true,
+          targetStockEvent: true,
         },
       });
 
       if (plan.status !== 'PROGRESSING') {
-        throw new Error('실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.');
+        throw new Error('진행중인 작업계획에서만 재고를 입력할 수 있습니다.');
       }
 
       const se = await tx.stockEvent.create({
@@ -289,17 +259,13 @@ export class PlanChangeService {
           change: -quantity,
           stockId,
           status: 'NORMAL',
-          planIn: {
+          plan: {
             connect: {
               id: planId,
             },
           },
         },
       });
-
-      // TODO... StockGroup 가용량 +해주어야함
-
-
 
       await this.stockChangeService.cacheStockQuantityTx(tx, {
         id: se.stockId,

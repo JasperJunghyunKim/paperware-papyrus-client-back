@@ -11,7 +11,9 @@ export class TaskRetriveService {
       select: Selector.TASK,
       where: {
         planId: params.planId,
-        isDeleted: false,
+        status: {
+          not: 'CANCELLED',
+        },
       },
     });
   }
@@ -29,7 +31,9 @@ export class TaskRetriveService {
     return await this.prisma.task.count({
       where: {
         planId: params.planId,
-        isDeleted: false,
+        status: {
+          not: 'CANCELLED',
+        },
       },
     });
   }

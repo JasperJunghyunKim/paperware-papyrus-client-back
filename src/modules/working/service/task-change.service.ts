@@ -25,7 +25,6 @@ export class TaskChangeService {
       data: {
         planId,
         taskNo: ulid(),
-        isDeleted: false,
         type: 'CONVERTING',
         status: 'PREPARING',
         taskConverting: {
@@ -53,7 +52,6 @@ export class TaskChangeService {
       data: {
         planId,
         taskNo: ulid(),
-        isDeleted: false,
         type: 'GUILLOTINE',
         status: 'PREPARING',
         taskGuillotine: {
@@ -68,7 +66,7 @@ export class TaskChangeService {
     });
   }
 
-  async createQuantityTask(params: {
+  async createReleaseTask(params: {
     planId: number;
     parentTaskId: number | null;
     quantity: number;
@@ -79,8 +77,7 @@ export class TaskChangeService {
       data: {
         planId,
         taskNo: ulid(),
-        isDeleted: false,
-        type: 'QUANTITY',
+        type: 'RELEASE',
         status: 'PREPARING',
         taskQuantity: {
           create: {
@@ -164,7 +161,7 @@ export class TaskChangeService {
         id,
       },
       data: {
-        isDeleted: true,
+        status: 'CANCELLED',
       },
     });
   }
@@ -185,7 +182,7 @@ export class TaskChangeService {
       },
     });
 
-    if (task.type === 'QUANTITY') {
+    if (task.type === 'RELEASE') {
       throw new Error('수량 작업은 즉시 작업 완료를 호출해야합니다.');
     }
 
@@ -255,8 +252,11 @@ export class TaskChangeService {
             select: {
               id: true,
               orderStock: true,
-              targetStockGroupEvent: {
-                select: Selector.STOCK_GROUP_EVENT,
+              assignStockEvent: {
+                select: Selector.STOCK_EVENT,
+              },
+              targetStockEvent: {
+                select: Selector.STOCK_EVENT,
               },
             },
           },
@@ -270,21 +270,22 @@ export class TaskChangeService {
         throw new Error('이미 완료된 작업입니다.');
       }
 
-      if (task.type === 'QUANTITY') {
+      if (task.type === 'RELEASE') {
         const allTasks = await tx.task.findMany({
           select: Selector.TASK,
           where: {
             planId: task.plan.id,
-            isDeleted: false,
+            status: {
+              not: 'CANCELLED',
+            },
           },
         });
 
         const result = TaskUtil.applicate(
           {
-            packagingType:
-              task.plan.targetStockGroupEvent.stockGroup.packaging.type,
-            sizeX: task.plan.targetStockGroupEvent.stockGroup.sizeX,
-            sizeY: task.plan.targetStockGroupEvent.stockGroup.sizeY,
+            packagingType: task.plan.assignStockEvent.stock.packaging.type,
+            sizeX: task.plan.assignStockEvent.stock.sizeX,
+            sizeY: task.plan.assignStockEvent.stock.sizeY,
           },
           allTasks,
           task.id,
@@ -297,7 +298,7 @@ export class TaskChangeService {
             id: true,
           },
           where: {
-            type: task.plan.targetStockGroupEvent.stockGroup.packaging.type,
+            type: task.plan.assignStockEvent.stock.packaging.type,
           },
         });
 
@@ -313,7 +314,7 @@ export class TaskChangeService {
               },
               product: {
                 connect: {
-                  id: task.plan.targetStockGroupEvent.stockGroup.product.id,
+                  id: task.plan.assignStockEvent.stock.product.id,
                 },
               },
               packaging: {
@@ -321,40 +322,34 @@ export class TaskChangeService {
                   id: packaging.id,
                 },
               },
-              grammage: task.plan.orderStock.grammage,
+              grammage: task.plan.assignStockEvent.stock.grammage,
               sizeX: result.sizeX,
               sizeY: result.sizeY,
-              paperColorGroup: task.plan.targetStockGroupEvent.stockGroup
-                .paperColorGroup
+              paperColorGroup: task.plan.assignStockEvent.stock.paperColorGroup
                 ? {
                     connect: {
-                      id: task.plan.targetStockGroupEvent.stockGroup
-                        .paperColorGroup.id,
+                      id: task.plan.assignStockEvent.stock.paperColorGroup.id,
                     },
                   }
                 : undefined,
-              paperColor: task.plan.targetStockGroupEvent.stockGroup.paperColor
+              paperColor: task.plan.assignStockEvent.stock.paperColor
                 ? {
                     connect: {
-                      id: task.plan.targetStockGroupEvent.stockGroup.paperColor
-                        .id,
+                      id: task.plan.assignStockEvent.stock.paperColor.id,
                     },
                   }
                 : undefined,
-              paperPattern: task.plan.targetStockGroupEvent.stockGroup
-                .paperPattern
+              paperPattern: task.plan.assignStockEvent.stock.paperPattern
                 ? {
                     connect: {
-                      id: task.plan.targetStockGroupEvent.stockGroup
-                        .paperPattern.id,
+                      id: task.plan.assignStockEvent.stock.paperPattern.id,
                     },
                   }
                 : undefined,
-              paperCert: task.plan.targetStockGroupEvent.stockGroup.paperCert
+              paperCert: task.plan.assignStockEvent.stock.paperCert
                 ? {
                     connect: {
-                      id: task.plan.targetStockGroupEvent.stockGroup.paperCert
-                        .id,
+                      id: task.plan.assignStockEvent.stock.paperCert.id,
                     },
                   }
                 : undefined,
@@ -392,7 +387,6 @@ export class TaskChangeService {
           plan: {
             select: {
               id: true,
-              status: true,
             },
           },
           type: true,
@@ -402,10 +396,6 @@ export class TaskChangeService {
         },
       });
 
-      if (task.plan.status !== 'PROGRESSING') {
-        throw new Error('작업 진행 상태가 아닙니다.');
-      }
-
       await tx.stockEvent.create({
         select: {
           id: true,
@@ -414,7 +404,7 @@ export class TaskChangeService {
           stockId: stockId,
           change: -quantity,
           status: 'NORMAL',
-          planIn: {
+          plan: {
             connect: {
               id: task.plan.id,
             },

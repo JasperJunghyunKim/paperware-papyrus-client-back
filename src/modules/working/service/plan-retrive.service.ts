@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetriveService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getPlanList(params: {
     companyId: number;
@@ -52,7 +52,7 @@ export class PlanRetriveService {
     const planInput = await this.prisma.stockEvent.findMany({
       select: Selector.STOCK_EVENT,
       where: {
-        planIn: {
+        plan: {
           some: {
             id: planId,
           },
@@ -73,7 +73,7 @@ export class PlanRetriveService {
 
     const count = await this.prisma.stockEvent.count({
       where: {
-        planIn: {
+        plan: {
           some: {
             id: planId,
           },
