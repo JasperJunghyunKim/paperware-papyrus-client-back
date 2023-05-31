@@ -214,7 +214,8 @@ model StockEvent {
   change            Int
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
-  plan              Plan[]
+  plan              Plan[]           @relation("TargetStockEvent")
+  assignPlan        Plan[]           @relation("AssignStockEvent")
 }
 
 // User
@@ -492,19 +493,21 @@ enum PlanType {
 }
 
 model Plan {
-  id               Int          @id @default(autoincrement())
-  planNo           String       @unique
-  type             PlanType
-  companyId        Int
-  company          Company      @relation(fields: [companyId], references: [id])
-  isDeleted        Boolean      @default(false)
-  createdAt        DateTime     @default(now())
-  task             Task[]
-  invoice          Invoice[]
-  targetStockEvent StockEvent[] // 실투입
-  stock            Stock[]
-  orderStock       OrderStock?  @relation(fields: [orderStockId], references: [id])
-  orderStockId     Int?
+  id                 Int          @id @default(autoincrement())
+  planNo             String       @unique
+  type               PlanType
+  companyId          Int
+  company            Company      @relation(fields: [companyId], references: [id])
+  isDeleted          Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  task               Task[]
+  invoice            Invoice[]
+  assignStockEventId Int?
+  assignStockEvent   StockEvent?  @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
+  targetStockEvent   StockEvent[] @relation("TargetStockEvent")
+  stock              Stock[]
+  orderStock         OrderStock?  @relation(fields: [orderStockId], references: [id])
+  orderStockId       Int?
 }
 
 model Task {
