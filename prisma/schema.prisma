@@ -492,13 +492,19 @@ enum PlanType {
   TRADE_OUTSOURCE_PROCESS_BUYER // 외주 매입
 }
 
+enum PlanStatus {
+  PREPARING
+  PROGRESSING
+  CANCELLED
+}
+
 model Plan {
   id                 Int          @id @default(autoincrement())
   planNo             String       @unique
   type               PlanType
   companyId          Int
   company            Company      @relation(fields: [companyId], references: [id])
-  isDeleted          Boolean      @default(false)
+  status             PlanStatus   @default(PREPARING)
   createdAt          DateTime     @default(now())
   task               Task[]
   invoice            Invoice[]

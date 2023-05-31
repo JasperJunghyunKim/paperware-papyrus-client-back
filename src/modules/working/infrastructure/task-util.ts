@@ -35,8 +35,6 @@ export function applicate(
     quantity: 0,
   };
 
-  console.log('ERER', items);
-
   for (const item of items) {
     data = operate(data, item);
   }
@@ -58,7 +56,7 @@ function operate(input: Data, operator: Model.Task): Data {
         operator.taskGuillotine.sizeX,
         operator.taskGuillotine.sizeY,
       );
-    case 'QUANTITY':
+    case 'RELEASE':
       return operateQuantity(input, operator.taskQuantity.quantity);
     default:
       throw new Error(`Unknown task type: ${operator.type}`);

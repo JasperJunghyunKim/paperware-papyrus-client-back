@@ -68,10 +68,6 @@ export class TaskController {
       throw new ForbiddenException('Not allowed');
     }
 
-    // if (plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
-
     if (body.parentTaskId) {
       const parentTask = await this.taskRetriveService.getTaskById(
         body.parentTaskId,
@@ -109,10 +105,6 @@ export class TaskController {
     if (plan.company.id !== req.user.companyId) {
       throw new ForbiddenException('Not allowed');
     }
-
-    // if (plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
 
     if (body.parentTaskId) {
       const parentTask = await this.taskRetriveService.getTaskById(
@@ -152,11 +144,7 @@ export class TaskController {
       throw new ForbiddenException('Not allowed');
     }
 
-    // if (plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
-
-    const task = await this.taskChangeService.createQuantityTask({
+    const task = await this.taskChangeService.createReleaseTask({
       planId: body.planId,
       quantity: body.quantity,
       parentTaskId: body.parentTaskId ?? null,
@@ -182,10 +170,6 @@ export class TaskController {
     if (task.type !== 'CONVERTING') {
       throw new BadRequestException('Not allowed');
     }
-
-    // if (task.plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
 
     const updatedTask = await this.taskChangeService.updateConvertingTask({
       id: task.id,
@@ -215,10 +199,6 @@ export class TaskController {
       throw new BadRequestException('Not allowed');
     }
 
-    // if (task.plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
-
     const updatedTask = await this.taskChangeService.updateGuillotineTask({
       id: task.id,
       sizeX: body.sizeX,
@@ -243,14 +223,6 @@ export class TaskController {
       throw new ForbiddenException('Not allowed');
     }
 
-    if (task.type !== 'RECEIVING') {
-      throw new BadRequestException('Not allowed');
-    }
-
-    // if (task.plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('수정할 수 없는 상태입니다.');
-    // }
-
     const updatedTask = await this.taskChangeService.updateQuantityTask({
       id: task.id,
       quantity: body.quantity,
@@ -268,10 +240,6 @@ export class TaskController {
     if (task.plan.company.id !== req.user.companyId) {
       throw new ForbiddenException('Not allowed');
     }
-
-    // if (task.plan.status !== 'PREPARING') {
-    //   throw new BadRequestException('삭제할 수 없는 상태입니다.');
-    // }
 
     await this.taskChangeService.deleteTask(id);
 

@@ -126,23 +126,6 @@ export class PlanController {
     return updatedPlan;
   }
 
-  @Post('plan/:id/complete')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
-  async completePlan(@Request() req: AuthType, @Param('id') id: number) {
-    const plan = await this.planRetriveService.getPlanById(id);
-
-    if (plan.company.id !== req.user.companyId) {
-      throw new ForbiddenException('Not allowed');
-    }
-
-    const updatedPlan = await this.planChangeService.completePlan({
-      planId: id,
-    });
-
-    return updatedPlan;
-  }
-
   @Post('plan/:id/register-stock')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)

@@ -68,7 +68,7 @@ export class TaskChangeService {
     // });
   }
 
-  async createQuantityTask(params: {
+  async createReleaseTask(params: {
     planId: number;
     parentTaskId: number | null;
     quantity: number;

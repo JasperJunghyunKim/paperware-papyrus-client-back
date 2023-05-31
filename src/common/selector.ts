@@ -291,6 +291,7 @@ export const ORDER_STOCK = {
     select: {
       id: true,
       planNo: true,
+      type: true,
     },
   },
 } satisfies Prisma.OrderStockSelect;
@@ -355,14 +356,19 @@ export const TASK_QUANTITY = {
 export const PLAN = {
   id: true,
   planNo: true,
+  type: true,
+  // status: true,
   company: {
     select: COMPANY,
   },
   createdAt: true,
+  assignStockEvent: {
+    select: STOCK_EVENT,
+  },
   targetStockEvent: {
     select: STOCK_EVENT,
   },
-  OrderStock: {
+  orderStock: {
     select: {
       order: {
         select: ORDER,
