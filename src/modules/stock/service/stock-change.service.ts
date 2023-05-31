@@ -83,23 +83,12 @@ export class StockChangeService {
 
       // TODO... plan 생성은 추후 혜준님이 만들 plan service 이용
       const plan = await tx.plan.create({
-        select: {
-          id: true,
-          task: true,
-        },
         data: {
           planNo: ulid(),
           type: PlanType.INHOUSE_CREATE,
           company: {
             connect: {
               id: stockData.company.connect.id,
-            }
-          },
-          task: {
-            create: {
-              taskNo: ulid(),
-              type: TaskType.INSTANTIATE,
-              status: TaskStatus.PROGRESSED,
             }
           },
           targetStockEvent: {

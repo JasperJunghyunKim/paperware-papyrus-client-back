@@ -166,7 +166,24 @@ export class StockRetriveService {
   }
 
   async getStockGroupList(companyId: number, skip: number, take: number) {
+    const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
 
+    const stockGroups = await this.prisma.$queryRaw`
+      SELECT *
+        FROM Stock              AS s
+        JOIN StockEvent         AS se   ON se.id = (SELECT id FROM StockEvent WHERE \`change\` > 0 AND stockId = s.id LIMIT 1)
+
+       WHERE s.companyId = ${companyId}
+
+      ${limit}
+    `;
+
+    console.log(stockGroups)
+
+    return {
+      items: [],
+      total: 0,
+    }
   }
 
   async getStockGroupQuantity(params: {
