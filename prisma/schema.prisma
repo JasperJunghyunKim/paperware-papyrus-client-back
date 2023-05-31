@@ -215,8 +215,6 @@ model StockEvent {
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
   plan              Plan[]
-  taskInitiate      TaskInitiate?
-  taskReceiving     TaskReceiving?
 }
 
 // User
@@ -507,7 +505,7 @@ model Plan {
   invoice          Invoice[]
   targetStockEvent StockEvent[] // 실투입
   Stock            Stock[]
-  OrderStock       OrderStock?  @relation(fields: [orderStockId], references: [id])
+  orderStock       OrderStock?  @relation(fields: [orderStockId], references: [id])
   orderStockId     Int?
 }
 
@@ -521,8 +519,6 @@ model Task {
   taskConverting TaskConverting?
   taskGuillotine TaskGuillotine?
   taskQuantity   TaskQuantity?
-  taskReceiving  TaskReceiving?
-  taskInitiate   TaskInitiate?
   parentTaskId   Int?
   parentTask     Task?           @relation("TaskRelation", fields: [parentTaskId], references: [id])
   childTasks     Task[]          @relation("TaskRelation")
@@ -548,20 +544,6 @@ model TaskQuantity {
   taskId   Int  @id
   task     Task @relation(fields: [taskId], references: [id])
   quantity Int
-}
-
-model TaskReceiving {
-  taskId       Int        @id
-  task         Task       @relation(fields: [taskId], references: [id])
-  stockEventId Int        @unique
-  stockEvent   StockEvent @relation(fields: [stockEventId], references: [id])
-}
-
-model TaskInitiate {
-  taskId       Int        @id
-  task         Task       @relation(fields: [taskId], references: [id])
-  stockEventId Int        @unique
-  stockEvent   StockEvent @relation(fields: [stockEventId], references: [id])
 }
 
 enum ShippingStatus {
