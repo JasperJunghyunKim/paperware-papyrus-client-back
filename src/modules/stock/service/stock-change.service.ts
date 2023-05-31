@@ -55,127 +55,68 @@ export class StockChangeService {
     stockPriceData: Prisma.StockPriceCreateInput,
     quantity: number,
   ) {
-    // const stock = await this.prisma.$transaction(async (tx) => {
-    //   const packaging = await tx.packaging.findUnique({
-    //     where: {
-    //       id: stockData.packaging.connect.id,
-    //     },
-    //   });
+    const stock = await this.prisma.$transaction(async (tx) => {
+      const packaging = await tx.packaging.findUnique({
+        where: {
+          id: stockData.packaging.connect.id,
+        },
+      });
 
-    //   this.stockValidator.validateQuantity(packaging, quantity);
+      this.stockValidator.validateQuantity(packaging, quantity);
 
-    //   const plan = await tx.plan.create({
-    //     select: {
-    //       id: true,
-    //       task: true,
-    //     },
-    //     data: {
-    //       planNo: ulid(),
-    //       type: PlanType.INHOUSE_CREATE,
-    //       company: {
-    //         connect: {
-    //           id: stockData.company.connect.id,
-    //         }
-    //       },
-    //       task: {
-    //         create: {
-    //           taskNo: ulid(),
-    //           type: TaskType.INSTANTIATE,
-    //           status: TaskStatus.PROGRESSED,
-    //         }
-    //       }
-    //     }
-    //   });
+      const stock = await tx.stock.create({
+        data: stockData,
+        select: {
+          id: true,
+        },
+      });
+      await tx.stockPrice.create({
+        data: {
+          ...stockPriceData,
+          stock: {
+            connect: {
+              id: stock.id,
+            },
+          },
+        },
+      });
 
-    //   const stockGroup = await tx.stockGroup.findFirst({
-    //     where: {
-    //       productId: stockData.product.connect.id,
-    //       packagingId: stockData.packaging.connect.id,
-    //       grammage: stockData.grammage,
-    //       sizeX: stockData.sizeX,
-    //       sizeY: stockData.sizeY,
-    //       paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
-    //       paperColorId: stockData.paperColor?.connect.id || null,
-    //       paperPatternId: stockData.paperPattern?.connect.id || null,
-    //       paperCertId: stockData.paperCert?.connect.id || null,
-    //       warehouseId: stockData.warehouse.connect.id,
-    //       companyId: stockData.company.connect.id,
-    //       isDirectShipping: null,
-    //     }
-    //   }) || await tx.stockGroup.create({
-    //     data: {
-    //       productId: stockData.product.connect.id,
-    //       packagingId: stockData.packaging.connect.id,
-    //       grammage: stockData.grammage,
-    //       sizeX: stockData.sizeX,
-    //       sizeY: stockData.sizeY,
-    //       paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
-    //       paperColorId: stockData.paperColor?.connect.id || null,
-    //       paperPatternId: stockData.paperPattern?.connect.id || null,
-    //       paperCertId: stockData.paperCert?.connect.id || null,
-    //       warehouseId: stockData.warehouse.connect.id,
-    //       companyId: stockData.company.connect.id,
-    //       planId: null,
-    //     },
-    //   });
+      // TODO... plan 생성은 추후 혜준님이 만들 plan service 이용
+      const plan = await tx.plan.create({
+        select: {
+          id: true,
+          task: true,
+        },
+        data: {
+          planNo: ulid(),
+          type: PlanType.INHOUSE_CREATE,
+          company: {
+            connect: {
+              id: stockData.company.connect.id,
+            }
+          },
+          task: {
+            create: {
+              taskNo: ulid(),
+              type: TaskType.INSTANTIATE,
+              status: TaskStatus.PROGRESSED,
+            }
+          },
+          targetStockEvent: {
+            create: {
+              stockId: stock.id,
+              change: quantity,
+              status: StockEventStatus.NORMAL,
+            }
+          },
+        }
+      });
 
-    //   const stock = await tx.stock.create({
-    //     data: stockData,
-    //     select: {
-    //       id: true,
-    //     },
-    //   });
-    //   await tx.stockPrice.create({
-    //     data: {
-    //       ...stockPriceData,
-    //       stock: {
-    //         connect: {
-    //           id: stock.id,
-    //         },
-    //       },
-    //     },
-    //   });
+      await this.cacheStockQuantityTx(tx, {
+        id: stock.id,
+      });
+    });
 
-    //   const stockEvent = await tx.stockEvent.create({
-    //     data: {
-    //       stock: {
-    //         connect: {
-    //           id: stock.id,
-    //         },
-    //       },
-    //       change: quantity,
-    //       status: StockEventStatus.NORMAL,
-    //       plan: {
-    //         connect: {
-    //           id: plan.id,
-    //         }
-    //       }
-    //     },
-    //     select: {
-    //       id: true,
-    //     },
-    //   });
-
-    //   await tx.taskInitiate.create({
-    //     data: {
-    //       task: {
-    //         connect: {
-    //           id: plan.task[0].id
-    //         }
-    //       },
-    //       stockEvent: {
-    //         connect: {
-    //           id: stockEvent.id,
-    //         }
-    //       }
-    //     }
-    //   })
-
-    //   await this.cacheStockQuantityTx(tx, {
-    //     id: stock.id,
-    //   });
-    // });
-
-    // return stock;
+    return stock;
   }
 }
