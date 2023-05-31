@@ -9,6 +9,7 @@ import { StockValidator } from './service/stock.validator';
 import { StockArrivalController } from './api/stock-arrival.controller';
 import { StockArrivalRetriveService } from './service/stock-arrival-retrive.service';
 import { StockArrivalChangeService } from './service/stock-arrival-change.service';
+import { PlanChangeService } from './service/plan-change.service';
 
 @Module({
   controllers: [
@@ -24,7 +25,8 @@ import { StockArrivalChangeService } from './service/stock-arrival-change.servic
     StockArrivalRetriveService,
     StockArrivalChangeService,
     PartnerStockRetriveService,
+    PlanChangeService,
   ],
   exports: [StockQuantityCheckerService, StockChangeService, StockValidator],
 })
-export class StockModule {}
+export class StockModule { }

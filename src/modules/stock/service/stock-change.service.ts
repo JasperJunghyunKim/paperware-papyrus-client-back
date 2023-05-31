@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { PlanType, Prisma, StockEventStatus, TaskStatus, TaskType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
-import { ulid } from 'ulid';
 import { PrismaTransaction } from 'src/common/types';
+import { PlanChangeService } from './plan-change.service';
+import { StockPrice } from 'src/@shared/models';
 
 @Injectable()
 export class StockChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
+    private readonly planChangeService: PlanChangeService,
   ) { }
 
   async cacheStockQuantityTx(
@@ -51,61 +53,31 @@ export class StockChangeService {
   }
 
   async create(
-    stockData: Prisma.StockCreateInput,
-    stockPriceData: Prisma.StockPriceCreateInput,
-    quantity: number,
+    params: {
+      companyId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      warehouseId: number | null;
+      quantity: number;
+      price: StockPrice;
+    },
   ) {
-    const stock = await this.prisma.$transaction(async (tx) => {
-      const packaging = await tx.packaging.findUnique({
-        where: {
-          id: stockData.packaging.connect.id,
-        },
-      });
-
-      this.stockValidator.validateQuantity(packaging, quantity);
-
-      const stock = await tx.stock.create({
-        data: stockData,
-        select: {
-          id: true,
-        },
-      });
-      await tx.stockPrice.create({
-        data: {
-          ...stockPriceData,
-          stock: {
-            connect: {
-              id: stock.id,
-            },
-          },
-        },
-      });
-
-      // TODO... plan 생성은 추후 혜준님이 만들 plan service 이용
-      const plan = await tx.plan.create({
-        data: {
-          planNo: ulid(),
-          type: PlanType.INHOUSE_CREATE,
-          company: {
-            connect: {
-              id: stockData.company.connect.id,
-            }
-          },
-          targetStockEvent: {
-            create: {
-              stockId: stock.id,
-              change: quantity,
-              status: StockEventStatus.NORMAL,
-            }
-          },
-        }
-      });
+    await this.prisma.$transaction(async (tx) => {
+      const createStockResult = await this.planChangeService.insertInstantiate(
+        tx,
+        params,
+      );
 
       await this.cacheStockQuantityTx(tx, {
-        id: stock.id,
+        id: createStockResult.stockId,
       });
     });
-
-    return stock;
   }
 }

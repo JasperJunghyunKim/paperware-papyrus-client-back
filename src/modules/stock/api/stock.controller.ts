@@ -99,69 +99,11 @@ export class StockController {
     @Request() req: AuthType,
     @Body() dto: StockCreateRequestDto,
   ): Promise<any> {
-    await this.stockChangeService.create(
-      {
-        serial: ulid(),
-        warehouse: dto.warehouseId
-          ? {
-            connect: {
-              id: dto.warehouseId,
-            },
-          }
-          : undefined,
-        company: {
-          connect: {
-            id: req.user.companyId,
-          },
-        },
-        product: {
-          connect: {
-            id: dto.productId,
-          },
-        },
-        grammage: dto.grammage,
-        sizeX: dto.sizeX,
-        sizeY: dto.sizeY || 0,
-        packaging: {
-          connect: {
-            id: dto.packagingId,
-          },
-        },
-        paperColorGroup: dto.paperColorGroupId
-          ? {
-            connect: {
-              id: dto.paperColorGroupId,
-            },
-          }
-          : undefined,
-        paperColor: dto.paperColorId
-          ? {
-            connect: {
-              id: dto.paperColorId,
-            },
-          }
-          : undefined,
-        paperPattern: dto.paperPatternId
-          ? {
-            connect: {
-              id: dto.paperPatternId,
-            },
-          }
-          : undefined,
-        paperCert: dto.paperCertId
-          ? {
-            connect: {
-              id: dto.paperCertId,
-            },
-          }
-          : undefined,
-      },
-      {
-        ...dto.stockPrice,
-        stock: undefined,
-      },
-      dto.quantity,
-    );
+    await this.stockChangeService.create({
+      companyId: req.user.companyId,
+      ...dto,
+      price: dto.stockPrice,
+    });
   }
 
   @Get('group/quantity')
