@@ -177,9 +177,6 @@ model Stock {
   isSyncPrice             Boolean          @default(false)
   stockPrice              StockPrice?
 
-  initialOrderId Int?
-  initialOrder   Order? @relation(fields: [initialOrderId], references: [id])
-
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
   @@index([paperColorId], type: BTree)
@@ -404,7 +401,6 @@ model Order {
   isStockRejected        Boolean        @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
-  stock                  Stock[]
   orderDeposit           OrderDeposit[]
   DepositEvent           DepositEvent[]
 }
