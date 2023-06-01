@@ -491,6 +491,7 @@ enum PlanType {
 enum PlanStatus {
   PREPARING
   PROGRESSING
+  PROGRESSED
   CANCELLED
 }
 
