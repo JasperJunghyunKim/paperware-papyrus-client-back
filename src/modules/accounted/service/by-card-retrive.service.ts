@@ -34,6 +34,12 @@ export class ByCardRetriveService {
                   cardCompany: true,
                   cardNumber: true,
                 }
+              },
+              bankAccount: {
+                select: {
+                  id: true,
+                  accountName: true,
+                }
               }
             }
           },
@@ -67,24 +73,26 @@ export class ByCardRetriveService {
       throwIfEmpty(() => new AccountedNotFoundException(AccountedError.ACCOUNTED001, [accountedId])),
       map((accounted) => {
         return {
-          companyId: accounted.partner.company.id,
-          companyRegistrationNumber: accounted.partner.company.companyRegistrationNumber,
-          accountedId: accounted.id,
-          accountedType: accounted.accountedType,
-          accountedDate: accounted.accountedDate.toISOString(),
-          accountedSubject: accounted.accountedSubject,
-          accountedMethod: accounted.accountedMethod,
-          amount: accounted.byCard.cardAmount,
-          memo: accounted.memo,
-          partnerNickName: accounted.partner.partnerNickName,
-          cardId: accounted.byCard.card.id,
-          cardName: accounted.byCard.card.cardName,
-          cardNumber: accounted.byCard.card.cardNumber,
-          cardCompany: accounted.byCard.card.cardCompany,
-          totalAmount: accounted.byCard.totalAmount,
-          chargeAmount: accounted.byCard.chargeAmount,
-          isCharge: accounted.byCard.isCharge,
-          approvalNumber: accounted.byCard.approvalNumber,
+          companyId: accounted?.partner?.company?.id,
+          companyRegistrationNumber: accounted?.partner?.company?.companyRegistrationNumber,
+          accountedId: accounted?.id,
+          accountedType: accounted?.accountedType,
+          accountedDate: accounted?.accountedDate.toISOString(),
+          accountedSubject: accounted?.accountedSubject,
+          accountedMethod: accounted?.accountedMethod,
+          amount: accounted?.byCard?.cardAmount,
+          memo: accounted?.memo,
+          partnerNickName: accounted?.partner?.partnerNickName,
+          bankAccountId: accounted?.byCard?.bankAccount?.id,
+          accountName: accounted?.byCard?.bankAccount?.accountName,
+          cardId: accounted?.byCard?.card?.id,
+          cardName: accounted?.byCard?.card?.cardName,
+          cardNumber: accounted?.byCard?.card?.cardNumber,
+          cardCompany: accounted?.byCard?.card?.cardCompany,
+          totalAmount: accounted?.byCard?.totalAmount,
+          chargeAmount: accounted?.byCard?.chargeAmount,
+          isCharge: accounted?.byCard?.isCharge,
+          approvalNumber: accounted?.byCard?.approvalNumber,
         }
       }),
     ));

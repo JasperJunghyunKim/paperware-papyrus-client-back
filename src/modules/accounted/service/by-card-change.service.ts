@@ -7,8 +7,26 @@ import { ByCardCreateRequestDto, ByCardUpdateRequestDto } from '../api/dto/card.
 @Injectable()
 export class ByCardChangeService {
   constructor(private readonly prisma: PrismaService) { }
-
   async createCard(accountedType: AccountedType, byCardCreateRequest: ByCardCreateRequestDto): Promise<void> {
+    let param;
+    if (accountedType === AccountedType.COLLECTED) {
+      param = {
+        bankAccount: {
+          connect: {
+            id: byCardCreateRequest.bankAccountId
+          }
+        }
+      }
+    } else {
+      param = {
+        card: {
+          connect: {
+            id: byCardCreateRequest.cardId,
+          },
+        }
+      }
+    }
+
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -33,11 +51,7 @@ export class ByCardChangeService {
                 chargeAmount: byCardCreateRequest.chargeAmount ?? 0,
                 totalAmount: byCardCreateRequest.totalAmount ?? 0,
                 approvalNumber: byCardCreateRequest.approvalNumber ?? '',
-                card: {
-                  connect: {
-                    id: byCardCreateRequest.cardId,
-                  },
-                },
+                ...param,
               }
             },
           },

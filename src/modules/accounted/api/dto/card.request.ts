@@ -22,7 +22,12 @@ export class ByCardCreateRequestDto implements ByCardCreateRequest {
   readonly accountedDate: string;
 
   @IsNumber()
+  @IsOptional()
   readonly cardId: number;
+
+  @IsNumber()
+  @IsOptional()
+  readonly bankAccountId: number;
 
   @IsString()
   @IsOptional()

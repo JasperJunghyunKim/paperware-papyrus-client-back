@@ -67,6 +67,11 @@ export class AccountedRetriveService {
                 select: {
                   cardName: true,
                 }
+              },
+              bankAccount: {
+                select: {
+                  accountName: true
+                }
               }
             }
           },
@@ -112,7 +117,7 @@ export class AccountedRetriveService {
       map((accountedList) => {
         const items = accountedList.map((accounted) => {
 
-          const getAmount = (method): number => {
+          const getAmount = (method: Method): number => {
             switch (method) {
               case Method.CASH:
                 return accounted.byCash.cashAmount;
@@ -129,7 +134,7 @@ export class AccountedRetriveService {
             }
           }
 
-          const getGubun = (method): string => {
+          const getGubun = (method: Method, accountedType: AccountedType): string => {
             switch (method) {
               case Method.CASH:
                 return '';
@@ -140,7 +145,11 @@ export class AccountedRetriveService {
               case Method.ACCOUNT_TRANSFER:
                 return accounted.byBankAccount.bankAccount.accountName;
               case Method.CARD_PAYMENT:
-                return accounted.byCard.card.cardName;
+                if (accountedType === AccountedType.COLLECTED) {
+                  return accounted.byCard.bankAccount.accountName;
+                } else {
+                  return accounted.byCard.card.cardName;
+                }
               case Method.OFFSET:
                 return '';
             }
@@ -157,7 +166,7 @@ export class AccountedRetriveService {
             accountedSubject: accounted.accountedSubject,
             amount: getAmount(accounted.accountedMethod),
             memo: accounted.memo,
-            gubun: getGubun(accounted.accountedMethod),
+            gubun: getGubun(accounted.accountedMethod, accounted.accountedType),
             securityStatus: accounted.accountedMethod === Method.PROMISSORY_NOTE ? accounted.bySecurity.security.securityStatus : undefined,
           }
         })
