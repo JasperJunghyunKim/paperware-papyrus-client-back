@@ -4,6 +4,7 @@
 
 # docker
 /docker
+/docker/db
 
 # Logs
 logs
