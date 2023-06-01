@@ -17,7 +17,9 @@ export class PlanRetriveService {
       select: Selector.PLAN,
       where: {
         companyId: params.companyId,
-        isDeleted: false,
+        status: {
+          not: 'CANCELLED',
+        },
       },
       skip,
       take,
@@ -28,7 +30,9 @@ export class PlanRetriveService {
     return await this.prisma.plan.count({
       where: {
         companyId: params.companyId,
-        isDeleted: false,
+        status: {
+          not: 'CANCELLED',
+        },
       },
     });
   }

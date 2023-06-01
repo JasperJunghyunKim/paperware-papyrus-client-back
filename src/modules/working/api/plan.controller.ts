@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Query,
@@ -81,12 +82,7 @@ export class PlanController {
     @Request() req: AuthType,
     @Body() body: PlanCreateRequestDto,
   ) {
-    const plan = await this.planChangeService.createPlan({
-      ...body,
-      companyId: req.user.companyId,
-    });
-
-    return plan;
+    throw new NotImplementedException('내부 작업 등록은 아직 미구현입니다.');
   }
 
   @Get('plan/:id/task')

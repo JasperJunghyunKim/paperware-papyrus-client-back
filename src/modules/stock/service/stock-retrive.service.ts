@@ -1,438 +1,438 @@
-import { Injectable } from '@nestjs/common';
-import {
-  PackagingType,
-  Prisma,
-  StockEventStatus,
-  StockGroupEventStatus,
-} from '@prisma/client';
-import { PrismaService } from 'src/core';
-import { StockError } from '../infrastructure/constants/stock-error.enum';
-import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
-import { Selector } from 'src/common';
+// import { Injectable } from '@nestjs/common';
+// import {
+//   PackagingType,
+//   Prisma,
+//   StockEventStatus,
+//   StockGroupEventStatus,
+// } from '@prisma/client';
+// import { PrismaService } from 'src/core';
+// import { StockError } from '../infrastructure/constants/stock-error.enum';
+// import { StockNotFoundException } from '../infrastructure/exception/stock-notfound.exception';
+// import { Selector } from 'src/common';
 
-interface StockGroupFromDB {
-  stockGroupId: number;
-  warehouseId: number;
-  warehouseName: string;
-  warehouseCode: string;
-  warehouseIsPublic: boolean;
-  warehouseAddress: string;
+// interface StockGroupFromDB {
+//   stockGroupId: number;
+//   warehouseId: number;
+//   warehouseName: string;
+//   warehouseCode: string;
+//   warehouseIsPublic: boolean;
+//   warehouseAddress: string;
 
-  // 메타데이터
-  packagingId: number;
-  packagingName: string;
-  packagingType: PackagingType;
-  packagingPackA: number;
-  packagingPackB: number;
+//   // 메타데이터
+//   packagingId: number;
+//   packagingName: string;
+//   packagingType: PackagingType;
+//   packagingPackA: number;
+//   packagingPackB: number;
 
-  productId: number;
-  paperDomainId: number;
-  paperDomainName: string;
-  paperGroupId: number;
-  paperGroupName: string;
-  manufacturerId: number;
-  manufacturerName: string;
-  paperTypeId: number;
-  paperTypeName: string;
+//   productId: number;
+//   paperDomainId: number;
+//   paperDomainName: string;
+//   paperGroupId: number;
+//   paperGroupName: string;
+//   manufacturerId: number;
+//   manufacturerName: string;
+//   paperTypeId: number;
+//   paperTypeName: string;
 
-  grammage: number;
-  sizeX: number;
-  sizeY: number;
+//   grammage: number;
+//   sizeX: number;
+//   sizeY: number;
 
-  paperColorGroupId: number;
-  paperColorGroupName: string;
-  paperColorId: number;
-  paperColorName: string;
-  paperPatternId: number;
-  paperPatternName: string;
-  paperCertId: number;
-  paperCertName: string;
+//   paperColorGroupId: number;
+//   paperColorGroupName: string;
+//   paperColorId: number;
+//   paperColorName: string;
+//   paperPatternId: number;
+//   paperPatternName: string;
+//   paperCertId: number;
+//   paperCertName: string;
 
-  // 도착예정 정보
-  orderStockId: number;
-  orderId: number;
-  dstLocationId: number;
-  dstLocationName: string;
-  dstLocationCode: string;
-  dstLocationIsPublic: boolean;
-  dstLocationAddress: string;
-  wantedDate: string;
+//   // 도착예정 정보
+//   orderStockId: number;
+//   orderId: number;
+//   dstLocationId: number;
+//   dstLocationName: string;
+//   dstLocationCode: string;
+//   dstLocationIsPublic: boolean;
+//   dstLocationAddress: string;
+//   wantedDate: string;
 
-  planId: number;
-  planNo: string;
+//   planId: number;
+//   planNo: string;
 
-  // 원지정보
-  osWarehouseId: number;
-  osWarehouseName: string;
-  osWarehouseCode: string;
-  osWarehouseIsPublic: boolean;
-  osWarehouseAddress: string;
+//   // 원지정보
+//   osWarehouseId: number;
+//   osWarehouseName: string;
+//   osWarehouseCode: string;
+//   osWarehouseIsPublic: boolean;
+//   osWarehouseAddress: string;
 
-  orderStockProductId: number;
-  orderStockPaperDomainId: number;
-  orderStockPaperDomainName: string;
-  orderStockManufacturerId: number;
-  orderStockManufacturerName: string;
-  orderStockPaperGroupId: number;
-  orderStockPaperGroupName: string;
-  orderStockPaperTypeId: number;
-  orderStockPaperTypeName: string;
-  orderStockPackagingId: number;
-  orderStockPackagingName: string;
-  orderStockPackagingType: PackagingType;
-  orderStockPackagingPackA: number;
-  orderStockPackagingPackB: number;
-  orderStockPaperColorGroupId: number;
-  orderStockPaperColorGroupName: string;
-  orderStockPaperColorId: number;
-  orderStockPaperColorName: string;
-  orderStockPaperPatternId: number;
-  orderStockPaperPatternName: string;
-  orderStockPaperCertId: number;
-  orderStockPaperCertName: string;
-  orderStockGrammage: number;
-  orderStockSizeX: number;
-  orderStockSizeY: number;
-  orderStockQuantity: number;
+//   orderStockProductId: number;
+//   orderStockPaperDomainId: number;
+//   orderStockPaperDomainName: string;
+//   orderStockManufacturerId: number;
+//   orderStockManufacturerName: string;
+//   orderStockPaperGroupId: number;
+//   orderStockPaperGroupName: string;
+//   orderStockPaperTypeId: number;
+//   orderStockPaperTypeName: string;
+//   orderStockPackagingId: number;
+//   orderStockPackagingName: string;
+//   orderStockPackagingType: PackagingType;
+//   orderStockPackagingPackA: number;
+//   orderStockPackagingPackB: number;
+//   orderStockPaperColorGroupId: number;
+//   orderStockPaperColorGroupName: string;
+//   orderStockPaperColorId: number;
+//   orderStockPaperColorName: string;
+//   orderStockPaperPatternId: number;
+//   orderStockPaperPatternName: string;
+//   orderStockPaperCertId: number;
+//   orderStockPaperCertName: string;
+//   orderStockGrammage: number;
+//   orderStockSizeX: number;
+//   orderStockSizeY: number;
+//   orderStockQuantity: number;
 
-  // 거래처 정보
-  partnerCompanyId: number;
-  partnerCompanyBusinessName: string;
-  partnerCompanyCompanyRegistrationNumber: string;
-  partnerCompanyInvoiceCode: string;
-  partnerCompanyRepresentative: string;
-  partnerCompanyAddress: string;
-  partnerCompanyPhoneNo: string;
-  partnerCompanyFaxNo: string;
-  partnerCompanyEmail: string;
-  partnerCompanyManagedById: number;
+//   // 거래처 정보
+//   partnerCompanyId: number;
+//   partnerCompanyBusinessName: string;
+//   partnerCompanyCompanyRegistrationNumber: string;
+//   partnerCompanyInvoiceCode: string;
+//   partnerCompanyRepresentative: string;
+//   partnerCompanyAddress: string;
+//   partnerCompanyPhoneNo: string;
+//   partnerCompanyFaxNo: string;
+//   partnerCompanyEmail: string;
+//   partnerCompanyManagedById: number;
 
-  totalQuantity: number;
-  availableQuantity: number;
-  total: bigint;
-}
+//   totalQuantity: number;
+//   availableQuantity: number;
+//   total: bigint;
+// }
 
-@Injectable()
-export class StockRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+// @Injectable()
+// export class StockRetriveService {
+//   constructor(private readonly prisma: PrismaService) {}
 
-  async getStockList(data: Prisma.StockWhereInput) {
-    const stocks = await this.prisma.stock.findMany({
-      include: {
-        warehouse: {
-          include: {
-            company: true,
-          },
-        },
-        company: true,
-        product: {
-          include: {
-            paperDomain: true,
-            manufacturer: true,
-            paperGroup: true,
-            paperType: true,
-          },
-        },
-        packaging: true,
-        paperColorGroup: true,
-        paperColor: true,
-        paperPattern: true,
-        paperCert: true,
-        stockPrice: true,
-        initialOrder: {
-          select: Selector.INITIAL_ORDER,
-        },
-      },
-      where: {
-        ...data,
-        isDeleted: false,
-      },
-    });
+//   async getStockList(data: Prisma.StockWhereInput) {
+//     const stocks = await this.prisma.stock.findMany({
+//       include: {
+//         warehouse: {
+//           include: {
+//             company: true,
+//           },
+//         },
+//         company: true,
+//         product: {
+//           include: {
+//             paperDomain: true,
+//             manufacturer: true,
+//             paperGroup: true,
+//             paperType: true,
+//           },
+//         },
+//         packaging: true,
+//         paperColorGroup: true,
+//         paperColor: true,
+//         paperPattern: true,
+//         paperCert: true,
+//         stockPrice: true,
+//         initialOrder: {
+//           select: Selector.INITIAL_ORDER,
+//         },
+//       },
+//       where: {
+//         ...data,
+//         isDeleted: false,
+//       },
+//     });
 
-    for (const stock of stocks) {
-      delete stock.warehouseId;
-      delete stock.isDeleted;
-      delete stock.productId;
-      delete stock.packagingId;
-      delete stock.paperColorGroupId;
-      delete stock.paperColorId;
-      delete stock.paperPatternId;
-      delete stock.paperCertId;
-      delete stock.product.paperDomainId;
-      delete stock.product.manufacturerId;
-      delete stock.product.paperGroupId;
-      delete stock.product.paperTypeId;
-    }
+//     for (const stock of stocks) {
+//       delete stock.warehouseId;
+//       delete stock.isDeleted;
+//       delete stock.productId;
+//       delete stock.packagingId;
+//       delete stock.paperColorGroupId;
+//       delete stock.paperColorId;
+//       delete stock.paperPatternId;
+//       delete stock.paperCertId;
+//       delete stock.product.paperDomainId;
+//       delete stock.product.manufacturerId;
+//       delete stock.product.paperGroupId;
+//       delete stock.product.paperTypeId;
+//     }
 
-    return stocks;
-  }
+//     return stocks;
+//   }
 
-  async getStockGroupList(companyId: number, skip: number, take: number) {
-    const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
+//   async getStockGroupList(companyId: number, skip: number, take: number) {
+//     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
 
-    const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
-            SELECT sg.id AS stockGroupId
-                    , w.id As warehouseId
-                    , w.name AS warehouseName
-                    , w.code AS warehouseCode
-                    , w.isPublic AS warehouseIsPublic
-                    , w.address AS warehouseAddress
+//     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
+//             SELECT sg.id AS stockGroupId
+//                     , w.id As warehouseId
+//                     , w.name AS warehouseName
+//                     , w.code AS warehouseCode
+//                     , w.isPublic AS warehouseIsPublic
+//                     , w.address AS warehouseAddress
 
-                    # 도착예정 정보
-                    , os.id AS orderStockId
-                    , o.id AS orderId
-                    , dstLocation.id AS dstLocationId
-                    , dstLocation.name AS dstLocationName
-                    , dstLocation.code AS dstLocationCode
-                    , dstLocation.isPublic AS dstLocationIsPublic
-                    , dstLocation.address AS dstLocationAddress
-                    , o.wantedDate AS wantedDate
-                    , plan.id AS planId
-                    , plan.planNo As planNo
+//                     # 도착예정 정보
+//                     , os.id AS orderStockId
+//                     , o.id AS orderId
+//                     , dstLocation.id AS dstLocationId
+//                     , dstLocation.name AS dstLocationName
+//                     , dstLocation.code AS dstLocationCode
+//                     , dstLocation.isPublic AS dstLocationIsPublic
+//                     , dstLocation.address AS dstLocationAddress
+//                     , o.wantedDate AS wantedDate
+//                     , plan.id AS planId
+//                     , plan.planNo As planNo
 
-                    # 거래처 정보
-                    , partnerCompany.id AS partnerCompanyId
-                    , partnerCompany.businessName As partnerCompanyBusinessName
-                    , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
-                    , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
-                    , partnerCompany.representative AS partnerCompanyRepresentative
-                    , partnerCompany.address AS partnerCompanyAddress
-                    , partnerCompany.phoneNo AS partnerCompanyPhoneNo
-                    , partnerCompany.faxNo As partnerCompanyFaxNo
-                    , partnerCompany.email AS partnerCompanyEmail
-                    , partnerCompany.managedById AS partnerCompanyManagedById
+//                     # 거래처 정보
+//                     , partnerCompany.id AS partnerCompanyId
+//                     , partnerCompany.businessName As partnerCompanyBusinessName
+//                     , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+//                     , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
+//                     , partnerCompany.representative AS partnerCompanyRepresentative
+//                     , partnerCompany.address AS partnerCompanyAddress
+//                     , partnerCompany.phoneNo AS partnerCompanyPhoneNo
+//                     , partnerCompany.faxNo As partnerCompanyFaxNo
+//                     , partnerCompany.email AS partnerCompanyEmail
+//                     , partnerCompany.managedById AS partnerCompanyManagedById
 
-                    # 거래 정보
-                    , o.wantedDate AS wantedDate
+//                     # 거래 정보
+//                     , o.wantedDate AS wantedDate
 
-                    # 원지정보
-                    , osWarehouse.id AS osWarehouseId
-                    , osWarehouse.name AS osWarehouseName
-                    , osWarehouse.code AS osWarehouseCode
-                    , osWarehouse.isPublic AS osWarehouseIsPublic
-                    , osWarehouse.address AS osWarehouseAddress
+//                     # 원지정보
+//                     , osWarehouse.id AS osWarehouseId
+//                     , osWarehouse.name AS osWarehouseName
+//                     , osWarehouse.code AS osWarehouseCode
+//                     , osWarehouse.isPublic AS osWarehouseIsPublic
+//                     , osWarehouse.address AS osWarehouseAddress
 
-                    , osProduct.id AS orderStockProductId
-                    , osPaperDomain.id AS orderStockPaperDomainId
-                    , osPaperDomain.name AS orderStockPaperDomainName
-                    , osManufacturer.id AS orderStockManufacturerId
-                    , osManufacturer.name AS orderStockManufacturerName
-                    , osPaperGroup.id AS orderStockPaperGroupId
-                    , osPaperGroup.name AS orderStockPaperGroupName
-                    , osPaperType.id AS orderStockPaperTypeId
-                    , osPaperType.name AS orderStockPaperTypeName
-                    , osPackaging.id AS orderStockPackagingId
-                    , osPackaging.name AS orderStockPackagingName
-                    , osPackaging.type AS orderStockPackagingType
-                    , osPackaging.packA AS orderStockPackagingPackA
-                    , osPackaging.packB AS orderStockPackagingPackB
-                    , osPaperColorGroup.id AS orderStockPaperColorGroupId
-                    , osPaperColorGroup.name AS orderStockPaperColorGroupName
-                    , osPaperColor.id AS orderStockPaperColorId
-                    , osPaperColor.name AS orderStockPaperColorName
-                    , osPaperPattern.id AS orderStockPaperPatternId
-                    , osPaperPattern.name AS orderStockPaperPatternName
-                    , osPaperCert.id AS orderStockPaperCertId
-                    , osPaperCert.name AS orderStockPaperCertName
-                    , os.grammage AS orderStockGrammage
-                    , os.sizeX AS orderStockSizeX
-                    , os.sizeY AS orderStockSizeY
-                    , os.quantity AS orderStockQuantity
+//                     , osProduct.id AS orderStockProductId
+//                     , osPaperDomain.id AS orderStockPaperDomainId
+//                     , osPaperDomain.name AS orderStockPaperDomainName
+//                     , osManufacturer.id AS orderStockManufacturerId
+//                     , osManufacturer.name AS orderStockManufacturerName
+//                     , osPaperGroup.id AS orderStockPaperGroupId
+//                     , osPaperGroup.name AS orderStockPaperGroupName
+//                     , osPaperType.id AS orderStockPaperTypeId
+//                     , osPaperType.name AS orderStockPaperTypeName
+//                     , osPackaging.id AS orderStockPackagingId
+//                     , osPackaging.name AS orderStockPackagingName
+//                     , osPackaging.type AS orderStockPackagingType
+//                     , osPackaging.packA AS orderStockPackagingPackA
+//                     , osPackaging.packB AS orderStockPackagingPackB
+//                     , osPaperColorGroup.id AS orderStockPaperColorGroupId
+//                     , osPaperColorGroup.name AS orderStockPaperColorGroupName
+//                     , osPaperColor.id AS orderStockPaperColorId
+//                     , osPaperColor.name AS orderStockPaperColorName
+//                     , osPaperPattern.id AS orderStockPaperPatternId
+//                     , osPaperPattern.name AS orderStockPaperPatternName
+//                     , osPaperCert.id AS orderStockPaperCertId
+//                     , osPaperCert.name AS orderStockPaperCertName
+//                     , os.grammage AS orderStockGrammage
+//                     , os.sizeX AS orderStockSizeX
+//                     , os.sizeY AS orderStockSizeY
+//                     , os.quantity AS orderStockQuantity
 
-                    # 메타데이터
-                    , product.id AS productId
-                    , paperDomain.id AS paperDomainId
-                    , paperDomain.name AS paperDomainName
-                    , manufacturer.id AS manufacturerId
-                    , manufacturer.name AS manufacturerName
-                    , paperGroup.id AS paperGroupId
-                    , paperGroup.name AS paperGroupName
-                    , paperType.id AS paperTypeId
-                    , paperType.name AS paperTypeName
-                    , packaging.id AS packagingId
-                    , packaging.name AS packagingName
-                    , packaging.type AS packagingType
-                    , packaging.packA AS packagingPackA
-                    , packaging.packB AS packagingPackB
-                    , paperColorGroup.id AS paperColorGroupId
-                    , paperColorGroup.name AS paperColorGroupName
-                    , paperColor.id AS paperColorId
-                    , paperColor.name AS paperColorName
-                    , paperPattern.id AS paperPatternId
-                    , paperPattern.name AS paperPatternName
-                    , paperCert.id AS paperCertId
-                    , paperCert.name AS paperCertName
-                    , sg.grammage AS grammage
-                    , sg.sizeX AS sizeX
-                    , sg.sizeY AS sizeY
+//                     # 메타데이터
+//                     , product.id AS productId
+//                     , paperDomain.id AS paperDomainId
+//                     , paperDomain.name AS paperDomainName
+//                     , manufacturer.id AS manufacturerId
+//                     , manufacturer.name AS manufacturerName
+//                     , paperGroup.id AS paperGroupId
+//                     , paperGroup.name AS paperGroupName
+//                     , paperType.id AS paperTypeId
+//                     , paperType.name AS paperTypeName
+//                     , packaging.id AS packagingId
+//                     , packaging.name AS packagingName
+//                     , packaging.type AS packagingType
+//                     , packaging.packA AS packagingPackA
+//                     , packaging.packB AS packagingPackB
+//                     , paperColorGroup.id AS paperColorGroupId
+//                     , paperColorGroup.name AS paperColorGroupName
+//                     , paperColor.id AS paperColorId
+//                     , paperColor.name AS paperColorName
+//                     , paperPattern.id AS paperPatternId
+//                     , paperPattern.name AS paperPatternName
+//                     , paperCert.id AS paperCertId
+//                     , paperCert.name AS paperCertName
+//                     , sg.grammage AS grammage
+//                     , sg.sizeX AS sizeX
+//                     , sg.sizeY AS sizeY
 
-                    # 수량
-                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) + IFNULL(StockGroupPendingEvent.change, 0) AS availableQuantity
-                    , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
+//                     # 수량
+//                     , IFNULL(SUM(s.cachedQuantityAvailable), 0) + IFNULL(StockGroupPendingEvent.change, 0) AS availableQuantity
+//                     , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
 
-                    , COUNT(1) OVER() AS total
+//                     , COUNT(1) OVER() AS total
 
-              FROM StockGroup               AS sg
-         LEFT JOIN Warehouse                AS w                  ON w.id = sg.warehouseId
+//               FROM StockGroup               AS sg
+//          LEFT JOIN Warehouse                AS w                  ON w.id = sg.warehouseId
 
-              # 메타데이터
-              JOIN Product                  AS product            ON product.id = sg.productId
-              JOIN PaperDomain              AS paperDomain        ON paperDomain.id = product.paperDomainId
-              JOIN Manufacturer             AS manufacturer       ON manufacturer.id = product.manufacturerId
-              JOIN PaperGroup               AS paperGroup         ON paperGroup.id = product.paperGroupId
-              JOIN PaperType                AS paperType          ON paperType.id = product.paperTypeId
-              JOIN Packaging                AS packaging          ON packaging.id = sg.packagingId
-         LEFT JOIN PaperColorGroup          AS paperColorGroup    ON paperColorGroup.id = sg.paperColorGroupId
-         LEFT JOIN PaperColor               AS paperColor         ON paperColor.id = sg.paperColorId
-         LEFT JOIN PaperPattern             AS paperPattern       ON paperPattern.id = sg.paperPatternId
-         LEFT JOIN PaperCert                AS paperCert          ON paperCert.id = sg.paperCertId
+//               # 메타데이터
+//               JOIN Product                  AS product            ON product.id = sg.productId
+//               JOIN PaperDomain              AS paperDomain        ON paperDomain.id = product.paperDomainId
+//               JOIN Manufacturer             AS manufacturer       ON manufacturer.id = product.manufacturerId
+//               JOIN PaperGroup               AS paperGroup         ON paperGroup.id = product.paperGroupId
+//               JOIN PaperType                AS paperType          ON paperType.id = product.paperTypeId
+//               JOIN Packaging                AS packaging          ON packaging.id = sg.packagingId
+//          LEFT JOIN PaperColorGroup          AS paperColorGroup    ON paperColorGroup.id = sg.paperColorGroupId
+//          LEFT JOIN PaperColor               AS paperColor         ON paperColor.id = sg.paperColorId
+//          LEFT JOIN PaperPattern             AS paperPattern       ON paperPattern.id = sg.paperPatternId
+//          LEFT JOIN PaperCert                AS paperCert          ON paperCert.id = sg.paperCertId
 
-         # 주문정보
-         LEFT JOIN OrderStock               AS os                 ON os.id = sg.orderStockId
-         LEFT JOIN \`Order\`                AS o                  ON o.id = os.orderId
-         LEFT JOIN Company                  AS partnerCompany     ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
-         LEFT JOIN \`Location\`             AS dstLocation        ON dstLocation.id = os.dstLocationId
-         LEFT JOIN Warehouse                AS osWarehouse        ON osWarehouse.id = os.warehouseId
-         LEFT JOIN Plan                     AS plan               ON plan.id = os.planId
+//          # 주문정보
+//          LEFT JOIN OrderStock               AS os                 ON os.id = sg.orderStockId
+//          LEFT JOIN \`Order\`                AS o                  ON o.id = os.orderId
+//          LEFT JOIN Company                  AS partnerCompany     ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
+//          LEFT JOIN \`Location\`             AS dstLocation        ON dstLocation.id = os.dstLocationId
+//          LEFT JOIN Warehouse                AS osWarehouse        ON osWarehouse.id = os.warehouseId
+//          LEFT JOIN Plan                     AS plan               ON plan.id = os.planId
 
-         # 원지정보
-         LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId
-         LEFT JOIN PaperDomain              AS osPaperDomain      ON osPaperDomain.id = osProduct.paperDomainId
-         LEFT JOIN Manufacturer             AS osManufacturer     ON osManufacturer.id = osProduct.manufacturerId
-         LEFT JOIN PaperGroup               AS osPaperGroup       ON osPaperGroup.id = osProduct.paperGroupId
-         LEFT JOIN PaperType                AS osPaperType        ON osPaperType.id = osProduct.paperTypeId
-         LEFT JOIN Packaging                AS osPackaging        ON osPackaging.id = os.packagingId
-         LEFT JOIN PaperColorGroup          AS osPaperColorGroup  ON osPaperColorGroup.id = os.paperColorGroupId
-         LEFT JOIN PaperColor               AS osPaperColor       ON osPaperColor.id = os.paperColorId
-         LEFT JOIN PaperPattern             AS osPaperPattern     ON osPaperPattern.id = os.paperPatternId
-         LEFT JOIN PaperCert                AS osPaperCert        ON osPaperCert.id = os.paperCertId
+//          # 원지정보
+//          LEFT JOIN Product                  AS osProduct          ON osProduct.id = os.productId
+//          LEFT JOIN PaperDomain              AS osPaperDomain      ON osPaperDomain.id = osProduct.paperDomainId
+//          LEFT JOIN Manufacturer             AS osManufacturer     ON osManufacturer.id = osProduct.manufacturerId
+//          LEFT JOIN PaperGroup               AS osPaperGroup       ON osPaperGroup.id = osProduct.paperGroupId
+//          LEFT JOIN PaperType                AS osPaperType        ON osPaperType.id = osProduct.paperTypeId
+//          LEFT JOIN Packaging                AS osPackaging        ON osPackaging.id = os.packagingId
+//          LEFT JOIN PaperColorGroup          AS osPaperColorGroup  ON osPaperColorGroup.id = os.paperColorGroupId
+//          LEFT JOIN PaperColor               AS osPaperColor       ON osPaperColor.id = os.paperColorId
+//          LEFT JOIN PaperPattern             AS osPaperPattern     ON osPaperPattern.id = os.paperPatternId
+//          LEFT JOIN PaperCert                AS osPaperCert        ON osPaperCert.id = os.paperCertId
 
-            # 수량
-            ## 재고그룹
-         LEFT JOIN (
-            SELECT StockGroup.*, IFNULL(SUM(StockGroupEvent.change), 0) AS \`change\`
-              FROM StockGroup
-              JOIN StockGroupEvent ON StockGroupEvent.stockGroupId = StockGroup.id
-             WHERE StockGroupEvent.status = ${StockGroupEventStatus.PENDING}
-            GROUP BY StockGroup.id
-          ) AS StockGroupPendingEvent ON StockGroupPendingEvent.id = sg.id
+//             # 수량
+//             ## 재고그룹
+//          LEFT JOIN (
+//             SELECT StockGroup.*, IFNULL(SUM(StockGroupEvent.change), 0) AS \`change\`
+//               FROM StockGroup
+//               JOIN StockGroupEvent ON StockGroupEvent.stockGroupId = StockGroup.id
+//              WHERE StockGroupEvent.status = ${StockGroupEventStatus.PENDING}
+//             GROUP BY StockGroup.id
+//           ) AS StockGroupPendingEvent ON StockGroupPendingEvent.id = sg.id
 
-            ## 재고
-         LEFT JOIN Stock                    AS s                  ON s.productId = sg.productId
-                                                                  AND s.packagingId = sg.packagingId
-                                                                  AND s.grammage = sg.grammage
-                                                                  AND s.sizeX = sg.sizeX
-                                                                  AND s.sizeY = sg.sizeY
-                                                                  AND IF(s.paperColorGroupId IS NULL, s.paperColorGroupId IS NULL, s.paperColorGroupId = sg.paperColorGroupId)
-                                                                  AND IF(s.paperColorId IS NULL, s.paperColorId IS NULL, s.paperColorId = sg.paperColorId)
-                                                                  AND IF(s.paperPatternId IS NULL, s.paperPatternId IS NULL, s.paperPatternId = sg.paperPatternId)
-                                                                  AND IF(s.paperCertId IS NULL, s.paperCertId IS NULL, s.paperCertId = sg.paperCertId)
-                                                                  AND s.warehouseId = sg.warehouseId
-                                                                  AND s.companyId = sg.companyId
-                                                                  # 주문관련은 필터링 필요
-            
-            WHERE sg.companyId = ${companyId}
-              AND (sg.isArrived = ${false} OR sg.isArrived IS NULL)
+//             ## 재고
+//          LEFT JOIN Stock                    AS s                  ON s.productId = sg.productId
+//                                                                   AND s.packagingId = sg.packagingId
+//                                                                   AND s.grammage = sg.grammage
+//                                                                   AND s.sizeX = sg.sizeX
+//                                                                   AND s.sizeY = sg.sizeY
+//                                                                   AND IF(s.paperColorGroupId IS NULL, s.paperColorGroupId IS NULL, s.paperColorGroupId = sg.paperColorGroupId)
+//                                                                   AND IF(s.paperColorId IS NULL, s.paperColorId IS NULL, s.paperColorId = sg.paperColorId)
+//                                                                   AND IF(s.paperPatternId IS NULL, s.paperPatternId IS NULL, s.paperPatternId = sg.paperPatternId)
+//                                                                   AND IF(s.paperCertId IS NULL, s.paperCertId IS NULL, s.paperCertId = sg.paperCertId)
+//                                                                   AND s.warehouseId = sg.warehouseId
+//                                                                   AND s.companyId = sg.companyId
+//                                                                   # 주문관련은 필터링 필요
 
-            GROUP BY sg.id, partnerCompany.id
-           # HAVING totalQuantity != 0 OR availableQuantity != 0
+//             WHERE sg.companyId = ${companyId}
+//               AND (sg.isArrived = ${false} OR sg.isArrived IS NULL)
 
-             ${limit}
-    `;
+//             GROUP BY sg.id, partnerCompany.id
+//            # HAVING totalQuantity != 0 OR availableQuantity != 0
 
-    const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
-    for (const stockGroup of stockGroups) {
-      stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
-      stockGroup.availableQuantity = Number(stockGroup.availableQuantity);
-      delete stockGroup.total;
-    }
+//              ${limit}
+//     `;
 
-    return { stockGroups, total };
-  }
+//     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
+//     for (const stockGroup of stockGroups) {
+//       stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
+//       stockGroup.availableQuantity = Number(stockGroup.availableQuantity);
+//       delete stockGroup.total;
+//     }
 
-  async getStock(companyId: number, stockId: number) {
-    const stock = await this.prisma.stock.findFirst({
-      include: {
-        company: true,
-        warehouse: {
-          include: {
-            company: true,
-          },
-        },
-        product: {
-          include: {
-            paperDomain: true,
-            paperGroup: true,
-            manufacturer: true,
-            paperType: true,
-          },
-        },
-        packaging: true,
-        paperColorGroup: true,
-        paperColor: true,
-        paperPattern: true,
-        paperCert: true,
-        initialOrder: {
-          select: Selector.INITIAL_ORDER,
-        },
-        stockPrice: true,
-      },
-      where: {
-        id: stockId,
-        companyId,
-      },
-    });
-    if (!stock)
-      throw new StockNotFoundException(StockError.STOCK001, [stockId]);
-    return stock;
-  }
+//     return { stockGroups, total };
+//   }
 
-  async getStockGroupQuantity(params: {
-    warehouseId: number | null;
-    initialOrderId: number | null;
-    productId: number | null;
-    packagingId: number | null;
-    grammage: number | null;
-    sizeX: number | null;
-    sizeY: number | null;
-    paperColorGroupId: number | null;
-    paperColorId: number | null;
-    paperPatternId: number | null;
-    paperCertId: number | null;
-  }) {
-    const quantity = await this.prisma.stockEvent.findMany({
-      where: {
-        stock: {
-          warehouseId: params.warehouseId,
-          initialOrderId: params.initialOrderId,
-          productId: params.productId,
-          packagingId: params.packagingId,
-          grammage: params.grammage,
-          sizeX: params.sizeX,
-          sizeY: params.sizeY,
-          paperColorGroupId: params.paperColorGroupId,
-          paperColorId: params.paperColorId,
-          paperPatternId: params.paperPatternId,
-          paperCertId: params.paperCertId,
-        },
-      },
-      select: {
-        change: true,
-        status: true,
-      },
-    });
+//   async getStock(companyId: number, stockId: number) {
+//     const stock = await this.prisma.stock.findFirst({
+//       include: {
+//         company: true,
+//         warehouse: {
+//           include: {
+//             company: true,
+//           },
+//         },
+//         product: {
+//           include: {
+//             paperDomain: true,
+//             paperGroup: true,
+//             manufacturer: true,
+//             paperType: true,
+//           },
+//         },
+//         packaging: true,
+//         paperColorGroup: true,
+//         paperColor: true,
+//         paperPattern: true,
+//         paperCert: true,
+//         initialOrder: {
+//           select: Selector.INITIAL_ORDER,
+//         },
+//         stockPrice: true,
+//       },
+//       where: {
+//         id: stockId,
+//         companyId,
+//       },
+//     });
+//     if (!stock)
+//       throw new StockNotFoundException(StockError.STOCK001, [stockId]);
+//     return stock;
+//   }
 
-    const availableQuantity = quantity.reduce((acc, cur) => {
-      return acc + (cur.status !== 'CANCELLED' ? cur.change : 0);
-    }, 0);
+//   async getStockGroupQuantity(params: {
+//     warehouseId: number | null;
+//     initialOrderId: number | null;
+//     productId: number | null;
+//     packagingId: number | null;
+//     grammage: number | null;
+//     sizeX: number | null;
+//     sizeY: number | null;
+//     paperColorGroupId: number | null;
+//     paperColorId: number | null;
+//     paperPatternId: number | null;
+//     paperCertId: number | null;
+//   }) {
+//     const quantity = await this.prisma.stockEvent.findMany({
+//       where: {
+//         stock: {
+//           warehouseId: params.warehouseId,
+//           initialOrderId: params.initialOrderId,
+//           productId: params.productId,
+//           packagingId: params.packagingId,
+//           grammage: params.grammage,
+//           sizeX: params.sizeX,
+//           sizeY: params.sizeY,
+//           paperColorGroupId: params.paperColorGroupId,
+//           paperColorId: params.paperColorId,
+//           paperPatternId: params.paperPatternId,
+//           paperCertId: params.paperCertId,
+//         },
+//       },
+//       select: {
+//         change: true,
+//         status: true,
+//       },
+//     });
 
-    const totalQuantity = quantity.reduce((acc, cur) => {
-      return acc + (cur.status === 'NORMAL' ? cur.change : 0);
-    }, 0);
+//     const availableQuantity = quantity.reduce((acc, cur) => {
+//       return acc + (cur.status !== 'CANCELLED' ? cur.change : 0);
+//     }, 0);
 
-    return {
-      availableQuantity,
-      totalQuantity,
-    };
-  }
-}
+//     const totalQuantity = quantity.reduce((acc, cur) => {
+//       return acc + (cur.status === 'NORMAL' ? cur.change : 0);
+//     }, 0);
+
+//     return {
+//       availableQuantity,
+//       totalQuantity,
+//     };
+//   }
+// }
