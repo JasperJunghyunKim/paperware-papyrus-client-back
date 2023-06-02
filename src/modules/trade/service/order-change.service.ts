@@ -135,7 +135,7 @@ export class OrderChangeService {
                   ...params.stockPrice,
                 },
               }
-            : null,
+            : undefined,
         },
         select: {
           id: true,
@@ -656,6 +656,7 @@ export class OrderChangeService {
         data: {
           serial: Util.serialP(srcPlan.company.invoiceCode),
           companyId: order.srcCompanyId,
+          planId: srcPlan.id,
           initialPlanId: srcPlan.id,
           productId: params.productId,
           packagingId: params.packagingId,

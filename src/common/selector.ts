@@ -185,6 +185,7 @@ export const STOCK = {
   warehouse: {
     select: WAREHOUSE,
   },
+  planId: true,
   product: {
     select: PRODUCT,
   },
@@ -290,6 +291,7 @@ export const ORDER_STOCK = {
       planNo: true,
       type: true,
       assignStockEvent: { select: STOCK_EVENT },
+      companyId: true,
     },
   },
 } satisfies Prisma.OrderStockSelect;

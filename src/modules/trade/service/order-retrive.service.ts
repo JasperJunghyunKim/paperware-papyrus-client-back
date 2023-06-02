@@ -7,7 +7,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getList(params: {
     skip?: number;
@@ -34,8 +34,7 @@ export class OrderRetriveService {
       },
     });
 
-    // return orders.map(Util.serialize);
-    return [];
+    return orders.map(Util.serialize);
   }
 
   async getCount(params: {
