@@ -42,24 +42,21 @@ export class StockController {
     @Request() req: AuthType,
     @Body() dto: StockCreateRequestDto,
   ) {
-    // const stock = await this.stockChangeService.create({
-    //   companyId: req.user.companyId,
-    //   warehouseId: dto.warehouseId,
-    //   productId: dto.productId,
-    //   packagingId: dto.packagingId,
-    //   grammage: dto.grammage,
-    //   sizeX: dto.sizeX,
-    //   sizeY: dto.sizeY,
-    //   paperColorGroupId: dto.paperColorGroupId,
-    //   paperColorId: dto.paperColorId,
-    //   paperPatternId: dto.paperPatternId,
-    //   paperCertId: dto.paperCertId,
-    // });
-
-    // return {
-    //   items: stocks.map(Util.serialize),
-    //   total: stocks.length,
-    // };
+    const stock = await this.stockChangeService.create({
+      companyId: req.user.companyId,
+      warehouseId: dto.warehouseId,
+      productId: dto.productId,
+      packagingId: dto.packagingId,
+      grammage: dto.grammage,
+      sizeX: dto.sizeX,
+      sizeY: dto.sizeY,
+      paperColorGroupId: dto.paperColorGroupId,
+      paperColorId: dto.paperColorId,
+      paperPatternId: dto.paperPatternId,
+      paperCertId: dto.paperCertId,
+      quantity: dto.quantity,
+      price: dto.stockPrice,
+    });
   }
 
   @Get('/group')
@@ -92,19 +89,4 @@ export class StockController {
     // return Util.serialize(stock);
     return null;
   }
-
-  @Post()
-  @UseGuards(AuthGuard)
-  async create(
-    @Request() req: AuthType,
-    @Body() dto: StockCreateRequestDto,
-  ): Promise<any> {
-    await this.stockChangeService.create({
-      companyId: req.user.companyId,
-      ...dto,
-      sizeY: dto.sizeY || 0,
-      price: dto.stockPrice,
-    });
-  }
-
 }
