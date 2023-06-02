@@ -291,7 +291,6 @@ export class StockRetriveService {
 
     return {
       items: stockGroups.map(sg => {
-
         return {
           warehouse: sg.warehouseId ? {
             id: sg.warehouseId,
