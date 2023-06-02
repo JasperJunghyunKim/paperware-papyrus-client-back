@@ -18,6 +18,7 @@ import {
   StockGroupQuantityQuery,
   StockListQuery,
 } from 'src/@shared/api/stock/stock.request';
+import { IsAnyOrId } from 'src/validator/is-any-or-id';
 
 /** 자사 재고그룹 목록 조회 */
 export class StockGroupListRequestDto implements StockGroupListQuery {
@@ -33,6 +34,10 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
   @Min(10)
   @Max(100)
   readonly take: number = undefined;
+
+  @IsOptional()
+  @IsAnyOrId()
+  readonly planId: number | 'any' = undefined;
 }
 
 /** 자사 재고목록 조회 */

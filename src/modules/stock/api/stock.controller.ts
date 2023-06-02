@@ -93,6 +93,7 @@ export class StockController {
         req.user.companyId,
         dto.skip,
         dto.take,
+        dto.planId,
       );
 
     return result;

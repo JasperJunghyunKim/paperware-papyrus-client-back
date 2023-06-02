@@ -224,6 +224,9 @@ export class PartnerStockRetriveService {
                     plan: null, // 거래처 재고는 도착예정재고 보이지 않음
                     totalQuantity: Number(sg.totalQuantity),
                     availableQuantity: Number(sg.availableQuantity),
+                    totalArrivalQuantity: 0,
+                    storingQuantity: 0,
+                    nonStoringQuantity: 0,
                 }
             }),
             total,

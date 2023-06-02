@@ -98,7 +98,7 @@ interface StockGroupFromDB {
   asSizeY: number;
   asQuantity: number;
 
-  //   // 거래처 정보
+  // 거래처 정보
   partnerCompanyId: number;
   partnerCompanyBusinessName: string;
   partnerCompanyCompanyRegistrationNumber: string;
@@ -112,6 +112,10 @@ interface StockGroupFromDB {
 
   totalQuantity: number;
   availableQuantity: number;
+  totalArrivalQuantity: number;
+  storingQuantity: number;
+  nonStoringQuantity: number;
+
   total: bigint;
 }
 
@@ -119,11 +123,20 @@ interface StockGroupFromDB {
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getStockGroupList(companyId: number, skip: number, take: number): Promise<{
+  async getStockGroupList(companyId: number, skip: number, take: number, planId: 'any' | number): Promise<{
     items: StockGroup[];
     total: number;
   }> {
     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
+    let planIdQuery = Prisma.empty;
+    if (planId) {
+      switch (planId) {
+        case 'any':
+          planIdQuery = Prisma.sql`AND s.planId IS NOT NULL`;
+        default:
+          planIdQuery = Prisma.sql`AND s.planId = ${Number(planId)}`;
+      }
+    }
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
@@ -228,16 +241,31 @@ export class StockRetriveService {
             , IFNULL(SUM(s.cachedQuantityAvailable), 0) AS availableQuantity
             , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
 
+            -- 도착예정재고 수량
+            , IFNULL(arrivalStockEvent.totalArrivalQuantity, 0) AS totalArrivalQuantity
+            , IFNULL(arrivalStockEvent.storingQuantity, 0) AS storingQuantity
+            , IFNULL(arrivalStockEvent.nonStoringQuantity, 0) AS nonStoringQuantity
+
             -- total
             , COUNT(1) OVER() AS total
 
         FROM Stock              AS s
+   LEFT JOIN (
+          SELECT stockId
+                , IFNULL(SUM(\`change\`) OVER(PARTITION BY stockId), 0) AS storingQuantity
+                , IFNULL(SUM(CASE WHEN \`change\` < 0 THEN \`change\` END) OVER(PARTITION BY stockId), 0) AS nonStoringQuantity
+                , IFNULL(SUM(CASE WHEN \`change\` > 0 THEN \`change\` END) OVER(PARTITION BY stockId), 0) AS totalArrivalQuantity
+            FROM StockEvent
+           WHERE status = ${StockEventStatus.PENDING}
+        ) AS arrivalStockEvent ON arrivalStockEvent.stockId = s.id
    LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
    LEFT JOIN Plan               AS p                        ON p.id = s.planId
+
    -- 원지 정보
    LEFT JOIN StockEvent         AS ase                      ON ase.id = p.assignStockEventId
    LEFT JOIN Stock              AS \`as\`                   ON \`as\`.id = ase.stockId
    LEFT JOIN Warehouse          AS asw                      ON asw.id = \`as\`.warehouseId
+
    -- 원지 메타데이터
    LEFT JOIN Packaging          AS asPackaging              ON asPackaging.id = \`as\`.packagingId
    LEFT JOIN Product            AS asProduct                ON asProduct.id = \`as\`.productId
@@ -269,6 +297,7 @@ export class StockRetriveService {
    LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
 
        WHERE s.companyId = ${companyId}
+         ${planIdQuery}
 
        GROUP BY s.packagingId
                 , s.productId
@@ -375,6 +404,9 @@ export class StockRetriveService {
           } : null,
           totalQuantity: Number(sg.totalQuantity),
           availableQuantity: Number(sg.availableQuantity),
+          totalArrivalQuantity: Number(sg.totalArrivalQuantity),
+          storingQuantity: Number(sg.storingQuantity),
+          nonStoringQuantity: Number(sg.nonStoringQuantity),
         }
       }),
       total,
