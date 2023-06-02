@@ -89,7 +89,7 @@ export class StockChangeService {
           packagingId: params.packagingId,
           grammage: params.grammage,
           sizeX: params.sizeX,
-          sizeY: params.sizeY,
+          sizeY: params.sizeY || 0,
           paperColorGroupId: params.paperColorGroupId,
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
