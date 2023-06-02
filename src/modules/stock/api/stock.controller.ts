@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  NotImplementedException,
   Param,
   Post,
   Query,
@@ -16,10 +15,8 @@ import {
   GetStockDto,
   StockCreateRequestDto,
   StockGroupListRequestDto,
-  StockGroupQuantityQueryDto,
   StockListRequestDto,
 } from './dto/stock.request';
-import { ulid } from 'ulid';
 import { StockRetriveService } from '../service/stock-retrive.service';
 import {
   StockDetailResponse,
@@ -27,7 +24,6 @@ import {
   StockListResponse,
 } from 'src/@shared/api/stock/stock.response';
 import { Util } from 'src/common';
-import { Model } from 'src/@shared';
 
 @Controller('/stock')
 export class StockController {
