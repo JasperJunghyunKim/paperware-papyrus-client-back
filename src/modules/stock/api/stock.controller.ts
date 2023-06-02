@@ -36,30 +36,30 @@ export class StockController {
     private readonly stockRetriveService: StockRetriveService,
   ) { }
 
-  @Get()
+  @Post()
   @UseGuards(AuthGuard)
-  async getStockList(
+  async createStock(
     @Request() req: AuthType,
-    @Query() dto: StockListRequestDto,
-  ): Promise<StockListResponse> {
-    const stocks = await this.stockRetriveService.getStockList({
-      companyId: req.user.companyId,
-      warehouseId: dto.warehouseId,
-      productId: dto.productId,
-      packagingId: dto.packagingId,
-      grammage: dto.grammage,
-      sizeX: dto.sizeX,
-      sizeY: dto.sizeY,
-      paperColorGroupId: dto.paperColorGroupId,
-      paperColorId: dto.paperColorId,
-      paperPatternId: dto.paperPatternId,
-      paperCertId: dto.paperCertId,
-    });
+    @Body() dto: StockCreateRequestDto,
+  ) {
+    // const stock = await this.stockChangeService.create({
+    //   companyId: req.user.companyId,
+    //   warehouseId: dto.warehouseId,
+    //   productId: dto.productId,
+    //   packagingId: dto.packagingId,
+    //   grammage: dto.grammage,
+    //   sizeX: dto.sizeX,
+    //   sizeY: dto.sizeY,
+    //   paperColorGroupId: dto.paperColorGroupId,
+    //   paperColorId: dto.paperColorId,
+    //   paperPatternId: dto.paperPatternId,
+    //   paperCertId: dto.paperCertId,
+    // });
 
-    return {
-      items: stocks.map(Util.serialize),
-      total: stocks.length,
-    };
+    // return {
+    //   items: stocks.map(Util.serialize),
+    //   total: stocks.length,
+    // };
   }
 
   @Get('/group')
@@ -107,25 +107,4 @@ export class StockController {
     });
   }
 
-  @Get('group/quantity')
-  @UseGuards(AuthGuard)
-  async getGroupItem(
-    @Request() req: AuthType,
-    @Query() dto: StockGroupQuantityQueryDto,
-  ): Promise<Model.StockQuantity> {
-    // TODO: 권한
-    return await this.stockRetriveService.getStockGroupQuantity({
-      warehouseId: dto.warehouseId,
-      initialOrderId: dto.initialOrderId,
-      productId: dto.productId,
-      grammage: dto.grammage,
-      sizeX: dto.sizeX,
-      sizeY: dto.sizeY,
-      packagingId: dto.packagingId,
-      paperColorGroupId: dto.paperColorGroupId,
-      paperColorId: dto.paperColorId,
-      paperPatternId: dto.paperPatternId,
-      paperCertId: dto.paperCertId,
-    });
-  }
 }

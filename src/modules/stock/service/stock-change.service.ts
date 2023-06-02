@@ -69,15 +69,21 @@ export class StockChangeService {
       price: StockPrice;
     },
   ) {
-    await this.prisma.$transaction(async (tx) => {
-      const createStockResult = await this.planChangeService.insertInstantiate(
-        tx,
-        params,
-      );
+    // await this.prisma.$transaction(async (tx) => {
+    //   const createStockResult = await this.planChangeService.insertInstantiate(
+    //     tx,
+    //     params,
+    //   );
 
-      await this.cacheStockQuantityTx(tx, {
-        id: createStockResult.stockId,
-      });
-    });
+    //   await this.cacheStockQuantityTx(tx, {
+    //     id: createStockResult.stockId,
+    //   });
+
+    //   return {
+    //     planId: plan.id,
+    //     stockId: stock.id,
+    //     stockEventId: stockEvent.id,
+    //   };
+    // });
   }
 }

@@ -23,6 +23,7 @@ import OrderStockCreateRequestDto, {
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
+  OrderStockAssignStockUpdateRequestDto,
   OrderStockUpdateRequestDto,
   UpdateTradePriceDto,
 } from './dto/order.request';
@@ -116,7 +117,7 @@ export class OrderController {
   async createStockOrder(
     @Request() req: AuthType,
     @Body() body: OrderStockCreateRequestDto,
-  ): Promise<Api.OrderCreateResponse> {
+  ) {
     if (
       body.srcCompanyId !== req.user.companyId &&
       body.dstCompanyId !== req.user.companyId
@@ -130,12 +131,12 @@ export class OrderController {
 
     const isOffer = body.dstCompanyId === req.user.companyId;
 
-    return this.change.createStockOrder({
+    return await this.change.insertOrder({
       srcCompanyId: body.srcCompanyId,
       dstCompanyId: body.dstCompanyId,
       locationId: body.locationId,
       warehouseId: body.warehouseId,
-      orderStockId: body.orderStockId,
+      planId: body.planId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -146,6 +147,7 @@ export class OrderController {
       paperPatternId: body.paperPatternId,
       paperCertId: body.paperCertId,
       quantity: body.quantity,
+      stockPrice: body.stockPrice,
       memo: body.memo,
       wantedDate: body.wantedDate,
       isOffer,
@@ -174,11 +176,39 @@ export class OrderController {
       throw new ForbiddenException('수정 권한이 없습니다.');
     }
 
-    await this.change.updateStockOrder({
+    await this.change.updateOrder({
       orderId: Number(id),
       locationId: body.locationId,
+      memo: body.memo,
+      wantedDate: body.wantedDate,
+    });
+  }
+
+  @Put('stock/:id/assign')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async updateStockOrderAssign(
+    @Request() req: AuthType,
+    @Param('id') id: string,
+    @Body() body: OrderStockAssignStockUpdateRequestDto,
+  ) {
+    const order = await this.retrive.getItem({ orderId: Number(id) });
+
+    if (!order) {
+      throw new ForbiddenException('존재하지 않는 주문입니다.');
+    }
+
+    if (
+      order.srcCompany.id !== req.user.companyId &&
+      order.dstCompany.id !== req.user.companyId
+    ) {
+      throw new ForbiddenException('수정 권한이 없습니다.');
+    }
+
+    await this.change.updateOrderAssignStock({
+      orderId: Number(id),
       warehouseId: body.warehouseId,
-      orderStockId: body.orderStockId,
+      planId: body.planId,
       productId: body.productId,
       packagingId: body.packagingId,
       grammage: body.grammage,
@@ -189,8 +219,7 @@ export class OrderController {
       paperPatternId: body.paperPatternId,
       paperCertId: body.paperCertId,
       quantity: body.quantity,
-      memo: body.memo,
-      wantedDate: body.wantedDate,
+      stockPrice: body.stockPrice,
     });
   }
 
@@ -212,20 +241,23 @@ export class OrderController {
       throw new ForbiddenException('조회 권한이 없습니다.');
     }
 
-    // const items = await this.retrive.getOrderStockArrivalList({
-    //   companyId: req.user.companyId,
-    //   skip: query.skip,
-    //   take: query.take,
-    //   orderId: Number(id),
-    // });
-
-    const total = await this.retrive.getOrderStockArrivalCount({
+    const items = await this.retrive.getArrivalStockList({
+      skip: query.skip,
+      take: query.take,
       orderId: Number(id),
     });
 
+    // const total = await this.retrive.getArrivalStockCount({
+    //   orderId: Number(id),
+    // });
+
+    // return {
+    //   items: [],
+    //   total,
+    // };
     return {
       items: [],
-      total,
+      total: 0,
     };
   }
 

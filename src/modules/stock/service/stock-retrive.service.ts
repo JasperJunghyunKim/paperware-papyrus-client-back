@@ -97,7 +97,7 @@ interface StockGroupFromDB {
   asSizeY: number;
   asQuantity: number;
 
-  // 거래처 정보
+  //   // 거래처 정보
   partnerCompanyId: number;
   partnerCompanyBusinessName: string;
   partnerCompanyCompanyRegistrationNumber: string;
@@ -117,57 +117,6 @@ interface StockGroupFromDB {
 @Injectable()
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) { }
-
-  async getStockList(data: Prisma.StockWhereInput) {
-    const stocks = await this.prisma.stock.findMany({
-      include: {
-        warehouse: {
-          include: {
-            company: true,
-          },
-        },
-        company: true,
-        product: {
-          include: {
-            paperDomain: true,
-            manufacturer: true,
-            paperGroup: true,
-            paperType: true,
-          },
-        },
-        packaging: true,
-        paperColorGroup: true,
-        paperColor: true,
-        paperPattern: true,
-        paperCert: true,
-        stockPrice: true,
-        // initialOrder: {
-        //   select: Selector.INITIAL_ORDER,
-        // },
-      },
-      where: {
-        ...data,
-        isDeleted: false,
-      },
-    });
-
-    for (const stock of stocks) {
-      delete stock.warehouseId;
-      delete stock.isDeleted;
-      delete stock.productId;
-      delete stock.packagingId;
-      delete stock.paperColorGroupId;
-      delete stock.paperColorId;
-      delete stock.paperPatternId;
-      delete stock.paperCertId;
-      delete stock.product.paperDomainId;
-      delete stock.product.manufacturerId;
-      delete stock.product.paperGroupId;
-      delete stock.product.paperTypeId;
-    }
-
-    return stocks;
-  }
 
   async getStockGroupList(companyId: number, skip: number, take: number): Promise<{
     items: StockGroup[];
@@ -460,17 +409,5 @@ export class StockRetriveService {
       },
     });
 
-    const availableQuantity = quantity.reduce((acc, cur) => {
-      return acc + (cur.status !== 'CANCELLED' ? cur.change : 0);
-    }, 0);
-
-    const totalQuantity = quantity.reduce((acc, cur) => {
-      return acc + (cur.status === 'NORMAL' ? cur.change : 0);
-    }, 0);
-
-    return {
-      availableQuantity,
-      totalQuantity,
-    };
   }
 }

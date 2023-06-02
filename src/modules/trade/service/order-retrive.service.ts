@@ -74,14 +74,92 @@ export class OrderRetriveService {
       return null;
     }
 
-    // return Util.serialize(order);
-    return null;
+    return Util.serialize(order);
   }
 
-  async getOrderStockArrivalCount(params: { orderId: number }) {
-    const { orderId } = params;
+  /** 원지 가져오기 */
+  async getAssignStockEvent(params: {
+    orderId: number;
+  }): Promise<Model.StockEvent> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: params.orderId },
+    });
 
-    return 0;
+    const orderStock = await this.prisma.orderStock.findUnique({
+      where: { orderId: params.orderId },
+      select: { id: true },
+    });
+
+    // 원지 정보는 판매자(dstCompany) 작업 계획에 있음
+    const dstPlan = await this.prisma.plan.findFirst({
+      where: { orderStockId: orderStock.id, companyId: order.dstCompanyId },
+      select: {
+        assignStockEvent: {
+          select: Selector.STOCK_EVENT,
+        },
+      },
+    });
+
+    return dstPlan.assignStockEvent;
+  }
+
+  /** 도착 목록 가져오기 */
+  async getArrivalStockList(params: {
+    orderId: number;
+    skip?: number;
+    take?: number;
+  }): Promise<Model.Stock[]> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: params.orderId },
+    });
+
+    const orderStock = await this.prisma.orderStock.findUnique({
+      where: { orderId: params.orderId },
+      select: { id: true },
+    });
+
+    // 도착 정보는 구매자(srcCompany) 작업 계획에 있음
+    const srcPlan = await this.prisma.plan.findFirst({
+      where: { orderStockId: orderStock.id, companyId: order.srcCompanyId },
+      select: {
+        id: true,
+      },
+    });
+
+    const list = await this.prisma.stock.findMany({
+      where: {
+        planId: srcPlan.id,
+      },
+      select: Selector.STOCK,
+      skip: params.skip,
+      take: params.take,
+    });
+
+    return list;
+  }
+
+  /** 도착 목록 수 가져오기 */
+  async getArrivalStockCount(params: { orderId: number }): Promise<number> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: params.orderId },
+    });
+
+    const orderStock = await this.prisma.orderStock.findUnique({
+      where: { orderId: params.orderId },
+      select: { id: true },
+    });
+
+    // 도착 정보는 구매자(srcCompany) 작업 계획에 있음
+    const srcPlan = await this.prisma.plan.findFirst({
+      where: { orderStockId: orderStock.id, companyId: order.srcCompanyId },
+      select: {
+        id: true,
+      },
+    });
+
+    return await this.prisma.stock.count({
+      where: { planId: srcPlan.id },
+    });
   }
 
   /** 거래금액 조회 */

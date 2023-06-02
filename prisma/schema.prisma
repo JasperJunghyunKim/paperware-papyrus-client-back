@@ -175,6 +175,8 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
+  initialPlanId           Int
+  initialPlan             Plan             @relation("InitialPlan", fields: [initialPlanId], references: [id])
   stockPrice              StockPrice?
 
   @@index([packagingId], type: BTree)
@@ -511,6 +513,7 @@ model Plan {
   stock              Stock[]
   orderStock         OrderStock?  @relation(fields: [orderStockId], references: [id])
   orderStockId       Int?
+  initialStock       Stock[]      @relation("InitialPlan")
 }
 
 model Task {
