@@ -363,6 +363,13 @@ export class StockRetriveService {
                   email: sg.partnerCompanyEmail,
                   managedById: sg.partnerCompanyManagedById,
                 }
+              },
+              dstLocation: {
+                id: sg.dstLocationId,
+                name: sg.dstLocationName,
+                code: sg.dstLocationCode,
+                isPublic: sg.dstLocationIsPublic,
+                address: sg.dstLocationAddress,
               }
             } : null,
           } : null,
