@@ -7,6 +7,7 @@ import { PlanChangeService } from './plan-change.service';
 import { StockPrice } from 'src/@shared/models';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { ulid } from 'ulid';
+import { Util } from 'src/common';
 
 @Injectable()
 export class StockChangeService {
@@ -14,7 +15,7 @@ export class StockChangeService {
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
-  ) { }
+  ) {}
 
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
@@ -77,11 +78,19 @@ export class StockChangeService {
           type: 'INHOUSE_CREATE',
           companyId: params.companyId,
         },
+        select: {
+          id: true,
+          company: {
+            select: {
+              invoiceCode: true,
+            },
+          },
+        },
       });
 
       const stock = await tx.stock.create({
         data: {
-          serial: ulid(),
+          serial: Util.serialP(plan.company.invoiceCode),
           companyId: params.companyId,
           initialPlanId: plan.id,
           warehouseId: params.warehouseId,

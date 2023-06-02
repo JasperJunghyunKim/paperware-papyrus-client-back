@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
+import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { match } from 'ts-pattern';
 import { ulid } from 'ulid';
@@ -40,7 +41,12 @@ export class PlanChangeService {
       },
       select: {
         id: true,
-        companyId: true,
+        company: {
+          select: {
+            id: true,
+            invoiceCode: true,
+          },
+        },
       },
     });
 
@@ -74,8 +80,8 @@ export class PlanChangeService {
 
     const stock = await tx.stock.create({
       data: {
-        serial: ulid(),
-        companyId: plan.companyId,
+        serial: Util.serialP(plan.company.invoiceCode),
+        companyId: plan.company.id,
         initialPlanId: plan.id,
         warehouseId: params.warehouseId,
         productId: params.productId,
@@ -150,13 +156,19 @@ export class PlanChangeService {
         },
         select: {
           id: true,
+          company: {
+            select: {
+              id: true,
+              invoiceCode: true,
+            },
+          },
         },
       });
 
       // 원지 재고 생성
       const stock = await tx.stock.create({
         data: {
-          serial: ulid(),
+          serial: Util.serialP(plan.company.invoiceCode),
           companyId: params.companyId,
           initialPlanId: plan.id,
           warehouseId: params.warehouseId,

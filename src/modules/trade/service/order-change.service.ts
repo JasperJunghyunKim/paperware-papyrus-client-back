@@ -39,7 +39,7 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tradePriceValidator: TradePriceValidator,
-  ) { }
+  ) {}
 
   async insertOrder(params: {
     srcCompanyId: number;
@@ -101,12 +101,20 @@ export class OrderChangeService {
           type: 'TRADE_NORMAL_SELLER',
           companyId: params.dstCompanyId,
         },
+        select: {
+          id: true,
+          company: {
+            select: {
+              invoiceCode: true,
+            },
+          },
+        },
       });
 
       // 원지 재고 생성
       const stock = await tx.stock.create({
         data: {
-          serial: ulid(),
+          serial: Util.serialP(dstPlan.company.invoiceCode),
           companyId: params.dstCompanyId,
           initialPlanId: dstPlan.id,
           warehouseId: params.warehouseId,
@@ -123,10 +131,10 @@ export class OrderChangeService {
           cachedQuantity: params.quantity,
           stockPrice: params.stockPrice
             ? {
-              create: {
-                ...params.stockPrice,
-              },
-            }
+                create: {
+                  ...params.stockPrice,
+                },
+              }
             : null,
         },
         select: {
@@ -281,6 +289,11 @@ export class OrderChangeService {
         },
         select: {
           id: true,
+          company: {
+            select: {
+              invoiceCode: true,
+            },
+          },
         },
       });
 
@@ -301,7 +314,7 @@ export class OrderChangeService {
       // 원지 재고 생성
       const stock = await tx.stock.create({
         data: {
-          serial: ulid(),
+          serial: Util.serialP(dstPlan.company.invoiceCode),
           companyId: order.dstCompanyId,
           initialPlanId: dstPlan.id,
           planId: params.planId,
@@ -317,10 +330,10 @@ export class OrderChangeService {
           paperCertId: params.paperCertId,
           stockPrice: params.stockPrice
             ? {
-              create: {
-                ...params.stockPrice,
-              },
-            }
+                create: {
+                  ...params.stockPrice,
+                },
+              }
             : null,
           cachedQuantity: params.quantity,
         },
@@ -602,6 +615,11 @@ export class OrderChangeService {
         },
         select: {
           id: true,
+          company: {
+            select: {
+              invoiceCode: true,
+            },
+          },
         },
       });
 
@@ -636,7 +654,7 @@ export class OrderChangeService {
       // 새 입고 예정 재고 추가
       const stock = await tx.stock.create({
         data: {
-          serial: ulid(),
+          serial: Util.serialP(srcPlan.company.invoiceCode),
           companyId: order.srcCompanyId,
           initialPlanId: srcPlan.id,
           productId: params.productId,
@@ -948,31 +966,31 @@ export class OrderChangeService {
           sizeY,
           paperColorGroup: paperColorGroupId
             ? {
-              connect: {
-                id: paperColorGroupId,
-              },
-            }
+                connect: {
+                  id: paperColorGroupId,
+                },
+              }
             : undefined,
           paperColor: paperColorId
             ? {
-              connect: {
-                id: paperColorId,
-              },
-            }
+                connect: {
+                  id: paperColorId,
+                },
+              }
             : undefined,
           paperPattern: paperPatternId
             ? {
-              connect: {
-                id: paperPatternId,
-              },
-            }
+                connect: {
+                  id: paperPatternId,
+                },
+              }
             : undefined,
           paperCert: paperCertId
             ? {
-              connect: {
-                id: paperCertId,
-              },
-            }
+                connect: {
+                  id: paperCertId,
+                },
+              }
             : undefined,
           quantity,
           order: {

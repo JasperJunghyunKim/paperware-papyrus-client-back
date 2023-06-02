@@ -1,3 +1,5 @@
+import { match } from 'ts-pattern';
+
 export function dateToIso8601(date: Date | string | null | undefined): string {
   if (date === null || date === undefined) {
     return null;
@@ -67,3 +69,6 @@ export function serialize<T extends object>(obj: T): Serialized<T> {
   }
   return newObj;
 }
+
+export const serialP = (invoiceCode: string) =>
+  `P${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
