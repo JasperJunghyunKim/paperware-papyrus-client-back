@@ -45,6 +45,9 @@ export class StockChangeService {
         ],
       },
     });
+
+    console.log(111, quantity, quantityAvailable);
+
     return await tx.stock.update({
       data: {
         cachedQuantity: quantity._sum.change || 0,
@@ -130,7 +133,9 @@ export class StockChangeService {
         },
       });
 
-      // TODO... 재고 cache 업데이트
+      await this.cacheStockQuantityTx(tx, {
+        id: stock.id,
+      });
 
       return {
         planId: plan.id,
