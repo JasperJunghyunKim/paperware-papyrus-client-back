@@ -5,6 +5,8 @@ import { StockValidator } from './stock.validator';
 import { PrismaTransaction } from 'src/common/types';
 import { PlanChangeService } from './plan-change.service';
 import { StockPrice } from 'src/@shared/models';
+import { StockCreateStockPriceRequest } from 'src/@shared/api';
+import { ulid } from 'ulid';
 
 @Injectable()
 export class StockChangeService {
@@ -52,38 +54,81 @@ export class StockChangeService {
     });
   }
 
-  async create(
-    params: {
-      companyId: number;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY: number;
-      paperColorGroupId: number | null;
-      paperColorId: number | null;
-      paperPatternId: number | null;
-      paperCertId: number | null;
-      warehouseId: number | null;
-      quantity: number;
-      price: StockPrice;
-    },
-  ) {
-    // await this.prisma.$transaction(async (tx) => {
-    //   const createStockResult = await this.planChangeService.insertInstantiate(
-    //     tx,
-    //     params,
-    //   );
+  /** 신규 재고 등록 */
+  async create(params: {
+    companyId: number;
+    warehouseId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+    price: StockCreateStockPriceRequest;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.create({
+        data: {
+          planNo: ulid(),
+          type: 'INHOUSE_CREATE',
+          companyId: params.companyId,
+        },
+      });
 
-    //   await this.cacheStockQuantityTx(tx, {
-    //     id: createStockResult.stockId,
-    //   });
+      const stock = await tx.stock.create({
+        data: {
+          serial: ulid(),
+          companyId: params.companyId,
+          initialPlanId: plan.id,
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          cachedQuantity: params.quantity,
+          stockPrice: {
+            create: {
+              ...params.price,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
-    //   return {
-    //     planId: plan.id,
-    //     stockId: stock.id,
-    //     stockEventId: stockEvent.id,
-    //   };
-    // });
+      const stockEvent = await tx.stockEvent.create({
+        data: {
+          stockId: stock.id,
+          status: 'NORMAL',
+          change: params.quantity,
+          plan: {
+            connect: {
+              id: plan.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      // TODO... 재고 cache 업데이트
+
+      return {
+        planId: plan.id,
+        stockId: stock.id,
+        stockEventId: stockEvent.id,
+      };
+    });
   }
 }
