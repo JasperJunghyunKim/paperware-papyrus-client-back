@@ -59,6 +59,33 @@ export class StockController {
     });
   }
 
+  @Get()
+  @UseGuards(AuthGuard)
+  async getStockList(
+    @Request() req: AuthType,
+    @Query() dto: StockListRequestDto,
+  ): Promise<StockListResponse> {
+    const stocks = await this.stockRetriveService.getStockList({
+      companyId: req.user.companyId,
+      warehouseId: dto.warehouseId,
+      productId: dto.productId,
+      packagingId: dto.packagingId,
+      grammage: dto.grammage,
+      sizeX: dto.sizeX,
+      sizeY: dto.sizeY,
+      paperColorGroupId: dto.paperColorGroupId,
+      paperColorId: dto.paperColorId,
+      paperPatternId: dto.paperPatternId,
+      paperCertId: dto.paperCertId,
+      planId: dto.planId,
+    });
+
+    return {
+      items: stocks.map(Util.serialize),
+      total: stocks.length,
+    };
+  }
+
   @Get('/group')
   @UseGuards(AuthGuard)
   async getStockGroupList(

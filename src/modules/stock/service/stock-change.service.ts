@@ -4,7 +4,6 @@ import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
 import { PrismaTransaction } from 'src/common/types';
 import { PlanChangeService } from './plan-change.service';
-import { StockPrice } from 'src/@shared/models';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { ulid } from 'ulid';
 import { Util } from 'src/common';
