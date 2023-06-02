@@ -108,6 +108,7 @@ export class OrderChangeService {
         data: {
           serial: ulid(),
           companyId: params.dstCompanyId,
+          initialPlanId: dstPlan.id,
           warehouseId: params.warehouseId,
           planId: params.planId,
           productId: params.productId,
@@ -302,6 +303,7 @@ export class OrderChangeService {
         data: {
           serial: ulid(),
           companyId: order.dstCompanyId,
+          initialPlanId: dstPlan.id,
           planId: params.planId,
           warehouseId: params.warehouseId,
           productId: params.productId,
@@ -636,6 +638,7 @@ export class OrderChangeService {
         data: {
           serial: ulid(),
           companyId: order.srcCompanyId,
+          initialPlanId: srcPlan.id,
           productId: params.productId,
           packagingId: params.packagingId,
           grammage: params.grammage,

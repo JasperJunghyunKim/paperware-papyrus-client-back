@@ -76,6 +76,7 @@ export class PlanChangeService {
       data: {
         serial: ulid(),
         companyId: plan.companyId,
+        initialPlanId: plan.id,
         warehouseId: params.warehouseId,
         productId: params.productId,
         packagingId: params.packagingId,
@@ -157,6 +158,7 @@ export class PlanChangeService {
         data: {
           serial: ulid(),
           companyId: params.companyId,
+          initialPlanId: plan.id,
           warehouseId: params.warehouseId,
           planId: params.planId,
           productId: params.productId,

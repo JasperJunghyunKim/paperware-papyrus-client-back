@@ -68,10 +68,19 @@ export class StockChangeService {
     price: StockCreateStockPriceRequest;
   }) {
     return await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.create({
+        data: {
+          planNo: ulid(),
+          type: 'INHOUSE_CREATE',
+          companyId: params.companyId,
+        },
+      });
+
       const stock = await tx.stock.create({
         data: {
           serial: ulid(),
           companyId: params.companyId,
+          initialPlanId: plan.id,
           warehouseId: params.warehouseId,
           productId: params.productId,
           packagingId: params.packagingId,
@@ -99,26 +108,19 @@ export class StockChangeService {
           stockId: stock.id,
           status: 'NORMAL',
           change: params.quantity,
+          plan: {
+            connect: {
+              id: plan.id,
+            },
+          },
         },
         select: {
           id: true,
         },
       });
 
-      const plan = await tx.plan.create({
-        data: {
-          planNo: ulid(),
-          type: 'INHOUSE_CREATE',
-          companyId: params.companyId,
-          targetStockEvent: {
-            connect: {
-              id: stockEvent.id,
-            },
-          },
-        },
-      });
-
       return {
+        planId: plan.id,
         stockId: stock.id,
         stockEventId: stockEvent.id,
       };
