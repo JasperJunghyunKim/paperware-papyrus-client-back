@@ -67,3 +67,6 @@ export function serialize<T extends object>(obj: T): Serialized<T> {
   }
   return newObj;
 }
+
+export const serialP = (invoiceCode: string) =>
+  `P${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
