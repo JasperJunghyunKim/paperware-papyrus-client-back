@@ -4,6 +4,7 @@ import {
   PlanStatus,
   PlanType,
   Prisma,
+  StockEventStatus,
 } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
@@ -372,6 +373,75 @@ export class StockRetriveService {
       }),
       total,
     }
+  }
+
+  async getStockList(data: Prisma.StockWhereInput) {
+    const paperColorGroupId = data.paperColorGroupId ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperColorId = data.paperColorId ? Prisma.sql`s.paperColorId = ${data.paperColorId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperPatternId = data.paperPatternId ? Prisma.sql`s.paperPatternId = ${data.paperPatternId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperCertId = data.paperCertId ? Prisma.sql`s.paperCertId = ${data.paperCertId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const planId = data.planId ? Prisma.sql`s.planId = ${data.planId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+
+    const stockIds: { id: number }[] = await this.prisma.$queryRaw`
+      SELECT s.id
+        FROM Stock      AS s
+        JOIN (
+          SELECT *, ROW_NUMBER() OVER(PARTITION BY stockId ORDER BY id ASC) AS rownum
+            FROM StockEvent
+           WHERE \`change\` > 0 AND \`status\` = ${StockEventStatus.NORMAL}
+        ) AS outputSe ON outputSe.stockId = s.id
+
+       WHERE s.companyId = ${data.companyId}
+         AND s.warehouseId = ${data.warehouseId}
+         AND s.productId = ${data.productId}
+         AND s.packagingId = ${data.packagingId}
+         AND s.grammage = ${data.grammage}
+         AND s.sizeX = ${data.sizeX}
+         AND s.sizeY = ${data.sizeY}
+         AND ${paperColorGroupId}
+         AND ${paperColorId}
+         AND ${paperPatternId}
+         AND ${paperCertId}
+         AND ${planId}
+         AND s.isDeleted = ${false}
+         AND (s.cachedQuantity != 0 OR cachedQuantityAvailable != 0)
+    `;
+
+    const stocks = await this.prisma.stock.findMany({
+      include: {
+        warehouse: {
+          include: {
+            company: true,
+          },
+        },
+        company: true,
+        product: {
+          include: {
+            paperDomain: true,
+            manufacturer: true,
+            paperGroup: true,
+            paperType: true,
+          },
+        },
+        packaging: true,
+        paperColorGroup: true,
+        paperColor: true,
+        paperPattern: true,
+        paperCert: true,
+        stockPrice: true,
+        initialPlan: {
+          select: Selector.INITIAL_PLAN,
+        },
+        stockEvent: true,
+      },
+      where: {
+        id: {
+          in: stockIds.map(id => id.id),
+        }
+      },
+    });
+
+    return stocks;
   }
 
   async getStockGroupQuantity(params: {

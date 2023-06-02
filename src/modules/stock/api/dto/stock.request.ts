@@ -92,6 +92,12 @@ export class StockListRequestDto implements StockListQuery {
   @Type(() => Number)
   @IsPositive()
   readonly paperCertId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number = null;
 }
 
 /** 재고 상세조회 */

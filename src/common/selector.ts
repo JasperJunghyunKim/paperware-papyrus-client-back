@@ -429,3 +429,9 @@ export const INVOICE = {
     select: PLAN,
   },
 } satisfies Prisma.InvoiceSelect;
+
+export const INITIAL_PLAN = {
+  orderStock: {
+    select: ORDER_STOCK,
+  },
+} satisfies Prisma.PlanSelect;
