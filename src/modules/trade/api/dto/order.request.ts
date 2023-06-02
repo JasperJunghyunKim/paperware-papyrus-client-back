@@ -54,6 +54,8 @@ export class OrderListQueryDto implements OrderListQuery {
 /** 정상거래 등록 요청 */
 export default class OrderStockCreateRequestDto
   implements OrderStockCreateRequest {
+  planId: number;
+
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;

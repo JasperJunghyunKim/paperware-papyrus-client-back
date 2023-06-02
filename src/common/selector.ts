@@ -216,9 +216,9 @@ export const STOCK = {
   stockPrice: {
     select: STOCK_PRICE,
   },
-  initialOrder: {
-    select: INITIAL_ORDER,
-  },
+  // initialOrder: {
+  //   select: INITIAL_ORDER,
+  // },
 } satisfies Prisma.StockSelect;
 
 export const VENDOR_STOCK = {

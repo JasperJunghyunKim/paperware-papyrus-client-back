@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import {
   PackagingType,
+  PlanStatus,
+  PlanType,
   Prisma,
 } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
+import { StockGroup } from 'src/@shared/models';
 
 interface StockGroupFromDB {
   warehouseId: number;
@@ -46,6 +49,7 @@ interface StockGroupFromDB {
   // 도착예정 정보
   orderStockId: number;
   orderId: number;
+  orderNo: string;
   dstLocationId: number;
   dstLocationName: string;
   dstLocationCode: string;
@@ -55,6 +59,9 @@ interface StockGroupFromDB {
 
   planId: number;
   planNo: string;
+  planStatus: PlanStatus;
+  planType: PlanType;
+  palnCreatedAt: string;
 
   // 원지정보
   asWarehouseId: number;
@@ -134,9 +141,9 @@ export class StockRetriveService {
         paperPattern: true,
         paperCert: true,
         stockPrice: true,
-        initialOrder: {
-          select: Selector.INITIAL_ORDER,
-        },
+        // initialOrder: {
+        //   select: Selector.INITIAL_ORDER,
+        // },
       },
       where: {
         ...data,
@@ -162,7 +169,10 @@ export class StockRetriveService {
     return stocks;
   }
 
-  async getStockGroupList(companyId: number, skip: number, take: number) {
+  async getStockGroupList(companyId: number, skip: number, take: number): Promise<{
+    items: StockGroup[];
+    total: number;
+  }> {
     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
@@ -202,6 +212,7 @@ export class StockRetriveService {
             -- 도착예정 정보
             , os.id AS orderStockId
             , o.id AS orderId
+            , o.orderNo AS orderNo
             , dstLocation.id AS dstLocationId
             , dstLocation.name AS dstLocationName
             , dstLocation.code AS dstLocationCode
@@ -210,6 +221,9 @@ export class StockRetriveService {
             , o.wantedDate AS wantedDate
             , p.id AS planId
             , p.planNo As planNo
+            , p.status As planStatus
+            , p.type As planType
+            , p.createdAt As planCreatedAt
 
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
@@ -323,14 +337,10 @@ export class StockRetriveService {
 
       ${limit}
     `;
-
-    console.log(stockGroups)
-
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
 
     return {
       items: stockGroups.map(sg => {
-
 
         return {
           warehouse: sg.warehouseId ? {
@@ -358,7 +368,57 @@ export class StockRetriveService {
               id: sg.paperTypeId,
               name: sg.paperTypeName,
             },
-          }
+          },
+          packaging: {
+            id: sg.packagingId,
+            type: sg.packagingType,
+            packA: sg.packagingPackA,
+            packB: sg.packagingPackB,
+          },
+          grammage: sg.grammage,
+          sizeX: sg.sizeX,
+          sizeY: sg.sizeY,
+          paperColorGroup: sg.paperColorGroupId ? {
+            id: sg.paperColorGroupId,
+            name: sg.paperColorGroupName,
+          } : null,
+          paperColor: sg.paperColorId ? {
+            id: sg.paperColorId,
+            name: sg.paperColorName,
+          } : null,
+          paperPattern: sg.paperPatternId ? {
+            id: sg.paperPatternId,
+            name: sg.paperPatternName,
+          } : null,
+          paperCert: sg.paperCertId ? {
+            id: sg.paperCertId,
+            name: sg.paperCertName,
+          } : null,
+          plan: sg.planId ? {
+            id: sg.planId,
+            planNo: sg.planNo,
+            orderStock: sg.orderStockId ? {
+              order: {
+                id: sg.orderId,
+                orderNo: sg.orderNo,
+                wantedDate: sg.wantedDate,
+                partnerCompany: {
+                  id: sg.partnerCompanyId,
+                  businessName: sg.partnerCompanyBusinessName,
+                  companyRegistrationNumber: sg.partnerCompanyCompanyRegistrationNumber,
+                  invoiceCode: sg.partnerCompanyInvoiceCode,
+                  representative: sg.partnerCompanyRepresentative,
+                  address: sg.partnerCompanyAddress,
+                  phoneNo: sg.partnerCompanyPhoneNo,
+                  faxNo: sg.partnerCompanyFaxNo,
+                  email: sg.partnerCompanyEmail,
+                  managedById: sg.partnerCompanyManagedById,
+                }
+              }
+            } : null,
+          } : null,
+          totalQuantity: Number(sg.totalQuantity),
+          availableQuantity: Number(sg.availableQuantity),
         }
       }),
       total,
@@ -382,7 +442,7 @@ export class StockRetriveService {
       where: {
         stock: {
           warehouseId: params.warehouseId,
-          initialOrderId: params.initialOrderId,
+          // initialOrderId: params.initialOrderId,
           productId: params.productId,
           packagingId: params.packagingId,
           grammage: params.grammage,

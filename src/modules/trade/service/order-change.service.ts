@@ -275,7 +275,7 @@ export class OrderChangeService {
       where: {
         stock: {
           warehouseId: params.warehouseId,
-          initialOrderId: order?.orderId ?? null,
+          // initialOrderId: order?.orderId ?? null,
           productId: params.productId,
           packagingId: params.packagingId,
           grammage: params.grammage,
