@@ -133,8 +133,10 @@ export class StockRetriveService {
       switch (planId) {
         case 'any':
           planIdQuery = Prisma.sql`AND s.planId IS NOT NULL`;
+          break;
         default:
           planIdQuery = Prisma.sql`AND s.planId = ${Number(planId)}`;
+          break;
       }
     }
 
@@ -242,9 +244,9 @@ export class StockRetriveService {
             , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
 
             -- 도착예정재고 수량
-            , IFNULL(arrivalStockEvent.totalArrivalQuantity, 0) AS totalArrivalQuantity
-            , IFNULL(arrivalStockEvent.storingQuantity, 0) AS storingQuantity
-            , IFNULL(arrivalStockEvent.nonStoringQuantity, 0) AS nonStoringQuantity
+            , IFNULL(SUM(arrivalStockEvent.totalArrivalQuantity), 0) AS totalArrivalQuantity
+            , IFNULL(SUM(arrivalStockEvent.storingQuantity), 0) AS storingQuantity
+            , ABS(IFNULL(SUM(arrivalStockEvent.nonStoringQuantity), 0)) AS nonStoringQuantity
 
             -- total
             , COUNT(1) OVER() AS total
@@ -252,11 +254,13 @@ export class StockRetriveService {
         FROM Stock              AS s
    LEFT JOIN (
           SELECT stockId
-                , IFNULL(SUM(\`change\`) OVER(PARTITION BY stockId), 0) AS storingQuantity
-                , IFNULL(SUM(CASE WHEN \`change\` < 0 THEN \`change\` END) OVER(PARTITION BY stockId), 0) AS nonStoringQuantity
-                , IFNULL(SUM(CASE WHEN \`change\` > 0 THEN \`change\` END) OVER(PARTITION BY stockId), 0) AS totalArrivalQuantity
+                , IFNULL(SUM(\`change\`), 0) AS storingQuantity
+                , IFNULL(SUM(CASE WHEN \`change\` < 0 THEN \`change\` END), 0) AS nonStoringQuantity
+                , IFNULL(SUM(CASE WHEN \`change\` > 0 THEN \`change\` END), 0) AS totalArrivalQuantity
             FROM StockEvent
            WHERE status = ${StockEventStatus.PENDING}
+
+           GROUP BY stockId
         ) AS arrivalStockEvent ON arrivalStockEvent.stockId = s.id
    LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
    LEFT JOIN Plan               AS p                        ON p.id = s.planId

@@ -14,7 +14,6 @@ export function IsAnyOrId(validationOptions?: ValidationOptions) {
             },
             validator: {
                 validate(value: any) {
-                    console.log(111, Number(value))
                     switch (value) {
                         case 'any':
                             return true;
