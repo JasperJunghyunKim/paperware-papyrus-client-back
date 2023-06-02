@@ -14,7 +14,7 @@ export class StockChangeService {
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
-  ) {}
+  ) { }
 
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
@@ -45,8 +45,6 @@ export class StockChangeService {
         ],
       },
     });
-
-    console.log(111, quantity, quantityAvailable);
 
     return await tx.stock.update({
       data: {
