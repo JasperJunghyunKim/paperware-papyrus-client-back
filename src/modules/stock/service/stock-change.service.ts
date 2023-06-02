@@ -14,7 +14,7 @@ export class StockChangeService {
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
-  ) {}
+  ) { }
 
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
@@ -45,6 +45,7 @@ export class StockChangeService {
         ],
       },
     });
+
     return await tx.stock.update({
       data: {
         cachedQuantity: quantity._sum.change || 0,
@@ -130,7 +131,9 @@ export class StockChangeService {
         },
       });
 
-      // TODO... 재고 cache 업데이트
+      await this.cacheStockQuantityTx(tx, {
+        id: stock.id,
+      });
 
       return {
         planId: plan.id,
