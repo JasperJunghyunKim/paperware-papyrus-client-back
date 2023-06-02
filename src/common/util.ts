@@ -1,5 +1,3 @@
-import { match } from 'ts-pattern';
-
 export function dateToIso8601(date: Date | string | null | undefined): string {
   if (date === null || date === undefined) {
     return null;

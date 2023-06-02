@@ -289,6 +289,7 @@ export const ORDER_STOCK = {
       id: true,
       planNo: true,
       type: true,
+      assignStockEvent: { select: STOCK_EVENT },
     },
   },
 } satisfies Prisma.OrderStockSelect;
