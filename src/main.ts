@@ -33,7 +33,7 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     // 운영환경일 경우...
-    if (configService.get(CONFIG_KEY.COMMON.NODE_ENV) === 'prod') {
+    if (configService.get(CONFIG_KEY.COMMON.NODE_ENV) === 'production') {
       app.enable('trust proxy');
       app.use(compression());
       app.use(helmet()); // TODO: helment 설치

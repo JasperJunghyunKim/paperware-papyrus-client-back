@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  paperware-production:
+    build:
+      context: ../../
+      dockerfile: docker/prod/Dockerfile
+    image: paperware-production
+    ports:
+      - '3003:3000'

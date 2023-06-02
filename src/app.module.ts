@@ -10,7 +10,7 @@ import { BusinessModule } from './modules/business.module';
 const configModule = (): DynamicModule => {
   return ConfigModule.forRoot({
     isGlobal: true,
-    envFilePath: `.env`,
+    envFilePath: `.env.${process.env['NODE_ENV']}`,
     validate,
   });
 };
