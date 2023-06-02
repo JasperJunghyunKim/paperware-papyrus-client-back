@@ -128,7 +128,7 @@ export class OrderChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          cachedQuantity: params.quantity,
+          cachedQuantity: 0,
           stockPrice: params.stockPrice
             ? {
                 create: {
@@ -149,7 +149,7 @@ export class OrderChangeService {
               id: stock.id,
             },
           },
-          change: params.quantity,
+          change: -params.quantity,
           status: 'PENDING',
           assignPlan: {
             connect: {
@@ -335,7 +335,7 @@ export class OrderChangeService {
                 },
               }
             : null,
-          cachedQuantity: params.quantity,
+          cachedQuantity: 0,
         },
         select: {
           id: true,
@@ -349,7 +349,7 @@ export class OrderChangeService {
               id: stock.id,
             },
           },
-          change: params.quantity,
+          change: -params.quantity,
           status: 'PENDING',
           assignPlan: {
             connect: {
