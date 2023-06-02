@@ -318,6 +318,7 @@ export class StockRetriveService {
                 -- mysql error
                 , partnerCompany.id
 
+
       ${limit}
     `;
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
