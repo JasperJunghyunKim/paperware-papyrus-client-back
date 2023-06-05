@@ -320,6 +320,7 @@ export const ORDER = {
   dstCompany: {
     select: COMPANY,
   },
+  orderType: true,
   status: true,
   isEntrusted: true,
   memo: true,

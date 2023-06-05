@@ -384,7 +384,6 @@ enum OrderStatus {
 enum OrderType {
   NORMAL
   DEPOSIT
-  WITHDRAW
 }
 
 model Order {
