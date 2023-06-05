@@ -3,8 +3,9 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  NotImplementedException,
 } from '@nestjs/common';
-import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
@@ -39,7 +40,7 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tradePriceValidator: TradePriceValidator,
-  ) {}
+  ) { }
 
   async insertOrder(params: {
     srcCompanyId: number;
@@ -909,7 +910,7 @@ export class OrderChangeService {
           })
         ).managedById;
 
-      // 주문 생성
+      // 보관등록 주문 생성
       const order = await tx.order.create({
         select: {
           id: true,
@@ -927,62 +928,47 @@ export class OrderChangeService {
               id: dstCompanyId,
             },
           },
-          status: isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
+          status: isOffer ? 'ORDER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo: '',
-        },
-      });
-
-      // order deposit 생성
-      await tx.orderDeposit.create({
-        data: {
-          product: {
-            connect: {
-              id: productId,
-            },
-          },
-          packaging: {
-            connect: {
-              id: packagingId,
-            },
-          },
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroup: paperColorGroupId
-            ? {
+          orderDeposit: {
+            create: {
+              packaging: {
+                connect: {
+                  id: packagingId,
+                }
+              },
+              product: {
+                connect: {
+                  id: productId,
+                }
+              },
+              grammage,
+              sizeX,
+              sizeY,
+              paperColorGroup: paperColorGroupId ? {
                 connect: {
                   id: paperColorGroupId,
-                },
-              }
-            : undefined,
-          paperColor: paperColorId
-            ? {
+                }
+              } : undefined,
+              paperColor: paperColorId ? {
                 connect: {
                   id: paperColorId,
-                },
-              }
-            : undefined,
-          paperPattern: paperPatternId
-            ? {
+                }
+              } : undefined,
+              paperPattern: paperPatternId ? {
                 connect: {
                   id: paperPatternId,
-                },
-              }
-            : undefined,
-          paperCert: paperCertId
-            ? {
+                }
+              } : undefined,
+              paperCert: paperCertId ? {
                 connect: {
                   id: paperCertId,
-                },
-              }
-            : undefined,
-          quantity,
-          order: {
-            connect: {
-              id: order.id,
-            },
-          },
+                }
+              } : undefined,
+              quantity,
+            }
+          }
         },
       });
     });

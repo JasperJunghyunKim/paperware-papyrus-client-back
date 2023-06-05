@@ -49,7 +49,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     `;
     await this.$queryRaw`
      SET sql_mode=(SELECT REPLACE(@@sql_mode,'only_full_group_by',''));
-   `;
+    `;
   }
 
   async enableShutdownHooks(app: INestApplication) {

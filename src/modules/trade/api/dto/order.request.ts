@@ -16,6 +16,7 @@ import {
   IsPositive,
   IsString,
   Length,
+  Max,
   MaxLength,
   Min,
   ValidateNested,
@@ -33,6 +34,7 @@ import {
   OrderDepositCreateRequest,
   OrderStockAssignStockRequest,
   OrderStockAssignStockUpdateRequest,
+  OrderDepositListQuery,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -399,6 +401,30 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   @Type(() => Number)
   @IsPositive()
   readonly quantity: number;
+}
+
+/** 보관량 목록 */
+export class OrderDepositListQueryDto implements OrderDepositListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = 30;
+
+  @IsEnum(DepositType)
+  readonly type: DepositType;
+
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string | null = null;
 }
 
 /** 원지 수정 */
