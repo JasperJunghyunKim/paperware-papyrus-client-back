@@ -130,8 +130,6 @@ export class DepositChangeService {
           memo: memo || '',
         }
       })
-
-      console.log(1111, deposit);
     });
   }
 }
