@@ -109,6 +109,17 @@ export class OrderController {
     return result;
   }
 
+  /** 매입/매출 보관량 상세조회 */
+  @Get('/deposit/:id')
+  @UseGuards(AuthGuard)
+  async getDepositHistory(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+  ) {
+    const result = await this.retrive.getDepositHistory(id, req.user.companyId);
+    return result;
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -410,21 +421,10 @@ export class OrderController {
     @Request() req: AuthType,
     @Body() dto: OrderDepositCreateDto,
   ) {
-    if (
-      dto.srcCompanyId !== req.user.companyId &&
-      dto.dstCompanyId !== req.user.companyId
-    ) {
-      throw new ForbiddenException(
-        '매입처와 매출처 중 하나는 귀사로 지정되어야합니다.',
-      );
-    }
-
-    const isOffer = dto.dstCompanyId === req.user.companyId;
-
     await this.change.createDepositOrder(
-      dto.srcCompanyId,
-      dto.dstCompanyId,
-      isOffer,
+      req.user.companyId,
+      dto.type,
+      dto.partnerCompanyRegistrationNumber,
       dto.productId,
       dto.packagingId,
       dto.grammage,

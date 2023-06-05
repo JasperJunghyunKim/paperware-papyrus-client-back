@@ -298,7 +298,8 @@ export class OrderRetriveService {
    LEFT JOIN PaperPattern       AS paperPattern     ON paperPattern.id = d.paperPatternId
    LEFT JOIN PaperCert          AS paperCert        ON paperCert.id = d.paperCertId
 
-       WHERE d.depositType = ${type}
+       WHERE p.companyId = ${companyId}
+         AND d.depositType = ${type}
          ${companySearch}
 
        GROUP BY d.id
@@ -361,5 +362,33 @@ export class OrderRetriveService {
       })),
       total,
     };
+  }
+
+  /** 보관량 상세조회 */
+  async getDepositHistory(
+    id: number,
+    companyId: number,
+  ) {
+    const deposit = await this.prisma.deposit.findUnique({
+      include: {
+        partner: true,
+        depositEvents: {
+          include: {
+            orderDeposit: {
+              include: {
+                order: true,
+              }
+            },
+          }
+        },
+      },
+      where: {
+        id,
+      }
+    });
+
+    if (!deposit || deposit.partner.companyId !== companyId) throw new NotFoundException(`등록되지 않은 보관입니다.`);
+
+    return deposit;
   }
 }

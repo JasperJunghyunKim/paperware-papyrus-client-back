@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  NotImplementedException,
 } from '@nestjs/common';
 import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
@@ -871,9 +872,9 @@ export class OrderChangeService {
 
   /** 보관 등록 */
   async createDepositOrder(
-    srcCompanyId: number,
-    dstCompanyId: number,
-    isOffer: boolean,
+    companyId: number,
+    type: DepositType,
+    partnerCompanyRegistrationNumber: string,
     productId: number,
     packagingId: number,
     grammage: number,
@@ -886,44 +887,25 @@ export class OrderChangeService {
     quantity: number,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      const dstCompany = await tx.company.findUnique({
-        where: {
-          id: dstCompanyId,
-        },
-      });
-      if (!dstCompany)
-        throw new NotFoundException(`등록되지 않은 거래처입니다.`);
       const partner = await tx.partner.findUnique({
         where: {
           companyId_companyRegistrationNumber: {
-            companyId: srcCompanyId,
-            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
+            companyId,
+            companyRegistrationNumber: partnerCompanyRegistrationNumber,
           },
         },
       });
       if (!partner) throw new NotFoundException(`등록되지 않은 거래처입니다.`);
 
-      const isEntrusted =
-        !!(
-          await tx.company.findUnique({
-            where: {
-              id: srcCompanyId,
-            },
-            select: {
-              managedById: true,
-            },
-          })
-        ).managedById ||
-        !!(
-          await tx.company.findUnique({
-            where: {
-              id: dstCompanyId,
-            },
-            select: {
-              managedById: true,
-            },
-          })
-        ).managedById;
+      const partnerCompany = await tx.company.findFirst({
+        where: {
+          companyRegistrationNumber: partnerCompanyRegistrationNumber,
+        },
+        orderBy: {
+          id: 'desc',
+        }
+      });
+
 
       // 주문 생성
       const order = await tx.order.create({
@@ -935,100 +917,57 @@ export class OrderChangeService {
           orderType: 'DEPOSIT',
           srcCompany: {
             connect: {
-              id: srcCompanyId,
+              id: type === DepositType.PURCHASE ? companyId : partnerCompany.id,
             },
           },
           dstCompany: {
             connect: {
-              id: dstCompanyId,
+              id: type === DepositType.PURCHASE ? partnerCompany.id : companyId,
             },
           },
-          status: isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
-          isEntrusted,
+          status: type === DepositType.PURCHASE ? 'OFFER_PREPARING' : 'ORDER_REQUESTED',
+          isEntrusted: true, // TODO... 
           memo: '',
-        },
-      });
-
-      // deposit 찾기
-      const deposit = await tx.deposit.findFirst({
-        where: {
-          partnerId: partner.id,
-          depositType: isOffer ? DepositType.PURCHASE : DepositType.SALES,
-          productId,
-          packagingId,
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroupId,
-          paperColorId,
-          paperPatternId,
-          paperCertId,
-        }
-      }) || await tx.deposit.create({
-        data: {
-          partner: {
-            connect: {
-              id: partner.id,
-            }
-          },
-          depositType: isOffer ? DepositType.PURCHASE : DepositType.SALES,
-          product: {
-            connect: {
-              id: productId,
-            }
-          },
-          packaging: {
-            connect: {
-              id: packagingId,
-            }
-          },
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroup: paperColorGroupId ? {
-            connect: {
-              id: paperColorGroupId
-            }
-          } : undefined,
-          paperColor: paperColorId ? {
-            connect: {
-              id: paperColorId
-            }
-          } : undefined,
-          paperPattern: paperPatternId ? {
-            connect: {
-              id: paperPatternId
-            }
-          } : undefined,
-          paperCert: paperCertId ? {
-            connect: {
-              id: paperCertId
-            }
-          } : undefined,
-        }
-      })
-
-      // event 생성
-      await tx.depositEvent.create({
-        data: {
-          deposit: {
-            connect: {
-              id: deposit.id
-            }
-          },
-          change: quantity,
           orderDeposit: {
             create: {
-              order: {
+              packaging: {
                 connect: {
-                  id: order.id,
+                  id: packagingId,
                 }
-              }
+              },
+              product: {
+                connect: {
+                  id: productId,
+                }
+              },
+              grammage,
+              sizeX,
+              sizeY,
+              paperColorGroup: paperColorGroupId ? {
+                connect: {
+                  id: paperColorGroupId,
+                },
+              } : undefined,
+              paperColor: paperColorId ? {
+                connect: {
+                  id: paperColorId,
+                },
+              } : undefined,
+              paperPattern: paperPatternId ? {
+                connect: {
+                  id: paperPatternId,
+                },
+              } : undefined,
+              paperCert: paperCertId ? {
+                connect: {
+                  id: paperCertId,
+                },
+              } : undefined,
+              quantity,
             }
           }
-        }
+        },
       });
-
     });
   }
 }

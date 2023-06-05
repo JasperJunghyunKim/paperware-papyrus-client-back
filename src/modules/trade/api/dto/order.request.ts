@@ -339,15 +339,12 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
 
 /** 보관등록 */
 export class OrderDepositCreateDto implements OrderDepositCreateRequest {
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly srcCompanyId: number;
+  @IsEnum(DepositType)
+  readonly type: DepositType;
 
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly dstCompanyId: number;
+  @IsString()
+  @Length(10, 10)
+  readonly partnerCompanyRegistrationNumber: string;
 
   @IsInt()
   @Type(() => Number)
