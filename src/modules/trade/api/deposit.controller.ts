@@ -55,6 +55,7 @@ export class DepositController {
     }
 
     await this.change.createDeposit({
+      companyId: req.user.companyId,
       ...dto,
     });
   }
