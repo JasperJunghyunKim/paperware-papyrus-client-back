@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DepositType, PackagingType, Prisma } from "@prisma/client";
-import { Deposit } from "src/@shared/models";
+import { Model } from "src/@shared";
 import { PrismaService } from "src/core";
 
 export interface DepositFromDB {
@@ -42,7 +42,6 @@ export class DepositRetriveService {
         private readonly prisma: PrismaService,
     ) { }
 
-
     /** 보관량 조회 */
     async getDepositList(
         params: {
@@ -53,7 +52,7 @@ export class DepositRetriveService {
             companyRegistrationNumber: string | null;
         }
     ): Promise<{
-        items: Deposit[];
+        items: Model.Deposit[];
         total: number;
     }> {
         const {
@@ -189,7 +188,7 @@ export class DepositRetriveService {
     async getDepositHistory(
         id: number,
         companyId: number,
-    ) {
+    ): Promise<Model.DepositEvent[]> {
         const deposit = await this.prisma.deposit.findUnique({
             include: {
                 partner: true,
@@ -210,6 +209,11 @@ export class DepositRetriveService {
 
         if (!deposit || deposit.partner.companyId !== companyId) throw new NotFoundException(`등록되지 않은 보관입니다.`);
 
-        return deposit;
+        return deposit.depositEvents.map(e => ({
+            id: e.id,
+            change: e.change,
+            createdAt: e.createdAt.toISOString(),
+            memo: e.memo,
+        }));
     }
 }
