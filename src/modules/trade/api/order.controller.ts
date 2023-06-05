@@ -19,6 +19,7 @@ import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   OrderDepositCreateDto,
+  OrderDepositListQueryDto,
   OrderIdDto,
   OrderListQueryDto,
   OrderStockArrivalCreateRequestDto,
@@ -91,6 +92,21 @@ export class OrderController {
       items,
       total,
     };
+  }
+
+  /** 매입/매출 보관량 조회 */
+  @Get('/deposit')
+  @UseGuards(AuthGuard)
+  async getDepositList(
+    @Request() req: AuthType,
+    @Query() dto: OrderDepositListQueryDto,
+  ) {
+    const result = await this.retrive.getDepositList({
+      companyId: req.user.companyId,
+      ...dto,
+    });
+
+    return result;
   }
 
   @Get(':id')
