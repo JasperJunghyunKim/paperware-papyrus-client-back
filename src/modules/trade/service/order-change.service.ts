@@ -56,7 +56,6 @@ export class OrderChangeService {
     paperColorId: number | null;
     paperPatternId: number | null;
     paperCertId: number | null;
-    stockPrice: Model.StockPrice | null;
     quantity: number;
     memo: string;
     wantedDate: string;
@@ -129,13 +128,6 @@ export class OrderChangeService {
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
           cachedQuantity: 0,
-          stockPrice: params.stockPrice
-            ? {
-                create: {
-                  ...params.stockPrice,
-                },
-              }
-            : undefined,
         },
         select: {
           id: true,
@@ -262,7 +254,6 @@ export class OrderChangeService {
     paperColorId: number | null;
     paperPatternId: number | null;
     paperCertId: number | null;
-    stockPrice: Model.StockPrice | null;
     quantity: number;
   }) {
     return await this.prisma.$transaction(async (tx) => {
@@ -328,13 +319,6 @@ export class OrderChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          stockPrice: params.stockPrice
-            ? {
-                create: {
-                  ...params.stockPrice,
-                },
-              }
-            : null,
           cachedQuantity: 0,
         },
         select: {

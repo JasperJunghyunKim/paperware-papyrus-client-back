@@ -38,7 +38,7 @@ export class OrderController {
   constructor(
     private readonly change: OrderChangeService,
     private readonly retrive: OrderRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -58,21 +58,21 @@ export class OrderController {
 
     const status: OrderStatus[] = isSales
       ? [
-        'OFFER_PREPARING',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-        'ACCEPTED',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-      ]
+          'OFFER_PREPARING',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+          'ACCEPTED',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+        ]
       : [
-        'ORDER_PREPARING',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-        'ACCEPTED',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-      ];
+          'ORDER_PREPARING',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+          'ACCEPTED',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+        ];
 
     const items = await this.retrive.getList({
       skip: query.skip,
@@ -147,7 +147,6 @@ export class OrderController {
       paperPatternId: body.paperPatternId,
       paperCertId: body.paperCertId,
       quantity: body.quantity,
-      stockPrice: body.stockPrice,
       memo: body.memo,
       wantedDate: body.wantedDate,
       isOffer,
@@ -219,7 +218,6 @@ export class OrderController {
       paperPatternId: body.paperPatternId,
       paperCertId: body.paperCertId,
       quantity: body.quantity,
-      stockPrice: body.stockPrice,
     });
   }
 

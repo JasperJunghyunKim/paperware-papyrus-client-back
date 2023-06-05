@@ -60,7 +60,8 @@ export class OrderListQueryDto implements OrderListQuery {
 
 /** 정상거래 등록 요청 */
 export default class OrderStockCreateRequestDto
-  implements OrderStockCreateRequest {
+  implements OrderStockCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -129,12 +130,6 @@ export default class OrderStockCreateRequestDto
   quantity: number;
 
   @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => StockCreateStockPriceDto)
-  stockPrice: StockCreateStockPriceDto = null;
-
-  @IsOptional()
   @IsString()
   @MaxLength(100)
   memo = '';
@@ -159,7 +154,8 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery {
+  implements OrderStockArrivalListQuery
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -172,7 +168,8 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest {
+  implements OrderStockArrivalCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -246,7 +243,8 @@ export class OrderIdDto {
 
 /** 거래금액 수정 */
 export class UpdateOrderStockTradeAltBundleDto
-  implements OrderStockTradeAltBundleUpdateRequest {
+  implements OrderStockTradeAltBundleUpdateRequest
+{
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -264,7 +262,8 @@ export class UpdateOrderStockTradeAltBundleDto
 }
 
 export class UpdateOrderStockTradePriceDto
-  implements OrderStockTradePriceUpdateRequest {
+  implements OrderStockTradePriceUpdateRequest
+{
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -404,10 +403,8 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
 
 /** 원지 수정 */
 export class OrderStockAssignStockUpdateRequestDto
-  implements OrderStockAssignStockUpdateRequest {
-  @IsInt()
-  @Type(() => Number)
-  orderId: number;
+  implements OrderStockAssignStockUpdateRequest
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -450,9 +447,4 @@ export class OrderStockAssignStockUpdateRequestDto
   @IsInt()
   @Type(() => Number)
   quantity: number;
-  @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => StockCreateStockPriceDto)
-  stockPrice: StockCreateStockPriceDto = null;
 }

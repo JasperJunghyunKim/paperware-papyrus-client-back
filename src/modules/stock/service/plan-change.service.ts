@@ -145,7 +145,6 @@ export class PlanChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
-    price: Model.StockPrice;
   }) {
     return await this.prisma.$transaction(async (tx) => {
       const plan = await tx.plan.create({
@@ -183,11 +182,6 @@ export class PlanChangeService {
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
           cachedQuantity: params.quantity,
-          stockPrice: {
-            create: {
-              ...params.price,
-            },
-          },
         },
         select: {
           id: true,
