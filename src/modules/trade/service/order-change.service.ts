@@ -872,9 +872,9 @@ export class OrderChangeService {
 
   /** 보관 등록 */
   async createDepositOrder(
-    companyId: number,
-    type: DepositType,
-    partnerCompanyRegistrationNumber: string,
+    srcCompanyId: number,
+    dstCompanyId: number,
+    isOffer: boolean,
     productId: number,
     packagingId: number,
     grammage: number,
@@ -887,27 +887,46 @@ export class OrderChangeService {
     quantity: number,
   ) {
     await this.prisma.$transaction(async (tx) => {
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: dstCompanyId,
+        },
+      });
+      if (!dstCompany)
+        throw new NotFoundException(`등록되지 않은 거래처입니다.`);
       const partner = await tx.partner.findUnique({
         where: {
           companyId_companyRegistrationNumber: {
-            companyId,
-            companyRegistrationNumber: partnerCompanyRegistrationNumber,
+            companyId: srcCompanyId,
+            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
           },
         },
       });
       if (!partner) throw new NotFoundException(`등록되지 않은 거래처입니다.`);
 
-      const partnerCompany = await tx.company.findFirst({
-        where: {
-          companyRegistrationNumber: partnerCompanyRegistrationNumber,
-        },
-        orderBy: {
-          id: 'desc',
-        }
-      });
+      const isEntrusted =
+        !!(
+          await tx.company.findUnique({
+            where: {
+              id: srcCompanyId,
+            },
+            select: {
+              managedById: true,
+            },
+          })
+        ).managedById ||
+        !!(
+          await tx.company.findUnique({
+            where: {
+              id: dstCompanyId,
+            },
+            select: {
+              managedById: true,
+            },
+          })
+        ).managedById;
 
-
-      // 주문 생성
+      // 보관등록 주문 생성
       const order = await tx.order.create({
         select: {
           id: true,
@@ -917,16 +936,16 @@ export class OrderChangeService {
           orderType: 'DEPOSIT',
           srcCompany: {
             connect: {
-              id: type === DepositType.PURCHASE ? companyId : partnerCompany.id,
+              id: srcCompanyId,
             },
           },
           dstCompany: {
             connect: {
-              id: type === DepositType.PURCHASE ? partnerCompany.id : companyId,
+              id: dstCompanyId,
             },
           },
-          status: type === DepositType.PURCHASE ? 'OFFER_PREPARING' : 'ORDER_REQUESTED',
-          isEntrusted: true, // TODO... 
+          status: isOffer ? 'ORDER_PREPARING' : 'ORDER_PREPARING',
+          isEntrusted,
           memo: '',
           orderDeposit: {
             create: {
@@ -946,22 +965,22 @@ export class OrderChangeService {
               paperColorGroup: paperColorGroupId ? {
                 connect: {
                   id: paperColorGroupId,
-                },
+                }
               } : undefined,
               paperColor: paperColorId ? {
                 connect: {
                   id: paperColorId,
-                },
+                }
               } : undefined,
               paperPattern: paperPatternId ? {
                 connect: {
                   id: paperPatternId,
-                },
+                }
               } : undefined,
               paperCert: paperCertId ? {
                 connect: {
                   id: paperCertId,
-                },
+                }
               } : undefined,
               quantity,
             }

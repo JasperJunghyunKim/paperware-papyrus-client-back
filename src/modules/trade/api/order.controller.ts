@@ -421,10 +421,21 @@ export class OrderController {
     @Request() req: AuthType,
     @Body() dto: OrderDepositCreateDto,
   ) {
+    if (
+      dto.srcCompanyId !== req.user.companyId &&
+      dto.dstCompanyId !== req.user.companyId
+    ) {
+      throw new ForbiddenException(
+        '매입처와 매출처 중 하나는 귀사로 지정되어야합니다.',
+      );
+    }
+
+    const isOffer = dto.dstCompanyId === req.user.companyId;
+
     await this.change.createDepositOrder(
-      req.user.companyId,
-      dto.type,
-      dto.partnerCompanyRegistrationNumber,
+      dto.srcCompanyId,
+      dto.dstCompanyId,
+      isOffer,
       dto.productId,
       dto.packagingId,
       dto.grammage,
