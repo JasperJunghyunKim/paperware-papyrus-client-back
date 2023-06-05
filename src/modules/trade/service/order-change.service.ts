@@ -39,7 +39,7 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tradePriceValidator: TradePriceValidator,
-  ) {}
+  ) { }
 
   async insertOrder(params: {
     srcCompanyId: number;
@@ -131,10 +131,10 @@ export class OrderChangeService {
           cachedQuantity: params.quantity,
           stockPrice: params.stockPrice
             ? {
-                create: {
-                  ...params.stockPrice,
-                },
-              }
+              create: {
+                ...params.stockPrice,
+              },
+            }
             : undefined,
         },
         select: {
@@ -330,10 +330,10 @@ export class OrderChangeService {
           paperCertId: params.paperCertId,
           stockPrice: params.stockPrice
             ? {
-                create: {
-                  ...params.stockPrice,
-                },
-              }
+              create: {
+                ...params.stockPrice,
+              },
+            }
             : null,
           cachedQuantity: params.quantity,
         },
@@ -967,31 +967,31 @@ export class OrderChangeService {
           sizeY,
           paperColorGroup: paperColorGroupId
             ? {
-                connect: {
-                  id: paperColorGroupId,
-                },
-              }
+              connect: {
+                id: paperColorGroupId,
+              },
+            }
             : undefined,
           paperColor: paperColorId
             ? {
-                connect: {
-                  id: paperColorId,
-                },
-              }
+              connect: {
+                id: paperColorId,
+              },
+            }
             : undefined,
           paperPattern: paperPatternId
             ? {
-                connect: {
-                  id: paperPatternId,
-                },
-              }
+              connect: {
+                id: paperPatternId,
+              },
+            }
             : undefined,
           paperCert: paperCertId
             ? {
-                connect: {
-                  id: paperCertId,
-                },
-              }
+              connect: {
+                id: paperCertId,
+              },
+            }
             : undefined,
           quantity,
           order: {
