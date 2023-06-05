@@ -418,6 +418,7 @@ export class OrderController {
       dto.paperPatternId,
       dto.paperCertId,
       dto.quantity,
+      dto.memo,
     );
   }
 }

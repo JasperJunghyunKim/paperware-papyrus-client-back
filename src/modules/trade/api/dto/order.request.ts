@@ -19,6 +19,7 @@ import {
   Max,
   MaxLength,
   Min,
+  NotEquals,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -35,6 +36,7 @@ import {
   OrderStockAssignStockRequest,
   OrderStockAssignStockUpdateRequest,
   OrderDepositListQuery,
+  DepositCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -62,8 +64,7 @@ export class OrderListQueryDto implements OrderListQuery {
 
 /** 정상거래 등록 요청 */
 export default class OrderStockCreateRequestDto
-  implements OrderStockCreateRequest
-{
+  implements OrderStockCreateRequest {
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -156,8 +157,7 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery
-{
+  implements OrderStockArrivalListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -170,8 +170,7 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest
-{
+  implements OrderStockArrivalCreateRequest {
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -245,8 +244,7 @@ export class OrderIdDto {
 
 /** 거래금액 수정 */
 export class UpdateOrderStockTradeAltBundleDto
-  implements OrderStockTradeAltBundleUpdateRequest
-{
+  implements OrderStockTradeAltBundleUpdateRequest {
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -264,8 +262,7 @@ export class UpdateOrderStockTradeAltBundleDto
 }
 
 export class UpdateOrderStockTradePriceDto
-  implements OrderStockTradePriceUpdateRequest
-{
+  implements OrderStockTradePriceUpdateRequest {
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -401,6 +398,11 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   @Type(() => Number)
   @IsPositive()
   readonly quantity: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  readonly memo: string = '';
 }
 
 /** 보관량 목록 */
@@ -427,10 +429,80 @@ export class OrderDepositListQueryDto implements OrderDepositListQuery {
   readonly companyRegistrationNumber: string | null = null;
 }
 
+/** 보관량 증감*/
+export class DepositCreateDto implements DepositCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @NotEquals(0)
+  readonly quantity: number;
+
+  @IsString()
+  @Length(1, 200)
+  readonly memo: string;
+}
+
 /** 원지 수정 */
 export class OrderStockAssignStockUpdateRequestDto
-  implements OrderStockAssignStockUpdateRequest
-{
+  implements OrderStockAssignStockUpdateRequest {
   @IsOptional()
   @IsInt()
   @Type(() => Number)

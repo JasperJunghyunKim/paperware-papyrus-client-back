@@ -1054,6 +1054,7 @@ export class OrderChangeService {
     paperPatternId: number | null,
     paperCertId: number | null,
     quantity: number,
+    memo: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
       const dstCompany = await tx.company.findUnique({
@@ -1115,7 +1116,7 @@ export class OrderChangeService {
           },
           status: isOffer ? 'ORDER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
-          memo: '',
+          memo,
           orderDeposit: {
             create: {
               packaging: {
