@@ -1,15 +1,19 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
-import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
-import { ulid } from 'ulid';
 import { PrismaTransaction } from 'src/common/types';
+import { PlanChangeService } from './plan-change.service';
+import { StockCreateStockPriceRequest } from 'src/@shared/api';
+import { ulid } from 'ulid';
+import { Util } from 'src/common';
 
 @Injectable()
 export class StockChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
+    private readonly planChangeService: PlanChangeService,
   ) { }
 
   async cacheStockQuantityTx(
@@ -41,6 +45,7 @@ export class StockChangeService {
         ],
       },
     });
+
     return await tx.stock.update({
       data: {
         cachedQuantity: quantity._sum.change || 0,
@@ -50,80 +55,76 @@ export class StockChangeService {
     });
   }
 
-  async create(
-    stockData: Prisma.StockCreateInput,
-    stockPriceData: Prisma.StockPriceCreateInput,
-    quantity: number,
-  ) {
-    const stock = await this.prisma.$transaction(async (tx) => {
-      const packaging = await tx.packaging.findUnique({
-        where: {
-          id: stockData.packaging.connect.id,
-        },
-      });
-
-      this.stockValidator.validateQuantity(packaging, quantity);
-
-      const stockGroup = await tx.stockGroup.findFirst({
-        where: {
-          productId: stockData.product.connect.id,
-          packagingId: stockData.packaging.connect.id,
-          grammage: stockData.grammage,
-          sizeX: stockData.sizeX,
-          sizeY: stockData.sizeY,
-          paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
-          paperColorId: stockData.paperColor?.connect.id || null,
-          paperPatternId: stockData.paperPattern?.connect.id || null,
-          paperCertId: stockData.paperCert?.connect.id || null,
-          warehouseId: stockData.warehouse.connect.id,
-          companyId: stockData.company.connect.id,
-          orderStockId: null,
-          isArrived: null,
-          isDirectShipping: null,
-        }
-      }) || await tx.stockGroup.create({
+  /** 신규 재고 등록 */
+  async create(params: {
+    companyId: number;
+    warehouseId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+    price: StockCreateStockPriceRequest;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.create({
         data: {
-          productId: stockData.product.connect.id,
-          packagingId: stockData.packaging.connect.id,
-          grammage: stockData.grammage,
-          sizeX: stockData.sizeX,
-          sizeY: stockData.sizeY,
-          paperColorGroupId: stockData.paperColorGroup?.connect.id || null,
-          paperColorId: stockData.paperColor?.connect.id || null,
-          paperPatternId: stockData.paperPattern?.connect.id || null,
-          paperCertId: stockData.paperCert?.connect.id || null,
-          warehouseId: stockData.warehouse.connect.id,
-          companyId: stockData.company.connect.id,
+          planNo: ulid(),
+          type: 'INHOUSE_CREATE',
+          companyId: params.companyId,
+        },
+        select: {
+          id: true,
+          company: {
+            select: {
+              invoiceCode: true,
+            },
+          },
         },
       });
-      console.log(22222)
 
       const stock = await tx.stock.create({
-        data: stockData,
+        data: {
+          serial: Util.serialP(plan.company.invoiceCode),
+          companyId: params.companyId,
+          initialPlanId: plan.id,
+          warehouseId: params.warehouseId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY || 0,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          cachedQuantity: params.quantity,
+          stockPrice: {
+            create: {
+              ...params.price,
+            },
+          },
+        },
         select: {
           id: true,
         },
       });
-      await tx.stockPrice.create({
-        data: {
-          ...stockPriceData,
-          stock: {
-            connect: {
-              id: stock.id,
-            },
-          },
-        },
-      });
 
-      await tx.stockEvent.create({
+      const stockEvent = await tx.stockEvent.create({
         data: {
-          stock: {
+          stockId: stock.id,
+          status: 'NORMAL',
+          change: params.quantity,
+          plan: {
             connect: {
-              id: stock.id,
+              id: plan.id,
             },
           },
-          change: quantity,
-          status: StockEventStatus.NORMAL,
         },
         select: {
           id: true,
@@ -133,8 +134,12 @@ export class StockChangeService {
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
       });
-    });
 
-    return stock;
+      return {
+        planId: plan.id,
+        stockId: stock.id,
+        stockEventId: stockEvent.id,
+      };
+    });
   }
 }

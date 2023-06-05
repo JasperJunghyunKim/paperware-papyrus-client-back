@@ -89,7 +89,4 @@ ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_paperPatternId_fkey` FOREIGN KEY (
 ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_depositId_fkey` FOREIGN KEY (`depositId`) REFERENCES `Deposit`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

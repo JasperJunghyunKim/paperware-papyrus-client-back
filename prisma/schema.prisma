@@ -45,52 +45,40 @@ model PaperColorGroup {
   id                     Int                      @id @default(autoincrement())
   name                   String
   Stock                  Stock[]
-  StockGroup             StockGroup[]
   Invoice                Invoice[]
-  OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
-  orderDeposit           OrderDeposit[]
 }
 
 model PaperColor {
   id                     Int                      @id @default(autoincrement())
   name                   String
   Stock                  Stock[]
-  StockGroup             StockGroup[]
   Invoice                Invoice[]
-  OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
-  orderDeposit           OrderDeposit[]
 }
 
 model PaperPattern {
   id                     Int                      @id @default(autoincrement())
   name                   String
   Stock                  Stock[]
-  StockGroup             StockGroup[]
   Invoice                Invoice[]
-  OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
-  orderDeposit           OrderDeposit[]
 }
 
 model PaperCert {
   id                     Int                      @id @default(autoincrement())
   name                   String
   Stock                  Stock[]
-  StockGroup             StockGroup[]
   Invoice                Invoice[]
-  OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
-  orderDeposit           OrderDeposit[]
 }
 
 enum PackagingType {
@@ -101,17 +89,14 @@ enum PackagingType {
 }
 
 model Packaging {
-  id           Int            @id @default(autoincrement())
-  name         String
-  type         PackagingType
-  packA        Int
-  packB        Int
-  stock        Stock[]
-  StockGroup   StockGroup[]
-  Invoice      Invoice[]
-  OrderStock   OrderStock[]
-  deposit      Deposit[]
-  orderDeposit OrderDeposit[]
+  id      Int           @id @default(autoincrement())
+  name    String
+  type    PackagingType
+  packA   Int
+  packB   Int
+  stock   Stock[]
+  Invoice Invoice[]
+  deposit Deposit[]
 
   @@unique([type, packA, packB])
 }
@@ -127,12 +112,9 @@ model Product {
   paperTypeId            Int
   paperType              PaperType                @relation(fields: [paperTypeId], references: [id])
   stock                  Stock[]
-  StockGroup             StockGroup[]
   Invoice                Invoice[]
-  OrderStock             OrderStock[]
   OfficialPriceCondition OfficialPriceCondition[]
   deposit                Deposit[]
-  orderDeposit           OrderDeposit[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -143,17 +125,15 @@ model Product {
 // Warehouse
 
 model Warehouse {
-  id         Int          @id @default(autoincrement())
-  name       String
-  code       String?
-  address    String       @default("") @db.VarChar(500)
-  companyId  Int
-  company    Company      @relation(fields: [companyId], references: [id])
-  isPublic   Boolean
-  isDeleted  Boolean      @default(false)
-  stock      Stock[]
-  StockGroup StockGroup[]
-  OrderStock OrderStock[]
+  id        Int     @id @default(autoincrement())
+  name      String
+  code      String?
+  address   String  @default("") @db.VarChar(500)
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  isPublic  Boolean
+  isDeleted Boolean @default(false)
+  stock     Stock[]
 
   @@unique([companyId, code])
 }
@@ -167,6 +147,8 @@ model Stock {
   company                 Company          @relation(fields: [companyId], references: [id])
   warehouseId             Int?
   warehouse               Warehouse?       @relation(fields: [warehouseId], references: [id])
+  planId                  Int?
+  plan                    Plan?            @relation(fields: [planId], references: [id])
   productId               Int
   product                 Product          @relation(fields: [productId], references: [id])
   packagingId             Int
@@ -187,10 +169,9 @@ model Stock {
   cachedQuantityAvailable Int              @default(0)
   isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
+  initialPlanId           Int
+  initialPlan             Plan             @relation("InitialPlan", fields: [initialPlanId], references: [id])
   stockPrice              StockPrice?
-
-  initialOrderId Int?
-  initialOrder   Order? @relation(fields: [initialOrderId], references: [id])
 
   @@index([packagingId], type: BTree)
   @@index([paperColorGroupId], type: BTree)
@@ -226,73 +207,8 @@ model StockEvent {
   change            Int
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
-  planIn            Plan[]           @relation("StockEventInPlan")
-  planOut           Plan[]           @relation("StockEventOutPlan")
-
-  @@unique([id, stockId])
-}
-
-model StockGroup {
-  id                Int               @id @default(autoincrement())
-  productId         Int
-  product           Product           @relation(fields: [productId], references: [id])
-  packagingId       Int
-  packaging         Packaging         @relation(fields: [packagingId], references: [id])
-  grammage          Int
-  sizeX             Int
-  sizeY             Int
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
-  paperColorId      Int?
-  paperColor        PaperColor?       @relation(fields: [paperColorId], references: [id])
-  paperPatternId    Int?
-  paperPattern      PaperPattern?     @relation(fields: [paperPatternId], references: [id])
-  paperCertId       Int?
-  paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
-  warehouseId       Int?
-  warehouse         Warehouse?        @relation(fields: [warehouseId], references: [id])
-  orderStockId      Int?
-  orderStock        OrderStock?       @relation("OrderStockStockGroup", fields: [orderStockId], references: [id])
-  companyId         Int
-  company           Company           @relation(fields: [companyId], references: [id])
-  stockGroupEvent   StockGroupEvent[]
-  orderStocks       OrderStock[]
-  stockGroupPrice   StockGroupPrice?
-
-  /// 도착예정재고일때만 사용
-  isArrived        Boolean?
-  isDirectShipping Boolean?
-  isSyncPrice      Boolean?
-
-  @@unique([productId, packagingId, grammage, sizeX, sizeY, paperColorGroupId, paperColorId, paperPatternId, paperCertId, warehouseId, orderStockId, companyId])
-}
-
-enum StockGroupEventStatus {
-  NORMAL
-  CANCELLED
-  PENDING
-}
-
-model StockGroupEvent {
-  id           Int                   @id @default(autoincrement())
-  change       Int
-  status       StockGroupEventStatus
-  stockGroupId Int
-  stockGroup   StockGroup            @relation(fields: [stockGroupId], references: [id])
-  Plan         Plan?
-  planId       Int?
-}
-
-model StockGroupPrice {
-  stockGruopId      Int               @id
-  stockGroup        StockGroup        @relation(fields: [stockGruopId], references: [id])
-  officialPriceType OfficialPriceType @default(NONE)
-  officialPrice     Float             @default(0)
-  officialPriceUnit PriceUnit
-  discountType      DiscountType      @default(DEFAULT)
-  unitPrice         Float
-  discountPrice     Float             @default(0)
-  unitPriceUnit     PriceUnit
+  plan              Plan[]           @relation("TargetStockEvent")
+  assignPlan        Plan[]           @relation("AssignStockEvent")
 }
 
 // User
@@ -336,7 +252,6 @@ model Company {
   OrderSrockTradePrice           OrderStockTradePrice[]
   Plan                           Plan[]
   Shipping                       Shipping[]
-  StockGroup                     StockGroup[]
   TradePrice                     TradePrice[]
   OrderStockTradeAltBundle       OrderStockTradeAltBundle[]
   Partner                        Partner[]
@@ -467,62 +382,34 @@ enum OrderType {
 }
 
 model Order {
-  id                     Int            @id @default(autoincrement())
+  id                     Int           @id @default(autoincrement())
   orderType              OrderType
-  orderNo                String         @unique
+  orderNo                String        @unique
   srcCompanyId           Int
-  srcCompany             Company        @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
+  srcCompany             Company       @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId           Int
-  dstCompany             Company        @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
-  status                 OrderStatus    @default(ORDER_PREPARING)
-  isEntrusted            Boolean        @default(false)
+  dstCompany             Company       @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
+  status                 OrderStatus   @default(ORDER_PREPARING)
+  isEntrusted            Boolean       @default(false)
   memo                   String
   wantedDate             DateTime?
   stockAcceptedCompanyId Int?
-  isStockRejected        Boolean        @default(false)
+  isStockRejected        Boolean       @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
-  stock                  Stock[]
   orderDeposit           OrderDeposit?
-  DepositEvent           DepositEvent[]
 }
 
 model OrderStock {
-  id                Int              @id @default(autoincrement())
-  orderId           Int              @unique
-  order             Order            @relation(fields: [orderId], references: [id])
-  dstLocationId     Int?
-  dstLocation       Location?        @relation(fields: [dstLocationId], references: [id])
-  isDirectShipping  Boolean          @default(false)
-  planId            Int?             @unique
-  plan              Plan?            @relation(fields: [planId], references: [id])
-  // 정상매입의 입고 예정 재고 이벤트
-  arrivalStockEvent StockEvent[]
+  id               Int          @id @default(autoincrement())
+  orderId          Int          @unique
+  order            Order        @relation(fields: [orderId], references: [id])
+  dstLocationId    Int?
+  dstLocation      Location?    @relation(fields: [dstLocationId], references: [id])
+  isDirectShipping Boolean      @default(false)
+  plan             Plan[]
   // 정상거래의 주문 원지 정보
-  warehouseId       Int?
-  warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
-  orderStockId      Int?
-  orderStock        OrderStock?      @relation("orig", fields: [orderStockId], references: [id])
-  productId         Int
-  product           Product          @relation(fields: [productId], references: [id])
-  packagingId       Int
-  packaging         Packaging        @relation(fields: [packagingId], references: [id])
-  grammage          Int
-  sizeX             Int
-  sizeY             Int
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
-  paperColorId      Int?
-  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
-  paperPatternId    Int?
-  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
-  paperCertId       Int?
-  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
-  quantity          Int              @default(0)
-  stockGroups       StockGroup[]     @relation("OrderStockStockGroup")
-  StockGroup        StockGroup?      @relation(fields: [stockGroupId], references: [id])
-  stockGroupId      Int?
-  OrderStock        OrderStock[]     @relation("orig")
+  stockEvent       StockEvent[]
 }
 
 model TradePrice {
@@ -571,39 +458,55 @@ model OrderStockTradeAltBundle {
 }
 
 enum TaskType {
-  CONVERTING
-  GUILLOTINE
-  QUANTITY
-}
-
-enum PlanStatus {
-  PREPARING
-  PROGRESSING
-  PROGRESSED
-}
-
-model Plan {
-  id                      Int             @id @default(autoincrement())
-  planNo                  String          @unique
-  companyId               Int
-  company                 Company         @relation(fields: [companyId], references: [id])
-  status                  PlanStatus      @default(PREPARING)
-  isDeleted               Boolean         @default(false)
-  memo                    String          @default("")
-  createdAt               DateTime        @default(now())
-  task                    Task[]
-  stockEventIn            StockEvent[]    @relation("StockEventInPlan")
-  stockEventOut           StockEvent[]    @relation("StockEventOutPlan")
-  orderStock              OrderStock?
-  targetStockGroupEventId Int             @unique
-  targetStockGroupEvent   StockGroupEvent @relation(fields: [targetStockGroupEventId], references: [id])
-  invoice                 Invoice[]
+  CONVERTING // 재단 크기
+  GUILLOTINE // 재단 크기
+  RELEASE // 수량
 }
 
 enum TaskStatus {
   PREPARING
   PROGRESSING
   PROGRESSED
+  CANCELLED
+}
+
+enum PlanType {
+  INHOUSE_CREATE
+  INHOUSE_MODIFY
+  INHOUSE_RELOCATION
+  INHOUSE_PROCESS
+  TRADE_NORMAL_SELLER
+  TRADE_NORMAL_BUYER
+  TRADE_WITHDRAW_SELLER // 보관 출고
+  TRADE_WITHDRAW_BUYER // 보관 입고
+  TRADE_OUTSOURCE_PROCESS_SELLER // 외주 공정
+  TRADE_OUTSOURCE_PROCESS_BUYER // 외주 매입
+}
+
+enum PlanStatus {
+  PREPARING
+  PROGRESSING
+  PROGRESSED
+  CANCELLED
+}
+
+model Plan {
+  id                 Int          @id @default(autoincrement())
+  planNo             String       @unique
+  type               PlanType
+  companyId          Int
+  company            Company      @relation(fields: [companyId], references: [id])
+  status             PlanStatus   @default(PREPARING)
+  createdAt          DateTime     @default(now())
+  task               Task[]
+  invoice            Invoice[]
+  assignStockEventId Int?
+  assignStockEvent   StockEvent?  @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
+  targetStockEvent   StockEvent[] @relation("TargetStockEvent")
+  stock              Stock[]
+  orderStock         OrderStock?  @relation(fields: [orderStockId], references: [id])
+  orderStockId       Int?
+  initialStock       Stock[]      @relation("InitialPlan")
 }
 
 model Task {
@@ -612,7 +515,6 @@ model Task {
   planId         Int
   plan           Plan            @relation(fields: [planId], references: [id])
   type           TaskType
-  isDeleted      Boolean         @default(false)
   status         TaskStatus
   taskConverting TaskConverting?
   taskGuillotine TaskGuillotine?
@@ -1232,28 +1134,13 @@ model DiscountRateMap {
 }
 
 model OrderDeposit {
-  id                Int              @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   /// 주문
-  orderId           Int              @unique
-  order             Order            @relation(fields: [orderId], references: [id])
-  /// 재고스펙
-  productId         Int
-  product           Product          @relation(fields: [productId], references: [id])
-  packagingId       Int
-  packaging         Packaging        @relation(fields: [packagingId], references: [id])
-  grammage          Int
-  sizeX             Int
-  sizeY             Int
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
-  paperColorId      Int?
-  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
-  paperPatternId    Int?
-  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
-  paperCertId       Int?
-  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
-  /// 수량
-  quantity          Int
+  orderId        Int          @unique
+  order          Order        @relation(fields: [orderId], references: [id])
+  /// 보관이벤트
+  depositEventId Int          @unique
+  depositEvent   DepositEvent @relation(fields: [depositEventId], references: [id])
 }
 
 enum DepositType {
@@ -1262,7 +1149,7 @@ enum DepositType {
 }
 
 model Deposit {
-  id                Int              @id
+  id                Int              @id @default(autoincrement())
   /// 파트너
   partnerId         Int
   partner           Partner          @relation(fields: [partnerId], references: [id])
@@ -1288,17 +1175,15 @@ model Deposit {
 }
 
 model DepositEvent {
-  id        Int      @id
+  id           Int           @id @default(autoincrement())
   /// 보관
-  depositId Int
-  deposit   Deposit  @relation(fields: [depositId], references: [id])
+  depositId    Int
+  deposit      Deposit       @relation(fields: [depositId], references: [id])
   /// 수량
-  change    Int
-  /// 주문
-  orderId   Int?
-  order     Order?   @relation(fields: [orderId], references: [id])
+  change       Int
   /// 메모 (강제 증감시 메모)
-  memo      String   @default("") @db.VarChar(200)
+  memo         String        @default("") @db.VarChar(200)
   /// 생성일
-  createdAt DateTime @default(now())
+  createdAt    DateTime      @default(now())
+  orderDeposit OrderDeposit?
 }

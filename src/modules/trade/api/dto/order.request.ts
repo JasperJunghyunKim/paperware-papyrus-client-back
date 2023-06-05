@@ -1,5 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import {
+  DepositType,
+  DiscountType,
+  OfficialPriceType,
+  PriceUnit,
+} from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -26,6 +31,8 @@ import {
   OrderStockTradePriceUpdateRequest,
   TradePriceUpdateRequest,
   OrderDepositCreateRequest,
+  OrderStockAssignStockRequest,
+  OrderStockAssignStockUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -69,12 +76,12 @@ export default class OrderStockCreateRequestDto
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  warehouseId: number = null;
+  warehouseId: number | null = null;
 
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  orderStockId: number = null;
+  planId: number | null = null;
 
   @IsInt()
   @Type(() => Number)
@@ -122,6 +129,12 @@ export default class OrderStockCreateRequestDto
   quantity: number;
 
   @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => StockCreateStockPriceDto)
+  stockPrice: StockCreateStockPriceDto = null;
+
+  @IsOptional()
   @IsString()
   @MaxLength(100)
   memo = '';
@@ -135,61 +148,6 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsInt()
   @Type(() => Number)
   locationId: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  warehouseId: number = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  orderStockId: number = null;
-
-  @IsInt()
-  @Type(() => Number)
-  productId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  packagingId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  grammage: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  sizeX = 0;
-
-  @IsInt()
-  @Type(() => Number)
-  sizeY: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperColorGroupId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperColorId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperPatternId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperCertId: number | null = null;
-
-  @IsInt()
-  @Type(() => Number)
-  quantity: number;
 
   @IsOptional()
   @IsString()
@@ -271,7 +229,9 @@ export class OrderStockArrivalCreateRequestDto
 
   validate() {
     if (!this.isSyncPrice && !this.stockPrice) {
-      throw new BadRequestException(`매입금액 동기화 미사용시 재고금액을 입력해야합니다.`);
+      throw new BadRequestException(
+        `매입금액 동기화 미사용시 재고금액을 입력해야합니다.`,
+      );
     }
     if (this.isSyncPrice) this.stockPrice = null;
   }
@@ -285,7 +245,8 @@ export class OrderIdDto {
 }
 
 /** 거래금액 수정 */
-export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBundleUpdateRequest {
+export class UpdateOrderStockTradeAltBundleDto
+  implements OrderStockTradeAltBundleUpdateRequest {
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -302,8 +263,8 @@ export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBund
   readonly altQuantity: number;
 }
 
-
-export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdateRequest {
+export class UpdateOrderStockTradePriceDto
+  implements OrderStockTradePriceUpdateRequest {
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -342,7 +303,8 @@ export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdate
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateOrderStockTradeAltBundleDto)
-  readonly orderStockTradeAltBundle: UpdateOrderStockTradeAltBundleDto | null = null;
+  readonly orderStockTradeAltBundle: UpdateOrderStockTradeAltBundleDto | null =
+    null;
 }
 
 export class UpdateTradePriceDto implements TradePriceUpdateRequest {
@@ -438,5 +400,59 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   @Type(() => Number)
   @IsPositive()
   readonly quantity: number;
+}
 
+/** 원지 수정 */
+export class OrderStockAssignStockUpdateRequestDto
+  implements OrderStockAssignStockUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  orderId: number;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  warehouseId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  planId: number | null = null;
+  @IsInt()
+  @Type(() => Number)
+  productId: number;
+  @IsInt()
+  @Type(() => Number)
+  packagingId: number;
+  @IsInt()
+  @Type(() => Number)
+  grammage: number;
+  @IsInt()
+  @Type(() => Number)
+  sizeX: number;
+  @IsInt()
+  @Type(() => Number)
+  sizeY: number;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperColorGroupId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperColorId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperPatternId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperCertId: number | null = null;
+  @IsInt()
+  @Type(() => Number)
+  quantity: number;
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => StockCreateStockPriceDto)
+  stockPrice: StockCreateStockPriceDto = null;
 }

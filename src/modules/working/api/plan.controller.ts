@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Query,
@@ -81,12 +82,7 @@ export class PlanController {
     @Request() req: AuthType,
     @Body() body: PlanCreateRequestDto,
   ) {
-    const plan = await this.planChangeService.createPlan({
-      ...body,
-      companyId: req.user.companyId,
-    });
-
-    return plan;
+    throw new NotImplementedException('내부 작업 등록은 아직 미구현입니다.');
   }
 
   @Get('plan/:id/task')
@@ -120,23 +116,6 @@ export class PlanController {
     }
 
     const updatedPlan = await this.planChangeService.startPlan({
-      planId: id,
-    });
-
-    return updatedPlan;
-  }
-
-  @Post('plan/:id/complete')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard)
-  async completePlan(@Request() req: AuthType, @Param('id') id: number) {
-    const plan = await this.planRetriveService.getPlanById(id);
-
-    if (plan.company.id !== req.user.companyId) {
-      throw new ForbiddenException('Not allowed');
-    }
-
-    const updatedPlan = await this.planChangeService.completePlan({
       planId: id,
     });
 
