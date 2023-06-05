@@ -1161,8 +1161,7 @@ model OrderDeposit {
   paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
   quantity          Int
   /// 보관이벤트
-  depositEventId    Int?             @unique
-  depositEvent      DepositEvent?    @relation(fields: [depositEventId], references: [id])
+  depositEvent      DepositEvent[]
 }
 
 enum DepositType {
@@ -1197,15 +1196,16 @@ model Deposit {
 }
 
 model DepositEvent {
-  id           Int           @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   /// 보관
-  depositId    Int
-  deposit      Deposit       @relation(fields: [depositId], references: [id])
+  depositId      Int
+  deposit        Deposit       @relation(fields: [depositId], references: [id])
   /// 수량
-  change       Int
+  change         Int
   /// 메모 (강제 증감시 메모)
-  memo         String        @default("") @db.VarChar(200)
+  memo           String        @default("") @db.VarChar(200)
   /// 생성일
-  createdAt    DateTime      @default(now())
-  orderDeposit OrderDeposit?
+  createdAt      DateTime      @default(now())
+  orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
+  orderDepositId Int?
 }

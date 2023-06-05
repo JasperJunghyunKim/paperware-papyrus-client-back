@@ -297,7 +297,27 @@ export const ORDER_STOCK = {
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER_DEPOSIT = {
-
+  packaging: {
+    select: PACKAGING,
+  },
+  product: {
+    select: PRODUCT,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
 } satisfies Prisma.OrderDepositSelect;
 
 export const ORDER = {

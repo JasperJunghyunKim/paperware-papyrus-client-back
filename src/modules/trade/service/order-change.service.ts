@@ -5,13 +5,14 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import { Company, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
 import { TradePriceValidator } from './trade-price.validator';
+import { PrismaTransaction } from 'src/common/types';
 
 interface UpdateTradePriceParams {
   orderId: number;
@@ -472,21 +473,15 @@ export class OrderChangeService {
           id: orderId,
         },
         select: {
+          srcCompany: true,
+          dstCompany: true,
           status: true,
+          orderType: true,
+          orderDeposit: true,
         },
       });
 
-      //   if (
-      //     !Util.inc(
-      //       order.status,
-      //       'OFFER_REQUESTED',
-      //       'ORDER_REQUESTED',
-      //       'OFFER_PREPARING',
-      //       'ORDER_PREPARING',
-      //     )
-      //   ) {
-      //     throw new Error('Invalid order status');
-      //   }
+      // TODO... 주문상태에 따라 제한 필요
 
       await tx.order.update({
         where: {
@@ -496,7 +491,197 @@ export class OrderChangeService {
           status: 'ACCEPTED',
         },
       });
+
+      switch (order.orderType) {
+        case OrderType.DEPOSIT:
+          await this.createDeposit(
+            tx,
+            order.srcCompany,
+            order.dstCompany,
+            order.orderDeposit,
+          );
+          break;
+        default:
+          break;
+      }
     });
+  }
+
+  private async createDeposit(
+    tx: PrismaTransaction,
+    srcCompany: Company,
+    dstCompany: Company,
+    orderDeposit: OrderDeposit,
+  ) {
+    // srcCompany
+    if (!srcCompany.managedById) {
+      const partner = await tx.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: srcCompany.id,
+            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
+          }
+        }
+      });
+      const deposit = await tx.deposit.findFirst({
+        where: {
+          partnerId: partner.id,
+          depositType: DepositType.PURCHASE,
+          packagingId: orderDeposit.packagingId,
+          productId: orderDeposit.productId,
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroupId: orderDeposit.paperColorGroupId,
+          paperColorId: orderDeposit.paperColorId,
+          paperPatternId: orderDeposit.paperPatternId,
+          paperCertId: orderDeposit.paperCertId,
+        }
+      }) || await tx.deposit.create({
+        data: {
+          partner: {
+            connect: {
+              id: partner.id,
+            }
+          },
+          depositType: DepositType.PURCHASE,
+          packaging: {
+            connect: {
+              id: orderDeposit.packagingId,
+            }
+          },
+          product: {
+            connect: {
+              id: orderDeposit.productId,
+            }
+          },
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroup: orderDeposit.paperColorGroupId ? {
+            connect: {
+              id: orderDeposit.paperColorGroupId,
+            }
+          } : undefined,
+          paperColor: orderDeposit.paperColorId ? {
+            connect: {
+              id: orderDeposit.paperColorId,
+            }
+          } : undefined,
+          paperPattern: orderDeposit.paperPatternId ? {
+            connect: {
+              id: orderDeposit.paperPatternId,
+            }
+          } : undefined,
+          paperCert: orderDeposit.paperCertId ? {
+            connect: {
+              id: orderDeposit.paperCertId,
+            }
+          } : undefined,
+        }
+      });
+      // event 생성
+      await tx.depositEvent.create({
+        data: {
+          deposit: {
+            connect: {
+              id: deposit.id
+            }
+          },
+          change: orderDeposit.quantity,
+          orderDeposit: {
+            connect: {
+              id: orderDeposit.id,
+            }
+          },
+        }
+      });
+    }
+
+    // dstCompany
+    if (!dstCompany.managedById) {
+      const partner = await tx.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: dstCompany.id,
+            companyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          }
+        }
+      });
+      const deposit = await tx.deposit.findFirst({
+        where: {
+          partnerId: partner.id,
+          depositType: DepositType.PURCHASE,
+          packagingId: orderDeposit.packagingId,
+          productId: orderDeposit.productId,
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroupId: orderDeposit.paperColorGroupId,
+          paperColorId: orderDeposit.paperColorId,
+          paperPatternId: orderDeposit.paperPatternId,
+          paperCertId: orderDeposit.paperCertId,
+        }
+      }) || await tx.deposit.create({
+        data: {
+          partner: {
+            connect: {
+              id: partner.id,
+            }
+          },
+          depositType: DepositType.PURCHASE,
+          packaging: {
+            connect: {
+              id: orderDeposit.packagingId,
+            }
+          },
+          product: {
+            connect: {
+              id: orderDeposit.productId,
+            }
+          },
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroup: orderDeposit.paperColorGroupId ? {
+            connect: {
+              id: orderDeposit.paperColorGroupId,
+            }
+          } : undefined,
+          paperColor: orderDeposit.paperColorId ? {
+            connect: {
+              id: orderDeposit.paperColorId,
+            }
+          } : undefined,
+          paperPattern: orderDeposit.paperPatternId ? {
+            connect: {
+              id: orderDeposit.paperPatternId,
+            }
+          } : undefined,
+          paperCert: orderDeposit.paperCertId ? {
+            connect: {
+              id: orderDeposit.paperCertId,
+            }
+          } : undefined,
+        }
+      });
+      // event 생성
+      await tx.depositEvent.create({
+        data: {
+          deposit: {
+            connect: {
+              id: deposit.id
+            }
+          },
+          change: orderDeposit.quantity,
+          orderDeposit: {
+            connect: {
+              id: orderDeposit.id,
+            }
+          },
+        }
+      });
+    }
   }
 
   async reject(params: { orderId: number }) {
