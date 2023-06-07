@@ -124,7 +124,7 @@ export class DepositRetriveService {
          AND d.depositType = ${type}
          ${companySearch}
 
-       GROUP BY d.id
+       GROUP BY d.id, p.id
 
        LIMIT ${skip}, ${take}
     `;
