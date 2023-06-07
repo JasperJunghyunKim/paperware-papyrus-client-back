@@ -140,6 +140,7 @@ export class DepositRetriveService {
         SELECT businessName, companyRegistrationNumber
           FROM Company
         WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
+          AND managedById IS NULL
 
         GROUP BY companyRegistrationNumber
         ORDER BY id DESC
