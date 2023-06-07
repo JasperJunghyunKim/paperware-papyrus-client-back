@@ -909,6 +909,11 @@ export class OrderChangeService {
               },
             },
           },
+          orderDeposit: {
+            include: {
+              packaging: true,
+            }
+          }
         },
         where: {
           id: orderId,
@@ -923,10 +928,21 @@ export class OrderChangeService {
       );
 
       // 금액정보 validation
-      this.tradePriceValidator.validateTradePrice(
-        plan.assignStockEvent.stock.packaging.type,
-        tradePriceDto,
-      );
+      switch (order.orderType) {
+        case 'NORMAL':
+          this.tradePriceValidator.validateTradePrice(
+            plan.assignStockEvent.stock.packaging.type,
+            tradePriceDto,
+          );
+          break;
+        case 'DEPOSIT':
+          this.tradePriceValidator.validateTradePrice(
+            order.orderDeposit.packaging.type,
+            tradePriceDto,
+          );
+          break;
+        // TODO... 외주배송, 기타매입/매출등 재고타입 없는 거래는 validation 필요없음?
+      }
 
       //   const tradePrice =
       //     (await tx.tradePrice.findFirst({
