@@ -13,6 +13,7 @@ import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
 import { TradePriceValidator } from './trade-price.validator';
 import { PrismaTransaction } from 'src/common/types';
+import { DepositChangeService } from './deposit-change.service';
 
 interface UpdateTradePriceParams {
   orderId: number;
@@ -41,6 +42,7 @@ export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tradePriceValidator: TradePriceValidator,
+    private readonly depositChangeService: DepositChangeService,
   ) { }
 
   async insertOrder(params: {
@@ -1146,6 +1148,139 @@ export class OrderChangeService {
           }
         },
       });
+    });
+  }
+
+  async createOrderDeposit(companyId: number, orderId: number, depositId: number, quantity: number) {
+    await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          srcCompany: true,
+          dstCompany: true,
+          orderDeposit: {
+            include: {
+              depositEvent: {
+                include: {
+                  deposit: true,
+                }
+              }
+            }
+          },
+        },
+        where: {
+          id: orderId,
+        }
+      });
+      if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
+
+      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
+      const partnerCompanyRegistrationNumber = type === DepositType.PURCHASE ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber;
+      const orderDeposit = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
+      if (orderDeposit) throw new ConflictException(`이미 보관이 선택되어 있습니다.`);
+
+      const deposit = await tx.deposit.findUnique({
+        where: {
+          id: depositId,
+        }
+      });
+      if (!deposit || deposit.companyId !== companyId || deposit.partnerCompanyRegistrationNumber !== partnerCompanyRegistrationNumber) throw new NotFoundException(`보관이 존재하지 않습니다.`);
+
+      await this.depositChangeService.createDepositEventTx(tx, {
+        depositId,
+        orderId,
+        packagingId: deposit.packagingId,
+        productId: deposit.productId,
+        grammage: deposit.grammage,
+        sizeX: deposit.sizeX,
+        sizeY: deposit.sizeY,
+        paperColorGroupId: deposit.paperColorGroupId,
+        paperColorId: deposit.paperColorId,
+        paperPatternId: deposit.paperPatternId,
+        paperCertId: deposit.paperCertId,
+        quantity,
+      });
+    });
+  }
+
+  async updateOrderDeposit(companyId: number, orderId: number, depositId: number, quantity: number) {
+    await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          srcCompany: true,
+          dstCompany: true,
+          orderDeposit: {
+            include: {
+              depositEvent: {
+                include: {
+                  deposit: true,
+                }
+              }
+            }
+          },
+        },
+        where: {
+          id: orderId,
+        }
+      });
+      if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
+
+      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
+      const partnerCompanyRegistrationNumber = type === DepositType.PURCHASE ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber;
+      const orderDepositEvent = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
+      if (!orderDepositEvent) throw new ConflictException(`보관이 선택되어 있지 않습니다.`);
+
+      const deposit = await tx.deposit.findUnique({
+        where: {
+          id: depositId,
+        }
+      });
+      if (!deposit || deposit.companyId !== companyId || deposit.partnerCompanyRegistrationNumber !== partnerCompanyRegistrationNumber) throw new NotFoundException(`보관이 존재하지 않습니다.`);
+
+      await this.depositChangeService.deleteOrderDepositEventTx(tx, orderDepositEvent.id);
+      await this.depositChangeService.createDepositEventTx(tx, {
+        depositId,
+        orderId,
+        packagingId: deposit.packagingId,
+        productId: deposit.productId,
+        grammage: deposit.grammage,
+        sizeX: deposit.sizeX,
+        sizeY: deposit.sizeY,
+        paperColorGroupId: deposit.paperColorGroupId,
+        paperColorId: deposit.paperColorId,
+        paperPatternId: deposit.paperPatternId,
+        paperCertId: deposit.paperCertId,
+        quantity,
+      });
+    });
+  }
+
+  async deleteOrderDeposit(companyId: number, orderId: number) {
+    await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          srcCompany: true,
+          dstCompany: true,
+          orderDeposit: {
+            include: {
+              depositEvent: {
+                include: {
+                  deposit: true,
+                }
+              }
+            }
+          },
+        },
+        where: {
+          id: orderId,
+        }
+      });
+      if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
+
+      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
+      const orderDepositEvent = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
+      if (!orderDepositEvent) throw new ConflictException(`보관이 선택되어 있지 않습니다.`);
+
+      await this.depositChangeService.deleteOrderDepositEventTx(tx, orderDepositEvent.id);
     });
   }
 }

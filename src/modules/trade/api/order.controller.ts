@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   HttpCode,
@@ -18,6 +19,9 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
+  IdDto,
+  OrderDepositAssignDepositCreateDto,
+  OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
   OrderDepositListQueryDto,
   OrderIdDto,
@@ -420,5 +424,34 @@ export class OrderController {
       dto.quantity,
       dto.memo,
     );
+  }
+
+  @Post('/:id/deposit')
+  @UseGuards(AuthGuard)
+  async createOrderDeposit(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() dto: OrderDepositAssignDepositCreateDto,
+  ) {
+    await this.change.createOrderDeposit(req.user.companyId, idDto.id, dto.depositId, dto.quantity);
+  }
+
+  @Put('/:id/deposit')
+  @UseGuards(AuthGuard)
+  async updateOrderDeposit(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() dto: OrderDepositAssignDepositUpdateDto,
+  ) {
+    await this.change.updateOrderDeposit(req.user.companyId, idDto.id, dto.depositId, dto.quantity);
+  }
+
+  @Delete('/:id/deposit')
+  @UseGuards(AuthGuard)
+  async deleteOrderDeposit(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+  ) {
+    await this.change.deleteOrderDeposit(req.user.companyId, idDto.id);
   }
 }
