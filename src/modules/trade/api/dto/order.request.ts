@@ -314,6 +314,68 @@ export class UpdateOrderStockTradePriceDto
     null;
 }
 
+export class UpdateOrderDepositTradeAltBundleDto
+  implements OrderStockTradeAltBundleUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeX: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeY: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altQuantity: number;
+}
+
+export class UpdateOrderDepositTradePriceDto
+  implements OrderStockTradePriceUpdateRequest {
+  @IsEnum(OfficialPriceType)
+  readonly officialPriceType: OfficialPriceType;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly officialPrice: number;
+
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
+
+  @IsEnum(DiscountType)
+  readonly discountType: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly discountPrice: number = 0;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly unitPrice: number = 0;
+
+  @IsEnum(PriceUnit)
+  readonly unitPriceUnit: PriceUnit;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly processPrice: number;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderDepositTradeAltBundleDto)
+  readonly orderDepositTradeAltBundle: UpdateOrderDepositTradeAltBundleDto | null =
+    null;
+}
+
 export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @IsNumber()
   @Type(() => Number)
@@ -330,6 +392,12 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @ValidateNested()
   @Type(() => UpdateOrderStockTradePriceDto)
   readonly orderStockTradePrice: UpdateOrderStockTradePriceDto | null = null;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderDepositTradePriceDto)
+  readonly orderDepositTradePrice: UpdateOrderDepositTradePriceDto | null = null;
 }
 
 /** 보관등록 */

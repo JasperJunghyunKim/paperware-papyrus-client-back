@@ -421,7 +421,7 @@ model OrderStock {
 }
 
 model TradePrice {
-  orderId       Int     @unique
+  orderId       Int
   order         Order   @relation(fields: [orderId], references: [id])
   companyId     Int
   company       Company @relation(fields: [companyId], references: [id])
