@@ -297,6 +297,7 @@ export const ORDER_STOCK = {
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER_DEPOSIT = {
+  id: true,
   packaging: {
     select: PACKAGING,
   },
@@ -318,6 +319,17 @@ export const ORDER_DEPOSIT = {
   paperCert: {
     select: PAPER_CERT,
   },
+  quantity: true,
+  order: {
+    select: {
+      id: true,
+      orderNo: true,
+      orderType: true,
+      status: true,
+      isEntrusted: true,
+      memo: true,
+    }
+  }
 } satisfies Prisma.OrderDepositSelect;
 
 export const ORDER = {

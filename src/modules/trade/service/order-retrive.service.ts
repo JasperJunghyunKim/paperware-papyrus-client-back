@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Deposit } from 'src/@shared/models';
 import { Selector, Util } from 'src/common';
+import { ORDER_DEPOSIT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -20,7 +21,12 @@ export class OrderRetriveService {
     const { srcCompanyId, dstCompanyId } = params;
 
     const orders = await this.prisma.order.findMany({
-      select: Selector.ORDER,
+      select: {
+        ...Selector.ORDER,
+        orderDeposit: {
+          select: ORDER_DEPOSIT,
+        },
+      },
       where: {
         srcCompanyId: srcCompanyId,
         dstCompanyId: dstCompanyId,
