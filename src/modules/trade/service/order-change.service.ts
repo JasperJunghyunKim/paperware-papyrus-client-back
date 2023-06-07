@@ -5,7 +5,7 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { Company, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PriceUnit } from '@prisma/client';
+import { Company, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PackagingType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
@@ -15,26 +15,43 @@ import { TradePriceValidator } from './trade-price.validator';
 import { PrismaTransaction } from 'src/common/types';
 import { DepositChangeService } from './deposit-change.service';
 
+interface OrderStockTradePrice {
+  officialPriceType: OfficialPriceType;
+  officialPrice: number;
+  officialPriceUnit: PriceUnit;
+  discountType: DiscountType;
+  discountPrice: number;
+  unitPrice: number;
+  unitPriceUnit: PriceUnit;
+  processPrice: number;
+  orderStockTradeAltBundle?: {
+    altSizeX: number;
+    altSizeY: number;
+    altQuantity: number;
+  } | null;
+}
+
+interface OrderDepositTradePrice {
+  officialPriceType: OfficialPriceType;
+  officialPrice: number;
+  officialPriceUnit: PriceUnit;
+  discountType: DiscountType;
+  discountPrice: number;
+  unitPrice: number;
+  unitPriceUnit: PriceUnit;
+  processPrice: number;
+  orderStockTradeAltBundle?: {
+    altSizeX: number;
+    altSizeY: number;
+    altQuantity: number;
+  } | null;
+}
+
 interface UpdateTradePriceParams {
-  orderId: number;
-  companyId: number;
   suppliedPrice: number;
   vatPrice: number;
-  orderStockTradePrice?: {
-    officialPriceType: OfficialPriceType;
-    officialPrice: number;
-    officialPriceUnit: PriceUnit;
-    discountType: DiscountType;
-    discountPrice: number;
-    unitPrice: number;
-    unitPriceUnit: PriceUnit;
-    processPrice: number;
-    orderStockTradeAltBundle?: {
-      altSizeX: number;
-      altSizeY: number;
-      altQuantity: number;
-    };
-  };
+  orderStockTradePrice: OrderStockTradePrice | null;
+  orderDepositTradePrice: OrderDepositTradePrice | null;
 }
 
 @Injectable()
@@ -189,6 +206,49 @@ export class OrderChangeService {
         select: {
           id: true,
         },
+      });
+
+      // 주문금액 생성
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: params.srcCompanyId,
+            }
+          },
+          orderStockTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
+      });
+
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: params.dstCompanyId,
+            }
+          },
+          orderStockTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
       });
 
       return {
@@ -878,179 +938,108 @@ export class OrderChangeService {
   async updateTradePrice(
     companyId: number,
     orderId: number,
-    tradePriceDto: UpdateTradePriceParams,
+    params: UpdateTradePriceParams,
   ) {
     await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findFirst({
-        include: {
-          tradePrice: {
-            include: {
-              orderStockTradePrice: {
-                include: {
-                  orderStockTradeAltBundle: true,
-                },
-              },
-            },
-          },
-          orderStock: {
-            include: {
-              plan: {
-                include: {
-                  assignStockEvent: {
-                    include: {
-                      stock: {
-                        include: {
-                          packaging: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          orderDeposit: {
-            include: {
-              packaging: true,
-            }
-          }
-        },
         where: {
           id: orderId,
           OR: [{ srcCompanyId: companyId }, { dstCompanyId: companyId }],
         },
       });
-      if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
+      if (!order) throw new NotFoundException('존재하지 않는 주문입니다');
 
-      // 원지 정보는 판매자(dstCompany)의 Plan에서 지정하므로 판매자의 Plan을 필터링
-      const plan = order.orderStock.plan.find(
-        (plan) => plan.companyId === order.dstCompanyId,
-      );
+      // // 원지 정보는 판매자(dstCompany)의 Plan에서 지정하므로 판매자의 Plan을 필터링
+      // const plan = order.orderStock?.plan.find(
+      //   (plan) => plan.companyId === order.dstCompanyId,
+      // );
 
       // 금액정보 validation
       switch (order.orderType) {
         case 'NORMAL':
-          this.tradePriceValidator.validateTradePrice(
-            plan.assignStockEvent.stock.packaging.type,
-            tradePriceDto,
-          );
+          await this.updateOrderStockTradePriceTx(tx, orderId, companyId, params.orderStockTradePrice);
           break;
         case 'DEPOSIT':
-          this.tradePriceValidator.validateTradePrice(
-            order.orderDeposit.packaging.type,
-            tradePriceDto,
-          );
+          await this.updateOrderDepositTradePriceTx(tx, orderId, companyId, params.orderDepositTradePrice);
           break;
-        // TODO... 외주배송, 기타매입/매출등 재고타입 없는 거래는 validation 필요없음?
+        // TODO... 외주배송, 기타매입/매출 등
       }
-
-      //   const tradePrice =
-      //     (await tx.tradePrice.findFirst({
-      //       where: {
-      //         orderId: order.id,
-      //         companyId: companyId,
-      //       },
-      //       include: {
-      //         orderStockTradePrice: {
-      //           include: {
-      //             orderStockTradeAltBundle: true,
-      //           },
-      //         },
-      //       },
-      //     })) ??
-      //     (await tx.tradePrice.create({
-      //       data: {
-      //         orderId: order.id,
-      //         companyId: companyId,
-      //         orderStockTradePrice: {
-      //           create: {
-      //             officialPriceType:
-      //               tradePriceDto.orderStockTradePrice.officialPriceType,
-      //             officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
-      //             officialPriceUnit:
-      //               tradePriceDto.orderStockTradePrice.officialPriceUnit,
-      //             discountType: tradePriceDto.orderStockTradePrice.discountType,
-      //             discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
-      //             unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
-      //             unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
-      //             processPrice: tradePriceDto.orderStockTradePrice.processPrice,
-      //           },
-      //         },
-      //       },
-      //       include: {
-      //         orderStockTradePrice: {
-      //           include: {
-      //             orderStockTradeAltBundle: true,
-      //           },
-      //         },
-      //       },
-      //     }));
-      //   if (tradePrice.isBookClosed) {
-      //     throw new ConflictException(`이미 마감된 주문정보 입니다.`);
-      //   }
-
-      //   if (tradePrice.orderStockTradePrice) {
-      //     if (!tradePriceDto.orderStockTradePrice)
-      //       throw new BadRequestException(`orderStockTradePrice가 필요합니다.`); // TODO... Exception 추가
-
-      //     await tx.orderStockTradePrice.update({
-      //       data: {
-      //         officialPriceType:
-      //           tradePriceDto.orderStockTradePrice.officialPriceType,
-      //         officialPrice: tradePriceDto.orderStockTradePrice.officialPrice,
-      //         officialPriceUnit:
-      //           tradePriceDto.orderStockTradePrice.officialPriceUnit,
-      //         discountType: tradePriceDto.orderStockTradePrice.discountType,
-      //         discountPrice: tradePriceDto.orderStockTradePrice.discountPrice,
-      //         unitPrice: tradePriceDto.orderStockTradePrice.unitPrice,
-      //         unitPriceUnit: tradePriceDto.orderStockTradePrice.unitPriceUnit,
-      //         processPrice: tradePriceDto.orderStockTradePrice.processPrice,
-      //       },
-      //       where: {
-      //         orderId_companyId: {
-      //           orderId: tradePriceDto.orderId,
-      //           companyId: tradePriceDto.companyId,
-      //         },
-      //       },
-      //     });
-
-      //     if (tradePrice.orderStockTradePrice.orderStockTradeAltBundle) {
-      //       await tx.orderStockTradeAltBundle.delete({
-      //         where: {
-      //           orderId_companyId: {
-      //             orderId: tradePriceDto.orderId,
-      //             companyId: tradePriceDto.companyId,
-      //           },
-      //         },
-      //       });
-      //     }
-
-      //     const altBundle =
-      //       tradePriceDto.orderStockTradePrice.orderStockTradeAltBundle;
-      //     if (altBundle) {
-      //       await tx.orderStockTradeAltBundle.create({
-      //         data: {
-      //           ...altBundle,
-      //           orderId: tradePriceDto.orderId,
-      //           companyId: tradePriceDto.companyId,
-      //         },
-      //       });
-      //     }
-      //   }
-
-      //   await tx.tradePrice.update({
-      //     data: {
-      //       suppliedPrice: tradePriceDto.suppliedPrice,
-      //       vatPrice: tradePriceDto.vatPrice,
-      //     },
-      //     where: {
-      //       orderId_companyId: {
-      //         orderId: tradePriceDto.orderId,
-      //         companyId: tradePriceDto.companyId,
-      //       },
-      //     },
-      //   });
     });
+  }
+
+  async updateOrderStockTradePriceTx(tx: PrismaTransaction, orderId: number, companyId: number, orderStockTradePrice: OrderStockTradePrice) {
+    const order = await tx.order.findUnique({
+      include: {
+        orderStock: {
+          include: {
+            plan: {
+              include: {
+                assignStockEvent: {
+                  include: {
+                    stock: {
+                      include: {
+                        packaging: true,
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        tradePrice: {
+          include: {
+            orderStockTradePrice: {
+              include: {
+                orderStockTradeAltBundle: true,
+              }
+            }
+          }
+        }
+      },
+      where: {
+        id: orderId,
+      }
+    });
+
+    this.tradePriceValidator.validateOrderStockTradePrice(
+      // 판매자가 배정한 재고(원지) 기준으로 validation
+      order.orderStock.plan.find(plan => plan.companyId === order.dstCompanyId).assignStockEvent.stock.packaging.type,
+      orderStockTradePrice,
+    );
+
+    // TODO... 수정
+  }
+
+  async updateOrderDepositTradePriceTx(tx: PrismaTransaction, orderId: number, companyId: number, orderDepositTradePrice: OrderDepositTradePrice) {
+    const order = await tx.order.findUnique({
+      include: {
+        orderDeposit: {
+          include: {
+            packaging: true,
+          }
+        },
+        tradePrice: {
+          include: {
+            orderDepositTradePrice: {
+              include: {
+                orderDepositTradeAltBundle: true,
+              }
+            }
+          }
+        }
+      },
+      where: {
+        id: orderId,
+      }
+    });
+
+    this.tradePriceValidator.validateOrderDepositTradePrice(
+      order.orderDeposit.packaging.type,
+      orderDepositTradePrice,
+    );
+
+    // TODO... 수정
   }
 
   /** 보관 등록 */
@@ -1163,6 +1152,49 @@ export class OrderChangeService {
             }
           }
         },
+      });
+
+      // 주문금액 생성
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          orderDepositTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
+      });
+
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: dstCompanyId,
+            }
+          },
+          orderDepositTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
       });
     });
   }

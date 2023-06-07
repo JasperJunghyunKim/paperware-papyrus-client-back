@@ -303,7 +303,6 @@ CREATE TABLE `TradePrice` (
     `vatPrice` DOUBLE NOT NULL DEFAULT 0,
     `isBookClosed` BOOLEAN NOT NULL DEFAULT false,
 
-    UNIQUE INDEX `TradePrice_orderId_key`(`orderId`),
     PRIMARY KEY (`orderId`, `companyId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

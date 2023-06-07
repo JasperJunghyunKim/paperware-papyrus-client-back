@@ -265,6 +265,8 @@ model Company {
   Card                           Card[]
   security                       Security[]
   Deposit                        Deposit[]
+  OrderDepositTradePrice         OrderDepositTradePrice[]
+  OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
 }
 
 model BusinessRelationship {
@@ -419,7 +421,7 @@ model OrderStock {
 }
 
 model TradePrice {
-  orderId       Int     @unique
+  orderId       Int
   order         Order   @relation(fields: [orderId], references: [id])
   companyId     Int
   company       Company @relation(fields: [companyId], references: [id])
@@ -427,7 +429,8 @@ model TradePrice {
   vatPrice      Float   @default(0)
   isBookClosed  Boolean @default(false)
 
-  orderStockTradePrice OrderStockTradePrice?
+  orderStockTradePrice   OrderStockTradePrice?
+  orderDepositTradePrice OrderDepositTradePrice?
 
   @@id([orderId, companyId])
 }
@@ -435,7 +438,7 @@ model TradePrice {
 model OrderStockTradePrice {
   orderId                  Int
   companyId                Int
-  Company                  Company                   @relation(fields: [companyId], references: [id])
+  company                  Company                   @relation(fields: [companyId], references: [id])
   tradePrice               TradePrice                @relation(fields: [orderId, companyId], references: [orderId, companyId])
   officialPriceType        OfficialPriceType         @default(NONE)
   officialPrice            Float                     @default(0)
@@ -1209,4 +1212,35 @@ model DepositEvent {
   createdAt      DateTime      @default(now())
   orderDepositId Int?
   orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
+}
+
+model OrderDepositTradePrice {
+  orderId                    Int
+  companyId                  Int
+  company                    Company                     @relation(fields: [companyId], references: [id])
+  tradePrice                 TradePrice                  @relation(fields: [orderId, companyId], references: [orderId, companyId])
+  officialPriceType          OfficialPriceType           @default(NONE)
+  officialPrice              Float                       @default(0)
+  officialPriceUnit          PriceUnit
+  discountType               DiscountType                @default(DEFAULT)
+  discountPrice              Float                       @default(0)
+  unitPrice                  Float                       @default(0)
+  unitPriceUnit              PriceUnit
+  processPrice               Float                       @default(0)
+  orderDepositTradeAltBundle OrderDepositTradeAltBundle?
+
+  @@id([orderId, companyId])
+}
+
+model OrderDepositTradeAltBundle {
+  orderId     Int
+  companyId   Int
+  Company     Company @relation(fields: [companyId], references: [id])
+  altSizeX    Int
+  altSizeY    Int
+  altQuantity Int
+
+  orderDepositTradePrice OrderDepositTradePrice @relation(fields: [orderId, companyId], references: [orderId, companyId])
+
+  @@id([orderId, companyId])
 }
