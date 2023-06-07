@@ -217,6 +217,19 @@ export class DepositRetriveService {
             orderDeposit: {
               include: {
                 order: true,
+                packaging: true,
+                product: {
+                  include: {
+                    paperDomain: true,
+                    manufacturer: true,
+                    paperGroup: true,
+                    paperType: true,
+                  },
+                },
+                paperColorGroup: true,
+                paperColor: true,
+                paperPattern: true,
+                paperCert: true,
               }
             },
           }
