@@ -1103,7 +1103,7 @@ export class OrderChangeService {
               id: dstCompanyId,
             },
           },
-          status: isOffer ? 'ORDER_PREPARING' : 'ORDER_PREPARING',
+          status: isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo,
           orderDeposit: {
