@@ -456,7 +456,7 @@ model OrderStockTradePrice {
 model OrderStockTradeAltBundle {
   orderId     Int
   companyId   Int
-  Company     Company @relation(fields: [companyId], references: [id])
+  company     Company @relation(fields: [companyId], references: [id])
   altSizeX    Int
   altSizeY    Int
   altQuantity Int

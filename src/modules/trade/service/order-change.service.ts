@@ -1008,7 +1008,68 @@ export class OrderChangeService {
       orderStockTradePrice,
     );
 
-    // TODO... 수정
+    const tradePrice = order.tradePrice.find(tp => tp.orderStockTradePrice.companyId === companyId) || null;
+    // 기존 금액 삭제
+    if (tradePrice.orderStockTradePrice.orderStockTradeAltBundle) {
+      await tx.orderStockTradeAltBundle.delete({
+        where: {
+          orderId_companyId: {
+            orderId,
+            companyId,
+          }
+        }
+      });
+    }
+    await tx.orderStockTradePrice.delete({
+      where: {
+        orderId_companyId: {
+          orderId,
+          companyId,
+        }
+      }
+    });
+    await tx.tradePrice.delete({
+      where: {
+        orderId_companyId: {
+          orderId,
+          companyId,
+        }
+      }
+    })
+    // 금액 생성
+    await tx.tradePrice.create({
+      data: {
+        order: {
+          connect: {
+            id: orderId
+          }
+        },
+        company: {
+          connect: {
+            id: companyId,
+          }
+        },
+        orderStockTradePrice: {
+          create: {
+            officialPriceType: orderStockTradePrice.officialPriceType,
+            officialPrice: orderStockTradePrice.officialPrice,
+            officialPriceUnit: orderStockTradePrice.officialPriceUnit,
+            discountType: orderStockTradePrice.discountType,
+            discountPrice: orderStockTradePrice.discountPrice,
+            unitPrice: orderStockTradePrice.unitPrice,
+            unitPriceUnit: orderStockTradePrice.unitPriceUnit,
+            processPrice: orderStockTradePrice.processPrice,
+            orderStockTradeAltBundle: orderStockTradePrice.orderStockTradeAltBundle ? {
+              create: {
+                altSizeX: orderStockTradePrice.orderStockTradeAltBundle.altSizeX,
+                altSizeY: orderStockTradePrice.orderStockTradeAltBundle.altSizeY,
+                altQuantity: orderStockTradePrice.orderStockTradeAltBundle.altQuantity,
+              }
+            } : undefined,
+          }
+        }
+      }
+    });
   }
 
   async updateOrderDepositTradePriceTx(tx: PrismaTransaction, orderId: number, companyId: number, orderDepositTradePrice: OrderDepositTradePrice) {
@@ -1039,7 +1100,68 @@ export class OrderChangeService {
       orderDepositTradePrice,
     );
 
-    // TODO... 수정
+    const tradePrice = order.tradePrice.find(tp => tp.orderDepositTradePrice.companyId === companyId) || null;
+    // 기존 금액 삭제
+    if (tradePrice.orderDepositTradePrice.orderDepositTradeAltBundle) {
+      await tx.orderStockTradeAltBundle.delete({
+        where: {
+          orderId_companyId: {
+            orderId,
+            companyId,
+          }
+        }
+      });
+    }
+    await tx.orderStockTradePrice.delete({
+      where: {
+        orderId_companyId: {
+          orderId,
+          companyId,
+        }
+      }
+    });
+    await tx.tradePrice.delete({
+      where: {
+        orderId_companyId: {
+          orderId,
+          companyId,
+        }
+      }
+    })
+    // 금액 생성
+    await tx.tradePrice.create({
+      data: {
+        order: {
+          connect: {
+            id: orderId
+          }
+        },
+        company: {
+          connect: {
+            id: companyId,
+          }
+        },
+        orderStockTradePrice: {
+          create: {
+            officialPriceType: orderDepositTradePrice.officialPriceType,
+            officialPrice: orderDepositTradePrice.officialPrice,
+            officialPriceUnit: orderDepositTradePrice.officialPriceUnit,
+            discountType: orderDepositTradePrice.discountType,
+            discountPrice: orderDepositTradePrice.discountPrice,
+            unitPrice: orderDepositTradePrice.unitPrice,
+            unitPriceUnit: orderDepositTradePrice.unitPriceUnit,
+            processPrice: orderDepositTradePrice.processPrice,
+            orderStockTradeAltBundle: orderDepositTradePrice.orderStockTradeAltBundle ? {
+              create: {
+                altSizeX: orderDepositTradePrice.orderStockTradeAltBundle.altSizeX,
+                altSizeY: orderDepositTradePrice.orderStockTradeAltBundle.altSizeY,
+                altQuantity: orderDepositTradePrice.orderStockTradeAltBundle.altQuantity,
+              }
+            } : undefined,
+          }
+        }
+      }
+    });
   }
 
   /** 보관 등록 */
