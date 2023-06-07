@@ -141,6 +141,8 @@ export class DepositRetriveService {
           FROM Company
         WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
 
+        GROUP BY companyRegistrationNumber
+        ORDER BY id DESC
       `;
       for (const name of companyNames) {
         companyNameMap.set(name.companyRegistrationNumber, name.businessName);
