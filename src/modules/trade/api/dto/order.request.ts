@@ -315,16 +315,6 @@ export class UpdateOrderStockTradePriceDto
 }
 
 export class UpdateTradePriceDto implements TradePriceUpdateRequest {
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly orderId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly companyId: number;
-
   @IsNumber()
   @Type(() => Number)
   @Min(0)

@@ -16,8 +16,6 @@ import { PrismaTransaction } from 'src/common/types';
 import { DepositChangeService } from './deposit-change.service';
 
 interface UpdateTradePriceParams {
-  orderId: number;
-  companyId: number;
   suppliedPrice: number;
   vatPrice: number;
   orderStockTradePrice?: {
@@ -189,6 +187,49 @@ export class OrderChangeService {
         select: {
           id: true,
         },
+      });
+
+      // 주문금액 생성
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: params.srcCompanyId,
+            }
+          },
+          orderStockTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
+      });
+
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: params.dstCompanyId,
+            }
+          },
+          orderStockTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
       });
 
       return {
@@ -923,7 +964,7 @@ export class OrderChangeService {
       if (!order) throw new NotFoundException('존재하지 않는 주문'); // 모듈 이동시 Exception 생성하여 처리
 
       // 원지 정보는 판매자(dstCompany)의 Plan에서 지정하므로 판매자의 Plan을 필터링
-      const plan = order.orderStock.plan.find(
+      const plan = order.orderStock?.plan.find(
         (plan) => plan.companyId === order.dstCompanyId,
       );
 
@@ -1053,6 +1094,14 @@ export class OrderChangeService {
     });
   }
 
+  async updateOrderStockTradePriceTx() {
+
+  }
+
+  async updateOrderDepositTradePriceTx() {
+
+  }
+
   /** 보관 등록 */
   async createDepositOrder(
     srcCompanyId: number,
@@ -1163,6 +1212,49 @@ export class OrderChangeService {
             }
           }
         },
+      });
+
+      // 주문금액 생성
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          orderDepositTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
+      });
+
+      await tx.tradePrice.create({
+        data: {
+          order: {
+            connect: {
+              id: order.id
+            }
+          },
+          company: {
+            connect: {
+              id: dstCompanyId,
+            }
+          },
+          orderDepositTradePrice: {
+            create: {
+              officialPriceUnit: PriceUnit.WON_PER_TON,
+              unitPriceUnit: PriceUnit.WON_PER_TON,
+            }
+          }
+        }
       });
     });
   }
