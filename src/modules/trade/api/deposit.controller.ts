@@ -4,6 +4,7 @@ import { AuthType } from "src/modules/auth/auth.type";
 import { DepositCreateDto, OrderDepositListQueryDto } from "./dto/order.request";
 import { DepositRetriveService } from "../service/deposit-retrive.service";
 import { DepositChangeService } from "../service/deposit-change.service";
+import { DepositHistoryResponse } from "src/@shared/api";
 
 @Controller('/deposit')
 export class DepositController {
@@ -33,7 +34,7 @@ export class DepositController {
   async getDepositHistory(
     @Request() req: AuthType,
     @Param('id') id: number,
-  ) {
+  ): Promise<DepositHistoryResponse> {
     const result = await this.retrive.getDepositHistory(id, req.user.companyId);
     return result;
   }
@@ -45,15 +46,6 @@ export class DepositController {
     @Request() req: AuthType,
     @Body() dto: DepositCreateDto,
   ) {
-    if (
-      dto.srcCompanyId !== req.user.companyId &&
-      dto.dstCompanyId !== req.user.companyId
-    ) {
-      throw new ForbiddenException(
-        '매입처와 매출처 중 하나는 귀사로 지정되어야합니다.',
-      );
-    }
-
     await this.change.createDeposit({
       companyId: req.user.companyId,
       ...dto,

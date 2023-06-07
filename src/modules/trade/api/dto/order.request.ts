@@ -431,15 +431,12 @@ export class OrderDepositListQueryDto implements OrderDepositListQuery {
 
 /** 보관량 증감*/
 export class DepositCreateDto implements DepositCreateRequest {
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly srcCompanyId: number;
+  @IsEnum(DepositType)
+  readonly type: DepositType;
 
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly dstCompanyId: number;
+  @IsString()
+  @Length(10, 10)
+  readonly partnerCompanyRegistrationNumber: string;
 
   @IsInt()
   @Type(() => Number)

@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { DepositType, PackagingType, Prisma } from "@prisma/client";
+import { DepositType, PackagingType, Partner, Prisma } from "@prisma/client";
 import { Model } from "src/@shared";
 import { PrismaService } from "src/core";
 
 export interface DepositFromDB {
   id: number;
   companyRegistrationNumber: string;
+  partnerId: number;
   partnerNickName: string;
   packagingId: number;
   packagingName: string;
@@ -56,7 +57,7 @@ export class DepositRetriveService {
     total: number;
   }> {
     const {
-      companyId,
+      companyId = 1,
       skip,
       take,
       type,
@@ -67,8 +68,9 @@ export class DepositRetriveService {
 
     const result: DepositFromDB[] = await this.prisma.$queryRaw`
       SELECT d.id
-            , p.companyRegistrationNumber
-            , p.partnerNickName
+            , d.partnerCompanyRegistrationNumber AS companyRegistrationNumber
+            , p.id AS partnerId
+            , p.partnerNickName AS partnerNickName
 
             -- 메타데이터
             , packaging.id AS packagingId
@@ -105,7 +107,7 @@ export class DepositRetriveService {
 
         FROM Deposit            AS d
         JOIN DepositEvent       AS de               ON de.depositId = d.id
-        JOIN Partner            AS p                ON p.id = d.partnerId
+   LEFT JOIN Partner            AS p                ON p.companyId = ${companyId} AND p.companyRegistrationNumber = d.partnerCompanyRegistrationNumber
 
         JOIN Packaging          AS packaging        ON packaging.id = d.packagingId
         JOIN Product            AS product          ON product.id = d.productId
@@ -118,7 +120,7 @@ export class DepositRetriveService {
    LEFT JOIN PaperPattern       AS paperPattern     ON paperPattern.id = d.paperPatternId
    LEFT JOIN PaperCert          AS paperCert        ON paperCert.id = d.paperCertId
 
-       WHERE p.companyId = ${companyId}
+       WHERE d.companyId = ${companyId}
          AND d.depositType = ${type}
          ${companySearch}
 
@@ -126,14 +128,30 @@ export class DepositRetriveService {
 
        LIMIT ${skip}, ${take}
     `;
-
     const total = result.length === 0 ? 0 : Number(result[0].total);
+
+    const companyNameMap = new Map<string, string>();
+    const noPartnerCompanyRegistrationNumbers = result.filter(data => data.partnerId === null).map(data => data.companyRegistrationNumber);
+    if (noPartnerCompanyRegistrationNumbers.length > 0) {
+      const companyNames: {
+        businessName: string;
+        companyRegistrationNumber: string;
+      }[] = await this.prisma.$queryRaw`
+        SELECT businessName, companyRegistrationNumber
+          FROM Company
+        WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
+
+      `;
+      for (const name of companyNames) {
+        companyNameMap.set(name.companyRegistrationNumber, name.businessName);
+      }
+    }
 
     return {
       items: result.map(deposit => ({
         id: deposit.id,
         companyRegistrationNumber: deposit.companyRegistrationNumber,
-        partnerNickName: deposit.partnerNickName,
+        partnerNickName: deposit.partnerNickName || companyNameMap.get(deposit.companyRegistrationNumber),
         packaging: {
           id: deposit.packagingId,
           type: deposit.packagingType,
@@ -191,7 +209,6 @@ export class DepositRetriveService {
   ): Promise<Model.DepositEvent[]> {
     const deposit = await this.prisma.deposit.findUnique({
       include: {
-        partner: true,
         depositEvents: {
           include: {
             orderDeposit: {
@@ -207,13 +224,14 @@ export class DepositRetriveService {
       }
     });
 
-    if (!deposit || deposit.partner.companyId !== companyId) throw new NotFoundException(`등록되지 않은 보관입니다.`);
+    if (!deposit || deposit.companyId !== companyId) throw new NotFoundException(`등록되지 않은 보관입니다.`);
 
     return deposit.depositEvents.map(e => ({
       id: e.id,
       change: e.change,
       createdAt: e.createdAt.toISOString(),
       memo: e.memo,
+      orderDeposit: e.orderDeposit,
     }));
   }
 }

@@ -12,8 +12,8 @@ export class DepositChangeService {
   /** 보관량 증감 */
   async createDeposit(params: {
     companyId: number;
-    srcCompanyId: number;
-    dstCompanyId: number;
+    type: DepositType;
+    partnerCompanyRegistrationNumber: string;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -28,8 +28,8 @@ export class DepositChangeService {
   }) {
     const {
       companyId,
-      srcCompanyId,
-      dstCompanyId,
+      type,
+      partnerCompanyRegistrationNumber,
       productId,
       packagingId,
       grammage,
@@ -43,28 +43,12 @@ export class DepositChangeService {
       memo,
     } = params;
 
-    const type = srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
-
     await this.prisma.$transaction(async tx => {
-      const partnerCompany = await tx.company.findUnique({
-        where: {
-          id: srcCompanyId === companyId ? dstCompanyId : srcCompanyId,
-        }
-      })
-
-      const partner = await tx.partner.findUnique({
-        where: {
-          companyId_companyRegistrationNumber: {
-            companyId,
-            companyRegistrationNumber: partnerCompany.companyRegistrationNumber,
-          }
-        }
-      })
-
       const deposit = await tx.deposit.findFirst({
         where: {
-          partnerId: partner.id,
-          depositType: DepositType.PURCHASE,
+          companyId,
+          partnerCompanyRegistrationNumber,
+          depositType: type,
           packagingId: packagingId,
           productId: productId,
           grammage: grammage,
@@ -77,12 +61,13 @@ export class DepositChangeService {
         }
       }) || await tx.deposit.create({
         data: {
-          partner: {
+          company: {
             connect: {
-              id: partner.id,
+              id: companyId,
             }
           },
-          depositType: DepositType.PURCHASE,
+          partnerCompanyRegistrationNumber,
+          depositType: type,
           packaging: {
             connect: {
               id: packagingId,

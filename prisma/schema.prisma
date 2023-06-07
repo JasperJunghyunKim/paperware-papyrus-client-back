@@ -264,6 +264,7 @@ model Company {
   BankAccount                    BankAccount[]
   Card                           Card[]
   security                       Security[]
+  Deposit                        Deposit[]
 }
 
 model BusinessRelationship {
@@ -890,7 +891,6 @@ model Partner {
   /// 회계 목록
   accountedList             Accounted[]
   discountRateCondition     DiscountRateCondition[]
-  deposit                   Deposit[]
 
   @@unique([companyId, companyRegistrationNumber])
 }
@@ -1170,29 +1170,30 @@ enum DepositType {
 }
 
 model Deposit {
-  id                Int              @id @default(autoincrement())
-  /// 파트너
-  partnerId         Int
-  partner           Partner          @relation(fields: [partnerId], references: [id])
+  id                               Int              @id @default(autoincrement())
+  companyId                        Int
+  company                          Company          @relation(fields: [companyId], references: [id])
+  /// 거래처 사업자등록번호
+  partnerCompanyRegistrationNumber String
   /// 타입
-  depositType       DepositType
+  depositType                      DepositType
   /// 재고스펙
-  packagingId       Int
-  packaging         Packaging        @relation(fields: [packagingId], references: [id])
-  productId         Int
-  product           Product          @relation(fields: [productId], references: [id])
-  grammage          Int
-  sizeX             Int
-  sizeY             Int
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
-  paperColorId      Int?
-  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
-  paperPatternId    Int?
-  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
-  paperCertId       Int?
-  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
-  depositEvents     DepositEvent[]
+  packagingId                      Int
+  packaging                        Packaging        @relation(fields: [packagingId], references: [id])
+  productId                        Int
+  product                          Product          @relation(fields: [productId], references: [id])
+  grammage                         Int
+  sizeX                            Int
+  sizeY                            Int
+  paperColorGroupId                Int?
+  paperColorGroup                  PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId                     Int?
+  paperColor                       PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId                   Int?
+  paperPattern                     PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId                      Int?
+  paperCert                        PaperCert?       @relation(fields: [paperCertId], references: [id])
+  depositEvents                    DepositEvent[]
 }
 
 model DepositEvent {

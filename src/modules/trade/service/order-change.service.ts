@@ -515,17 +515,10 @@ export class OrderChangeService {
   ) {
     // srcCompany
     if (!srcCompany.managedById) {
-      const partner = await tx.partner.findUnique({
-        where: {
-          companyId_companyRegistrationNumber: {
-            companyId: srcCompany.id,
-            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
-          }
-        }
-      });
       const deposit = await tx.deposit.findFirst({
         where: {
-          partnerId: partner.id,
+          companyId: srcCompany.id,
+          partnerCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
           depositType: DepositType.PURCHASE,
           packagingId: orderDeposit.packagingId,
           productId: orderDeposit.productId,
@@ -539,11 +532,12 @@ export class OrderChangeService {
         }
       }) || await tx.deposit.create({
         data: {
-          partner: {
+          company: {
             connect: {
-              id: partner.id,
+              id: srcCompany.id
             }
           },
+          partnerCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
           depositType: DepositType.PURCHASE,
           packaging: {
             connect: {
@@ -610,8 +604,9 @@ export class OrderChangeService {
       });
       const deposit = await tx.deposit.findFirst({
         where: {
-          partnerId: partner.id,
-          depositType: DepositType.PURCHASE,
+          companyId: dstCompany.id,
+          partnerCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          depositType: DepositType.SALES,
           packagingId: orderDeposit.packagingId,
           productId: orderDeposit.productId,
           grammage: orderDeposit.grammage,
@@ -624,12 +619,13 @@ export class OrderChangeService {
         }
       }) || await tx.deposit.create({
         data: {
-          partner: {
+          company: {
             connect: {
-              id: partner.id,
+              id: dstCompany.id
             }
           },
-          depositType: DepositType.PURCHASE,
+          partnerCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          depositType: DepositType.SALES,
           packaging: {
             connect: {
               id: orderDeposit.packagingId,
@@ -1057,22 +1053,15 @@ export class OrderChangeService {
     memo: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
-      const dstCompany = await tx.company.findUnique({
+      const businessRelationship = tx.businessRelationship.findUnique({
         where: {
-          id: dstCompanyId,
-        },
+          srcCompanyId_dstCompanyId: {
+            srcCompanyId,
+            dstCompanyId,
+          }
+        }
       });
-      if (!dstCompany)
-        throw new NotFoundException(`등록되지 않은 거래처입니다.`);
-      const partner = await tx.partner.findUnique({
-        where: {
-          companyId_companyRegistrationNumber: {
-            companyId: srcCompanyId,
-            companyRegistrationNumber: dstCompany.companyRegistrationNumber,
-          },
-        },
-      });
-      if (!partner) throw new NotFoundException(`등록되지 않은 거래처입니다.`);
+      if (!businessRelationship) throw new ConflictException(`올바른 매입/매출관계가 아닙니다.`);
 
       const isEntrusted =
         !!(
