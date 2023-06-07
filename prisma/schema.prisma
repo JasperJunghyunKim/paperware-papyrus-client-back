@@ -1207,6 +1207,6 @@ model DepositEvent {
   memo           String        @default("") @db.VarChar(200)
   /// 생성일
   createdAt      DateTime      @default(now())
-  orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
   orderDepositId Int?
+  orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
 }

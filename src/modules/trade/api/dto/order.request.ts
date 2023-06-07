@@ -37,6 +37,8 @@ import {
   OrderStockAssignStockUpdateRequest,
   OrderDepositListQuery,
   DepositCreateRequest,
+  OrderDepositAssignDepositCreateRequest,
+  OrderDepositAssignDepositUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -240,6 +242,13 @@ export class OrderIdDto {
   @Type(() => Number)
   @IsPositive()
   readonly orderId: number;
+}
+
+export class IdDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly id: number;
 }
 
 /** 거래금액 수정 */
@@ -542,4 +551,30 @@ export class OrderStockAssignStockUpdateRequestDto
   @IsInt()
   @Type(() => Number)
   quantity: number;
+}
+
+/** 보관매입/매출 등록 */
+export class OrderDepositAssignDepositCreateDto implements OrderDepositAssignDepositCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly depositId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+}
+
+/** 보관매입/매출 수정 */
+export class OrderDepositAssignDepositUpdateDto implements OrderDepositAssignDepositUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly depositId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
 }
