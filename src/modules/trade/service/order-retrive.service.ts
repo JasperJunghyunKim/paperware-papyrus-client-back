@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { DepositType, OrderStatus, PackagingType, Prisma } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
-import { Deposit } from 'src/@shared/models';
 import { Selector, Util } from 'src/common';
 import { ORDER_DEPOSIT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
