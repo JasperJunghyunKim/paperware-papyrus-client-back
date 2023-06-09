@@ -71,8 +71,6 @@ export class DiscountRateChangeService {
 
             const maps = await tx.discountRateMap.findMany({
                 where: {
-                    companyId,
-                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     discountRateConditionId: condition.id,
                     discountRateType,
                 }
