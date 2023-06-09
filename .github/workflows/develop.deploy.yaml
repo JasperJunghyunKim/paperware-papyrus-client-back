@@ -1,0 +1,69 @@
+name: develop deploy
+on:
+  push:
+    branches:
+      - feature/develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: 소스코드 전환
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          submodules: true
+
+      - name: AWS 설정
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Amazon ECR 등록(Build, tag, and push image)
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: paperware-client-develop-back
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and push it to ECR so that it can be deployed to ECS.
+          docker buildx build --platform=linux/amd64 -t paperware-client-develop-back-test -f ./docker/dev/Dockerfile . --load
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: AWS Systems Manager Parameter Store 에서 Secret 가져오기
+        id: secrets
+        run: |
+          aws ssm get-parameter --region us-east-1 --name my-secret --with-decryption > parameter.json
+          echo 'AWS_SECRET=$(jq -r .Parameter.Value parameter.json)' >> $GITHUB_ENV
+        shell: bash
+
+      - name: 이미지 ID 및 AWS Secret 채우기 ECS 작업 정의
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: paperware-client-develop-back
+          image: ${{ steps.build-image.outputs.image }}
+          secrets: |
+            - name: AWS_SECRET
+              valueFrom: ${{ env.AWS_SECRET }}
+
+      - name: ECS 작업 정의 배포
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: paperware-client-develop-back
+          cluster: paperware-client-develop-cluster
+          wait-for-service-stability: true

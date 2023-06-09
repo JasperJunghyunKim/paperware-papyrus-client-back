@@ -1,3 +1,5 @@
+ARG ENV_FILE
+
 FROM node:18-alpine AS base
 
 FROM base AS deps
@@ -5,8 +7,9 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-COPY prisma ./prisma/
+COPY ./../package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+COPY ./../prisma ./prisma/
+
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci; \
@@ -29,7 +32,9 @@ ENV NODE_ENV=development
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nestjs -u 1001
+RUN chmod -R 777 /app
 
+COPY --from=builder /app/.env.development ./.env.development
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./
 

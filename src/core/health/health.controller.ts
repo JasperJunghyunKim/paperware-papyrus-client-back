@@ -5,14 +5,14 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 
-@Controller('health')
+@Controller('api/health')
 export class HealthController implements OnApplicationShutdown {
   private readonly logger = new Logger(HealthController.name);
 
   constructor(
     private healthCheckService: HealthCheckService,
     private memoryHealthIndicator: MemoryHealthIndicator,
-  ) {}
+  ) { }
 
   /**
    * 앱이 종료 되었을때 호출되는 훅이다.
