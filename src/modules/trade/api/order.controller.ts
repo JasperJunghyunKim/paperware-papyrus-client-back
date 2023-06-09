@@ -33,6 +33,7 @@ import OrderStockCreateRequestDto, {
   UpdateTradePriceDto,
 } from './dto/order.request';
 import {
+  OrderDepositResponse,
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
@@ -432,7 +433,7 @@ export class OrderController {
   async getOrderDeposit(
     @Request() req: AuthType,
     @Param() idDto: IdDto,
-  ): Promise<Model.DepositEvent | null> {
+  ): Promise<OrderDepositResponse> {
     const result = await this.retrive.getOrderDeposit(req.user.companyId, idDto.id);
 
     return result ? Util.serialize(result) : null;
