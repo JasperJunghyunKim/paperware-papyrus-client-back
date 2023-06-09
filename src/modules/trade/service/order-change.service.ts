@@ -1427,46 +1427,68 @@ export class OrderChangeService {
       }
 
       const depositEvent = isSrcCompany ? order.srcDepositEvent : order.dstDepositEvent;
-      await tx.depositEvent.update({
-        data: {
-          status: DepositEventStatus.CANCELLED,
-          srcOrder: isSrcCompany ? {
-            disconnect: {
-              id: orderId,
-            }
-          } : undefined,
-          dstOrder: !isSrcCompany ? {
-            disconnect: {
-              id: orderId,
-            }
-          } : undefined,
-        },
-        where: {
-          id: depositEvent.id,
-        }
-      });
-
-      await tx.depositEvent.create({
-        data: {
-          deposit: {
-            connect: {
-              id: depositId
-            }
+      if (depositEvent) {
+        await tx.depositEvent.update({
+          data: {
+            status: DepositEventStatus.CANCELLED,
+            srcOrder: isSrcCompany ? {
+              disconnect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              disconnect: {
+                id: orderId,
+              }
+            } : undefined,
           },
-          change: -quantity,
-          srcOrder: isSrcCompany ? {
-            connect: {
-              id: orderId,
-            }
-          } : undefined,
-          dstOrder: !isSrcCompany ? {
-            connect: {
-              id: orderId,
-            },
-          } : undefined,
-        }
-      });
+          where: {
+            id: depositEvent.id,
+          }
+        });
 
+        await tx.depositEvent.create({
+          data: {
+            deposit: {
+              connect: {
+                id: depositId
+              }
+            },
+            change: -quantity,
+            srcOrder: isSrcCompany ? {
+              connect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              connect: {
+                id: orderId,
+              },
+            } : undefined,
+          }
+        });
+      } else {
+        await tx.depositEvent.create({
+          data: {
+            deposit: {
+              connect: {
+                id: depositId
+              }
+            },
+            change: -quantity,
+            srcOrder: isSrcCompany ? {
+              connect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              connect: {
+                id: orderId,
+              },
+            } : undefined,
+          }
+        });
+      }
     });
   }
 
