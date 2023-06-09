@@ -138,12 +138,12 @@ export class DepositRetriveService {
         companyRegistrationNumber: string;
       }[] = await this.prisma.$queryRaw`
         SELECT businessName, companyRegistrationNumber
-          FROM Company
-        WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
-          AND managedById IS NULL
-
-        GROUP BY companyRegistrationNumber
-        ORDER BY id DESC
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC) AS rownum
+              FROM Company
+             WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
+          ) AS company 
+        WHERE rownum = 1
       `;
       for (const name of companyNames) {
         companyNameMap.set(name.companyRegistrationNumber, name.businessName);
