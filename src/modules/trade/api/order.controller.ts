@@ -36,7 +36,8 @@ import {
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
-import { Api } from 'src/@shared';
+import { Api, Model } from 'src/@shared';
+import { Util } from 'src/common';
 
 @Controller('/order')
 export class OrderController {
@@ -424,6 +425,17 @@ export class OrderController {
       dto.quantity,
       dto.memo,
     );
+  }
+
+  @Get('/:id/deposit')
+  @UseGuards(AuthGuard)
+  async getOrderDeposit(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+  ): Promise<Model.DepositEvent> {
+    const result = await this.retrive.getOrderDeposit(req.user.companyId, idDto.id);
+
+    return Util.serialize(result);
   }
 
   @Post('/:id/deposit')

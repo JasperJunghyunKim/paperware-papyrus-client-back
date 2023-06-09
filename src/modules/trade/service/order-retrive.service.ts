@@ -207,4 +207,32 @@ export class OrderRetriveService {
 
     return tradePrice;
   }
+
+  async getOrderDeposit(companyId: number, orderId: number) {
+    const order = await this.prisma.order.findUnique({
+      include: {
+        srcDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        },
+        dstDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        }
+      },
+      where: {
+        id: orderId,
+      }
+    });
+    if (!order || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+
+    const depositEvent = order.srcCompanyId === companyId ? order.srcDepositEvent : order.dstDepositEvent;
+    return depositEvent;
+  }
 }
