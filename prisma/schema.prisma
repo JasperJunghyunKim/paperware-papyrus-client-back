@@ -267,7 +267,7 @@ model Company {
   Deposit                        Deposit[]
   OrderDepositTradePrice         OrderDepositTradePrice[]
   OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
-  DiscountRateMap                DiscountRateMap[]
+  DiscountRateCondition          DiscountRateCondition[]
 }
 
 model BusinessRelationship {
@@ -1065,40 +1065,44 @@ model BySecurity {
 
 model DiscountRateCondition {
   /// 식별자
-  id                Int               @id @default(autoincrement())
+  id                               Int               @id @default(autoincrement())
+  companyId                        Int
+  company                          Company           @relation(fields: [companyId], references: [id])
+  /// 거래처(사업자등록번호 기준)
+  partnerCompanyRegistrationNumber String
   /// 포장
-  packagingType     PackagingType?
+  packagingType                    PackagingType?
   /// 제품유형
-  paperDomainId     Int?
-  paperDomain       PaperDomain?      @relation(fields: [paperDomainId], references: [id])
+  paperDomainId                    Int?
+  paperDomain                      PaperDomain?      @relation(fields: [paperDomainId], references: [id])
   /// 제지사
-  manufacturerId    Int?
-  manufacturer      Manufacturer?     @relation(fields: [manufacturerId], references: [id])
+  manufacturerId                   Int?
+  manufacturer                     Manufacturer?     @relation(fields: [manufacturerId], references: [id])
   /// 지군
-  paperGroupId      Int?
-  paperGroup        PaperGroup?       @relation(fields: [paperGroupId], references: [id])
+  paperGroupId                     Int?
+  paperGroup                       PaperGroup?       @relation(fields: [paperGroupId], references: [id])
   /// 지종
-  paperTypeId       Int?
-  paperType         PaperType?        @relation(fields: [paperTypeId], references: [id])
+  paperTypeId                      Int?
+  paperType                        PaperType?        @relation(fields: [paperTypeId], references: [id])
   /// 평량
-  grammage          Int?
+  grammage                         Int?
   /// 지장
-  sizeX             Int?
+  sizeX                            Int?
   /// 지폭
-  sizeY             Int?
+  sizeY                            Int?
   /// 색군
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
+  paperColorGroupId                Int?
+  paperColorGroup                  PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
   /// 색상
-  paperColorId      Int?
-  paperColor        PaperColor?       @relation(fields: [paperColorId], references: [id])
+  paperColorId                     Int?
+  paperColor                       PaperColor?       @relation(fields: [paperColorId], references: [id])
   /// 무늬
-  paperPatternId    Int?
-  paperPattern      PaperPattern?     @relation(fields: [paperPatternId], references: [id])
+  paperPatternId                   Int?
+  paperPattern                     PaperPattern?     @relation(fields: [paperPatternId], references: [id])
   // 인증
-  paperCertId       Int?
-  paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
-  discountRateMap   DiscountRateMap[]
+  paperCertId                      Int?
+  paperCert                        PaperCert?        @relation(fields: [paperCertId], references: [id])
+  discountRateMap                  DiscountRateMap[]
 }
 
 enum DiscountRateMapType {
@@ -1120,26 +1124,22 @@ enum DiscountRateType {
 
 model DiscountRateMap {
   /// 식별자
-  id                               Int                   @id @default(autoincrement())
-  companyId                        Int
-  company                          Company               @relation(fields: [companyId], references: [id])
-  /// 거래처(사업자등록번호 기준)
-  partnerCompanyRegistrationNumber String
+  id                      Int                   @id @default(autoincrement())
   /// 할인율 조건
-  discountRateConditionId          Int
-  discountRateCondition            DiscountRateCondition @relation(fields: [discountRateConditionId], references: [id])
+  discountRateConditionId Int
+  discountRateCondition   DiscountRateCondition @relation(fields: [discountRateConditionId], references: [id])
   /// 할인율 타입 (매입/매출)
-  discountRateType                 DiscountRateType
+  discountRateType        DiscountRateType
   /// 할인율 타입
-  discountRateMapType              DiscountRateMapType
+  discountRateMapType     DiscountRateMapType
   /// 할인율
-  discountRate                     Float
+  discountRate            Float
   /// 할인율 단위
-  discountRateUnit                 DiscountRateUnit
+  discountRateUnit        DiscountRateUnit
   /// 삭제여부
-  isDeleted                        Boolean               @default(false)
+  isDeleted               Boolean               @default(false)
 
-  @@unique([companyId, partnerCompanyRegistrationNumber, discountRateConditionId, discountRateMapType, discountRateType])
+  @@unique([discountRateConditionId, discountRateMapType, discountRateType])
 }
 
 model OrderDeposit {

@@ -35,6 +35,8 @@ export class DiscountRateChangeService {
         await this.prisma.$transaction(async tx => {
             const condition = await tx.discountRateCondition.findFirst({
                 where: {
+                    companyId,
+                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -50,6 +52,8 @@ export class DiscountRateChangeService {
                 }
             }) || await tx.discountRateCondition.create({
                 data: {
+                    companyId,
+                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -77,8 +81,6 @@ export class DiscountRateChangeService {
                 await tx.discountRateMap.createMany({
                     data: [
                         {
-                            companyId,
-                            partnerCompanyRegistrationNumber: companyRegistrationNumber,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'BASIC',
                             discountRateType,
@@ -86,8 +88,6 @@ export class DiscountRateChangeService {
                             discountRateUnit: basicDiscountRate.discountRateUnit,
                         },
                         {
-                            companyId,
-                            partnerCompanyRegistrationNumber: companyRegistrationNumber,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'SPECIAL',
                             discountRateType,
@@ -137,7 +137,6 @@ export class DiscountRateChangeService {
         await this.prisma.$transaction(async tx => {
             const condition = await tx.discountRateCondition.findFirst({
                 include: {
-                    partner: true,
                     discountRateMap: {
                         where: {
                             discountRateType,
@@ -147,8 +146,10 @@ export class DiscountRateChangeService {
                 },
                 where: {
                     id: discountRateConditionId,
-                    partner: {
-                        companyId,
+                    discountRateMap: {
+                        some: {
+                            companyId,
+                        }
                     }
                 }
             });
