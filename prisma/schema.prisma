@@ -267,6 +267,7 @@ model Company {
   Deposit                        Deposit[]
   OrderDepositTradePrice         OrderDepositTradePrice[]
   OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
+  DiscountRateMap                DiscountRateMap[]
 }
 
 model BusinessRelationship {
@@ -875,25 +876,24 @@ enum Subject {
 /// 파트너
 model Partner {
   // id
-  id                        Int                     @id @default(autoincrement())
+  id                        Int         @id @default(autoincrement())
   /// 회사 식별자
   companyId                 Int
   /// 회사
-  company                   Company                 @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 거래처 사업자 등록번호
   companyRegistrationNumber String
   /// 파트너 닉네임(회사 닉네임)
-  partnerNickName           String                  @db.VarChar(100)
+  partnerNickName           String      @db.VarChar(100)
   /// 여신한도
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
-  memo                      String                  @db.VarChar(500)
+  memo                      String      @db.VarChar(500)
   /// 삭제 여부
-  isDeleted                 Boolean                 @default(false)
+  isDeleted                 Boolean     @default(false)
   /// 회계 목록
   accountedList             Accounted[]
-  discountRateCondition     DiscountRateCondition[]
 
   @@unique([companyId, companyRegistrationNumber])
 }
@@ -1066,9 +1066,6 @@ model BySecurity {
 model DiscountRateCondition {
   /// 식별자
   id                Int               @id @default(autoincrement())
-  /// 파트너
-  partnerId         Int
-  partner           Partner           @relation(fields: [partnerId], references: [id])
   /// 포장
   packagingType     PackagingType?
   /// 제품유형
@@ -1123,22 +1120,26 @@ enum DiscountRateType {
 
 model DiscountRateMap {
   /// 식별자
-  id                      Int                   @id @default(autoincrement())
+  id                               Int                   @id @default(autoincrement())
+  companyId                        Int
+  company                          Company               @relation(fields: [companyId], references: [id])
+  /// 거래처(사업자등록번호 기준)
+  partnerCompanyRegistrationNumber String
   /// 할인율 조건
-  discountRateConditionId Int
-  discountRateCondition   DiscountRateCondition @relation(fields: [discountRateConditionId], references: [id])
+  discountRateConditionId          Int
+  discountRateCondition            DiscountRateCondition @relation(fields: [discountRateConditionId], references: [id])
   /// 할인율 타입 (매입/매출)
-  discountRateType        DiscountRateType
+  discountRateType                 DiscountRateType
   /// 할인율 타입
-  discountRateMapType     DiscountRateMapType
+  discountRateMapType              DiscountRateMapType
   /// 할인율
-  discountRate            Float
+  discountRate                     Float
   /// 할인율 단위
-  discountRateUnit        DiscountRateUnit
+  discountRateUnit                 DiscountRateUnit
   /// 삭제여부
-  isDeleted               Boolean               @default(false)
+  isDeleted                        Boolean               @default(false)
 
-  @@unique([discountRateConditionId, discountRateMapType, discountRateType])
+  @@unique([companyId, partnerCompanyRegistrationNumber, discountRateConditionId, discountRateMapType, discountRateType])
 }
 
 model OrderDeposit {

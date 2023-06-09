@@ -33,17 +33,8 @@ export class DiscountRateChangeService {
         specialDiscountRate: DiscountRateDto,
     ) {
         await this.prisma.$transaction(async tx => {
-            const partner = await tx.partner.findFirst({
-                where: {
-                    companyId,
-                    companyRegistrationNumber,
-                }
-            });
-            if (!partner) throw new NotFoundException(`존재하지 않는 거래처입니다`);
-
             const condition = await tx.discountRateCondition.findFirst({
                 where: {
-                    partnerId: partner.id,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -59,7 +50,6 @@ export class DiscountRateChangeService {
                 }
             }) || await tx.discountRateCondition.create({
                 data: {
-                    partnerId: partner.id,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -77,6 +67,8 @@ export class DiscountRateChangeService {
 
             const maps = await tx.discountRateMap.findMany({
                 where: {
+                    companyId,
+                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     discountRateConditionId: condition.id,
                     discountRateType,
                 }
@@ -85,6 +77,8 @@ export class DiscountRateChangeService {
                 await tx.discountRateMap.createMany({
                     data: [
                         {
+                            companyId,
+                            partnerCompanyRegistrationNumber: companyRegistrationNumber,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'BASIC',
                             discountRateType,
@@ -92,6 +86,8 @@ export class DiscountRateChangeService {
                             discountRateUnit: basicDiscountRate.discountRateUnit,
                         },
                         {
+                            companyId,
+                            partnerCompanyRegistrationNumber: companyRegistrationNumber,
                             discountRateConditionId: condition.id,
                             discountRateMapType: 'SPECIAL',
                             discountRateType,
