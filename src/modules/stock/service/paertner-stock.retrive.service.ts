@@ -128,7 +128,7 @@ export class PartnerStockRetriveService {
 
               FROM Company                      AS myCompany
               JOIN BusinessRelationship         AS br             ON br.dstCompanyId = myCompany.id
-              JOIN Company                      AS srcCompany     ON srcCompany.id = br.srcCompanyId AND srcCompany.managedById IS NULL
+              JOIN Company                      AS srcCompany     ON srcCompany.id = br.srcCompanyId
       
               JOIN Stock              AS s                        ON s.companyId = srcCompany.id
          LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
@@ -146,6 +146,7 @@ export class PartnerStockRetriveService {
          LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
       
              WHERE myCompany.id = ${companyId}
+               AND srcCompany.managedById IS NULL
                AND w.isPublic = ${true}
                AND s.planId IS NULL
                ${companyConditionQuery}
