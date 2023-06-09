@@ -144,14 +144,10 @@ export class DiscountRateChangeService {
                 },
                 where: {
                     id: discountRateConditionId,
-                    discountRateMap: {
-                        some: {
-                            companyId,
-                        }
-                    }
+                    companyId,
                 }
             });
-            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+            if (!condition || condition.discountRateMap.length === 0) {
                 throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
             }
 
@@ -187,7 +183,6 @@ export class DiscountRateChangeService {
         await this.prisma.$transaction(async tx => {
             const condition = await tx.discountRateCondition.findFirst({
                 include: {
-                    partner: true,
                     discountRateMap: {
                         where: {
                             discountRateType,
@@ -197,12 +192,10 @@ export class DiscountRateChangeService {
                 },
                 where: {
                     id: discountRateConditionId,
-                    partner: {
-                        companyId,
-                    }
+                    companyId,
                 }
             });
-            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+            if (!condition || condition.discountRateMap.length === 0) {
                 throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
             }
 

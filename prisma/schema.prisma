@@ -407,6 +407,10 @@ model Order {
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   orderDeposit           OrderDeposit?
+  srcDepositEventId      Int?
+  srcDepositEvent        DepositEvent? @relation("srcDepositEvent", fields: [srcDepositEventId], references: [id])
+  dstDepositEventId      Int?
+  dstDepositEvent        DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
 }
 
 model OrderStock {
@@ -1200,19 +1204,28 @@ model Deposit {
   depositEvents                    DepositEvent[]
 }
 
+enum DepositEventStatus {
+  NORMAL
+  CANCELLED
+}
+
 model DepositEvent {
-  id             Int           @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   /// 보관
   depositId      Int
-  deposit        Deposit       @relation(fields: [depositId], references: [id])
+  deposit        Deposit            @relation(fields: [depositId], references: [id])
   /// 수량
   change         Int
+  /// 타입
+  status         DepositEventStatus @default(NORMAL)
   /// 메모 (강제 증감시 메모)
-  memo           String        @default("") @db.VarChar(200)
+  memo           String             @default("") @db.VarChar(200)
   /// 생성일
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime           @default(now())
   orderDepositId Int?
-  orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
+  orderDeposit   OrderDeposit?      @relation(fields: [orderDepositId], references: [id])
+  srcOrder       Order[]            @relation("srcDepositEvent")
+  dstOrder       Order[]            @relation("dstDepositEvent")
 }
 
 model OrderDepositTradePrice {

@@ -3,7 +3,7 @@ import { OrderStatus } from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { ORDER_DEPOSIT } from 'src/common/selector';
+import { DEPOSIT, ORDER_DEPOSIT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -25,6 +25,20 @@ export class OrderRetriveService {
         orderDeposit: {
           select: ORDER_DEPOSIT,
         },
+        srcDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          },
+        },
+        dstDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        }
       },
       where: {
         srcCompanyId: srcCompanyId,
