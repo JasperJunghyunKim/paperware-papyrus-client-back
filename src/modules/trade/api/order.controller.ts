@@ -436,7 +436,9 @@ export class OrderController {
   ): Promise<OrderDepositResponse> {
     const result = await this.retrive.getOrderDeposit(req.user.companyId, idDto.id);
 
-    return result ? Util.serialize(result) : null;
+    return {
+      depositEvent: result ? Util.serialize(result) : null,
+    }
   }
 
   @Post('/:id/deposit')
