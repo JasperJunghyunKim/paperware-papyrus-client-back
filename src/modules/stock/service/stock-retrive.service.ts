@@ -183,7 +183,7 @@ export class StockRetriveService {
             , dstLocation.code AS dstLocationCode
             , dstLocation.isPublic AS dstLocationIsPublic
             , dstLocation.address AS dstLocationAddress
-            , o.wantedDate AS wantedDate
+            , os.wantedDate AS wantedDate
             , p.id AS planId
             , p.planNo As planNo
             , p.status As planStatus
@@ -201,9 +201,6 @@ export class StockRetriveService {
             , partnerCompany.faxNo As partnerCompanyFaxNo
             , partnerCompany.email AS partnerCompanyEmail
             , partnerCompany.managedById AS partnerCompanyManagedById
-
-            -- 거래 정보
-            , o.wantedDate AS wantedDate
 
             -- 원지정보
             , asw.id AS asWarehouseId
@@ -420,10 +417,10 @@ export class StockRetriveService {
 
   async getStockList(data: Prisma.StockWhereInput) {
     const paperColorGroupId = data.paperColorGroupId ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperColorId = data.paperColorId ? Prisma.sql`s.paperColorId = ${data.paperColorId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperPatternId = data.paperPatternId ? Prisma.sql`s.paperPatternId = ${data.paperPatternId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperCertId = data.paperCertId ? Prisma.sql`s.paperCertId = ${data.paperCertId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const planId = data.planId ? Prisma.sql`s.planId = ${data.planId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperColorId = data.paperColorId ? Prisma.sql`s.paperColorId = ${data.paperColorId}` : Prisma.sql`s.paperColorId IS NULL`;
+    const paperPatternId = data.paperPatternId ? Prisma.sql`s.paperPatternId = ${data.paperPatternId}` : Prisma.sql`s.paperPatternId IS NULL`;
+    const paperCertId = data.paperCertId ? Prisma.sql`s.paperCertId = ${data.paperCertId}` : Prisma.sql`s.paperCertId IS NULL`;
+    const planId = data.planId ? Prisma.sql`s.planId = ${data.planId}` : Prisma.sql`s.planId IS NULL`;
 
     const stockIds: { id: number }[] = await this.prisma.$queryRaw`
       SELECT s.id
@@ -449,6 +446,7 @@ export class StockRetriveService {
          AND s.isDeleted = ${false}
          AND (s.cachedQuantity != 0 OR cachedQuantityAvailable != 0)
     `;
+    console.log(111, stockIds)
 
     const stocks = await this.prisma.stock.findMany({
       include: {

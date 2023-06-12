@@ -8,8 +8,8 @@ import { StockValidator } from './service/stock.validator';
 import { PlanChangeService } from './service/plan-change.service';
 import { PartnerStockRetriveService } from './service/paertner-stock.retrive.service';
 // import { StockArrivalController } from './api/stock-arrival.controller';
-// import { StockArrivalRetriveService } from './service/stock-arrival-retrive.service';
-// import { StockArrivalChangeService } from './service/stock-arrival-change.service';
+import { StockArrivalRetriveService } from './service/stock-arrival-retrive.service';
+import { StockArrivalChangeService } from './service/stock-arrival-change.service';
 
 @Module({
   controllers: [
@@ -22,8 +22,8 @@ import { PartnerStockRetriveService } from './service/paertner-stock.retrive.ser
     StockChangeService,
     StockValidator,
     // StockQuantityCheckerService,
-    // StockArrivalRetriveService,
-    // StockArrivalChangeService,
+    StockArrivalRetriveService,
+    StockArrivalChangeService,
     PartnerStockRetriveService,
     PlanChangeService,
   ],
