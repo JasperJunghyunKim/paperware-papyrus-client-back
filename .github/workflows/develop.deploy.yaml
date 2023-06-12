@@ -2,7 +2,7 @@ name: develop deploy
 on:
   push:
     branches:
-      - feature/develop
+      - feature/account
 
 jobs:
   build:
@@ -45,9 +45,7 @@ jobs:
       - name: AWS Systems Manager Parameter Store 에서 Secret 가져오기
         id: secrets
         run: |
-          aws ssm get-parameter --region us-east-1 --name my-secret --with-decryption > parameter.json
-          echo 'AWS_SECRET=$(jq -r .Parameter.Value parameter.json)' >> $GITHUB_ENV
-        shell: bash
+          aws ecs describe-task-definition --task-definition test_task --query taskDefinition > task-definition.json
 
       - name: 이미지 ID 및 AWS Secret 채우기 ECS 작업 정의
         id: task-def
@@ -60,6 +58,15 @@ jobs:
             - name: AWS_SECRET
               valueFrom: ${{ env.AWS_SECRET }}
 
+      - name: 배포를 위한 AWS CodeDeploy 설정
+        run: |
+          aws deploy create-deployment \
+            --application-name [Your_Application_Name] \
+            --deployment-group-name [Your_Deployment_Group_Name] \
+            --revision '{"revisionType": "S3", "s3Location": {"bucket": "[Your_Bucket_Name]", "key": "[Your_Object_Key]", "bundleType": "zip"}}' \
+            --deployment-config-name CodeDeployDefault.ECSAllAtOnce
+        shell: bash
+
       - name: ECS 작업 정의 배포
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
@@ -67,3 +74,5 @@ jobs:
           service: paperware-client-develop-back
           cluster: paperware-client-develop-cluster
           wait-for-service-stability: true
+          codedeploy-appspec: appspec.json
+          codedeploy-application: paperware-client-develop-back
