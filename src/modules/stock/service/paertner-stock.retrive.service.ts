@@ -146,6 +146,7 @@ export class PartnerStockRetriveService {
          LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
       
              WHERE myCompany.id = ${companyId}
+               AND srcCompany.managedById IS NULL
                AND w.isPublic = ${true}
                AND s.planId IS NULL
                ${companyConditionQuery}

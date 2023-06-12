@@ -3,7 +3,7 @@ import { OrderStatus } from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { ORDER_DEPOSIT } from 'src/common/selector';
+import { DEPOSIT, ORDER_DEPOSIT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -25,6 +25,20 @@ export class OrderRetriveService {
         orderDeposit: {
           select: ORDER_DEPOSIT,
         },
+        srcDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          },
+        },
+        dstDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        }
       },
       where: {
         srcCompanyId: srcCompanyId,
@@ -192,5 +206,33 @@ export class OrderRetriveService {
       order.tradePrice.find((tp) => tp.companyId === companyId) || null;
 
     return tradePrice;
+  }
+
+  async getOrderDeposit(companyId: number, orderId: number) {
+    const order = await this.prisma.order.findUnique({
+      include: {
+        srcDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        },
+        dstDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          }
+        }
+      },
+      where: {
+        id: orderId,
+      }
+    });
+    if (!order || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+
+    const depositEvent = order.srcCompanyId === companyId ? order.srcDepositEvent : order.dstDepositEvent;
+    return depositEvent;
   }
 }

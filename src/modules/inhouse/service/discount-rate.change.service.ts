@@ -33,17 +33,10 @@ export class DiscountRateChangeService {
         specialDiscountRate: DiscountRateDto,
     ) {
         await this.prisma.$transaction(async tx => {
-            const partner = await tx.partner.findFirst({
-                where: {
-                    companyId,
-                    companyRegistrationNumber,
-                }
-            });
-            if (!partner) throw new NotFoundException(`존재하지 않는 거래처입니다`);
-
             const condition = await tx.discountRateCondition.findFirst({
                 where: {
-                    partnerId: partner.id,
+                    companyId,
+                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -59,7 +52,8 @@ export class DiscountRateChangeService {
                 }
             }) || await tx.discountRateCondition.create({
                 data: {
-                    partnerId: partner.id,
+                    companyId,
+                    partnerCompanyRegistrationNumber: companyRegistrationNumber,
                     packagingType: packagingType || null,
                     paperDomainId: paperDomainId || null,
                     manufacturerId: manufacturerId || null,
@@ -141,7 +135,6 @@ export class DiscountRateChangeService {
         await this.prisma.$transaction(async tx => {
             const condition = await tx.discountRateCondition.findFirst({
                 include: {
-                    partner: true,
                     discountRateMap: {
                         where: {
                             discountRateType,
@@ -151,12 +144,10 @@ export class DiscountRateChangeService {
                 },
                 where: {
                     id: discountRateConditionId,
-                    partner: {
-                        companyId,
-                    }
+                    companyId,
                 }
             });
-            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+            if (!condition || condition.discountRateMap.length === 0) {
                 throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
             }
 
@@ -192,7 +183,6 @@ export class DiscountRateChangeService {
         await this.prisma.$transaction(async tx => {
             const condition = await tx.discountRateCondition.findFirst({
                 include: {
-                    partner: true,
                     discountRateMap: {
                         where: {
                             discountRateType,
@@ -202,12 +192,10 @@ export class DiscountRateChangeService {
                 },
                 where: {
                     id: discountRateConditionId,
-                    partner: {
-                        companyId,
-                    }
+                    companyId,
                 }
             });
-            if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
+            if (!condition || condition.discountRateMap.length === 0) {
                 throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
             }
 

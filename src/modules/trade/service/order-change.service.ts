@@ -5,7 +5,7 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { Company, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PackagingType, PriceUnit } from '@prisma/client';
+import { Company, DepositEventStatus, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PackagingType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
@@ -1327,6 +1327,8 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
+          srcDepositEvent: true,
+          dstDepositEvent: true,
           orderDeposit: {
             include: {
               depositEvent: {
@@ -1343,31 +1345,43 @@ export class OrderChangeService {
       });
       if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
-      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
-      const partnerCompanyRegistrationNumber = type === DepositType.PURCHASE ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber;
-      const orderDeposit = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
-      if (orderDeposit) throw new ConflictException(`이미 보관이 선택되어 있습니다.`);
+      const isSrcCompany = order.srcCompanyId === companyId;
+      if ((isSrcCompany && order.srcDepositEvent) || (!isSrcCompany && order.dstDepositEvent)) throw new ConflictException(`이미 차감할 보관이 등록되어 있습니다.`);
 
       const deposit = await tx.deposit.findUnique({
         where: {
           id: depositId,
         }
       });
-      if (!deposit || deposit.companyId !== companyId || deposit.partnerCompanyRegistrationNumber !== partnerCompanyRegistrationNumber) throw new NotFoundException(`보관이 존재하지 않습니다.`);
+      if (
+        !deposit ||
+        deposit.companyId !== companyId ||
+        (isSrcCompany && deposit.depositType !== DepositType.PURCHASE) ||
+        (!isSrcCompany && deposit.depositType !== DepositType.SALES) ||
+        (deposit.partnerCompanyRegistrationNumber !== (isSrcCompany ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber))
+      ) {
+        throw new NotFoundException(`존재하지 않는 보관입니다.`);
+      }
 
-      await this.depositChangeService.createDepositEventTx(tx, {
-        depositId,
-        orderId,
-        packagingId: deposit.packagingId,
-        productId: deposit.productId,
-        grammage: deposit.grammage,
-        sizeX: deposit.sizeX,
-        sizeY: deposit.sizeY,
-        paperColorGroupId: deposit.paperColorGroupId,
-        paperColorId: deposit.paperColorId,
-        paperPatternId: deposit.paperPatternId,
-        paperCertId: deposit.paperCertId,
-        quantity,
+      await tx.depositEvent.create({
+        data: {
+          deposit: {
+            connect: {
+              id: depositId
+            }
+          },
+          change: -quantity,
+          srcOrder: isSrcCompany ? {
+            connect: {
+              id: orderId,
+            }
+          } : undefined,
+          dstOrder: !isSrcCompany ? {
+            connect: {
+              id: orderId,
+            },
+          } : undefined,
+        }
       });
     });
   }
@@ -1378,6 +1392,8 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
+          srcDepositEvent: true,
+          dstDepositEvent: true,
           orderDeposit: {
             include: {
               depositEvent: {
@@ -1394,33 +1410,85 @@ export class OrderChangeService {
       });
       if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
-      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
-      const partnerCompanyRegistrationNumber = type === DepositType.PURCHASE ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber;
-      const orderDepositEvent = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
-      if (!orderDepositEvent) throw new ConflictException(`보관이 선택되어 있지 않습니다.`);
-
+      const isSrcCompany = order.srcCompanyId === companyId;
       const deposit = await tx.deposit.findUnique({
         where: {
           id: depositId,
         }
       });
-      if (!deposit || deposit.companyId !== companyId || deposit.partnerCompanyRegistrationNumber !== partnerCompanyRegistrationNumber) throw new NotFoundException(`보관이 존재하지 않습니다.`);
+      if (
+        !deposit ||
+        deposit.companyId !== companyId ||
+        (isSrcCompany && deposit.depositType !== DepositType.PURCHASE) ||
+        (!isSrcCompany && deposit.depositType !== DepositType.SALES) ||
+        (deposit.partnerCompanyRegistrationNumber !== (isSrcCompany ? order.dstCompany.companyRegistrationNumber : order.srcCompany.companyRegistrationNumber))
+      ) {
+        throw new NotFoundException(`존재하지 않는 보관입니다.`);
+      }
 
-      await this.depositChangeService.deleteOrderDepositEventTx(tx, orderDepositEvent.id);
-      await this.depositChangeService.createDepositEventTx(tx, {
-        depositId,
-        orderId,
-        packagingId: deposit.packagingId,
-        productId: deposit.productId,
-        grammage: deposit.grammage,
-        sizeX: deposit.sizeX,
-        sizeY: deposit.sizeY,
-        paperColorGroupId: deposit.paperColorGroupId,
-        paperColorId: deposit.paperColorId,
-        paperPatternId: deposit.paperPatternId,
-        paperCertId: deposit.paperCertId,
-        quantity,
-      });
+      const depositEvent = isSrcCompany ? order.srcDepositEvent : order.dstDepositEvent;
+      if (depositEvent) {
+        await tx.depositEvent.update({
+          data: {
+            status: DepositEventStatus.CANCELLED,
+            srcOrder: isSrcCompany ? {
+              disconnect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              disconnect: {
+                id: orderId,
+              }
+            } : undefined,
+          },
+          where: {
+            id: depositEvent.id,
+          }
+        });
+
+        await tx.depositEvent.create({
+          data: {
+            deposit: {
+              connect: {
+                id: depositId
+              }
+            },
+            change: -quantity,
+            srcOrder: isSrcCompany ? {
+              connect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              connect: {
+                id: orderId,
+              },
+            } : undefined,
+          }
+        });
+      } else {
+        await tx.depositEvent.create({
+          data: {
+            deposit: {
+              connect: {
+                id: depositId
+              }
+            },
+            change: -quantity,
+            srcOrder: isSrcCompany ? {
+              connect: {
+                id: orderId,
+              }
+            } : undefined,
+            dstOrder: !isSrcCompany ? {
+              connect: {
+                id: orderId,
+              },
+            } : undefined,
+          }
+        });
+      }
     });
   }
 
@@ -1430,6 +1498,8 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
+          srcDepositEvent: true,
+          dstDepositEvent: true,
           orderDeposit: {
             include: {
               depositEvent: {
@@ -1446,11 +1516,28 @@ export class OrderChangeService {
       });
       if (!order || order.orderType !== "NORMAL" || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
-      const type: DepositType = order.srcCompanyId === companyId ? DepositType.PURCHASE : DepositType.SALES;
-      const orderDepositEvent = order.orderDeposit?.depositEvent.find(e => e.deposit.depositType === type) || null;
-      if (!orderDepositEvent) throw new ConflictException(`보관이 선택되어 있지 않습니다.`);
+      const isSrcCompany = order.srcCompanyId === companyId;
+      if ((isSrcCompany && !order.srcDepositEvent) || (!isSrcCompany && !order.dstDepositEvent)) throw new ConflictException(`보관이 등록되어 있지 않습니다.`);
 
-      await this.depositChangeService.deleteOrderDepositEventTx(tx, orderDepositEvent.id);
+      const depositEvent = isSrcCompany ? order.srcDepositEvent : order.dstDepositEvent;
+      await tx.depositEvent.update({
+        data: {
+          status: DepositEventStatus.CANCELLED,
+          srcOrder: isSrcCompany ? {
+            disconnect: {
+              id: orderId,
+            }
+          } : undefined,
+          dstOrder: !isSrcCompany ? {
+            disconnect: {
+              id: orderId,
+            }
+          } : undefined,
+        },
+        where: {
+          id: depositEvent.id,
+        }
+      });
     });
   }
 

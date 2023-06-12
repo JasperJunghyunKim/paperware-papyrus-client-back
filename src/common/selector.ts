@@ -332,6 +332,31 @@ export const ORDER_DEPOSIT = {
   }
 } satisfies Prisma.OrderDepositSelect;
 
+export const DEPOSIT = {
+  id: true,
+  packaging: {
+    select: PACKAGING,
+  },
+  product: {
+    select: PRODUCT,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+} satisfies Prisma.DepositSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -353,6 +378,20 @@ export const ORDER = {
   orderDeposit: {
     select: ORDER_DEPOSIT,
   },
+  srcDepositEvent: {
+    include: {
+      deposit: {
+        select: DEPOSIT,
+      },
+    }
+  },
+  dstDepositEvent: {
+    include: {
+      deposit: {
+        select: DEPOSIT,
+      },
+    }
+  }
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {

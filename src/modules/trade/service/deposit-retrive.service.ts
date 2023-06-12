@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { DepositType, PackagingType, Partner, Prisma } from "@prisma/client";
+import { DepositEventStatus, DepositType, PackagingType, Partner, Prisma } from "@prisma/client";
 import { Model } from "src/@shared";
 import { PrismaService } from "src/core";
 
@@ -100,7 +100,7 @@ export class DepositRetriveService {
             , paperCert.name AS paperCertName
 
             -- 보관량
-            , IFNULL(SUM(de.change), 0) AS quantity
+            , IFNULL(SUM(CASE WHEN de.status = ${DepositEventStatus.NORMAL} THEN de.change END), 0) AS quantity
 
             -- total
             , COUNT(1) OVER() AS total
@@ -138,12 +138,12 @@ export class DepositRetriveService {
         companyRegistrationNumber: string;
       }[] = await this.prisma.$queryRaw`
         SELECT businessName, companyRegistrationNumber
-          FROM Company
-        WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
-          AND managedById IS NULL
-
-        GROUP BY companyRegistrationNumber
-        ORDER BY id DESC
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC) AS rownum
+              FROM Company
+             WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
+          ) AS company 
+        WHERE rownum = 1
       `;
       for (const name of companyNames) {
         companyNameMap.set(name.companyRegistrationNumber, name.businessName);
@@ -214,6 +214,23 @@ export class DepositRetriveService {
       include: {
         depositEvents: {
           include: {
+            deposit: {
+              include: {
+                packaging: true,
+                product: {
+                  include: {
+                    paperDomain: true,
+                    manufacturer: true,
+                    paperGroup: true,
+                    paperType: true,
+                  }
+                },
+                paperColorGroup: true,
+                paperColor: true,
+                paperPattern: true,
+                paperCert: true,
+              }
+            },
             orderDeposit: {
               include: {
                 order: true,
@@ -248,6 +265,7 @@ export class DepositRetriveService {
       createdAt: e.createdAt.toISOString(),
       memo: e.memo,
       orderDeposit: e.orderDeposit,
+      deposit: e.deposit,
     }));
   }
 }

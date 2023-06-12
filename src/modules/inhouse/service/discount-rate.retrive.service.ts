@@ -128,88 +128,7 @@ export class DiscountRateRetriveService {
     skip: number,
     take: number,
   ) {
-    let partner = undefined;
-    if (companyRegistrationNumber) {
-      partner = await this.prisma.partner.findFirst({
-        where: {
-          companyId,
-          companyRegistrationNumber: companyRegistrationNumber,
-          isDeleted: false,
-        }
-      });
-      if (!partner) throw new BadRequestException(`존재하지 않는 거래처입니다.`);
-    }
-
-    const conditionIds = await this.prisma.discountRateMap.findMany({
-      select: {
-        discountRateConditionId: true,
-      },
-      where: {
-        discountRateType,
-        isDeleted: false,
-        discountRateCondition: {
-          partnerId: partner?.id || undefined,
-        }
-      },
-      skip: skip * 2,
-      take: take * 2,
-    });
-    const total = await this.prisma.discountRateMap.count({
-      where: {
-        discountRateType,
-        isDeleted: false,
-      },
-    });
-
-    const conditions = await this.prisma.discountRateCondition.findMany({
-      include: {
-        partner: {
-          select: {
-            companyId: true,
-            companyRegistrationNumber: true,
-            partnerNickName: true,
-            memo: true,
-          },
-        },
-        paperDomain: true,
-        manufacturer: true,
-        paperGroup: true,
-        paperType: true,
-        paperColorGroup: true,
-        paperColor: true,
-        paperPattern: true,
-        paperCert: true,
-        discountRateMap: {
-          select: {
-            discountRateMapType: true,
-            discountRate: true,
-            discountRateUnit: true,
-          },
-          where: {
-            discountRateType,
-            isDeleted: false,
-          }
-        },
-      },
-      where: {
-        id: {
-          in: conditionIds.map(id => id.discountRateConditionId)
-        }
-      }
-    });
-
-    for (const condition of conditions) {
-      delete condition.paperDomainId;
-      delete condition.manufacturerId;
-      delete condition.paperGroupId;
-      delete condition.paperTypeId;
-      delete condition.paperColorGroupId;
-      delete condition.paperColorId;
-      delete condition.paperPatternId;
-      delete condition.paperCertId;
-    }
-
-    return { conditions, total: total / 2 };
+    // TODO... 수정
   }
 
   async get(
@@ -219,51 +138,19 @@ export class DiscountRateRetriveService {
   ) {
     const condition = await this.prisma.discountRateCondition.findFirst({
       include: {
-        partner: {
-          select: {
-            companyId: true,
-            companyRegistrationNumber: true,
-            partnerNickName: true,
-            memo: true,
-          }
-        },
-        paperDomain: true,
-        manufacturer: true,
-        paperGroup: true,
-        paperType: true,
-        paperColorGroup: true,
-        paperColor: true,
-        paperPattern: true,
-        paperCert: true,
         discountRateMap: {
           where: {
             discountRateType,
-            isDeleted: false,
           }
         }
       },
       where: {
         id: discountRateConditionId,
-        partner: {
-          companyId,
-          isDeleted: false,
-        }
-      }
+        companyId,
+      },
     });
-    if (!condition || !condition.partner || condition.discountRateMap.length === 0) {
-      throw new NotFoundException(`존재하지 않는 할인율 조건입니다.`);
-    }
 
-    delete condition.paperDomainId;
-    delete condition.manufacturerId;
-    delete condition.paperGroupId;
-    delete condition.paperTypeId;
-    delete condition.paperColorGroupId;
-    delete condition.paperColorId;
-    delete condition.paperPatternId;
-    delete condition.paperCertId;
 
-    return condition;
   }
 
   async mapping(
@@ -299,7 +186,8 @@ export class DiscountRateRetriveService {
                                                                 AND drm.discountRateType = ${discountRateType}
                                                                 AND drm.isDeleted = ${false}
 
-            WHERE drc.partnerId = ${partner.id}
+            WHERE drc.companyId = ${companyId}
+              AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}
               AND (drc.packagingType = ${packagingType} OR drc.packagingType IS NULL)
               AND (drc.paperDomainId = ${paperDomainId} OR drc.paperDomainId IS NULL)
               AND (drc.manufacturerId = ${manufacturerId} OR drc.manufacturerId IS NULL)
@@ -332,7 +220,8 @@ export class DiscountRateRetriveService {
         }
       },
       where: {
-        partnerId: partner.id,
+        companyId,
+        partnerCompanyRegistrationNumber: companyRegistrationNumber,
         id: {
           in: conditionIds.map(id => id.discountRateConditionId)
         }

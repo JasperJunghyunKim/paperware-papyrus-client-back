@@ -269,6 +269,7 @@ model Company {
   Deposit                        Deposit[]
   OrderDepositTradePrice         OrderDepositTradePrice[]
   OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
+  DiscountRateCondition          DiscountRateCondition[]
 }
 
 model BusinessRelationship {
@@ -410,8 +411,12 @@ model Order {
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   orderDeposit           OrderDeposit?
-  orderCutting           OrderCutting?
-  orderEtc               OrderEtc?
+  srcDepositEventId      Int?
+  srcDepositEvent        DepositEvent? @relation("srcDepositEvent", fields: [srcDepositEventId], references: [id])
+  dstDepositEventId      Int?
+  dstDepositEvent        DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
+  OrderCutting           OrderCutting?
+  OrderEtc               OrderEtc?
 }
 
 model OrderStock {
@@ -904,25 +909,24 @@ enum Subject {
 /// 파트너
 model Partner {
   // id
-  id                        Int                     @id @default(autoincrement())
+  id                        Int         @id @default(autoincrement())
   /// 회사 식별자
   companyId                 Int
   /// 회사
-  company                   Company                 @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 거래처 사업자 등록번호
   companyRegistrationNumber String
   /// 파트너 닉네임(회사 닉네임)
-  partnerNickName           String                  @db.VarChar(100)
+  partnerNickName           String      @db.VarChar(100)
   /// 여신한도
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
-  memo                      String                  @db.VarChar(500)
+  memo                      String      @db.VarChar(500)
   /// 삭제 여부
-  isDeleted                 Boolean                 @default(false)
+  isDeleted                 Boolean     @default(false)
   /// 회계 목록
   accountedList             Accounted[]
-  discountRateCondition     DiscountRateCondition[]
 
   @@unique([companyId, companyRegistrationNumber])
 }
@@ -1094,43 +1098,44 @@ model BySecurity {
 
 model DiscountRateCondition {
   /// 식별자
-  id                Int               @id @default(autoincrement())
-  /// 파트너
-  partnerId         Int
-  partner           Partner           @relation(fields: [partnerId], references: [id])
+  id                               Int               @id @default(autoincrement())
+  companyId                        Int
+  company                          Company           @relation(fields: [companyId], references: [id])
+  /// 거래처(사업자등록번호 기준)
+  partnerCompanyRegistrationNumber String
   /// 포장
-  packagingType     PackagingType?
+  packagingType                    PackagingType?
   /// 제품유형
-  paperDomainId     Int?
-  paperDomain       PaperDomain?      @relation(fields: [paperDomainId], references: [id])
+  paperDomainId                    Int?
+  paperDomain                      PaperDomain?      @relation(fields: [paperDomainId], references: [id])
   /// 제지사
-  manufacturerId    Int?
-  manufacturer      Manufacturer?     @relation(fields: [manufacturerId], references: [id])
+  manufacturerId                   Int?
+  manufacturer                     Manufacturer?     @relation(fields: [manufacturerId], references: [id])
   /// 지군
-  paperGroupId      Int?
-  paperGroup        PaperGroup?       @relation(fields: [paperGroupId], references: [id])
+  paperGroupId                     Int?
+  paperGroup                       PaperGroup?       @relation(fields: [paperGroupId], references: [id])
   /// 지종
-  paperTypeId       Int?
-  paperType         PaperType?        @relation(fields: [paperTypeId], references: [id])
+  paperTypeId                      Int?
+  paperType                        PaperType?        @relation(fields: [paperTypeId], references: [id])
   /// 평량
-  grammage          Int?
+  grammage                         Int?
   /// 지장
-  sizeX             Int?
+  sizeX                            Int?
   /// 지폭
-  sizeY             Int?
+  sizeY                            Int?
   /// 색군
-  paperColorGroupId Int?
-  paperColorGroup   PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
+  paperColorGroupId                Int?
+  paperColorGroup                  PaperColorGroup?  @relation(fields: [paperColorGroupId], references: [id])
   /// 색상
-  paperColorId      Int?
-  paperColor        PaperColor?       @relation(fields: [paperColorId], references: [id])
+  paperColorId                     Int?
+  paperColor                       PaperColor?       @relation(fields: [paperColorId], references: [id])
   /// 무늬
-  paperPatternId    Int?
-  paperPattern      PaperPattern?     @relation(fields: [paperPatternId], references: [id])
+  paperPatternId                   Int?
+  paperPattern                     PaperPattern?     @relation(fields: [paperPatternId], references: [id])
   // 인증
-  paperCertId       Int?
-  paperCert         PaperCert?        @relation(fields: [paperCertId], references: [id])
-  discountRateMap   DiscountRateMap[]
+  paperCertId                      Int?
+  paperCert                        PaperCert?        @relation(fields: [paperCertId], references: [id])
+  discountRateMap                  DiscountRateMap[]
 }
 
 enum DiscountRateMapType {
@@ -1228,19 +1233,28 @@ model Deposit {
   depositEvents                    DepositEvent[]
 }
 
+enum DepositEventStatus {
+  NORMAL
+  CANCELLED
+}
+
 model DepositEvent {
-  id             Int           @id @default(autoincrement())
+  id             Int                @id @default(autoincrement())
   /// 보관
   depositId      Int
-  deposit        Deposit       @relation(fields: [depositId], references: [id])
+  deposit        Deposit            @relation(fields: [depositId], references: [id])
   /// 수량
   change         Int
+  /// 타입
+  status         DepositEventStatus @default(NORMAL)
   /// 메모 (강제 증감시 메모)
-  memo           String        @default("") @db.VarChar(200)
+  memo           String             @default("") @db.VarChar(200)
   /// 생성일
-  createdAt      DateTime      @default(now())
+  createdAt      DateTime           @default(now())
   orderDepositId Int?
-  orderDeposit   OrderDeposit? @relation(fields: [orderDepositId], references: [id])
+  orderDeposit   OrderDeposit?      @relation(fields: [orderDepositId], references: [id])
+  srcOrder       Order[]            @relation("srcDepositEvent")
+  dstOrder       Order[]            @relation("dstDepositEvent")
 }
 
 model OrderDepositTradePrice {
