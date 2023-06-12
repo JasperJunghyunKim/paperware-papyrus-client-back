@@ -10,6 +10,7 @@ import { PartnerStockRetriveService } from './service/paertner-stock.retrive.ser
 // import { StockArrivalController } from './api/stock-arrival.controller';
 import { StockArrivalRetriveService } from './service/stock-arrival-retrive.service';
 import { StockArrivalChangeService } from './service/stock-arrival-change.service';
+import { StockQuantityChecker } from './service/stock-quantity-checker';
 
 @Module({
   controllers: [
@@ -26,7 +27,8 @@ import { StockArrivalChangeService } from './service/stock-arrival-change.servic
     StockArrivalChangeService,
     PartnerStockRetriveService,
     PlanChangeService,
+    StockQuantityChecker,
   ],
-  exports: [StockChangeService, StockValidator],
+  exports: [StockChangeService, StockValidator, StockQuantityChecker],
 })
 export class StockModule { }

@@ -31,8 +31,14 @@ import { DiscountRateController } from './api/discount-rate.controller';
 import { SecurityController } from './api/security.controller';
 import { SecurityChangeService } from './service/security-change.service';
 import { SecurityRetriveService } from './service/security-retrive.service';
+import { InhouseProcessController } from './api/inhouse-process.controller';
+import { InhouseProcessChangeService } from './service/inhouse-process-change.service';
+import { StockModule } from '../stock/stock.module';
 
 @Module({
+  imports: [
+    StockModule,
+  ],
   providers: [
     BusinessRelationshipRetriveService,
     BusinessRelationshipChangeService,
@@ -55,6 +61,7 @@ import { SecurityRetriveService } from './service/security-retrive.service';
     DiscountRateRetriveService,
     SecurityRetriveService,
     SecurityChangeService,
+    InhouseProcessChangeService,
   ],
   controllers: [
     BusinessRelationshipController,
@@ -67,7 +74,8 @@ import { SecurityRetriveService } from './service/security-retrive.service';
     CardController,
     BankAccountController,
     DiscountRateController,
-    SecurityController
+    SecurityController,
+    InhouseProcessController,
   ],
   exports: [
     BusinessRelationshipRetriveService,
