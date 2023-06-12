@@ -1,186 +1,236 @@
 import { Injectable } from '@nestjs/common';
-import { PackagingType, Prisma, StockEventStatus, StockGroupEventStatus } from '@prisma/client';
+import { PackagingType, Prisma, StockEventStatus } from '@prisma/client';
+import { StockGroup } from 'src/@shared/models';
 import { PrismaService } from 'src/core';
 
 export interface PartnerStockGroupFromDB {
-  warehouseId: number;
-  warehouseName: string;
-  warehouseCode: string;
-  warehouseIsPublic: boolean;
-  warehouseAddress: string;
+    warehouseId: number;
+    warehouseName: string;
+    warehouseCode: string;
+    warehouseIsPublic: boolean;
+    warehouseAddress: string;
 
-  partnerCompanyId: number;
-  partnerCompanyBusinessName: string;
-  partnerCompanyRegistrationNumber: string;
-  partnerCompanyInvoiceCode: string;
-  partnerCompanyRepresentative: string;
-  partnerCompanyAddress: string;
-  partnerCompanyPhoneNo: string;
-  partnerCompanyFaxNo: string;
-  partnerCompanyEmail: string;
-  partnerCompanyManagedById: number;
+    partnerCompanyId: number;
+    partnerCompanyBusinessName: string;
+    partnerCompanyRegistrationNumber: string;
+    partnerCompanyInvoiceCode: string;
+    partnerCompanyRepresentative: string;
+    partnerCompanyAddress: string;
+    partnerCompanyPhoneNo: string;
+    partnerCompanyFaxNo: string;
+    partnerCompanyEmail: string;
+    partnerCompanyManagedById: number;
 
-  packagingId: number;
-  packagingName: string;
-  packagingType: PackagingType;
-  packagingPackA: number;
-  packagingPackB: number;
+    packagingId: number;
+    packagingName: string;
+    packagingType: PackagingType;
+    packagingPackA: number;
+    packagingPackB: number;
 
-  productId: number;
-  paperDomainId: number;
-  paperDomainName: string;
-  paperGroupId: number;
-  paperGroupName: string;
-  manufacturerId: number;
-  manufacturerName: string;
-  paperTypeId: number;
-  paperTypeName: string;
+    productId: number;
+    paperDomainId: number;
+    paperDomainName: string;
+    paperGroupId: number;
+    paperGroupName: string;
+    manufacturerId: number;
+    manufacturerName: string;
+    paperTypeId: number;
+    paperTypeName: string;
 
-  grammage: number;
-  sizeX: number;
-  sizeY: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
 
-  paperColorGroupId: number;
-  paperColorGroupName: string;
-  paperColorId: number;
-  paperColorName: string;
-  paperPatternId: number;
-  paperPatternName: string;
-  paperCertId: number;
-  paperCertName: string;
+    paperColorGroupId: number;
+    paperColorGroupName: string;
+    paperColorId: number;
+    paperColorName: string;
+    paperPatternId: number;
+    paperPatternName: string;
+    paperCertId: number;
+    paperCertName: string;
 
-  totalQuantity: number;
-  availableQuantity: number;
-  total: bigint;
+    totalQuantity: number;
+    availableQuantity: number;
+    total: bigint;
 }
 
 @Injectable()
 export class PartnerStockRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+    constructor(private readonly prisma: PrismaService) { }
 
-  async getStockGroupList(
-    companyId: number,
-    skip: number,
-    take: number,
-    partnerCompanyId: number | null,
-  ) {
-    const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
-    const companyConditionQuery = partnerCompanyId
-      ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
-      : Prisma.empty;
+    async getStockGroupList(
+        companyId: number,
+        skip: number,
+        take: number,
+        partnerCompanyId: number | null,
+    ): Promise<{
+        items: StockGroup[];
+        total: number;
+    }> {
+        const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
+        const companyConditionQuery = partnerCompanyId
+            ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
+            : Prisma.empty;
 
-    const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
-                SELECT sg.id AS stockGroupId
-                    , w.id As warehouseId
-                    , w.name AS warehouseName
-                    , w.code AS warehouseCode
-                    , w.isPublic AS warehouseIsPublic
-                    , w.address AS warehouseAddress
+        const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
+            SELECT w.id AS warehouseId
+                  , w.name AS warehouseName
+                  , w.code AS warehouseCode
+                  , w.isPublic AS warehouseIsPublic
+                  , w.address AS warehouseAddress
+      
+                  -- 메타데이터
+                  , packaging.id AS packagingId
+                  , packaging.name AS packagingName
+                  , packaging.type AS packagingType
+                  , packaging.packA AS packagingPackA
+                  , packaging.packB AS packagingPackB
+                  , product.id AS productId
+                  , paperDomain.id AS paperDomainId
+                  , paperDomain.name AS paperDomainName
+                  , manufacturer.id AS manufacturerId
+                  , manufacturer.name AS manufacturerName
+                  , paperGroup.id AS paperGroupId
+                  , paperGroup.name AS paperGroupName
+                  , paperType.id AS paperTypeId
+                  , paperType.name AS paperTypeName
+                  , s.grammage AS grammage
+                  , s.sizeX AS sizeX
+                  , s.sizeY AS sizeY
+                  , paperColorGroup.id AS paperColorGroupId
+                  , paperColorGroup.name AS paperColorGroupName
+                  , paperColor.id AS paperColorId
+                  , paperColor.name AS paperColorName
+                  , paperPattern.id AS paperPatternId
+                  , paperPattern.name AS paperPatternName
+                  , paperCert.id AS paperCertId
+                  , paperCert.name AS paperCertName
+      
+                  -- 거래처 정보
+                  , srcCompany.id AS partnerCompanyId
+                  , srcCompany.businessName As partnerCompanyBusinessName
+                  , srcCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+                  , srcCompany.invoiceCode AS partnerCompanyInvoiceCode
+                  , srcCompany.representative AS partnerCompanyRepresentative
+                  , srcCompany.address AS partnerCompanyAddress
+                  , srcCompany.phoneNo AS partnerCompanyPhoneNo
+                  , srcCompany.faxNo As partnerCompanyFaxNo
+                  , srcCompany.email AS partnerCompanyEmail
+                  , srcCompany.managedById AS partnerCompanyManagedById
+      
+                  -- 수량
+                  , IFNULL(SUM(s.cachedQuantityAvailable), 0) AS availableQuantity
+                  , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
+      
+                  -- total
+                  , COUNT(1) OVER() AS total
 
-                    # 거래처 정보
-                    , srcCompany.id AS partnerCompanyId
-                    , srcCompany.businessName As partnerCompanyBusinessName
-                    , srcCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
-                    , srcCompany.invoiceCode AS partnerCompanyInvoiceCode
-                    , srcCompany.representative AS partnerCompanyRepresentative
-                    , srcCompany.address AS partnerCompanyAddress
-                    , srcCompany.phoneNo AS partnerCompanyPhoneNo
-                    , srcCompany.faxNo As partnerCompanyFaxNo
-                    , srcCompany.email AS partnerCompanyEmail
-                    , srcCompany.managedById AS partnerCompanyManagedById
+              FROM Company                      AS myCompany
+              JOIN BusinessRelationship         AS br             ON br.dstCompanyId = myCompany.id
+              JOIN Company                      AS srcCompany     ON srcCompany.id = br.srcCompanyId
+      
+              JOIN Stock              AS s                        ON s.companyId = srcCompany.id
+         LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
 
-                    # 메타데이터
-                    , product.id AS productId
-                    , paperDomain.id AS paperDomainId
-                    , paperDomain.name AS paperDomainName
-                    , manufacturer.id AS manufacturerId
-                    , manufacturer.name AS manufacturerName
-                    , paperGroup.id AS paperGroupId
-                    , paperGroup.name AS paperGroupName
-                    , paperType.id AS paperTypeId
-                    , paperType.name AS paperTypeName
-                    , packaging.id AS packagingId
-                    , packaging.name AS packagingName
-                    , packaging.type AS packagingType
-                    , packaging.packA AS packagingPackA
-                    , packaging.packB AS packagingPackB
-                    , paperColorGroup.id AS paperColorGroupId
-                    , paperColorGroup.name AS paperColorGroupName
-                    , paperColor.id AS paperColorId
-                    , paperColor.name AS paperColorName
-                    , paperPattern.id AS paperPatternId
-                    , paperPattern.name AS paperPatternName
-                    , paperCert.id AS paperCertId
-                    , paperCert.name AS paperCertName
-                    , sg.grammage AS grammage
-                    , sg.sizeX AS sizeX
-                    , sg.sizeY AS sizeY
+            -- 메타데이터
+              JOIN Packaging          AS packaging                ON packaging.id = s.packagingId
+              JOIN Product            AS product                  ON product.id = s.productId
+              JOIN PaperDomain        AS paperDomain              ON paperDomain.id = product.paperDomainId
+              JOIN Manufacturer       AS manufacturer             ON manufacturer.id = product.manufacturerId
+              JOIN PaperGroup         AS paperGroup               ON paperGroup.id = product.paperGroupId
+              JOIN PaperType          AS paperType                ON paperType.id = product.paperTypeId
+         LEFT JOIN PaperColorGroup    AS paperColorGroup          ON paperColorGroup.id = s.paperColorGroupId
+         LEFT JOIN PaperColor         AS paperColor               ON paperColor.id = s.paperColorId
+         LEFT JOIN PaperPattern       AS paperPattern             ON paperPattern.id = s.paperPatternId
+         LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
+      
+             WHERE myCompany.id = ${companyId}
+               AND srcCompany.managedById IS NULL
+               AND w.isPublic = ${true}
+               AND s.planId IS NULL
+               ${companyConditionQuery}
+      
+             GROUP BY srcCompany.id
+                      , s.packagingId
+                      , s.productId
+                      , s.grammage
+                      , s.sizeX
+                      , s.sizeY
+                      , s.paperColorGroupId
+                      , s.paperColorId
+                      , s.paperPatternId
+                      , s.paperCertId
+                      , s.warehouseId
+                      , s.planId
+      
+            ${limit}
+          `;
+        const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
 
-                    # 수량
-                    , IFNULL(SUM(s.cachedQuantityAvailable), 0) + IFNULL(StockGroupPendingEvent.change, 0) AS availableQuantity
-                    , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
-
-                    , COUNT(1) OVER() AS total
-
-                  FROM Company                      AS c
-                  JOIN BusinessRelationship         AS br                 ON br.dstCompanyId = c.id
-                  JOIN Company                      AS srcCompany         ON srcCompany.id = br.srcCompanyId
-                  JOIN StockGroup                   AS sg                 ON sg.companyId = srcCompany.id
-             LEFT JOIN Warehouse                    AS w                  ON w.id = sg.warehouseId
-
-              # 메타데이터
-                  JOIN Product                      AS product            ON product.id = sg.productId
-                  JOIN PaperDomain                  AS paperDomain        ON paperDomain.id = product.paperDomainId
-                  JOIN Manufacturer                 AS manufacturer       ON manufacturer.id = product.manufacturerId
-                  JOIN PaperGroup                   AS paperGroup         ON paperGroup.id = product.paperGroupId
-                  JOIN PaperType                    AS paperType          ON paperType.id = product.paperTypeId
-                  JOIN Packaging                    AS packaging          ON packaging.id = sg.packagingId
-             LEFT JOIN PaperColorGroup              AS paperColorGroup    ON paperColorGroup.id = sg.paperColorGroupId
-             LEFT JOIN PaperColor                   AS paperColor         ON paperColor.id = sg.paperColorId
-             LEFT JOIN PaperPattern                 AS paperPattern       ON paperPattern.id = sg.paperPatternId
-             LEFT JOIN PaperCert                    AS paperCert          ON paperCert.id = sg.paperCertId
-
-             # 수량
-            ## 재고그룹
-         LEFT JOIN (
-            SELECT StockGroup.*, IFNULL(SUM(StockGroupEvent.change), 0) AS \`change\`
-              FROM StockGroup
-              JOIN StockGroupEvent ON StockGroupEvent.stockGroupId = StockGroup.id
-             WHERE StockGroupEvent.status = ${StockGroupEventStatus.PENDING}
-            GROUP BY StockGroup.id
-          ) AS StockGroupPendingEvent ON StockGroupPendingEvent.id = sg.id
-
-            ## 재고
-         LEFT JOIN Stock                    AS s                  ON s.productId = sg.productId
-                                                                  AND s.packagingId = sg.packagingId
-                                                                  AND s.grammage = sg.grammage
-                                                                  AND s.sizeX = sg.sizeX
-                                                                  AND s.sizeY = sg.sizeY
-                                                                  AND IF(s.paperColorGroupId IS NULL, s.paperColorGroupId IS NULL, s.paperColorGroupId = sg.paperColorGroupId)
-                                                                  AND IF(s.paperColorId IS NULL, s.paperColorId IS NULL, s.paperColorId = sg.paperColorId)
-                                                                  AND IF(s.paperPatternId IS NULL, s.paperPatternId IS NULL, s.paperPatternId = sg.paperPatternId)
-                                                                  AND IF(s.paperCertId IS NULL, s.paperCertId IS NULL, s.paperCertId = sg.paperCertId)
-                                                                  AND s.warehouseId = sg.warehouseId
-                                                                  AND s.companyId = sg.companyId
-                                                                  # 주문관련은 필터링 필요
-
-                 WHERE c.id = ${companyId}
-                   AND w.isPublic = ${true}
-                   AND sg.isArrived IS NULL
-                   ${companyConditionQuery}
-
-            GROUP BY sg.id
-
-                 ${limit}
-            `;
-
-    const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
-    for (const stockGroup of stockGroups) {
-      stockGroup.totalQuantity = Number(stockGroup.totalQuantity);
-      stockGroup.availableQuantity = Number(stockGroup.availableQuantity);
-      delete stockGroup.total;
+        return {
+            items: stockGroups.map(sg => {
+                return {
+                    warehouse: sg.warehouseId ? {
+                        id: sg.warehouseId,
+                        name: sg.warehouseName,
+                        address: sg.warehouseAddress,
+                        code: sg.warehouseCode,
+                        isPublic: sg.warehouseIsPublic,
+                    } : null,
+                    product: {
+                        id: sg.productId,
+                        paperDomain: {
+                            id: sg.paperDomainId,
+                            name: sg.paperDomainName,
+                        },
+                        paperGroup: {
+                            id: sg.paperGroupId,
+                            name: sg.paperGroupName,
+                        },
+                        manufacturer: {
+                            id: sg.manufacturerId,
+                            name: sg.manufacturerName,
+                        },
+                        paperType: {
+                            id: sg.paperTypeId,
+                            name: sg.paperTypeName,
+                        },
+                    },
+                    packaging: {
+                        id: sg.packagingId,
+                        type: sg.packagingType,
+                        packA: sg.packagingPackA,
+                        packB: sg.packagingPackB,
+                    },
+                    grammage: sg.grammage,
+                    sizeX: sg.sizeX,
+                    sizeY: sg.sizeY,
+                    paperColorGroup: sg.paperColorGroupId ? {
+                        id: sg.paperColorGroupId,
+                        name: sg.paperColorGroupName,
+                    } : null,
+                    paperColor: sg.paperColorId ? {
+                        id: sg.paperColorId,
+                        name: sg.paperColorName,
+                    } : null,
+                    paperPattern: sg.paperPatternId ? {
+                        id: sg.paperPatternId,
+                        name: sg.paperPatternName,
+                    } : null,
+                    paperCert: sg.paperCertId ? {
+                        id: sg.paperCertId,
+                        name: sg.paperCertName,
+                    } : null,
+                    plan: null, // 거래처 재고는 도착예정재고 보이지 않음
+                    totalQuantity: Number(sg.totalQuantity),
+                    availableQuantity: Number(sg.availableQuantity),
+                    totalArrivalQuantity: 0,
+                    storingQuantity: 0,
+                    nonStoringQuantity: 0,
+                }
+            }),
+            total,
+        }
     }
-
-    return { stockGroups, total };
-  }
 }

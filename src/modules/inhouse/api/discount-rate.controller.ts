@@ -73,46 +73,47 @@ export class DiscountRateController {
         @Request() req: AuthType,
         @Query() dto: DiscountRateListDto,
     ): Promise<DiscountRateListResponse> {
-        const { conditions, total } = await this.retrive.getList(
-            req.user.companyId,
-            dto.discountRateType,
-            dto.companyRegistrationNumber,
-            dto.skip,
-            dto.take,
-        );
+        // const { conditions, total } = await this.retrive.getList(
+        //     req.user.companyId,
+        //     dto.discountRateType,
+        //     dto.companyRegistrationNumber,
+        //     dto.skip,
+        //     dto.take,
+        // );
 
-        return {
-            items: conditions.map(condition => {
-                const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
-                const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+        // return {
+        //     items: conditions.map(condition => {
+        //         const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+        //         const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
 
-                return {
-                    id: condition.id,
-                    partner: condition.partner,
-                    packagingType: condition.packagingType,
-                    paperDomain: condition.paperDomain,
-                    manufacturer: condition.manufacturer,
-                    paperGroup: condition.paperGroup,
-                    paperType: condition.paperType,
-                    grammage: condition.grammage,
-                    sizeX: condition.sizeX,
-                    sizeY: condition.sizeY,
-                    paperColorGroup: condition.paperColorGroup,
-                    paperColor: condition.paperColor,
-                    paperPattern: condition.paperPattern,
-                    paperCert: condition.paperCert,
-                    basicDiscountRate: {
-                        discountRate: basic.discountRate,
-                        discountRateUnit: basic.discountRateUnit,
-                    },
-                    specialDiscountRate: {
-                        discountRate: special.discountRate,
-                        discountRateUnit: special.discountRateUnit,
-                    },
-                }
-            }),
-            total,
-        };
+        //         return {
+        //             id: condition.id,
+        //             partner: condition.partner,
+        //             packagingType: condition.packagingType,
+        //             paperDomain: condition.paperDomain,
+        //             manufacturer: condition.manufacturer,
+        //             paperGroup: condition.paperGroup,
+        //             paperType: condition.paperType,
+        //             grammage: condition.grammage,
+        //             sizeX: condition.sizeX,
+        //             sizeY: condition.sizeY,
+        //             paperColorGroup: condition.paperColorGroup,
+        //             paperColor: condition.paperColor,
+        //             paperPattern: condition.paperPattern,
+        //             paperCert: condition.paperCert,
+        //             basicDiscountRate: {
+        //                 discountRate: basic.discountRate,
+        //                 discountRateUnit: basic.discountRateUnit,
+        //             },
+        //             specialDiscountRate: {
+        //                 discountRate: special.discountRate,
+        //                 discountRateUnit: special.discountRateUnit,
+        //             },
+        //         }
+        //     }),
+        //     total,
+        // };
+        return null;
     }
 
     @Get('/:discountRateConditionId')
@@ -128,33 +129,34 @@ export class DiscountRateController {
             param.discountRateConditionId,
         );
 
-        const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
-        const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+        // const basic = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+        // const special = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
 
-        return {
-            id: condition.id,
-            partner: condition.partner,
-            packagingType: condition.packagingType,
-            paperDomain: condition.paperDomain,
-            manufacturer: condition.manufacturer,
-            paperGroup: condition.paperGroup,
-            paperType: condition.paperType,
-            grammage: condition.grammage,
-            sizeX: condition.sizeX,
-            sizeY: condition.sizeY,
-            paperColorGroup: condition.paperColorGroup,
-            paperColor: condition.paperColor,
-            paperPattern: condition.paperPattern,
-            paperCert: condition.paperCert,
-            basicDiscountRate: {
-                discountRate: basic.discountRate,
-                discountRateUnit: basic.discountRateUnit,
-            },
-            specialDiscountRate: {
-                discountRate: special.discountRate,
-                discountRateUnit: special.discountRateUnit,
-            },
-        }
+        // return {
+        //     id: condition.id,
+        //     partner: condition.partner,
+        //     packagingType: condition.packagingType,
+        //     paperDomain: condition.paperDomain,
+        //     manufacturer: condition.manufacturer,
+        //     paperGroup: condition.paperGroup,
+        //     paperType: condition.paperType,
+        //     grammage: condition.grammage,
+        //     sizeX: condition.sizeX,
+        //     sizeY: condition.sizeY,
+        //     paperColorGroup: condition.paperColorGroup,
+        //     paperColor: condition.paperColor,
+        //     paperPattern: condition.paperPattern,
+        //     paperCert: condition.paperCert,
+        //     basicDiscountRate: {
+        //         discountRate: basic.discountRate,
+        //         discountRateUnit: basic.discountRateUnit,
+        //     },
+        //     specialDiscountRate: {
+        //         discountRate: special.discountRate,
+        //         discountRateUnit: special.discountRateUnit,
+        //     },
+        // }
+        return null;
     }
 
     @Put('/:discountRateConditionId')

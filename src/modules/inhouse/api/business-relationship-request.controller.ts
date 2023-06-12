@@ -28,7 +28,7 @@ export class BusinessRelationshipRequestRequestController {
   constructor(
     private readonly retriveService: BusinessRelationshipRequestRetriveService,
     private readonly changeService: BusinessRelationshipRequestChangeService,
-  ) {}
+  ) { }
 
   @Get('received')
   @HttpCode(HttpStatus.OK)

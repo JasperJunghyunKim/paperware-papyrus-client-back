@@ -6,10 +6,13 @@ import { PlanChangeService } from '../working/service/plan-change.service';
 import { WorkingModule } from '../working/working.module';
 import { StockModule } from '../stock/stock.module';
 import { TradePriceValidator } from './service/trade-price.validator';
+import { DepositController } from './api/deposit.controller';
+import { DepositRetriveService } from './service/deposit-retrive.service';
+import { DepositChangeService } from './service/deposit-change.service';
 
 @Module({
   imports: [WorkingModule, StockModule],
-  providers: [OrderChangeService, OrderRetriveService, TradePriceValidator],
-  controllers: [OrderController],
+  providers: [OrderChangeService, OrderRetriveService, TradePriceValidator, DepositRetriveService, DepositChangeService],
+  controllers: [OrderController, DepositController],
 })
 export class TradeModule { }

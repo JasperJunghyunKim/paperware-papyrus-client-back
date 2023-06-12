@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `DepositEvent` ADD COLUMN `type` ENUM('NORMAL', 'CANCELLED') NOT NULL DEFAULT 'NORMAL';

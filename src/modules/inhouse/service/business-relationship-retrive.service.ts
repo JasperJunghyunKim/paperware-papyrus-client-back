@@ -76,10 +76,8 @@ export class BusinessRelationshipRetriveService {
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
       WHERE a.c1 = ${params.companyId}
       GROUP BY a.c1, a.c2
-      LIMIT ${params.take} OFFSET ${params.skip}
+      LIMIT ${params.take ?? 1 << 30} OFFSET ${params.skip}
       `;
-
-    console.log(items);
 
     return items.map((p) => ({
       ...p,
@@ -89,7 +87,7 @@ export class BusinessRelationshipRetriveService {
 
   async getCompactCount(params: { companyId: number }) {
     const total: { total: number }[] = await this.prisma.$queryRaw`
-      SELECT COUNT(1) AS total FROM (
+      SELECT c.*, COUNT(DISTINCT a.c1, a.c2) AS total FROM (
         SELECT
           CASE
             WHEN srcCompanyId = ${params.companyId} THEN srcCompanyId

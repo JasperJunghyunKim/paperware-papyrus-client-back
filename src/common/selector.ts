@@ -185,6 +185,7 @@ export const STOCK = {
   warehouse: {
     select: WAREHOUSE,
   },
+  planId: true,
   product: {
     select: PRODUCT,
   },
@@ -215,9 +216,6 @@ export const STOCK = {
   isSyncPrice: true,
   stockPrice: {
     select: STOCK_PRICE,
-  },
-  initialOrder: {
-    select: INITIAL_ORDER,
   },
 } satisfies Prisma.StockSelect;
 
@@ -281,60 +279,30 @@ export const STOCK_EVENT = {
   status: true,
 } satisfies Prisma.StockEventSelect;
 
-export const STOCK_GROUP = {
-  id: true,
-  company: {
-    select: COMPANY,
-  },
-  product: {
-    select: PRODUCT,
-  },
-  packaging: {
-    select: PACKAGING,
-  },
-  grammage: true,
-  sizeX: true,
-  sizeY: true,
-  paperColorGroup: {
-    select: PAPER_COLOR_GROUP,
-  },
-  paperColor: {
-    select: PAPER_COLOR,
-  },
-  paperPattern: {
-    select: PAPER_PATTERN,
-  },
-  paperCert: {
-    select: PAPER_CERT,
-  },
-  warehouse: {
-    select: WAREHOUSE,
-  },
-} satisfies Prisma.StockGroupSelect;
-
-export const STOCK_GROUP_EVENT = {
-  id: true,
-  stockGroup: {
-    select: STOCK_GROUP,
-  },
-  change: true,
-  status: true,
-} satisfies Prisma.StockGroupEventSelect;
-
-const ORDER_STOCK_BASE = {
+export const ORDER_STOCK = {
   id: true,
   orderId: true,
   dstLocation: {
     select: LOCATION,
   },
-  warehouse: {
-    select: WAREHOUSE,
+  plan: {
+    select: {
+      id: true,
+      planNo: true,
+      type: true,
+      assignStockEvent: { select: STOCK_EVENT },
+      companyId: true,
+    },
+  },
+} satisfies Prisma.OrderStockSelect;
+
+export const ORDER_DEPOSIT = {
+  id: true,
+  packaging: {
+    select: PACKAGING,
   },
   product: {
     select: PRODUCT,
-  },
-  packaging: {
-    select: PACKAGING,
   },
   grammage: true,
   sizeX: true,
@@ -352,35 +320,42 @@ const ORDER_STOCK_BASE = {
     select: PAPER_CERT,
   },
   quantity: true,
-  plan: {
+  order: {
     select: {
       id: true,
-      planNo: true,
-    },
-  },
-} satisfies Prisma.OrderStockSelect;
+      orderNo: true,
+      orderType: true,
+      status: true,
+      isEntrusted: true,
+      memo: true,
+    }
+  }
+} satisfies Prisma.OrderDepositSelect;
 
-export const ORDER_STOCK = {
-  ...ORDER_STOCK_BASE,
-  orderStock: {
-    select: ORDER_STOCK_BASE,
+export const DEPOSIT = {
+  id: true,
+  packaging: {
+    select: PACKAGING,
   },
-} satisfies Prisma.OrderStockSelect;
-
-export const ORDER_DEPOSIT = {
   product: {
     select: PRODUCT,
   },
-  packaging: true,
   grammage: true,
   sizeX: true,
   sizeY: true,
-  paperColorGroup: true,
-  paperColor: true,
-  paperPattern: true,
-  paperCert: true,
-  quantity: true,
-} satisfies Prisma.OrderDepositSelect;
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+} satisfies Prisma.DepositSelect;
 
 export const ORDER = {
   id: true,
@@ -391,6 +366,7 @@ export const ORDER = {
   dstCompany: {
     select: COMPANY,
   },
+  orderType: true,
   status: true,
   isEntrusted: true,
   memo: true,
@@ -402,6 +378,20 @@ export const ORDER = {
   },
   orderDeposit: {
     select: ORDER_DEPOSIT,
+  },
+  srcDepositEvent: {
+    include: {
+      deposit: {
+        select: DEPOSIT,
+      },
+    }
+  },
+  dstDepositEvent: {
+    include: {
+      deposit: {
+        select: DEPOSIT,
+      },
+    }
   }
 } satisfies Prisma.OrderSelect;
 
@@ -427,13 +417,17 @@ export const TASK_QUANTITY = {
 export const PLAN = {
   id: true,
   planNo: true,
+  type: true,
+  // status: true,
   company: {
     select: COMPANY,
   },
-  status: true,
   createdAt: true,
-  targetStockGroupEvent: {
-    select: STOCK_GROUP_EVENT,
+  assignStockEvent: {
+    select: STOCK_EVENT,
+  },
+  targetStockEvent: {
+    select: STOCK_EVENT,
   },
   orderStock: {
     select: {
@@ -499,3 +493,9 @@ export const INVOICE = {
     select: PLAN,
   },
 } satisfies Prisma.InvoiceSelect;
+
+export const INITIAL_PLAN = {
+  orderStock: {
+    select: ORDER_STOCK,
+  },
+} satisfies Prisma.PlanSelect;

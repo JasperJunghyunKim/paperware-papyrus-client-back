@@ -1,5 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
-import { DepositType, DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
+import {
+  DepositType,
+  DiscountType,
+  OfficialPriceType,
+  PriceUnit,
+} from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -11,8 +16,10 @@ import {
   IsPositive,
   IsString,
   Length,
+  Max,
   MaxLength,
   Min,
+  NotEquals,
   ValidateNested,
 } from 'class-validator';
 import {
@@ -26,6 +33,12 @@ import {
   OrderStockTradePriceUpdateRequest,
   TradePriceUpdateRequest,
   OrderDepositCreateRequest,
+  OrderStockAssignStockRequest,
+  OrderStockAssignStockUpdateRequest,
+  OrderDepositListQuery,
+  DepositCreateRequest,
+  OrderDepositAssignDepositCreateRequest,
+  OrderDepositAssignDepositUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -69,12 +82,12 @@ export default class OrderStockCreateRequestDto
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  warehouseId: number = null;
+  warehouseId: number | null = null;
 
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  orderStockId: number = null;
+  planId: number | null = null;
 
   @IsInt()
   @Type(() => Number)
@@ -135,61 +148,6 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
   @IsInt()
   @Type(() => Number)
   locationId: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  warehouseId: number = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  orderStockId: number = null;
-
-  @IsInt()
-  @Type(() => Number)
-  productId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  packagingId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  grammage: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  sizeX = 0;
-
-  @IsInt()
-  @Type(() => Number)
-  sizeY: number;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperColorGroupId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperColorId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperPatternId: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  paperCertId: number | null = null;
-
-  @IsInt()
-  @Type(() => Number)
-  quantity: number;
 
   @IsOptional()
   @IsString()
@@ -271,7 +229,9 @@ export class OrderStockArrivalCreateRequestDto
 
   validate() {
     if (!this.isSyncPrice && !this.stockPrice) {
-      throw new BadRequestException(`매입금액 동기화 미사용시 재고금액을 입력해야합니다.`);
+      throw new BadRequestException(
+        `매입금액 동기화 미사용시 재고금액을 입력해야합니다.`,
+      );
     }
     if (this.isSyncPrice) this.stockPrice = null;
   }
@@ -284,8 +244,16 @@ export class OrderIdDto {
   readonly orderId: number;
 }
 
+export class IdDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly id: number;
+}
+
 /** 거래금액 수정 */
-export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBundleUpdateRequest {
+export class UpdateOrderStockTradeAltBundleDto
+  implements OrderStockTradeAltBundleUpdateRequest {
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -302,8 +270,8 @@ export class UpdateOrderStockTradeAltBundleDto implements OrderStockTradeAltBund
   readonly altQuantity: number;
 }
 
-
-export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdateRequest {
+export class UpdateOrderStockTradePriceDto
+  implements OrderStockTradePriceUpdateRequest {
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -342,20 +310,73 @@ export class UpdateOrderStockTradePriceDto implements OrderStockTradePriceUpdate
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateOrderStockTradeAltBundleDto)
-  readonly orderStockTradeAltBundle: UpdateOrderStockTradeAltBundleDto | null = null;
+  readonly orderStockTradeAltBundle: UpdateOrderStockTradeAltBundleDto | null =
+    null;
+}
+
+export class UpdateOrderDepositTradeAltBundleDto
+  implements OrderStockTradeAltBundleUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeX: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altSizeY: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly altQuantity: number;
+}
+
+export class UpdateOrderDepositTradePriceDto
+  implements OrderStockTradePriceUpdateRequest {
+  @IsEnum(OfficialPriceType)
+  readonly officialPriceType: OfficialPriceType;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly officialPrice: number;
+
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
+
+  @IsEnum(DiscountType)
+  readonly discountType: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly discountPrice: number = 0;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  readonly unitPrice: number = 0;
+
+  @IsEnum(PriceUnit)
+  readonly unitPriceUnit: PriceUnit;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly processPrice: number;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderDepositTradeAltBundleDto)
+  readonly orderDepositTradeAltBundle: UpdateOrderDepositTradeAltBundleDto | null =
+    null;
 }
 
 export class UpdateTradePriceDto implements TradePriceUpdateRequest {
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly orderId: number;
-
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly companyId: number;
-
   @IsNumber()
   @Type(() => Number)
   @Min(0)
@@ -371,6 +392,12 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @ValidateNested()
   @Type(() => UpdateOrderStockTradePriceDto)
   readonly orderStockTradePrice: UpdateOrderStockTradePriceDto | null = null;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => UpdateOrderDepositTradePriceDto)
+  readonly orderDepositTradePrice: UpdateOrderDepositTradePriceDto | null = null;
 }
 
 /** 보관등록 */
@@ -439,4 +466,173 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   @IsPositive()
   readonly quantity: number;
 
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  readonly memo: string = '';
+}
+
+/** 보관량 목록 */
+export class OrderDepositListQueryDto implements OrderDepositListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = 30;
+
+  @IsEnum(DepositType)
+  readonly type: DepositType;
+
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string | null = null;
+}
+
+/** 보관량 증감*/
+export class DepositCreateDto implements DepositCreateRequest {
+  @IsEnum(DepositType)
+  readonly type: DepositType;
+
+  @IsString()
+  @Length(10, 10)
+  readonly partnerCompanyRegistrationNumber: string;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @NotEquals(0)
+  readonly quantity: number;
+
+  @IsString()
+  @Length(1, 200)
+  readonly memo: string;
+}
+
+/** 원지 수정 */
+export class OrderStockAssignStockUpdateRequestDto
+  implements OrderStockAssignStockUpdateRequest {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  warehouseId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  planId: number | null = null;
+  @IsInt()
+  @Type(() => Number)
+  productId: number;
+  @IsInt()
+  @Type(() => Number)
+  packagingId: number;
+  @IsInt()
+  @Type(() => Number)
+  grammage: number;
+  @IsInt()
+  @Type(() => Number)
+  sizeX: number;
+  @IsInt()
+  @Type(() => Number)
+  sizeY: number;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperColorGroupId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperColorId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperPatternId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  paperCertId: number | null = null;
+  @IsInt()
+  @Type(() => Number)
+  quantity: number;
+}
+
+/** 보관매입/매출 등록 */
+export class OrderDepositAssignDepositCreateDto implements OrderDepositAssignDepositCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly depositId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+}
+
+/** 보관매입/매출 수정 */
+export class OrderDepositAssignDepositUpdateDto implements OrderDepositAssignDepositUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly depositId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
 }
