@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -20,6 +21,7 @@ import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   IdDto,
+  OrderCuttingCreateDto,
   OrderDepositAssignDepositCreateDto,
   OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
@@ -453,5 +455,24 @@ export class OrderController {
     @Param() idDto: IdDto,
   ) {
     await this.change.deleteOrderDeposit(req.user.companyId, idDto.id);
+  }
+
+  /** 외주공정 */
+  @Post('/cutting')
+  @UseGuards(AuthGuard)
+  async createOrderCutting(
+    @Request() req: AuthType,
+    @Body() dto: OrderCuttingCreateDto,
+  ) {
+    throw new NotImplementedException();
+  }
+
+  /** 기타거래 */
+  @Post('/etc')
+  @UseGuards(AuthGuard)
+  async createOrderEtc(
+    @Request() req: AuthType,
+  ) {
+    throw new NotImplementedException();
   }
 }

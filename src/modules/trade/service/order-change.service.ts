@@ -1453,4 +1453,32 @@ export class OrderChangeService {
       await this.depositChangeService.deleteOrderDepositEventTx(tx, orderDepositEvent.id);
     });
   }
+
+  /** 외주공정 */
+  async createOrderCutting(
+    params: {
+      srcCompanyId: number;
+      dstCompanyId: number;
+      srcLocationId: number;
+      dstLocationId: number;
+      memo: string;
+      srcWantedDate: string;
+      dstWantedDate: string;
+      // 부모재고 선택
+      warehouseId: number | null;
+      planId: number | null;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+    },
+  ) {
+    throw new NotImplementedException();
+  }
 }
