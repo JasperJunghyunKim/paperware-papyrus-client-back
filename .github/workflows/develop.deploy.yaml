@@ -76,3 +76,4 @@ jobs:
           wait-for-service-stability: true
           codedeploy-appspec: appspec.json
           codedeploy-application: paperware-client-develop-back
+          codedeploy-deployment-group: paperware-client-develop-back
