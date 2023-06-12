@@ -240,6 +240,10 @@ export class StockChangeService {
       if (!stock || stock.companyId !== companyId) throw new NotFoundException(`존재하지 않는 재고입니다.`);
       if (stock.planId !== null) throw new ConflictException(`도착예정재고는 재고증감을 할 수 없습니다.`);
 
+      if (quantity < 0) {
+        if (stock.cachedQuantityAvailable < Math.abs(quantity)) throw new ConflictException(`가용수량 이하로 감소시킬 수 없습니다.`);
+      }
+
       await tx.stockEvent.create({
         data: {
           stock: {
