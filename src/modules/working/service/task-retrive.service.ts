@@ -4,10 +4,18 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class TaskRetriveService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getTaskList(params: { planId: number }) {
-    return [];
+    return await this.prisma.task.findMany({
+      select: Selector.TASK,
+      where: {
+        planId: params.planId,
+        status: {
+          not: 'CANCELLED',
+        },
+      },
+    });
   }
 
   async getTaskById(id: number) {
@@ -20,6 +28,13 @@ export class TaskRetriveService {
   }
 
   async getTaskListCount(params: { planId: number }) {
-    return 0;
+    return await this.prisma.task.count({
+      where: {
+        planId: params.planId,
+        status: {
+          not: 'CANCELLED',
+        },
+      },
+    });
   }
 }

@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetriveService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getPlanList(params: {
     companyId: number;
@@ -18,7 +18,7 @@ export class PlanRetriveService {
       where: {
         companyId: params.companyId,
         status: {
-          not: 'CANCELLED',
+          notIn: ['CANCELLED', 'PREPARING'],
         },
       },
       skip,
@@ -31,7 +31,7 @@ export class PlanRetriveService {
       where: {
         companyId: params.companyId,
         status: {
-          not: 'CANCELLED',
+          notIn: ['CANCELLED', 'PREPARING'],
         },
       },
     });
@@ -53,39 +53,38 @@ export class PlanRetriveService {
   }): Promise<StockEvent[]> {
     const { planId, skip, take } = params;
 
-    // const planInput = await this.prisma.stockEvent.findMany({
-    //   select: Selector.STOCK_EVENT,
-    //   where: {
-    //     planIn: {
-    //       some: {
-    //         id: planId,
-    //       },
-    //     },
-    //   },
-    //   skip,
-    //   take,
-    //   orderBy: {
-    //     id: 'desc',
-    //   },
-    // });
+    const planInput = await this.prisma.stockEvent.findMany({
+      select: Selector.STOCK_EVENT,
+      where: {
+        plan: {
+          some: {
+            id: planId,
+          },
+        },
+      },
+      skip,
+      take,
+      orderBy: {
+        id: 'desc',
+      },
+    });
 
-    // return planInput.map(Util.serialize);
-    return [];
+    return planInput.map(Util.serialize);
   }
 
   async getPlanInputCount(params: { planId: number }) {
-    // const { planId } = params;
+    const { planId } = params;
 
-    // const count = await this.prisma.stockEvent.count({
-    //   where: {
-    //     planIn: {
-    //       some: {
-    //         id: planId,
-    //       },
-    //     },
-    //   },
-    // });
+    const count = await this.prisma.stockEvent.count({
+      where: {
+        plan: {
+          some: {
+            id: planId,
+          },
+        },
+      },
+    });
 
-    return 0;
+    return count;
   }
 }

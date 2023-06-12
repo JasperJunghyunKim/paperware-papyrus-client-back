@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class InvoiceRetriveService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getList(params: {
     skip?: number;
@@ -27,8 +27,7 @@ export class InvoiceRetriveService {
       select: Selector.INVOICE,
     });
 
-    // return invoices.map(Util.serialize);
-    return []
+    return invoices.map(Util.serialize);
   }
 
   async getCount(params: {

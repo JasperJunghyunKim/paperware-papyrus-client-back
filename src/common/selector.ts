@@ -292,6 +292,7 @@ export const ORDER_STOCK = {
       type: true,
       assignStockEvent: { select: STOCK_EVENT },
       companyId: true,
+      status: true,
     },
   },
 } satisfies Prisma.OrderStockSelect;
@@ -328,8 +329,8 @@ export const ORDER_DEPOSIT = {
       status: true,
       isEntrusted: true,
       memo: true,
-    }
-  }
+    },
+  },
 } satisfies Prisma.OrderDepositSelect;
 
 export const DEPOSIT = {
@@ -384,15 +385,15 @@ export const ORDER = {
       deposit: {
         select: DEPOSIT,
       },
-    }
+    },
   },
   dstDepositEvent: {
     include: {
       deposit: {
         select: DEPOSIT,
       },
-    }
-  }
+    },
+  },
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -418,7 +419,7 @@ export const PLAN = {
   id: true,
   planNo: true,
   type: true,
-  // status: true,
+  status: true,
   company: {
     select: COMPANY,
   },
@@ -464,6 +465,7 @@ export const SHIPPING = {
 export const INVOICE = {
   id: true,
   invoiceNo: true,
+  invoiceStatus: true,
   shipping: {
     select: SHIPPING,
   },
