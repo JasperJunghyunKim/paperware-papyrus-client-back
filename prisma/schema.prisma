@@ -215,6 +215,8 @@ model StockEvent {
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
   plan              Plan[]           @relation("TargetStockEvent")
   assignPlan        Plan[]           @relation("AssignStockEvent")
+  orderCuttingId    Int?
+  orderCutting      OrderCutting?    @relation(fields: [orderCuttingId], references: [id])
 }
 
 // User
@@ -299,15 +301,16 @@ model BusinessRelationshipRequest {
 }
 
 model Location {
-  id         Int          @id @default(autoincrement())
-  name       String
-  code       String?
-  address    String       @default("") @db.VarChar(500)
-  companyId  Int
-  company    Company      @relation(fields: [companyId], references: [id])
-  isPublic   Boolean
-  isDeleted  Boolean      @default(false)
-  orderStock OrderStock[] // 정상거래의 도착지
+  id           Int            @id @default(autoincrement())
+  name         String
+  code         String?
+  address      String         @default("") @db.VarChar(500)
+  companyId    Int
+  company      Company        @relation(fields: [companyId], references: [id])
+  isPublic     Boolean
+  isDeleted    Boolean        @default(false)
+  orderStock   OrderStock[] // 정상거래의 도착지
+  OrderCutting OrderCutting[]
 
   @@unique([companyId, code])
 }
@@ -387,6 +390,8 @@ enum OrderStatus {
 enum OrderType {
   NORMAL
   DEPOSIT
+  OUTSOURCE_PROCESS
+  ETC
 }
 
 model Order {
@@ -400,12 +405,13 @@ model Order {
   status                 OrderStatus   @default(ORDER_PREPARING)
   isEntrusted            Boolean       @default(false)
   memo                   String
-  wantedDate             DateTime?
   stockAcceptedCompanyId Int?
   isStockRejected        Boolean       @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
   orderDeposit           OrderDeposit?
+  orderCutting           OrderCutting?
+  orderEtc               OrderEtc?
 }
 
 model OrderStock {
@@ -415,9 +421,30 @@ model OrderStock {
   dstLocationId    Int?
   dstLocation      Location?    @relation(fields: [dstLocationId], references: [id])
   isDirectShipping Boolean      @default(false)
+  wantedDate       DateTime?
   plan             Plan[]
   // 정상거래의 주문 원지 정보
   stockEvent       StockEvent[]
+}
+
+model OrderCutting {
+  id               Int          @id @default(autoincrement())
+  orderId          Int          @unique
+  order            Order        @relation(fields: [orderId], references: [id])
+  dstLocationId    Int?
+  dstLocation      Location?    @relation(fields: [dstLocationId], references: [id])
+  isDirectShipping Boolean      @default(false)
+  wantedDate       DateTime?
+  plan             Plan[]
+  // 외주공정의 주문 원지 정보
+  stockEvent       StockEvent[]
+}
+
+model OrderEtc {
+  id      Int    @id @default(autoincrement())
+  orderId Int    @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+  item    String
 }
 
 model TradePrice {
@@ -500,22 +527,24 @@ enum PlanStatus {
 }
 
 model Plan {
-  id                 Int          @id @default(autoincrement())
-  planNo             String       @unique
+  id                 Int           @id @default(autoincrement())
+  planNo             String        @unique
   type               PlanType
   companyId          Int
-  company            Company      @relation(fields: [companyId], references: [id])
-  status             PlanStatus   @default(PREPARING)
-  createdAt          DateTime     @default(now())
+  company            Company       @relation(fields: [companyId], references: [id])
+  status             PlanStatus    @default(PREPARING)
+  createdAt          DateTime      @default(now())
   task               Task[]
   invoice            Invoice[]
   assignStockEventId Int?
-  assignStockEvent   StockEvent?  @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
-  targetStockEvent   StockEvent[] @relation("TargetStockEvent")
+  assignStockEvent   StockEvent?   @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
+  targetStockEvent   StockEvent[]  @relation("TargetStockEvent")
   stock              Stock[]
-  orderStock         OrderStock?  @relation(fields: [orderStockId], references: [id])
+  orderStock         OrderStock?   @relation(fields: [orderStockId], references: [id])
   orderStockId       Int?
-  initialStock       Stock[]      @relation("InitialPlan")
+  initialStock       Stock[]       @relation("InitialPlan")
+  orderCuttingId     Int?
+  orderCutting       OrderCutting? @relation(fields: [orderCuttingId], references: [id])
 }
 
 model Task {

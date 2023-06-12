@@ -193,10 +193,10 @@ export class OrderChangeService {
           status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo: params.memo,
-          wantedDate: params.wantedDate,
           orderStock: {
             create: {
               dstLocationId: params.locationId,
+              wantedDate: params.wantedDate,
               plan: {
                 connect: [dstPlan.id, srcPlan.id].map((p) => ({ id: p })),
               },
@@ -274,7 +274,6 @@ export class OrderChangeService {
           id: params.orderId,
         },
         data: {
-          wantedDate: params.wantedDate,
           memo: params.memo,
         },
         select: {
@@ -290,6 +289,7 @@ export class OrderChangeService {
           orderId: params.orderId,
         },
         data: {
+          wantedDate: params.wantedDate,
           dstLocationId: params.locationId,
         },
         select: {
