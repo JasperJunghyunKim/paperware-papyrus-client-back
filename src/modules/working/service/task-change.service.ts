@@ -356,36 +356,6 @@ export class TaskChangeService {
               quantity: result.quantity,
             },
           });
-        } else if (task.plan.type === 'INHOUSE_PROCESS') {
-          // 내부 공정은 도착예정목록을 생성
-          const stock = await tx.stock.create({
-            data: {
-              serial: Util.serialP(task.plan.company.invoiceCode),
-              companyId: task.plan.company.id,
-              initialPlanId: task.plan.id,
-              planId: task.plan.id,
-              warehouseId: null,
-              productId: task.plan.assignStockEvent.stock.product.id,
-              packagingId: packaging.id,
-              grammage: task.plan.assignStockEvent.stock.grammage,
-              sizeX: result.sizeX,
-              sizeY: result.sizeY,
-              paperColorGroupId:
-                task.plan.assignStockEvent.stock.paperColorGroup?.id,
-              paperColorId: task.plan.assignStockEvent.stock.paperColor?.id,
-              paperPatternId: task.plan.assignStockEvent.stock.paperPattern?.id,
-              paperCertId: task.plan.assignStockEvent.stock.paperCert?.id,
-              cachedQuantity: result.quantity,
-            },
-            select: { id: true },
-          });
-          await tx.stockEvent.create({
-            data: {
-              stockId: stock.id,
-              change: result.quantity,
-              status: 'PENDING',
-            },
-          });
         }
       }
       return await tx.task.update({
