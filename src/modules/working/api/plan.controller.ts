@@ -12,24 +12,19 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { PlanInputListResponse } from 'src/@shared/api';
+import { TaskListResponse } from 'src/@shared/api/working/task.response';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { PlanChangeService } from '../service/plan-change.service';
 import { PlanRetriveService } from '../service/plan-retrive.service';
+import { TaskRetriveService } from '../service/task-retrive.service';
 import {
   PlanCreateRequestDto,
   PlanInputListQueryDto,
   PlanListQueryDto,
   RegisterInputStockRequestDto,
 } from './dto/plan.request';
-import { TaskRetriveService } from '../service/task-retrive.service';
-import { TaskListResponse } from 'src/@shared/api/working/task.response';
-import { query } from 'express';
-import {
-  PlanInputListQuery,
-  PlanInputListResponse,
-  PlanListResponse,
-} from 'src/@shared/api';
 
 @Controller('working')
 export class PlanController {
@@ -50,6 +45,7 @@ export class PlanController {
       skip: query.skip,
       take: query.take,
       companyId: req.user.companyId,
+      type: query.type,
     });
 
     const total = await this.planRetriveService.getPlanListCount({
