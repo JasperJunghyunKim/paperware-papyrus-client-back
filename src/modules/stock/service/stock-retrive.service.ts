@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   PackagingType,
   PlanStatus,
@@ -10,6 +10,7 @@ import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
 import { StockGroup } from 'src/@shared/models';
 import { Model } from 'src/@shared';
+import { STOCK } from 'src/common/selector';
 
 interface StockGroupFromDB {
   warehouseId: number;
@@ -768,5 +769,18 @@ export class StockRetriveService {
       nonStoringQuantity,
       storingQuantity,
     };
+  }
+
+  async getStock(companyId: number, stockId: number) {
+    const stock = await this.prisma.stock.findFirst({
+      select: STOCK,
+      where: {
+        id: stockId,
+        companyId,
+      }
+    });
+    if (!stock) throw new NotFoundException(`존재하지 않는 재고입니다.`);
+
+    return stock;
   }
 }
