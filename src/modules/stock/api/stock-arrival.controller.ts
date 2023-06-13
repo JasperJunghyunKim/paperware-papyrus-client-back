@@ -14,7 +14,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockArrivalChangeService } from '../service/stock-arrival-change.service';
 import { StockArrivalRetriveService } from '../service/stock-arrival-retrive.service';
-import { StockArrivalApplyDto, StockArrivalListQueryDto } from './dto/stock-arrival.request';
+import { StockArrivalApplyDto, StockArrivalListQueryDto, StockArrivalPriceUpdateDto } from './dto/stock-arrival.request';
 
 @Controller('/stock-arrival')
 export class StockArrivalController {
@@ -46,17 +46,25 @@ export class StockArrivalController {
     @UseGuards(AuthGuard)
     async applyStockArrival(
         @Request() req: AuthType,
-        @Param('planId') planId: number,
         @Body() dto: StockArrivalApplyDto,
     ): Promise<any> {
         // TODO: 권한 체크
-        throw new NotImplementedException();
-        await this.change.applyStockArrival(planId, req.user.companyId, dto.warehouseId);
+        await this.change.applyStockArrival({
+            companyId: req.user.companyId,
+            ...dto,
+        });
     }
 
     @Put('/price')
     @UseGuards(AuthGuard)
-    async updateStockArrivalPrice() {
-        throw new NotImplementedException();
+    async updateStockArrivalPrice(
+        @Request() req: AuthType,
+        @Body() dto: StockArrivalPriceUpdateDto,
+    ) {
+        dto.validate();
+        await this.change.updateStockArrivalPrice({
+            companyId: req.user.companyId,
+            ...dto,
+        });
     }
 }

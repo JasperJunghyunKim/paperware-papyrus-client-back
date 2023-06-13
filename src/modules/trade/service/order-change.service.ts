@@ -896,7 +896,7 @@ export class OrderChangeService {
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
           cachedQuantity: params.quantity,
-          stockPrice: {
+          stockPrice: params.isSyncPrice ? undefined : {
             create: {
               ...params.stockPrice,
             },
