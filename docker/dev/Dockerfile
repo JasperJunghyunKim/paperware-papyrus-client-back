@@ -20,6 +20,7 @@ FROM base AS builder
 ARG DEVELOP_ENV
 
 ENV .env.development=$DEVELOP_ENV
+RUN echo $DEVELOP_ENV > .env.development
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

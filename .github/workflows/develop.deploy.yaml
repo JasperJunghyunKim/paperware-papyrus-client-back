@@ -36,11 +36,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: paperware-client-develop-back
           IMAGE_TAG: ${{ github.sha }}
-          build-args: |
-            DEVELOP_ENV=${{ secrets.DEVELOP_ENV }}
         run: |
           # Build a docker container and push it to ECR so that it can be deployed to ECS.
-          docker buildx build --platform=linux/amd64 -t paperware-client-develop-back -f ./docker/dev/Dockerfile . --load
+          docker buildx build --build-arg DEVELOP_ENV=${{ secrets.DEVELOP_ENV }} --platform=linux/amd64 -t paperware-client-develop-back -f ./docker/dev/Dockerfile . --load
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
