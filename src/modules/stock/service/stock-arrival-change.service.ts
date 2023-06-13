@@ -34,10 +34,11 @@ export class StockArrivalChangeService {
 
       const storingStock = arrivalStocks.find(stock => stock.planId === stock.initialPlanId);
 
-      // planId => null
+      // planId => null, warehouse => 등록
       await tx.stock.updateMany({
         data: {
           planId: null,
+          warehouseId,
         },
         where: {
           id: {
