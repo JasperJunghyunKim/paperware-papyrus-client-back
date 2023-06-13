@@ -260,7 +260,18 @@ export class OrderController {
     });
 
     return {
-      items: [],
+      items: items.map(item => {
+        return Util.serialize({
+          ...item,
+          // TODO: plan ~ nonStoringQuantity
+          plan: null,
+          totalQuantity: 0,
+          availableQuantity: 0,
+          totalArrivalQuantity: 0,
+          storingQuantity: 0,
+          nonStoringQuantity: 0,
+        })
+      }),
       total,
     };
   }

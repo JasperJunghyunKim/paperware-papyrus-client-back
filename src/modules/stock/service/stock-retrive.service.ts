@@ -378,10 +378,10 @@ export class StockRetriveService {
             id: sg.planId,
             planNo: sg.planNo,
             orderStock: sg.orderStockId ? {
+              wantedDate: sg.wantedDate,
               order: {
                 id: sg.orderId,
                 orderNo: sg.orderNo,
-                wantedDate: sg.wantedDate,
                 partnerCompany: {
                   id: sg.partnerCompanyId,
                   businessName: sg.partnerCompanyBusinessName,
