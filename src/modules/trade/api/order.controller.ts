@@ -487,7 +487,8 @@ export class OrderController {
     @Request() req: AuthType,
     @Body() dto: OrderCuttingCreateDto,
   ) {
-    throw new NotImplementedException();
+    const order = await this.change.createOrderCutting({ ...dto });
+    return order;
   }
 
   /** 기타거래 */
