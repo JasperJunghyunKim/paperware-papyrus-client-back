@@ -486,7 +486,7 @@ export class StockRetriveService {
 
   async getStockGroupQuantity(params: {
     warehouseId: number | null;
-    initialOrderId: number | null;
+    planId: number | null;
     productId: number | null;
     packagingId: number | null;
     grammage: number | null;
@@ -501,7 +501,7 @@ export class StockRetriveService {
       where: {
         stock: {
           warehouseId: params.warehouseId,
-          // initialOrderId: params.initialOrderId,
+          planId: params.planId,
           productId: params.productId,
           packagingId: params.packagingId,
           grammage: params.grammage,
@@ -514,10 +514,35 @@ export class StockRetriveService {
         },
       },
       select: {
+        stock: true,
         change: true,
         status: true,
       },
     });
 
+    // 일반재고
+    const availableQuantity = quantity.filter(e => e.stock.planId === null && e.status !== 'CANCELLED').reduce((acc, cur) => {
+      return acc + cur.change;
+    }, 0);
+    const totalQuantity = quantity.filter(e => e.stock.planId === null && e.status === 'NORMAL').reduce((acc, cur) => {
+      return acc + cur.change;
+    }, 0);
+
+    // 도착예정재고
+    const totalArrivalQuantity = quantity.filter(e => e.stock.planId !== null && e.status === 'PENDING' && e.change > 0).reduce((acc, cur) => {
+      return acc + cur.change;
+    }, 0);
+    const nonStoringQuantity = -quantity.filter(e => e.stock.planId !== null && e.status === 'PENDING' && e.change < 0).reduce((acc, cur) => {
+      return acc + cur.change;
+    }, 0);
+    const storingQuantity = totalArrivalQuantity - nonStoringQuantity;
+
+    return {
+      availableQuantity,
+      totalQuantity,
+      totalArrivalQuantity,
+      nonStoringQuantity,
+      storingQuantity,
+    };
   }
 }

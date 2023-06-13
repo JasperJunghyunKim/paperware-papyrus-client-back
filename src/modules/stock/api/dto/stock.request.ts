@@ -264,7 +264,7 @@ export class StockGroupQuantityQueryDto implements StockGroupQuantityQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  readonly initialOrderId: number | null = null;
+  readonly planId: number | null = null;
 
   @IsOptional()
   @IsInt()

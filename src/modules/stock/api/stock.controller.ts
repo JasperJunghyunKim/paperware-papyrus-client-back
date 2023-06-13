@@ -16,6 +16,7 @@ import {
   IdDto,
   StockCreateRequestDto,
   StockGroupListRequestDto,
+  StockGroupQuantityQueryDto,
   StockListRequestDto,
   StockQuantityChangeDto,
 } from './dto/stock.request';
@@ -23,6 +24,7 @@ import { StockRetriveService } from '../service/stock-retrive.service';
 import {
   StockDetailResponse,
   StockGroupListResponse,
+  StockGroupQuantityResponse,
   StockListResponse,
 } from 'src/@shared/api/stock/stock.response';
 import { Util } from 'src/common';
@@ -119,6 +121,18 @@ export class StockController {
         dto.take,
         dto.planId,
       );
+
+    return result;
+  }
+
+  /** 재고그룹 수량 조회 */
+  @Get('/group/quantity')
+  @UseGuards(AuthGuard)
+  async getStockGroupQuantity(
+    @Request() req: AuthType,
+    @Query() dto: StockGroupQuantityQueryDto,
+  ): Promise<StockGroupQuantityResponse> {
+    const result = await this.stockRetriveService.getStockGroupQuantity({ ...dto });
 
     return result;
   }
