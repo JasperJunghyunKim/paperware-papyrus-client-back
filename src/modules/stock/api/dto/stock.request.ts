@@ -16,6 +16,7 @@ import {
   ArrivalStockCreateRequest,
   StockCreateRequest,
   StockCreateStockPriceRequest,
+  StockGroupDetailQuery,
   StockGroupListQuery,
   StockGroupQuantityQuery,
   StockListQuery,
@@ -255,7 +256,66 @@ export class ArrivalStockCreateRequestDto implements ArrivalStockCreateRequest {
   readonly stockPrice: StockCreateStockPriceDto;
 }
 
+/** deprecated */
 export class StockGroupQuantityQueryDto implements StockGroupQuantityQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly warehouseId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
+}
+
+/** 재고그룹 상세 조회 */
+export class StockGroupDetailDto implements StockGroupDetailQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)

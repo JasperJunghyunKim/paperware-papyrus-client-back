@@ -4,6 +4,7 @@ import { AuthGuard } from "src/modules/auth/auth.guard";
 import { AuthType } from "src/modules/auth/auth.type";
 import { GetPartnerStockGroupListDto } from "./dto/partner-stock.request";
 import { PartnerStockRetriveService } from "../service/paertner-stock.retrive.service";
+import { StockGroupDetailDto } from "./dto/stock.request";
 
 @Controller('/partner/stock')
 export class PartnerStockController {

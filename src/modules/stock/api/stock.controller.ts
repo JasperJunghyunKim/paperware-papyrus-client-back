@@ -15,6 +15,7 @@ import {
   GetStockDto,
   IdDto,
   StockCreateRequestDto,
+  StockGroupDetailDto,
   StockGroupListRequestDto,
   StockGroupQuantityQueryDto,
   StockListRequestDto,
@@ -23,6 +24,7 @@ import {
 import { StockRetriveService } from '../service/stock-retrive.service';
 import {
   StockDetailResponse,
+  StockGroupDetailResponse,
   StockGroupListResponse,
   StockGroupQuantityResponse,
   StockListResponse,
@@ -122,6 +124,16 @@ export class StockController {
         dto.planId,
       );
 
+    return result;
+  }
+
+  @Get('/group/detail')
+  @UseGuards(AuthGuard)
+  async getStockGroupDetail(
+    @Request() req: AuthType,
+    @Query() dto: StockGroupDetailDto,
+  ): Promise<StockGroupDetailResponse> {
+    const result = await this.stockRetriveService.getStockGroup({ ...dto });
     return result;
   }
 
