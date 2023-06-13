@@ -9,16 +9,23 @@ export class PlanRetriveService {
 
   async getPlanList(params: {
     companyId: number;
+    type?: 'INHOUSE' | 'DEFAULT';
     skip?: number;
     take?: number;
   }) {
     const { skip, take } = params;
+    const type = params.type ?? 'DEFAULT';
+
     return await this.prisma.plan.findMany({
       select: Selector.PLAN,
       where: {
         companyId: params.companyId,
         status: {
-          notIn: ['CANCELLED', 'PREPARING'],
+          notIn:
+            type === 'INHOUSE' ? ['CANCELLED'] : ['CANCELLED', 'PREPARING'],
+        },
+        type: {
+          in: type === 'INHOUSE' ? ['INHOUSE_PROCESS'] : undefined,
         },
       },
       skip,

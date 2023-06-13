@@ -1,6 +1,11 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Min } from 'class-validator';
-import { PlanCreateRequest, PlanListQuery, RegisterInputStockRequest as RegisterInputStockRequest } from 'src/@shared/api';
+import {
+  PlanCreateRequest,
+  PlanListQuery,
+  PlanListQueryType,
+  RegisterInputStockRequest as RegisterInputStockRequest,
+} from 'src/@shared/api';
 
 export class PlanListQueryDto implements PlanListQuery {
   @IsOptional()
@@ -13,6 +18,9 @@ export class PlanListQueryDto implements PlanListQuery {
   @Type(() => Number)
   @Min(0)
   readonly take: number = undefined;
+  @IsOptional()
+  @Type(() => String)
+  readonly type: PlanListQueryType = 'DEFAULT';
 }
 
 export class PlanCreateRequestDto implements PlanCreateRequest {
