@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM --platform=linux/amd64 node:18-alpine AS base
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -15,7 +15,7 @@ RUN \
   else echo "Lockfile not found." && exit 1; \
   fi
 
-FROM base AS builder
+FROM --platform=linux/amd64 base AS builder
 
 ARG DEVELOP_ENV
 
@@ -28,7 +28,7 @@ COPY . .
 RUN yarn prisma generate
 RUN yarn build
 
-FROM base AS runner
+FROM --platform=arm64 base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=development

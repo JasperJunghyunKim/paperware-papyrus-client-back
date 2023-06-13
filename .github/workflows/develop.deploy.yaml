@@ -39,7 +39,7 @@ jobs:
         run: |
           # Build a docker container and push it to ECR so that it can be deployed to ECS.
           # docker build --build-arg DEVELOP_ENV=${{ secrets.DEVELOP_ENV }} -t $ECR_REPOSITORY -f ./docker/dev/Dockerfile .
-          docker buildx build --platform=linux/amd64 -t paperware-client-develop-back -f ./docker/dev/Dockerfile . --load
+          docker build -t paperware-client-develop-back -f ./docker/dev/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
