@@ -167,11 +167,10 @@ export class StockController {
     @Request() req: AuthType,
     @Param() dto: GetStockDto,
   ): Promise<StockDetailResponse> {
-    // const stock = await this.stockRetriveService.getStock(
-    //   req.user.companyId,
-    //   dto.stockId,
-    // );
-    // return Util.serialize(stock);
-    return null;
+    const stock = await this.stockRetriveService.getStock(
+      req.user.companyId,
+      dto.stockId,
+    );
+    return Util.serialize(stock);
   }
 }
