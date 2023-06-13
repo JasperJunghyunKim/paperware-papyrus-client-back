@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import { Util } from "src/common";
 import { PrismaService } from "src/core";
 import { StockQuantityChecker } from "src/modules/stock/service/stock-quantity-checker";
+import { ulid } from "ulid";
 
 @Injectable()
 export class InhouseProcessChangeService {
@@ -60,7 +62,55 @@ export class InhouseProcessChangeService {
         quantity,
       });
 
-      // 재고 생성
+      const company = await tx.company.findUnique({
+        where: {
+          id: companyId,
+        }
+      });
+
+      const plan = await tx.plan.create({
+        data: {
+          planNo: ulid(),
+          type: 'INHOUSE_PROCESS',
+          company: {
+            connect: {
+              id: company.id
+            }
+          },
+        }
+      });
+
+      // 원지 재고 생성
+      const stock = await tx.stock.create({
+        data: {
+          serial: Util.serialP(company.invoiceCode),
+          companyId: companyId,
+          initialPlanId: plan.id,
+          warehouseId: params.warehouseId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          cachedQuantity: -quantity,
+          stockEvent: {
+            create: {
+              change: -quantity,
+              status: 'PENDING',
+              assignPlan: {
+                connect: {
+                  id: plan.id,
+                }
+              }
+            }
+          }
+        },
+      });
 
     });
   }
