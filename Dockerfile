@@ -17,11 +17,11 @@ RUN \
 
 FROM --platform=linux/amd64 base AS builder
 
+WORKDIR /app
 ARG DEVELOP_ENV
 
 RUN echo $DEVELOP_ENV > .env.development
 
-WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN yarn prisma generate
