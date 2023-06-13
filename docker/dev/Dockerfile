@@ -1,5 +1,3 @@
-ARG ENV_FILE
-
 FROM node:18-alpine AS base
 
 FROM base AS deps
@@ -18,10 +16,14 @@ RUN \
   fi
 
 FROM base AS builder
+
+ARG DEVELOP_ENV
+
+ENV .env.development=$DEVELOP_ENV
+
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-COPY .env.development .env.development
 RUN yarn prisma generate
 RUN yarn build
 
