@@ -5,11 +5,11 @@ import {
     NotImplementedException,
     Param,
     Post,
+    Put,
     Query,
     Request,
     UseGuards,
 } from '@nestjs/common';
-import { Api } from 'src/@shared';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockArrivalChangeService } from '../service/stock-arrival-change.service';
@@ -42,7 +42,7 @@ export class StockArrivalController {
     //     return { items, total };
     // }
 
-    @Post('/:planId/apply')
+    @Post('/apply')
     @UseGuards(AuthGuard)
     async applyStockArrival(
         @Request() req: AuthType,
@@ -50,6 +50,13 @@ export class StockArrivalController {
         @Body() dto: StockArrivalApplyDto,
     ): Promise<any> {
         // TODO: 권한 체크
+        throw new NotImplementedException();
         await this.change.applyStockArrival(planId, req.user.companyId, dto.warehouseId);
+    }
+
+    @Put('/price')
+    @UseGuards(AuthGuard)
+    async updateStockArrivalPrice() {
+        throw new NotImplementedException();
     }
 }
