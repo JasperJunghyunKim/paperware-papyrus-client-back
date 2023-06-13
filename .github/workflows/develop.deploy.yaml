@@ -38,7 +38,6 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # Build a docker container and push it to ECR so that it can be deployed to ECS.
-          # docker build -f ./docker/dev/Dockerfile . --build-arg DEVELOP_ENV=${{ secrets.DEVELOP_ENV }} -t $ECR_REPOSITORY
           docker build --build-arg DEVELOP_ENV=${{ secrets.DEVELOP_ENV }} -t paperware-client-develop-back -f ./docker/dev/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
