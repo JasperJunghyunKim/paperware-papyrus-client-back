@@ -1,6 +1,8 @@
+import { BadRequestException } from '@nestjs/common';
+import { OfficialPriceType, PriceUnit, DiscountType } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsPositive, Max, Min } from 'class-validator';
-import { StockArrivalApplyRequest, StockArrivalListQuery } from 'src/@shared/api';
+import { IsBoolean, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
+import { StockArrivalApplyRequest, StockArrivalListQuery, StockArrivalPriceUpdateRequest } from 'src/@shared/api';
 
 export class StockArrivalListQueryDto implements StockArrivalListQuery {
   @IsOptional()
@@ -22,4 +24,158 @@ export class StockArrivalApplyDto implements StockArrivalApplyRequest {
   @Type(() => Number)
   @IsPositive()
   readonly warehouseId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeY: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+}
+
+/** 도착예정재고 금액수정 */
+export class StockArrivalPriceUpdateStockPrice {
+  @IsEnum(OfficialPriceType)
+  readonly officialPriceType: OfficialPriceType;
+
+  @IsNumber()
+  @Min(0)
+  readonly officialPrice: number;
+
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
+
+  @IsEnum(DiscountType)
+  readonly discountType: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  readonly discountPrice: number = null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  readonly unitPrice: number = null;
+
+  @IsEnum(PriceUnit)
+  readonly unitPriceUnit: PriceUnit;
+}
+
+export class StockArrivalPriceUpdateDto implements StockArrivalPriceUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeY: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsBoolean()
+  readonly isSyncPrice: boolean;
+
+  @ValidateIf(obj => !obj.isSyncPrice)
+  @IsObject()
+  @ValidateNested()
+  @Type(() => StockArrivalPriceUpdateStockPrice)
+  stockPrice: StockArrivalPriceUpdateStockPrice = null;
+
+  validate() {
+    if (!this.isSyncPrice && !this.stockPrice) throw new BadRequestException(`거래금액 동기화 OFF시 금액을 입력하셔야 합니다.`);
+    if (this.isSyncPrice) this.stockPrice = null;
+  }
 }
