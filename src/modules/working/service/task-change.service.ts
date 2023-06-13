@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { ulid } from 'ulid';
@@ -251,7 +251,14 @@ export class TaskChangeService {
           plan: {
             select: {
               id: true,
+              type: true,
               orderStock: true,
+              company: {
+                select: {
+                  id: true,
+                  invoiceCode: true,
+                },
+              },
               targetStockEvent: {
                 select: Selector.STOCK_EVENT,
               },
@@ -296,7 +303,7 @@ export class TaskChangeService {
           },
         });
         if (task.plan.orderStock) {
-          // 송장 맹글기
+          // 주문에 연결된 작업은 송장을 생성
           await tx.invoice.create({
             data: {
               invoiceNo: ulid(),
@@ -349,8 +356,36 @@ export class TaskChangeService {
               quantity: result.quantity,
             },
           });
-        } else {
-          // TODO: 재고 증가
+        } else if (task.plan.type === 'INHOUSE_PROCESS') {
+          // 내부 공정은 도착예정목록을 생성
+          const stock = await tx.stock.create({
+            data: {
+              serial: Util.serialP(task.plan.company.invoiceCode),
+              companyId: task.plan.company.id,
+              initialPlanId: task.plan.id,
+              planId: task.plan.id,
+              warehouseId: null,
+              productId: task.plan.assignStockEvent.stock.product.id,
+              packagingId: packaging.id,
+              grammage: task.plan.assignStockEvent.stock.grammage,
+              sizeX: result.sizeX,
+              sizeY: result.sizeY,
+              paperColorGroupId:
+                task.plan.assignStockEvent.stock.paperColorGroup?.id,
+              paperColorId: task.plan.assignStockEvent.stock.paperColor?.id,
+              paperPatternId: task.plan.assignStockEvent.stock.paperPattern?.id,
+              paperCertId: task.plan.assignStockEvent.stock.paperCert?.id,
+              cachedQuantity: result.quantity,
+            },
+            select: { id: true },
+          });
+          await tx.stockEvent.create({
+            data: {
+              stockId: stock.id,
+              change: result.quantity,
+              status: 'PENDING',
+            },
+          });
         }
       }
       return await tx.task.update({

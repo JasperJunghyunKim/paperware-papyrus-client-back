@@ -60,8 +60,6 @@ export class PlanChangeService {
         status: 'PROGRESSED',
       },
     });
-
-    // TODO: 입고 가능한 Release 재고를 생성합니다.
   }
 
   async registerInputStock(params: {
