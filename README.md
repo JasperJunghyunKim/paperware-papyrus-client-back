@@ -19,3 +19,7 @@ submodule에서 만약 에러가 나온다면 git pull checkout main으로 하�
 
 # 주의사항
 루트경로에서 받으면 해당 submodule pull이 안받아지기 때문에 submoudle 경로 가서 git submodule update --recursive 별도로 pull 요청 해줘야한다.!
+
+# ecr local에서 build시 명령어
+
+docker buildx build --platform=linux/amd64 -t paperware-client-develop-back -f ./docker/dev/Dockerfile . --load
