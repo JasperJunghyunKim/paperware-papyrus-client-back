@@ -19,7 +19,6 @@ FROM --platform=linux/amd64 base AS builder
 
 ARG DEVELOP_ENV
 
-ENV .env.development=$DEVELOP_ENV
 RUN echo $DEVELOP_ENV > .env.development
 
 WORKDIR /app
