@@ -42,7 +42,7 @@ export class StockArrivalController {
     //     return { items, total };
     // }
 
-    @Post(':planId/apply')
+    @Post('/:planId/apply')
     @UseGuards(AuthGuard)
     async applyStockArrival(
         @Request() req: AuthType,

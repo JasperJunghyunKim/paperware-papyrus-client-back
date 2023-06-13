@@ -446,7 +446,6 @@ export class StockRetriveService {
          AND s.isDeleted = ${false}
          AND (s.cachedQuantity != 0 OR cachedQuantityAvailable != 0)
     `;
-    console.log(111, stockIds)
 
     const stocks = await this.prisma.stock.findMany({
       include: {
