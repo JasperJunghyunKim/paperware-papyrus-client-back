@@ -13,9 +13,11 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
   GetStockDto,
+  IdDto,
   StockCreateRequestDto,
   StockGroupListRequestDto,
   StockListRequestDto,
+  StockQuantityChangeDto,
 } from './dto/stock.request';
 import { StockRetriveService } from '../service/stock-retrive.service';
 import {
@@ -41,6 +43,28 @@ export class StockController {
     const stock = await this.stockChangeService.create({
       companyId: req.user.companyId,
       warehouseId: dto.warehouseId,
+      productId: dto.productId,
+      packagingId: dto.packagingId,
+      grammage: dto.grammage,
+      sizeX: dto.sizeX,
+      sizeY: dto.sizeY,
+      paperColorGroupId: dto.paperColorGroupId,
+      paperColorId: dto.paperColorId,
+      paperPatternId: dto.paperPatternId,
+      paperCertId: dto.paperCertId,
+      quantity: dto.quantity,
+      price: dto.stockPrice,
+    });
+  }
+
+  @Post('/arrival')
+  @UseGuards(AuthGuard)
+  async createArrivalStock(
+    @Request() req: AuthType,
+    @Body() dto: StockCreateRequestDto,
+  ) {
+    const stock = await this.stockChangeService.createArrivalStock({
+      companyId: req.user.companyId,
       productId: dto.productId,
       packagingId: dto.packagingId,
       grammage: dto.grammage,
@@ -97,6 +121,17 @@ export class StockController {
       );
 
     return result;
+  }
+
+  /** 재고 증감 */
+  @Post('/:id')
+  @UseGuards(AuthGuard)
+  async changeQuantity(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() dto: StockQuantityChangeDto,
+  ) {
+    await this.stockChangeService.changeStockQuantity(req.user.companyId, idDto.id, dto.quantity);
   }
 
   /** 재고 상세 */

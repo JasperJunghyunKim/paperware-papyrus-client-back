@@ -9,14 +9,17 @@ import {
   IsPositive,
   Max,
   Min,
+  NotEquals,
   ValidateNested,
 } from 'class-validator';
 import {
+  ArrivalStockCreateRequest,
   StockCreateRequest,
   StockCreateStockPriceRequest,
   StockGroupListQuery,
   StockGroupQuantityQuery,
   StockListQuery,
+  StockQuantityChangeRequest,
 } from 'src/@shared/api/stock/stock.request';
 import { IsAnyOrId } from 'src/validator/is-any-or-id';
 
@@ -200,6 +203,58 @@ export class StockCreateRequestDto implements StockCreateRequest {
   readonly stockPrice: StockCreateStockPriceDto;
 }
 
+export class ArrivalStockCreateRequestDto implements ArrivalStockCreateRequest {
+  @IsInt()
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly sizeY: number;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsNumber()
+  @IsPositive()
+  readonly quantity: number;
+
+  @IsObject()
+  @ValidateNested()
+  @Type(() => StockCreateStockPriceDto)
+  readonly stockPrice: StockCreateStockPriceDto;
+}
+
 export class StockGroupQuantityQueryDto implements StockGroupQuantityQuery {
   @IsOptional()
   @IsInt()
@@ -255,4 +310,19 @@ export class StockGroupQuantityQueryDto implements StockGroupQuantityQuery {
   @IsInt()
   @Type(() => Number)
   readonly paperCertId: number | null = null;
+}
+
+/** 재고 증감 */
+export class StockQuantityChangeDto implements StockQuantityChangeRequest {
+  @IsInt()
+  @Type(() => Number)
+  @NotEquals(0)
+  readonly quantity: number;
+}
+
+export class IdDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly id: number;
 }

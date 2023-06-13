@@ -193,10 +193,10 @@ export class OrderChangeService {
           status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo: params.memo,
-          wantedDate: params.wantedDate,
           orderStock: {
             create: {
               dstLocationId: params.locationId,
+              wantedDate: params.wantedDate,
               plan: {
                 connect: [dstPlan.id, srcPlan.id].map((p) => ({ id: p })),
               },
@@ -274,7 +274,6 @@ export class OrderChangeService {
           id: params.orderId,
         },
         data: {
-          wantedDate: params.wantedDate,
           memo: params.memo,
         },
         select: {
@@ -290,6 +289,7 @@ export class OrderChangeService {
           orderId: params.orderId,
         },
         data: {
+          wantedDate: params.wantedDate,
           dstLocationId: params.locationId,
         },
         select: {
@@ -1539,5 +1539,33 @@ export class OrderChangeService {
         }
       });
     });
+  }
+
+  /** 외주공정 */
+  async createOrderCutting(
+    params: {
+      srcCompanyId: number;
+      dstCompanyId: number;
+      srcLocationId: number;
+      dstLocationId: number;
+      memo: string;
+      srcWantedDate: string;
+      dstWantedDate: string;
+      // 부모재고 선택
+      warehouseId: number | null;
+      planId: number | null;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+    },
+  ) {
+    throw new NotImplementedException();
   }
 }

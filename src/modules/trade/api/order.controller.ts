@@ -6,6 +6,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -20,6 +21,7 @@ import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   IdDto,
+  OrderCuttingCreateDto,
   OrderDepositAssignDepositCreateDto,
   OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
@@ -135,6 +137,7 @@ export class OrderController {
     }
 
     // TODO: 등록된 거래 관계인지 확인
+    // TODO: 재고 가용수량 확인
 
     const isOffer = body.dstCompanyId === req.user.companyId;
 
@@ -252,17 +255,13 @@ export class OrderController {
       orderId: Number(id),
     });
 
-    // const total = await this.retrive.getArrivalStockCount({
-    //   orderId: Number(id),
-    // });
+    const total = await this.retrive.getArrivalStockCount({
+      orderId: Number(id),
+    });
 
-    // return {
-    //   items: [],
-    //   total,
-    // };
     return {
       items: [],
-      total: 0,
+      total,
     };
   }
 
@@ -468,5 +467,24 @@ export class OrderController {
     @Param() idDto: IdDto,
   ) {
     await this.change.deleteOrderDeposit(req.user.companyId, idDto.id);
+  }
+
+  /** 외주공정 */
+  @Post('/cutting')
+  @UseGuards(AuthGuard)
+  async createOrderCutting(
+    @Request() req: AuthType,
+    @Body() dto: OrderCuttingCreateDto,
+  ) {
+    throw new NotImplementedException();
+  }
+
+  /** 기타거래 */
+  @Post('/etc')
+  @UseGuards(AuthGuard)
+  async createOrderEtc(
+    @Request() req: AuthType,
+  ) {
+    throw new NotImplementedException();
   }
 }

@@ -154,7 +154,6 @@ export const INITIAL_ORDER = {
   status: true,
   isEntrusted: true,
   memo: true,
-  wantedDate: true,
   stockAcceptedCompanyId: true,
   isStockRejected: true,
   orderStock: {
@@ -282,6 +281,7 @@ export const STOCK_EVENT = {
 export const ORDER_STOCK = {
   id: true,
   orderId: true,
+  wantedDate: true,
   dstLocation: {
     select: LOCATION,
   },
@@ -371,7 +371,6 @@ export const ORDER = {
   status: true,
   isEntrusted: true,
   memo: true,
-  wantedDate: true,
   stockAcceptedCompanyId: true,
   isStockRejected: true,
   orderStock: {
