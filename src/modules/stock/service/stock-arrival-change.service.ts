@@ -27,18 +27,40 @@ export class StockArrivalChangeService {
         },
         where: {
           planId,
+          companyId,
         }
       });
-      console.log(111, arrivalStocks);
+      if (arrivalStocks.length === 0) throw new NotFoundException(`존재하지 않는 도착예정재고입니다.`);
 
+      const storingStock = arrivalStocks.find(stock => stock.planId === stock.initialPlanId);
 
-      // await this.stock.cacheStockQuantityTx(tx, {
-      //     id: newStock.id,
-      // });
+      // planId => null
+      await tx.stock.updateMany({
+        data: {
+          planId: null,
+        },
+        where: {
+          id: {
+            in: arrivalStocks.map(stock => stock.id),
+          }
+        }
+      });
 
+      // PENDING => NORMAL (입고재고만)
+      await tx.stockEvent.updateMany({
+        data: {
+          status: 'NORMAL'
+        },
+        where: {
+          stockId: storingStock.id,
+          status: 'PENDING',
+        }
+      });
 
-      throw new NotImplementedException();
-
+      // 입고재고 cache 업데이트
+      await this.stock.cacheStockQuantityTx(tx, {
+        id: storingStock.id,
+      });
     });
   }
 }
