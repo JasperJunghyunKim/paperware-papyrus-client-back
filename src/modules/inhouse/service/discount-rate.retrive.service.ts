@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, DiscountRateType, DiscountRateUnit, Manufacturer, PackagingType, PaperCert, PaperColor, PaperColorGroup, PaperDomain, PaperGroup, PaperPattern, PaperType } from "@prisma/client";
+import { Model } from "src/@shared";
+import { DiscountRateListResponse } from "src/@shared/api/inhouse/discount-rate.response";
+import { MANUFACTURER, PAPER_CERT, PAPER_COLOR, PAPER_COLOR_GROUP, PAPER_DOMAIN, PAPER_GROUP, PAPER_PATTERN, PAPER_TYPE } from "src/common/selector";
 import { PrismaService } from "src/core";
 
 type Bit = '0' | '1';
@@ -127,20 +130,135 @@ export class DiscountRateRetriveService {
     companyRegistrationNumber: string,
     skip: number,
     take: number,
-  ) {
-    // TODO... 수정
+  ): Promise<DiscountRateListResponse> {
+    const ids: {
+      id: number,
+      total: bigint,
+    }[] = await this.prisma.$queryRaw`
+      SELECT drc.id AS id, COUNT(1) OVER() AS total
+
+        FROM DiscountRateCondition      AS drc
+        JOIN DiscountRateMap            AS drm    ON drm.discountRateConditionId = drc.id AND drm.discountRateType = ${discountRateType} AND drm.isDeleted = ${false}
+       WHERE drc.companyId = ${companyId}
+         AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}
+
+      LIMIT ${skip * 2}, ${take * 2}
+    `;
+
+    const total = ids.length === 0 ? 0 : Number(ids[0].total) / 2;
+    const items = ids.length === 0 ? [] : await this.prisma.discountRateCondition.findMany({
+      include: {
+        paperDomain: {
+          select: PAPER_DOMAIN,
+        },
+        manufacturer: {
+          select: MANUFACTURER,
+        },
+        paperGroup: {
+          select: PAPER_GROUP
+        },
+        paperType: {
+          select: PAPER_TYPE,
+        },
+        paperColorGroup: {
+          select: PAPER_COLOR_GROUP,
+        },
+        paperColor: {
+          select: PAPER_COLOR,
+        },
+        paperPattern: {
+          select: PAPER_PATTERN,
+        },
+        paperCert: {
+          select: PAPER_CERT,
+        },
+        discountRateMap: {
+          select: {
+            discountRateMapType: true,
+            discountRate: true,
+            discountRateUnit: true,
+          },
+          where: {
+            discountRateType,
+          }
+        }
+      },
+      where: {
+        id: {
+          in: ids.map(id => id.id),
+        }
+      }
+    });
+
+    return {
+      items: items.map(item => {
+        const basicDiscountRate = item.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+        const specialDiscountRate = item.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+
+        return {
+          id: item.id,
+          partner: null, // TODO...
+          packagingType: item.packagingType,
+          paperDomain: item.paperDomain,
+          manufacturer: item.manufacturer,
+          paperGroup: item.paperGroup,
+          paperType: item.paperType,
+          grammage: item.grammage,
+          sizeX: item.sizeX,
+          sizeY: item.sizeY,
+          paperColorGroup: item.paperColorGroup,
+          paperColor: item.paperColor,
+          paperPattern: item.paperPattern,
+          paperCert: item.paperCert,
+          basicDiscountRate: {
+            discountRate: basicDiscountRate.discountRate,
+            discountRateUnit: basicDiscountRate.discountRateUnit,
+          },
+          specialDiscountRate: {
+            discountRate: specialDiscountRate.discountRate,
+            discountRateUnit: specialDiscountRate.discountRateUnit,
+          },
+        }
+      }),
+      total,
+    }
   }
 
   async get(
     companyId: number,
     discountRateType: DiscountRateType,
     discountRateConditionId: number,
-  ) {
+  ): Promise<Model.DiscountRateCondition> {
     const condition = await this.prisma.discountRateCondition.findFirst({
       include: {
+        paperDomain: {
+          select: PAPER_DOMAIN,
+        },
+        manufacturer: {
+          select: MANUFACTURER,
+        },
+        paperGroup: {
+          select: PAPER_GROUP
+        },
+        paperType: {
+          select: PAPER_TYPE,
+        },
+        paperColorGroup: {
+          select: PAPER_COLOR_GROUP,
+        },
+        paperColor: {
+          select: PAPER_COLOR,
+        },
+        paperPattern: {
+          select: PAPER_PATTERN,
+        },
+        paperCert: {
+          select: PAPER_CERT,
+        },
         discountRateMap: {
           where: {
             discountRateType,
+            isDeleted: false,
           }
         }
       },
@@ -149,8 +267,35 @@ export class DiscountRateRetriveService {
         companyId,
       },
     });
+    if (!condition || condition.discountRateMap.length === 0) throw new NotFoundException(`존재하지 않는 할인율입니다.`);
 
+    const basicDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
+    const specialDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
 
+    return {
+      id: condition.id,
+      partner: null, // TODO...
+      packagingType: condition.packagingType,
+      paperDomain: condition.paperDomain,
+      manufacturer: condition.manufacturer,
+      paperGroup: condition.paperGroup,
+      paperType: condition.paperType,
+      grammage: condition.grammage,
+      sizeX: condition.sizeX,
+      sizeY: condition.sizeY,
+      paperColorGroup: condition.paperColorGroup,
+      paperColor: condition.paperColor,
+      paperPattern: condition.paperPattern,
+      paperCert: condition.paperCert,
+      basicDiscountRate: {
+        discountRate: basicDiscountRate.discountRate,
+        discountRateUnit: basicDiscountRate.discountRateUnit,
+      },
+      specialDiscountRate: {
+        discountRate: specialDiscountRate.discountRate,
+        discountRateUnit: specialDiscountRate.discountRateUnit,
+      },
+    }
   }
 
   async mapping(
