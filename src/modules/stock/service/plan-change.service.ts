@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model, Task } from 'src/@shared';
+import { Enum } from 'src/@shared/models';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { match } from 'ts-pattern';
@@ -274,7 +275,6 @@ export class PlanChangeService {
         });
 
       // 내부작업의 작업 지시 즉시 도착 예정재고 생성
-      console.log(plan.type, plan.status, nextStatus);
       if (
         plan.type === 'INHOUSE_PROCESS' &&
         plan.status === 'PREPARING' &&
@@ -315,7 +315,6 @@ export class PlanChangeService {
             type: 'SKID',
           },
         });
-        console.log(tasks, releaseTasks, input, outputs, skid);
 
         for (const result of outputs) {
           // 포장이 변경되지 않으면 유지
@@ -341,6 +340,17 @@ export class PlanChangeService {
               paperPatternId: plan.assignStockEvent.stock.paperPattern?.id,
               paperCertId: plan.assignStockEvent.stock.paperCert?.id,
               cachedQuantity: result.quantity,
+              stockPrice: {
+                create: {
+                  officialPriceUnit: 'WON_PER_TON',
+                  officialPrice: 0,
+                  officialPriceType: 'NONE',
+                  discountPrice: 0,
+                  discountType: 'NONE',
+                  unitPrice: 0,
+                  unitPriceUnit: 'WON_PER_TON',
+                },
+              },
             },
             select: { id: true },
           });
