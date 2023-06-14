@@ -7,23 +7,23 @@ import { PartnerStockRetriveService } from "../service/paertner-stock.retrive.se
 
 @Controller('/partner/stock')
 export class PartnerStockController {
-    constructor(
-        private readonly partnerStockRetriveService: PartnerStockRetriveService,
-    ) { }
+	constructor(
+		private readonly partnerStockRetriveService: PartnerStockRetriveService,
+	) { }
 
-    @Get('/group')
-    @UseGuards(AuthGuard)
-    async getStockGroupList(
-        @Request() req: AuthType,
-        @Query() dto: GetPartnerStockGroupListDto,
-    ): Promise<PartnerStockGroupListResponse> {
-        const result = await this.partnerStockRetriveService.getStockGroupList(
-            req.user.companyId,
-            dto.skip,
-            dto.take,
-            dto.companyId,
-        );
+	@Get('/group')
+	@UseGuards(AuthGuard)
+	async getStockGroupList(
+		@Request() req: AuthType,
+		@Query() dto: GetPartnerStockGroupListDto,
+	): Promise<PartnerStockGroupListResponse> {
+		const result = await this.partnerStockRetriveService.getStockGroupList(
+			req.user.companyId,
+			dto.skip,
+			dto.take,
+			dto.companyId,
+		);
 
-        return result;
-    }
+		return result;
+	}
 }
