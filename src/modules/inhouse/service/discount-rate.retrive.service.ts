@@ -200,7 +200,7 @@ export class DiscountRateRetriveService {
       companyRegistrationNumber: string;
       partnerNickName: string;
       memo: string;
-    }[] = await this.prisma.$queryRaw`
+    }[] = ids.length === 0 ? [] : await this.prisma.$queryRaw`
       SELECT companyRegistrationNumber, partnerNickName, memo
         FROM Partner
        WHERE companyId = ${companyId}
@@ -210,7 +210,7 @@ export class DiscountRateRetriveService {
       id: number;
       companyRegistrationNumber: string;
       businessName: string;
-    }[] = await this.prisma.$queryRaw`
+    }[] = ids.length === 0 ? [] : await this.prisma.$queryRaw`
       SELECT id, companyRegistrationNumber, businessName, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC)
         FROM Company
        WHERE companyRegistrationNumber IN (${Prisma.join(partnerCompanyRegistrationNumbers)})
