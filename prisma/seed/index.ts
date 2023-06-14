@@ -102,6 +102,22 @@ async function main() {
       })),
     ],
   });
+  await prisma.warehouse.createMany({
+    data: Data.WAREHOUSE.map<Prisma.WarehouseCreateManyInput>(([companyId, name, address, isPublic]) => ({
+      name,
+      address,
+      isPublic,
+      companyId,
+    })),
+  });
+  await prisma.location.createMany({
+    data: Data.LOCATION.map<Prisma.LocationCreateManyInput>(([companyId, name, address, isPublic]) => ({
+      name,
+      address,
+      isPublic,
+      companyId,
+    })),
+  })
 }
 
 main()

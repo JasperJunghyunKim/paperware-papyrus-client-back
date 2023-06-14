@@ -311,7 +311,7 @@ model Location {
   isPublic     Boolean
   isDeleted    Boolean        @default(false)
   orderStock   OrderStock[] // 정상거래의 도착지
-  OrderCutting OrderCutting[]
+  orderCutting OrderCutting[]
 
   @@unique([companyId, code])
 }
