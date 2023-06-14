@@ -46,6 +46,7 @@ export class DiscountRateController {
 		@Request() req: AuthType,
 		@Body() dto: DiscountRateCreateDto,
 	) {
+		dto.validate();
 		await this.change.createDiscountRate(
 			req.user.companyId,
 			dto.discountRateType,
@@ -107,6 +108,7 @@ export class DiscountRateController {
 		@Param() param: DiscountRateConditionIdDto,
 		@Body() dto: DiscountRateUpdateDto,
 	) {
+		dto.validate();
 		await this.change.updateDiscountRate(
 			req.user.companyId,
 			dto.discountRateType,
