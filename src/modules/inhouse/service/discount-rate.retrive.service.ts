@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, DiscountRateType, DiscountRateUnit, Manufacturer, PackagingType, PaperCert, PaperColor, PaperColorGroup, PaperDomain, PaperGroup, PaperPattern, PaperType } from "@prisma/client";
+import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, DiscountRateType, DiscountRateUnit, Manufacturer, PackagingType, PaperCert, PaperColor, PaperColorGroup, PaperDomain, PaperGroup, PaperPattern, PaperType, Prisma } from "@prisma/client";
 import { Model } from "src/@shared";
 import { DiscountRateListResponse } from "src/@shared/api/inhouse/discount-rate.response";
 import { MANUFACTURER, PAPER_CERT, PAPER_COLOR, PAPER_COLOR_GROUP, PAPER_DOMAIN, PAPER_GROUP, PAPER_PATTERN, PAPER_TYPE } from "src/common/selector";
@@ -127,10 +127,12 @@ export class DiscountRateRetriveService {
   async getList(
     companyId: number,
     discountRateType: DiscountRateType,
-    companyRegistrationNumber: string,
+    companyRegistrationNumber: string | null,
     skip: number,
     take: number,
   ): Promise<DiscountRateListResponse> {
+    const registrationNumberCondition = companyRegistrationNumber ? Prisma.sql`AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}` : Prisma.empty;
+
     const ids: {
       id: number,
       total: bigint,
@@ -140,7 +142,7 @@ export class DiscountRateRetriveService {
         FROM DiscountRateCondition      AS drc
         JOIN DiscountRateMap            AS drm    ON drm.discountRateConditionId = drc.id AND drm.discountRateType = ${discountRateType} AND drm.isDeleted = ${false}
        WHERE drc.companyId = ${companyId}
-         AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}
+        ${registrationNumberCondition}
 
       LIMIT ${skip * 2}, ${take * 2}
     `;
