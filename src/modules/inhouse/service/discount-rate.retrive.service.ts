@@ -135,9 +135,10 @@ export class DiscountRateRetriveService {
 
     const ids: {
       id: number,
+      partnerCompanyRegistrationNumber: string,
       total: bigint,
     }[] = await this.prisma.$queryRaw`
-      SELECT drc.id AS id, COUNT(1) OVER() AS total
+      SELECT drc.id AS id, drc.partnerCompanyRegistrationNumber AS partnerCompanyRegistrationNumber, COUNT(1) OVER() AS total
 
         FROM DiscountRateCondition      AS drc
         JOIN DiscountRateMap            AS drm    ON drm.discountRateConditionId = drc.id AND drm.discountRateType = ${discountRateType} AND drm.isDeleted = ${false}
@@ -192,6 +193,44 @@ export class DiscountRateRetriveService {
       }
     });
 
+    const partnerCompanyRegistrationNumbers = Array.from(new Set(ids.map(id => id.partnerCompanyRegistrationNumber)));
+
+    const partnerMap = new Map<string, Model.Partner>();
+    const partners: {
+      companyRegistrationNumber: string;
+      partnerNickName: string;
+      memo: string;
+    }[] = await this.prisma.$queryRaw`
+      SELECT companyRegistrationNumber, partnerNickName, memo
+        FROM Partner
+       WHERE companyId = ${companyId}
+         AND companyRegistrationNumber IN (${Prisma.join(partnerCompanyRegistrationNumbers)})
+    `;
+    const companies: {
+      id: number;
+      companyRegistrationNumber: string;
+      businessName: string;
+    }[] = await this.prisma.$queryRaw`
+      SELECT id, companyRegistrationNumber, businessName, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC)
+        FROM Company
+       WHERE companyRegistrationNumber IN (${Prisma.join(partnerCompanyRegistrationNumbers)})
+    `;
+    for (const company of companies) {
+      partnerMap.set(company.companyRegistrationNumber, {
+        companyId: company.id,
+        companyRegistrationNumber: company.companyRegistrationNumber,
+        partnerNickName: company.businessName,
+        memo: '',
+      });
+    }
+    for (const partner of partners) {
+      const partnerData = partnerMap.get(partner.companyRegistrationNumber);
+      if (!partnerData) continue;
+      partnerData.partnerNickName = partner.partnerNickName;
+      partnerData.memo = partner.memo;
+      partnerMap.set(partner.companyRegistrationNumber, partnerData);
+    }
+
     return {
       items: items.map(item => {
         const basicDiscountRate = item.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
@@ -199,7 +238,7 @@ export class DiscountRateRetriveService {
 
         return {
           id: item.id,
-          partner: null, // TODO...
+          partner: partnerMap.get(item.partnerCompanyRegistrationNumber) || null,
           packagingType: item.packagingType,
           paperDomain: item.paperDomain,
           manufacturer: item.manufacturer,
@@ -271,12 +310,34 @@ export class DiscountRateRetriveService {
     });
     if (!condition || condition.discountRateMap.length === 0) throw new NotFoundException(`존재하지 않는 할인율입니다.`);
 
+    const partner = await this.prisma.partner.findUnique({
+      where: {
+        companyId_companyRegistrationNumber: {
+          companyId,
+          companyRegistrationNumber: condition.partnerCompanyRegistrationNumber,
+        }
+      }
+    }) || null;
+    const partnerCompany = await this.prisma.company.findFirst({
+      where: {
+        companyRegistrationNumber: condition.partnerCompanyRegistrationNumber,
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    });
+
     const basicDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
     const specialDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
 
     return {
       id: condition.id,
-      partner: null, // TODO...
+      partner: {
+        companyId: partnerCompany.id,
+        companyRegistrationNumber: partnerCompany.companyRegistrationNumber,
+        partnerNickName: partner ? partner.partnerNickName : partnerCompany.businessName,
+        memo: partner ? partner.memo : '',
+      },
       packagingType: condition.packagingType,
       paperDomain: condition.paperDomain,
       manufacturer: condition.manufacturer,
