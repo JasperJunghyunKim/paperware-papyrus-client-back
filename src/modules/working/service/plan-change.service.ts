@@ -110,6 +110,17 @@ export class PlanChangeService {
               paperPatternId: plan.assignStockEvent.stock.paperPattern?.id,
               paperCertId: plan.assignStockEvent.stock.paperCert?.id,
               cachedQuantity: result.quantity,
+              stockPrice: {
+                create: {
+                  officialPriceUnit: 'WON_PER_TON',
+                  officialPrice: 0,
+                  officialPriceType: 'NONE',
+                  discountPrice: 0,
+                  discountType: 'NONE',
+                  unitPrice: 0,
+                  unitPriceUnit: 'WON_PER_TON',
+                },
+              },
             },
             select: { id: true },
           });

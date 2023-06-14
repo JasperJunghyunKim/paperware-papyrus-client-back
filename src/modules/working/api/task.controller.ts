@@ -36,7 +36,7 @@ export class TaskController {
     private readonly taskRetriveService: TaskRetriveService,
     private readonly taskChangeService: TaskChangeService,
     private readonly planRetriveService: PlanRetriveService,
-  ) { }
+  ) {}
 
   @Get('task/:id')
   @HttpCode(HttpStatus.OK)
@@ -271,7 +271,7 @@ export class TaskController {
       throw new ForbiddenException('Not allowed');
     }
 
-    // await this.taskChangeService.resetTask(id);
+    await this.taskChangeService.resetTask(id);
 
     return;
   }
