@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { OfficialPriceType, PriceUnit, DiscountType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsPositive, Max, Min, ValidateIf, ValidateNested } from 'class-validator';
-import { StockArrivalApplyRequest, StockArrivalListQuery, StockArrivalPriceUpdateRequest } from 'src/@shared/api';
+import { StockArrivalApplyRequest, StockArrivalDetailQuery, StockArrivalListQuery, StockArrivalPriceUpdateRequest } from 'src/@shared/api';
 
 export class StockArrivalListQueryDto implements StockArrivalListQuery {
   @IsOptional()
@@ -17,6 +17,63 @@ export class StockArrivalListQueryDto implements StockArrivalListQuery {
   @Min(10)
   @Max(100)
   readonly take: number = undefined;
+}
+
+export class StockArrivalDetailDto implements StockArrivalDetailQuery {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
 }
 
 export class StockArrivalApplyDto implements StockArrivalApplyRequest {
