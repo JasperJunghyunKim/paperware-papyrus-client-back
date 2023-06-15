@@ -45,12 +45,11 @@ jobs:
         id: taskdefdetails
         run: |
           TASKDEF_ARN=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.taskDefinitionArn' --output text)
-          TASKDEF_DETAILS=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].[name,portMappings]' --output text)
-          CONTAINER_NAME=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].name' --output text)
-          CONTAINER_PORT=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
+          NAME=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].name' --output text)
+          PORT=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].portMappings[0].containerPort' --output text)
           echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
-          echo "CONTAINER_PORT=$CONTAINER_PORT" >> $GITHUB_ENV
+          echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
+          echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
 
       - name: appspec.yml 생성
         run: |
