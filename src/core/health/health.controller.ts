@@ -35,7 +35,6 @@ export class HealthController implements OnApplicationShutdown {
   @HealthCheck()
   checkHeap() {
     return this.healthCheckService.check([
-      // The process should not have more than 300MB RSS memory allocated
       () =>
         this.memoryHealthIndicator.checkHeap('memory heap', 500 * 1024 * 1024),
     ]);
@@ -45,7 +44,6 @@ export class HealthController implements OnApplicationShutdown {
   @HealthCheck()
   checkRss() {
     return this.healthCheckService.check([
-      // The process should not have more than 300MB RSS memory allocated
       () =>
         this.memoryHealthIndicator.checkRSS('memory RSS', 500 * 1024 * 1024),
     ]);
