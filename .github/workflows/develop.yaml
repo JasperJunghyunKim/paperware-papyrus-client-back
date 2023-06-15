@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "version: 0.0" >> appspec.yaml
           echo "Resources:" >> appspec.yaml
-          echo "  - myApp:" >> appspec.yaml
+          echo "  - TargetService:" >> appspec.yaml
           echo "    Type: AWS::ECS::Service" >> appspec.yaml
           echo "    Properties:" >> appspec.yaml
           echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yaml
