@@ -18,8 +18,8 @@ RUN \
 FROM --platform=linux/amd64 base AS builder
 
 WORKDIR /app
-ARG DEVELOP_ENV
 
+ARG DEVELOP_ENV
 RUN echo $DEVELOP_ENV > .env.development
 
 COPY --from=deps /app/node_modules ./node_modules

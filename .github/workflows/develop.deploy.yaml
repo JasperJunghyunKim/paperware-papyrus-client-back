@@ -41,38 +41,42 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-      - name: AWS Systems Manager Parameter Store 에서 Secret 가져오기
-        id: secrets
+      - name: taskdef ARN 가져오기
+        id: taskdefdetails
         run: |
-          aws ecs describe-task-definition --task-definition test_task --query taskDefinition > task-definition.json
+          TASKDEF_ARN=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.taskDefinitionArn' --output text)
+          TASKDEF_DETAILS=$(aws ecs describe-task-definition --task-definition paperware-client-develop-back --query 'taskDefinition.containerDefinitions[0].[name,port]' --output text)
+          CONTAINER_NAME=$(echo $TASKDEF_DETAILS | awk '{print $1}')
+          CONTAINER_PORT=$(echo $TASKDEF_DETAILS | awk '{print $2}')
+          echo "TASKDEF_ARN=$TASKDEF_ARN" >> $GITHUB_ENV
+          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
+          echo "CONTAINER_PORT=$CONTAINER_PORT" >> $GITHUB_ENV
 
-      - name: 이미지 ID 및 AWS Secret 채우기 ECS 작업 정의
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: paperware-client-develop-back
-          image: ${{ steps.build-image.outputs.image }}
-          secrets: |
-            - name: AWS_SECRET
-              valueFrom: ${{ env.AWS_SECRET }}
+      - name: appspec.yml 생성
+        run: |
+          echo "version: 0.0" >> appspec.yml
+          echo "Resources:" >> appspec.yml
+          echo "  - myApp:" >> appspec.yml
+          echo "    Type: AWS::ECS::Service" >> appspec.yml
+          echo "    Properties:" >> appspec.yml
+          echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yml
+          echo "      LoadBalancerInfo:" >> appspec.yml
+          echo "        ContainerName: ${{ env.CONTAINER_NAME }}" >> appspec.yml
+          echo "        ContainerPort: ${{ env.CONTAINER_PORT }}" >> appspec.yml
+          # 날짜 및 시간 가져오기
+          current_date_time=$(date '+%Y%m%d-%H%M%S')
+
+          # appspec.yml 파일의 S3 키 생성
+          s3_key="${current_date_time}/appspec.yml"
+
+          # S3에 appspec.yml 파일 업로드
+          aws s3 cp ./appspec.yml "s3://paperware-client-develop-back/${s3_key}"
+          echo "s3_key=${s3_key}" >> $GITHUB_ENV
 
       - name: 배포를 위한 AWS CodeDeploy 설정
         run: |
           aws deploy create-deployment \
-            --application-name [Your_Application_Name] \
-            --deployment-group-name [Your_Deployment_Group_Name] \
-            --revision '{"revisionType": "S3", "s3Location": {"bucket": "[Your_Bucket_Name]", "key": "[Your_Object_Key]", "bundleType": "zip"}}' \
-            --deployment-config-name CodeDeployDefault.ECSAllAtOnce
+            --application-name AppECS-paperware-client-develop-paperware-clinet-back \
+            --deployment-group-name DgpECS-paperware-client-develop-paperware-clinet-back \
+            --s3-location bucket=my-bucket,bundleType=YAML,key=${{ env.s3_key }}
         shell: bash
-
-      - name: ECS 작업 정의 배포
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: paperware-client-develop-back
-          cluster: paperware-client-develop-cluster
-          wait-for-service-stability: true
-          codedeploy-appspec: appspec.json
-          codedeploy-application: paperware-client-develop-back
-          codedeploy-deployment-group: paperware-client-develop-back
