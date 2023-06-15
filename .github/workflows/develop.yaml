@@ -36,6 +36,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: paperware-client-develop-back
           IMAGE_TAG: ${{ github.sha }}
+          DEVELOP_ENV: ${{ secrets.DEVELOP_ENV }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
