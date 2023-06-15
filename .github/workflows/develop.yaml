@@ -51,25 +51,25 @@ jobs:
           echo "CONTAINER_NAME=$NAME" >> $GITHUB_ENV
           echo "CONTAINER_PORT=$PORT" >> $GITHUB_ENV
 
-      - name: appspec.yml 생성
+      - name: appspec.yaml 생성
         run: |
-          echo "version: 0.0" >> appspec.yml
-          echo "Resources:" >> appspec.yml
-          echo "  - myApp:" >> appspec.yml
-          echo "    Type: AWS::ECS::Service" >> appspec.yml
-          echo "    Properties:" >> appspec.yml
-          echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yml
-          echo "      LoadBalancerInfo:" >> appspec.yml
-          echo "        ContainerName: ${{ env.CONTAINER_NAME }}" >> appspec.yml
-          echo "        ContainerPort: ${{ env.CONTAINER_PORT }}" >> appspec.yml
+          echo "version: 0.0" >> appspec.yaml
+          echo "Resources:" >> appspec.yaml
+          echo "  - myApp:" >> appspec.yaml
+          echo "    Type: AWS::ECS::Service" >> appspec.yaml
+          echo "    Properties:" >> appspec.yaml
+          echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yaml
+          echo "      LoadBalancerInfo:" >> appspec.yaml
+          echo "        ContainerName: ${{ env.CONTAINER_NAME }}" >> appspec.yaml
+          echo "        ContainerPort: ${{ env.CONTAINER_PORT }}" >> appspec.yaml
           # 날짜 및 시간 가져오기 (한국 시간)
           current_date_time=$(TZ=Asia/Seoul date '+%Y%m%d-%H%M%S')
 
-          # appspec.yml 파일의 S3 키 생성
-          s3_key="${current_date_time}/appspec.yml"
+          # appspec.yaml 파일의 S3 키 생성
+          s3_key="${current_date_time}/appspec.yaml"
 
-          # S3에 appspec.yml 파일 업로드
-          aws s3 cp ./appspec.yml "s3://paperware-client-develop-back/${s3_key}"
+          # S3에 appspec.yaml 파일 업로드
+          aws s3 cp ./appspec.yaml "s3://paperware-client-develop-back/${s3_key}"
           echo "s3_key=${s3_key}" >> $GITHUB_ENV
 
       - name: 배포를 위한 AWS CodeDeploy 설정
