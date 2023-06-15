@@ -58,9 +58,9 @@ jobs:
           echo "  - TargetService:" >> appspec.yaml
           echo "    Type: AWS::ECS::Service" >> appspec.yaml
           echo "    Properties:" >> appspec.yaml
-          echo "      TaskDefinition: ${{ env.TASKDEF_ARN }}" >> appspec.yaml
+          echo "      TaskDefinition: \"${{ env.TASKDEF_ARN }}\"" >> appspec.yaml
           echo "      LoadBalancerInfo:" >> appspec.yaml
-          echo "        ContainerName: ${{ env.CONTAINER_NAME }}" >> appspec.yaml
+          echo "        ContainerName: \"${{ env.CONTAINER_NAME }}\"" >> appspec.yaml
           echo "        ContainerPort: ${{ env.CONTAINER_PORT }}" >> appspec.yaml
           # 날짜 및 시간 가져오기 (한국 시간)
           current_date_time=$(TZ=Asia/Seoul date '+%Y%m%d-%H%M%S')
