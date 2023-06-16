@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { PartnerStockController } from './api/partner-stock.controller';
 import { StockController } from './api/stock.controller';
 import { StockChangeService } from './service/stock-change.service';
@@ -10,8 +10,12 @@ import { StockArrivalController } from './api/stock-arrival.controller';
 import { StockArrivalRetriveService } from './service/stock-arrival-retrive.service';
 import { StockArrivalChangeService } from './service/stock-arrival-change.service';
 import { StockQuantityChecker } from './service/stock-quantity-checker';
+import { InhouseModule } from '../inhouse/inhouse.module';
 
 @Module({
+  imports: [
+    forwardRef(() => InhouseModule),
+  ],
   controllers: [
     StockController,
     StockArrivalController,

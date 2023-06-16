@@ -12,6 +12,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
+  ArrivalStockCreateRequestDto,
   GetStockDto,
   IdDto,
   StockCreateRequestDto,
@@ -65,21 +66,11 @@ export class StockController {
   @UseGuards(AuthGuard)
   async createArrivalStock(
     @Request() req: AuthType,
-    @Body() dto: StockCreateRequestDto,
+    @Body() dto: ArrivalStockCreateRequestDto,
   ) {
     const stock = await this.stockChangeService.createArrivalStock({
       companyId: req.user.companyId,
-      productId: dto.productId,
-      packagingId: dto.packagingId,
-      grammage: dto.grammage,
-      sizeX: dto.sizeX,
-      sizeY: dto.sizeY,
-      paperColorGroupId: dto.paperColorGroupId,
-      paperColorId: dto.paperColorId,
-      paperPatternId: dto.paperPatternId,
-      paperCertId: dto.paperCertId,
-      quantity: dto.quantity,
-      price: dto.stockPrice,
+      ...dto,
     });
   }
 

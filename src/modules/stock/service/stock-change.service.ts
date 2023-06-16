@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
@@ -7,6 +7,7 @@ import { PlanChangeService } from './plan-change.service';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { ulid } from 'ulid';
 import { Util } from 'src/common';
+import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
 
 @Injectable()
 export class StockChangeService {
@@ -14,6 +15,7 @@ export class StockChangeService {
     private readonly prisma: PrismaService,
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
+    private readonly locationRetriveService: LocationRetriveService,
   ) { }
 
   async cacheStockQuantityTx(
@@ -156,14 +158,30 @@ export class StockChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
-    price: StockCreateStockPriceRequest;
+    stockPrice: StockCreateStockPriceRequest;
+    dstLocationId: number;
+    wantedDate: string;
   }) {
+    const location = await this.locationRetriveService.getItem(params.dstLocationId);
+    if (!location || location.company.id !== params.companyId) throw new NotFoundException(`존재하지 않는 도착지 입니다.`);
+    if (location.isPublic) throw new BadRequestException(`자사도착지를 선택하셔야 합니다.`);
+
     return await this.prisma.$transaction(async (tx) => {
       const plan = await tx.plan.create({
         data: {
           planNo: ulid(),
           type: 'INHOUSE_CREATE',
           companyId: params.companyId,
+          planShipping: {
+            create: {
+              dstLocation: {
+                connect: {
+                  id: params.dstLocationId,
+                }
+              },
+              wantedDate: params.wantedDate,
+            }
+          }
         },
         select: {
           id: true,
@@ -193,7 +211,7 @@ export class StockChangeService {
           cachedQuantity: params.quantity,
           stockPrice: {
             create: {
-              ...params.price,
+              ...params.stockPrice,
             },
           },
         },

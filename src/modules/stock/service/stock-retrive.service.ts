@@ -59,6 +59,12 @@ interface StockGroupFromDB {
   dstLocationIsPublic: boolean;
   dstLocationAddress: string;
   wantedDate: string;
+  psLocationId: number;
+  psLocationName: string;
+  psLocationCode: string;
+  psLocationIsPublic: boolean;
+  psLocationAddress: string;
+  psWantedDate: string;
 
   planId: number;
   planNo: string;
@@ -235,6 +241,12 @@ export class StockRetriveService {
             , p.status As planStatus
             , p.type As planType
             , p.createdAt As planCreatedAt
+            , ps.wantedDate AS psWantedDate
+            , psLocation.id AS psLocationId
+            , psLocation.name AS psLocationName
+            , psLocation.code AS psLocationCode
+            , psLocation.isPublic AS psLocationIsPublic
+            , psLocation.address AS psLocationAddress
 
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
@@ -306,7 +318,9 @@ export class StockRetriveService {
            GROUP BY stockId
         ) AS arrivalStockEvent ON arrivalStockEvent.stockId = s.id
    LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
-   LEFT JOIN Plan               AS p                        ON p.id = s.planId
+   LEFT JOIN Plan               AS p                        ON p.id = s.initialPlanId
+   LEFT JOIN PlanShipping       AS ps                       ON ps.planId = p.id
+   LEFT JOIN Location           AS psLocation               ON psLocation.id = ps.dstLocationId
 
    -- 원지 정보
    LEFT JOIN StockEvent         AS ase                      ON ase.id = p.assignStockEventId
@@ -360,7 +374,8 @@ export class StockRetriveService {
 
                 -- mysql error
                 , partnerCompany.id
-
+                , os.id
+                , p.id
 
       ${limit}
     `;
@@ -447,6 +462,16 @@ export class StockRetriveService {
                 code: sg.dstLocationCode,
                 isPublic: sg.dstLocationIsPublic,
                 address: sg.dstLocationAddress,
+              },
+            } : null,
+            planShipping: sg.psWantedDate ? {
+              wantedDate: sg.psWantedDate,
+              dstLocation: {
+                id: sg.psLocationId,
+                name: sg.psLocationName,
+                code: sg.psLocationCode,
+                isPublic: sg.psLocationIsPublic,
+                address: sg.psLocationAddress,
               }
             } : null,
           } : null,

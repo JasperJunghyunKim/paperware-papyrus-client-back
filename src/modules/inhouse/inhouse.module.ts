@@ -82,6 +82,7 @@ import { StockModule } from '../stock/stock.module';
     LocationRetriveService,
     BankAccountRetriveService,
     CardRetriveService,
+    LocationRetriveService,
   ]
 })
 export class InhouseModule { }

@@ -1,6 +1,7 @@
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+	IsDateString,
 	IsEnum,
 	IsInt,
 	IsNumber,
@@ -254,6 +255,14 @@ export class ArrivalStockCreateRequestDto implements ArrivalStockCreateRequest {
 	@ValidateNested()
 	@Type(() => StockCreateStockPriceDto)
 	readonly stockPrice: StockCreateStockPriceDto;
+
+	@IsOptional()
+	@IsInt()
+	@IsPositive()
+	readonly dstLocationId: number;
+
+	@IsDateString()
+	readonly wantedDate: string;
 }
 
 /** deprecated */
