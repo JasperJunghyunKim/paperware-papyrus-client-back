@@ -1592,6 +1592,8 @@ export class OrderChangeService {
 
 
     const order = await this.prisma.$transaction(async tx => {
+      if (companyId !== srcCompanyId && companyId !== dstCompanyId) throw new BadRequestException(`잘못된 주문입니다.`);
+
       // 매출등록은 상대방이 미사용인경우에만 가능
       if (companyId !== srcCompanyId) {
         const srcCompany = await tx.company.findUnique({
