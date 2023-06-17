@@ -40,7 +40,7 @@ import {
   DepositCreateRequest,
   OrderDepositAssignDepositCreateRequest,
   OrderDepositAssignDepositUpdateRequest,
-  OrderCuttingCreateRequest,
+  OrderProcessCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -640,7 +640,7 @@ export class OrderDepositAssignDepositUpdateDto implements OrderDepositAssignDep
 }
 
 /** 외주공정 등록 */
-export class OrderCuttingCreateDto implements OrderCuttingCreateRequest {
+export class OrderProcessCreateDto implements OrderProcessCreateRequest {
   @IsInt()
   @Type(() => Number)
   @IsPositive()

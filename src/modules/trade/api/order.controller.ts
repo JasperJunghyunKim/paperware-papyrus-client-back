@@ -21,13 +21,13 @@ import { OrderChangeService } from '../service/order-change.service';
 import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   IdDto,
-  OrderCuttingCreateDto,
   OrderDepositAssignDepositCreateDto,
   OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
   OrderDepositListQueryDto,
   OrderIdDto,
   OrderListQueryDto,
+  OrderProcessCreateDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
@@ -485,7 +485,7 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async createOrderCutting(
     @Request() req: AuthType,
-    @Body() dto: OrderCuttingCreateDto,
+    @Body() dto: OrderProcessCreateDto,
   ) {
     const order = await this.change.createOrderCutting({
       companyId: req.user.companyId,
