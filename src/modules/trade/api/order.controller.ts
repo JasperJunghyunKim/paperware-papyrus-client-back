@@ -481,13 +481,16 @@ export class OrderController {
   }
 
   /** 외주공정 */
-  @Post('/cutting')
+  @Post('/process')
   @UseGuards(AuthGuard)
   async createOrderCutting(
     @Request() req: AuthType,
     @Body() dto: OrderCuttingCreateDto,
   ) {
-    const order = await this.change.createOrderCutting({ ...dto });
+    const order = await this.change.createOrderCutting({
+      companyId: req.user.companyId,
+      ...dto,
+    });
     return order;
   }
 

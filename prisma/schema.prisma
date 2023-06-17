@@ -215,12 +215,11 @@ model StockEvent {
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
   plan              Plan[]           @relation("TargetStockEvent")
   assignPlan        Plan[]           @relation("AssignStockEvent")
-  orderCuttingId    Int?
-  orderCutting      OrderCutting?    @relation(fields: [orderCuttingId], references: [id])
+  orderProcessId    Int?
+  orderProcess      OrderProcess?    @relation(fields: [orderProcessId], references: [id])
 }
 
 // User
-
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
@@ -302,17 +301,18 @@ model BusinessRelationshipRequest {
 }
 
 model Location {
-  id           Int            @id @default(autoincrement())
-  name         String
-  code         String?
-  address      String         @default("") @db.VarChar(500)
-  companyId    Int
-  company      Company        @relation(fields: [companyId], references: [id])
-  isPublic     Boolean
-  isDeleted    Boolean        @default(false)
-  orderStock   OrderStock[] // 정상거래의 도착지
-  orderCutting OrderCutting[]
-  PlanShipping PlanShipping[]
+  id              Int            @id @default(autoincrement())
+  name            String
+  code            String?
+  address         String         @default("") @db.VarChar(500)
+  companyId       Int
+  company         Company        @relation(fields: [companyId], references: [id])
+  isPublic        Boolean
+  isDeleted       Boolean        @default(false)
+  orderStock      OrderStock[] // 정상거래의 도착지
+  PlanShipping    PlanShipping[]
+  dstOrderProcess OrderProcess[] @relation("dstLocation")
+  srcOrderProcess OrderProcess[] @relation("srcLocation")
 
   @@unique([companyId, code])
 }
@@ -416,7 +416,7 @@ model Order {
   srcDepositEvent        DepositEvent? @relation("srcDepositEvent", fields: [srcDepositEventId], references: [id])
   dstDepositEventId      Int?
   dstDepositEvent        DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
-  OrderCutting           OrderCutting?
+  orderProcess           OrderProcess?
   OrderEtc               OrderEtc?
 }
 
@@ -433,15 +433,19 @@ model OrderStock {
   stockEvent       StockEvent[]
 }
 
-model OrderCutting {
+model OrderProcess {
   id               Int          @id @default(autoincrement())
   orderId          Int          @unique
   order            Order        @relation(fields: [orderId], references: [id])
-  dstLocationId    Int?
-  dstLocation      Location?    @relation(fields: [dstLocationId], references: [id])
+  dstLocationId    Int
+  dstLocation      Location     @relation("dstLocation", fields: [dstLocationId], references: [id])
+  srcLocationId    Int
+  srcLocation      Location     @relation("srcLocation", fields: [srcLocationId], references: [id])
   isDirectShipping Boolean      @default(false)
-  wantedDate       DateTime?
-  plan             Plan[]
+  srcWantedDate    DateTime?
+  dstWantedDate    DateTime?
+  srcPlan          Plan[]       @relation("srcPlan")
+  dstPlan          Plan[]       @relation("dstPlan")
   // 외주공정의 주문 원지 정보
   stockEvent       StockEvent[]
 }
@@ -550,9 +554,11 @@ model Plan {
   orderStock         OrderStock?   @relation(fields: [orderStockId], references: [id])
   orderStockId       Int?
   initialStock       Stock[]       @relation("InitialPlan")
-  orderCuttingId     Int?
-  orderCutting       OrderCutting? @relation(fields: [orderCuttingId], references: [id])
   planShipping       PlanShipping?
+  srcOrderProcessId  Int?
+  srcOrderProcess    OrderProcess? @relation("srcPlan", fields: [srcOrderProcessId], references: [id])
+  dstOrderProcessId  Int?
+  dstOrderProcess    OrderProcess? @relation("dstPlan", fields: [dstOrderProcessId], references: [id])
 }
 
 model PlanShipping {

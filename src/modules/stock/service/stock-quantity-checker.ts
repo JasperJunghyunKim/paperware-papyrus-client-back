@@ -37,5 +37,8 @@ export class StockQuantityChecker {
         } = params;
 
         // TODO...
+        const stockGroup = await tx.$queryRaw`
+            
+        `;
     }
 }

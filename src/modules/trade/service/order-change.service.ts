@@ -1544,6 +1544,7 @@ export class OrderChangeService {
   /** 외주공정 */
   async createOrderCutting(
     params: {
+      companyId: number;
       srcCompanyId: number;
       dstCompanyId: number;
       srcLocationId: number;
@@ -1566,7 +1567,181 @@ export class OrderChangeService {
       quantity: number;
     },
   ) {
-    console.log(params);
-    throw new NotImplementedException();
+    const {
+      companyId,
+      srcCompanyId,
+      dstCompanyId,
+      srcLocationId,
+      dstLocationId,
+      memo,
+      srcWantedDate,
+      dstWantedDate,
+      warehouseId,
+      planId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    } = params;
+
+
+    const order = await this.prisma.$transaction(async tx => {
+      // 매출등록은 상대방이 미사용인경우에만 가능
+      if (companyId !== srcCompanyId) {
+        const srcCompany = await tx.company.findUnique({
+          where: {
+            id: srcCompanyId,
+          }
+        });
+        if (!srcCompany) throw new BadRequestException(`존재하지 않는 거래처입니다.`);
+        if (srcCompany.managedById === null) throw new BadRequestException(`페이퍼웨어 사용중인 기업에는 외주공정매출을 등록할 수 없습니다.`);
+      }
+
+      // TODO: 거래처 확인
+      // TODO: 도착지 확인
+      // TODO: 재고 가용수량 확인
+
+      const order = await tx.order.create({
+        select: {
+          id: true,
+          orderProcess: {
+            select: {
+              srcPlan: true,
+            }
+          },
+        },
+        data: {
+          orderType: 'OUTSOURCE_PROCESS',
+          orderNo: ulid(),
+          srcCompany: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          dstCompany: {
+            connect: {
+              id: dstCompanyId,
+            }
+          },
+          status: srcCompanyId === companyId ? 'ORDER_PREPARING' : 'OFFER_PREPARING',
+          isEntrusted: srcCompanyId !== companyId,
+          memo,
+          orderProcess: {
+            create: {
+              srcLocation: {
+                connect: {
+                  id: srcLocationId,
+                }
+              },
+              dstLocation: {
+                connect: {
+                  id: dstLocationId,
+                }
+              },
+              srcWantedDate,
+              dstWantedDate,
+              srcPlan: {
+                create: {
+                  type: 'TRADE_OUTSOURCE_PROCESS_BUYER',
+                  planNo: ulid(),
+                  company: {
+                    connect: {
+                      id: srcCompanyId,
+                    }
+                  },
+                  status: 'PREPARING',
+                }
+              },
+              dstPlan: {
+                create: {
+                  type: 'TRADE_OUTSOURCE_PROCESS_SELLER',
+                  planNo: ulid(),
+                  company: {
+                    connect: {
+                      id: dstCompanyId,
+                    }
+                  },
+                  status: 'PREPARING',
+                }
+              },
+            }
+          }
+        }
+      });
+
+      // 구매 회사의 재고 선택
+      const stock = await tx.stock.create({
+        data: {
+          serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
+          initialPlan: {
+            connect: {
+              id: order.orderProcess.srcPlan[0].id,
+            }
+          },
+          company: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          warehouse: warehouseId ? {
+            connect: {
+              id: warehouseId,
+            }
+          } : undefined,
+          plan: planId ? {
+            connect: {
+              id: planId
+            }
+          } : undefined,
+          product: {
+            connect: {
+              id: productId,
+            }
+          },
+          packaging: {
+            connect: {
+              id: packagingId,
+            }
+          },
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroup: paperColorGroupId ? {
+            connect: {
+              id: paperColorGroupId,
+            }
+          } : undefined,
+          paperColor: paperColorId ? {
+            connect: {
+              id: paperColorId,
+            }
+          } : undefined,
+          paperPattern: paperPatternId ? {
+            connect: {
+              id: paperPatternId,
+            }
+          } : undefined,
+          paperCert: paperCertId ? {
+            connect: {
+              id: paperCertId,
+            }
+          } : undefined,
+          stockEvent: {
+            create: {
+              change: -quantity,
+              status: 'PENDING',
+            }
+          }
+        },
+      });
+
+      return order;
+    });
   }
 }
