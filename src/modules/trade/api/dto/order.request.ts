@@ -23,6 +23,7 @@ import {
   NotEquals,
   ValidateNested,
 } from 'class-validator';
+import { isLength } from 'lodash';
 import {
   OrderStockCreateRequest,
   OrderStockUpdateRequest,
@@ -41,6 +42,7 @@ import {
   OrderDepositAssignDepositCreateRequest,
   OrderDepositAssignDepositUpdateRequest,
   OrderProcessCreateRequest,
+  OrderEtcCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -738,4 +740,27 @@ export class OrderProcessCreateDto implements OrderProcessCreateRequest {
   @Type(() => Number)
   @IsPositive()
   readonly quantity: number;
+}
+
+/** 기타매입/매출 등록 */
+export class OrderEtcCreateDto implements OrderEtcCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly item: string = '';
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
 }

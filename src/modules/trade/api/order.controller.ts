@@ -25,6 +25,7 @@ import OrderStockCreateRequestDto, {
   OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
   OrderDepositListQueryDto,
+  OrderEtcCreateDto,
   OrderIdDto,
   OrderListQueryDto,
   OrderProcessCreateDto,
@@ -499,7 +500,11 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async createOrderEtc(
     @Request() req: AuthType,
+    @Body() dto: OrderEtcCreateDto,
   ) {
-    throw new NotImplementedException();
+    const order = await this.change.createOrderEtc({
+      companyId: req.user.companyId,
+      ...dto
+    })
   }
 }

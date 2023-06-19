@@ -1658,7 +1658,19 @@ export class OrderChangeService {
                     }
                   },
                   status: 'PREPARING',
-                }
+                  task: {
+                    create: {
+                      taskNo: ulid(),
+                      type: 'RELEASE',
+                      status: 'PREPARING',
+                      taskQuantity: {
+                        create: {
+                          quantity: quantity,
+                        }
+                      }
+                    }
+                  }
+                },
               },
               dstPlan: {
                 create: {
@@ -1744,6 +1756,30 @@ export class OrderChangeService {
       });
 
       return order;
+    });
+  }
+
+  /** 기타거래 */
+  async createOrderEtc(
+    params: {
+      companyId: number;
+      srcCompanyId: number;
+      dstCompanyId: number;
+      item: string;
+      memo: string;
+    }
+  ) {
+    const {
+      companyId,
+      srcCompanyId,
+      dstCompanyId,
+      item,
+      memo,
+    } = params;
+    await this.prisma.$transaction(async tx => {
+      if (companyId !== srcCompanyId && companyId !== dstCompanyId) throw new BadRequestException(`잘못된 주문입니다.`);
+
+
     });
   }
 }
