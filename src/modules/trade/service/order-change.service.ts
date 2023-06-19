@@ -786,7 +786,7 @@ export class OrderChangeService {
         },
       });
 
-      if (!Util.inc(order.status, 'OFFER_REJECTED', 'ORDER_REJECTED')) {
+      if (!Util.inc(order.status, 'OFFER_REJECTED', 'ORDER_REJECTED', 'OFFER_REQUESTED', 'ORDER_REQUESTED')) {
         throw new Error('Invalid order status');
       }
 
@@ -796,7 +796,7 @@ export class OrderChangeService {
         },
         data: {
           status:
-            order.status === 'OFFER_REJECTED'
+            order.status === 'OFFER_REJECTED' || order.status === 'OFFER_REQUESTED'
               ? 'OFFER_PREPARING'
               : 'ORDER_PREPARING',
         },
