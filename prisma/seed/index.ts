@@ -69,6 +69,9 @@ async function main() {
   await prisma.paperColor.createMany({
     data: Data.PAPER_COLOR.map((name) => ({ name })),
   });
+  await prisma.paperPattern.createMany({
+    data: Data.PAPER_PATTERN.map((name) => ({ name })),
+  });
   await prisma.paperCert.createMany({
     data: Data.PAPER_CERT.map((name) => ({ name })),
   });
@@ -103,21 +106,25 @@ async function main() {
     ],
   });
   await prisma.warehouse.createMany({
-    data: Data.WAREHOUSE.map<Prisma.WarehouseCreateManyInput>(([companyId, name, address, isPublic]) => ({
-      name,
-      address,
-      isPublic,
-      companyId,
-    })),
+    data: Data.WAREHOUSE.map<Prisma.WarehouseCreateManyInput>(
+      ([companyId, name, address, isPublic]) => ({
+        name,
+        address,
+        isPublic,
+        companyId,
+      }),
+    ),
   });
   await prisma.location.createMany({
-    data: Data.LOCATION.map<Prisma.LocationCreateManyInput>(([companyId, name, address, isPublic]) => ({
-      name,
-      address,
-      isPublic,
-      companyId,
-    })),
-  })
+    data: Data.LOCATION.map<Prisma.LocationCreateManyInput>(
+      ([companyId, name, address, isPublic]) => ({
+        name,
+        address,
+        isPublic,
+        companyId,
+      }),
+    ),
+  });
 }
 
 main()
