@@ -1776,10 +1776,44 @@ export class OrderChangeService {
       item,
       memo,
     } = params;
-    await this.prisma.$transaction(async tx => {
+    const order = await this.prisma.$transaction(async tx => {
       if (companyId !== srcCompanyId && companyId !== dstCompanyId) throw new BadRequestException(`잘못된 주문입니다.`);
 
+      // TODO: 거래처 확인
 
+      const order = await tx.order.create({
+        include: {
+          srcCompany: true,
+          dstCompany: true,
+          orderEtc: true,
+        },
+        data: {
+          orderType: 'ETC',
+          orderNo: ulid(),
+          srcCompany: {
+            connect: {
+              id: srcCompanyId,
+            }
+          },
+          dstCompany: {
+            connect: {
+              id: dstCompanyId,
+            }
+          },
+          status: srcCompanyId === companyId ? 'ORDER_PREPARING' : 'OFFER_PREPARING',
+          isEntrusted: srcCompanyId !== companyId,
+          memo,
+          orderEtc: {
+            create: {
+              item,
+            }
+          }
+        }
+      });
+
+      return order;
     });
+
+    return order;
   }
 }

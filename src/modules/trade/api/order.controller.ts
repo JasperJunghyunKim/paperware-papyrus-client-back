@@ -505,6 +505,8 @@ export class OrderController {
     const order = await this.change.createOrderEtc({
       companyId: req.user.companyId,
       ...dto
-    })
+    });
+
+    return order;
   }
 }
