@@ -297,7 +297,7 @@ export class OrderRetriveService {
       }
     });
 
-    if (!orderProcess || orderProcess.order.srcCompanyId !== companyId && orderProcess.order.dstCompanyId !== companyId) throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
+    if (!orderProcess || (orderProcess.order.srcCompanyId !== companyId && orderProcess.order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
 
     return Util.serialize(orderProcess);
   }
