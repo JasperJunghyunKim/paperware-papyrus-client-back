@@ -26,9 +26,12 @@ import OrderStockCreateRequestDto, {
   OrderDepositCreateDto,
   OrderDepositListQueryDto,
   OrderEtcCreateDto,
+  OrderEtcUpdateDto,
   OrderIdDto,
   OrderListQueryDto,
   OrderProcessCreateDto,
+  OrderProcessInfoUpdateDto,
+  OrderProcessStockUpdateDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
@@ -37,6 +40,7 @@ import OrderStockCreateRequestDto, {
 } from './dto/order.request';
 import {
   OrderDepositResponse,
+  OrderProcessResponse,
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
@@ -496,12 +500,15 @@ export class OrderController {
   }
 
   /** 외주공정 상세 */
-  @Post('/:id/process')
+  @Get('/:id/process')
   @UseGuards(AuthGuard)
   async getOrderProcess(
     @Request() req: AuthType,
-  ) {
-    throw new NotImplementedException();
+    @Param() idDto: IdDto,
+  ): Promise<OrderProcessResponse> {
+    const item = await this.retrive.getOrderProcess(req.user.companyId, idDto.id);
+
+    return item;
   }
 
   /** 외주공정 수정 */
@@ -509,7 +516,8 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async updateOrderProcess(
     @Request() req: AuthType,
-
+    @Param() idDto: IdDto,
+    @Body() dto: OrderProcessInfoUpdateDto,
   ) {
     throw new NotImplementedException();
   }
@@ -519,7 +527,8 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async updateOrderProcessStock(
     @Request() req: AuthType,
-
+    @Param() idDto: IdDto,
+    @Body() dto: OrderProcessStockUpdateDto,
   ) {
     throw new NotImplementedException();
   }
@@ -544,7 +553,7 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async getOrderEtc(
     @Request() req: AuthType,
-
+    @Param() idDto: IdDto,
   ) {
     throw new NotImplementedException();
   }
@@ -554,7 +563,8 @@ export class OrderController {
   @UseGuards(AuthGuard)
   async updateOrderEtc(
     @Request() req: AuthType,
-
+    @Param() idDto: IdDto,
+    @Body() dto: OrderEtcUpdateDto,
   ) {
     throw new NotImplementedException();
   }

@@ -14,6 +14,7 @@ import { ulid } from 'ulid';
 import { TradePriceValidator } from './trade-price.validator';
 import { PrismaTransaction } from 'src/common/types';
 import { DepositChangeService } from './deposit-change.service';
+import { ORDER } from 'src/common/selector';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -1695,7 +1696,7 @@ export class OrderChangeService {
       paperCertId: number | null;
       quantity: number;
     },
-  ) {
+  ): Promise<Model.Order> {
     const {
       companyId,
       srcCompanyId,
@@ -1886,10 +1887,19 @@ export class OrderChangeService {
         where: {
           id: order.orderProcess.srcPlan[0].id
         }
+      });
+
+      const result = tx.order.findUnique({
+        select: ORDER,
+        where: {
+          id: order.id,
+        }
       })
 
-      return order;
+      return result;
     });
+
+    return Util.serialize(order);
   }
 
   /** 기타거래 */

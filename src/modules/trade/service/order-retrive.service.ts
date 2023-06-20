@@ -3,7 +3,7 @@ import { OrderStatus } from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { DEPOSIT, ORDER_DEPOSIT } from 'src/common/selector';
+import { DEPOSIT, LOCATION, ORDER_DEPOSIT, STOCK_EVENT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -234,5 +234,67 @@ export class OrderRetriveService {
 
     const depositEvent = order.srcCompanyId === companyId ? order.srcDepositEvent : order.dstDepositEvent;
     return depositEvent;
+  }
+
+  async getOrderProcess(companyId: number, orderId: number): Promise<Model.OrderProcess> {
+    const orderProcess = await this.prisma.orderProcess.findFirst({
+      select: {
+        id: true,
+        srcLocation: {
+          select: LOCATION,
+        },
+        dstLocation: {
+          select: LOCATION,
+        },
+        order: {
+          select: {
+            id: true,
+            orderNo: true,
+            orderType: true,
+            status: true,
+            isEntrusted: true,
+            memo: true,
+          }
+        },
+        isDirectShipping: true,
+        srcWantedDate: true,
+        dstWantedDate: true,
+        srcPlan: {
+          select: {
+            id: true,
+            planNo: true,
+            type: true,
+            status: true,
+            assignStockEvent: {
+              select: STOCK_EVENT,
+            },
+            targetStockEvent: {
+              select: STOCK_EVENT,
+            },
+            companyId: true,
+          }
+        },
+        dstPlan: {
+          select: {
+            id: true,
+            planNo: true,
+            type: true,
+            status: true,
+            assignStockEvent: {
+              select: STOCK_EVENT,
+            },
+            targetStockEvent: {
+              select: STOCK_EVENT,
+            },
+            companyId: true,
+          }
+        }
+      },
+      where: {
+        orderId,
+      }
+    });
+
+    return Util.serialize(orderProcess);
   }
 }

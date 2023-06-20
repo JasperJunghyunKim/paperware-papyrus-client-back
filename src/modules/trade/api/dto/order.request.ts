@@ -43,6 +43,9 @@ import {
   OrderDepositAssignDepositUpdateRequest,
   OrderProcessCreateRequest,
   OrderEtcCreateRequest,
+  OrderProcessInfoUpdateRequest,
+  OrderProcessStockUpdateRequest,
+  OrderEtcUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -742,6 +745,99 @@ export class OrderProcessCreateDto implements OrderProcessCreateRequest {
   readonly quantity: number;
 }
 
+/** 외주공정 정보 업데이트 */
+export class OrderProcessInfoUpdateDto implements OrderProcessInfoUpdateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcLocationId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstLocationId: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
+
+  @IsDateString()
+  readonly srcWantedDate: string;
+
+  @IsDateString()
+  readonly dstWantedDate: string;
+}
+
+export class OrderProcessStockUpdateDto implements OrderProcessStockUpdateRequest {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly warehouseId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+}
+
 /** 기타매입/매출 등록 */
 export class OrderEtcCreateDto implements OrderEtcCreateRequest {
   @IsInt()
@@ -754,6 +850,18 @@ export class OrderEtcCreateDto implements OrderEtcCreateRequest {
   @IsPositive()
   readonly dstCompanyId: number;
 
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly item: string = '';
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
+}
+
+export class OrderEtcUpdateDto implements OrderEtcUpdateRequest {
   @IsOptional()
   @IsString()
   @Length(0, 300)
