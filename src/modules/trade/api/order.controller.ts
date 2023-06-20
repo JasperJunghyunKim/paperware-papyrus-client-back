@@ -495,6 +495,21 @@ export class OrderController {
     return order;
   }
 
+  /** 외주공정 수정 */
+  @Put('/process/:id')
+  @UseGuards(AuthGuard)
+  async updateOrderProcess() {
+
+  }
+
+  /** 외주공정 원지 수정 */
+  @Put('/process/:id')
+  @UseGuards(AuthGuard)
+  async updateOrderProcessStock() {
+
+  }
+
+
   /** 기타거래 */
   @Post('/etc')
   @UseGuards(AuthGuard)

@@ -1808,6 +1808,9 @@ export class OrderChangeService {
 
       // 구매 회사의 재고 선택
       const stock = await tx.stock.create({
+        include: {
+          stockEvent: true,
+        },
         data: {
           serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
           initialPlan: {
@@ -1871,6 +1874,19 @@ export class OrderChangeService {
           }
         },
       });
+
+      await tx.plan.update({
+        data: {
+          assignStockEvent: {
+            connect: {
+              id: stock.stockEvent[0].id,
+            }
+          }
+        },
+        where: {
+          id: order.orderProcess.srcPlan[0].id
+        }
+      })
 
       return order;
     });
