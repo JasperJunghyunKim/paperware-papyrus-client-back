@@ -254,6 +254,8 @@ export class OrderRetriveService {
             status: true,
             isEntrusted: true,
             memo: true,
+            srcCompanyId: true,
+            dstCompanyId: true,
           }
         },
         isDirectShipping: true,
@@ -294,6 +296,8 @@ export class OrderRetriveService {
         orderId,
       }
     });
+
+    if (!orderProcess || orderProcess.order.srcCompanyId !== companyId && orderProcess.order.dstCompanyId !== companyId) throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
 
     return Util.serialize(orderProcess);
   }
