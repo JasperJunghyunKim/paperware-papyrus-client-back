@@ -563,6 +563,13 @@ export class OrderChangeService {
             order.orderDeposit,
           );
           break;
+        case OrderType.OUTSOURCE_PROCESS:
+          // 출고 및 도착예정재고 자동 생성
+          await this.acceptOrderProcessTx(
+            tx,
+            orderId,
+          );
+          break;
         default:
           break;
       }
@@ -740,6 +747,128 @@ export class OrderChangeService {
         }
       });
     }
+  }
+
+  async acceptOrderProcessTx(
+    tx: PrismaTransaction,
+    orderId: number,
+  ) {
+    const order = await tx.order.findUnique({
+      include: {
+        orderProcess: {
+          include: {
+            srcPlan: {
+              include: {
+                initialStock: {
+                  include: {
+                    stockEvent: true,
+                  }
+                }
+              }
+            },
+            dstPlan: true,
+          }
+        }
+      },
+      where: {
+        id: orderId,
+      }
+    });
+
+    const stock = order.orderProcess.srcPlan[0].initialStock[0];
+    const quantity = Math.abs(stock.stockEvent[0].change);
+
+    // TODO: 출고 생성 (구매자)
+    const task = await tx.task.create({
+      data: {
+        taskNo: ulid(),
+        plan: {
+          connect: {
+            id: order.orderProcess.srcPlan[0].id,
+          }
+        },
+        type: 'RELEASE',
+        status: 'PREPARING',
+        taskQuantity: {
+          create: {
+            quantity,
+          }
+        }
+      }
+    });
+
+    // TODO: 도착예정재고 생성 (판매자)
+    const targetStock = await tx.stockEvent.create({
+      data: {
+        change: quantity,
+        status: 'PENDING',
+        plan: {
+          connect: {
+            id: order.orderProcess.dstPlan[0].id,
+          }
+        },
+        // TODO: 도착예정이지만 목록에 보이지않는 재고 형태가 되어야함 (model에 추가?)
+        stock: {
+          create: {
+            serial: ulid(), // 판매자쪽 도창예정재고 시리얼은 ulid로 만들어도 됨?
+            company: {
+              connect: {
+                id: order.dstCompanyId,
+              }
+            },
+            plan: {
+              connect: {
+                id: order.orderProcess.dstPlan[0].id,
+              }
+            },
+            product: {
+              connect: {
+                id: stock.productId,
+              }
+            },
+            packaging: {
+              connect: {
+                id: stock.packagingId,
+              }
+            },
+            grammage: stock.grammage,
+            sizeX: stock.sizeX,
+            sizeY: stock.sizeY,
+            paperColorGroup: stock.paperColorGroupId ? {
+              connect: {
+                id: stock.paperColorGroupId,
+              }
+            } : undefined,
+            paperColor: stock.paperColorId ? {
+              connect: {
+                id: stock.paperColorId,
+              }
+            } : undefined,
+            paperPattern: stock.paperPatternId ? {
+              connect: {
+                id: stock.paperPatternId,
+              }
+            } : undefined,
+            paperCert: stock.paperCertId ? {
+              connect: {
+                id: stock.paperCertId,
+              }
+            } : undefined,
+            cachedQuantityAvailable: 0,
+            initialPlan: {
+              connect: {
+                id: order.orderProcess.dstPlan[0].id,
+              }
+            }
+          },
+        },
+        orderProcess: {
+          connect: {
+            id: order.orderProcess.id,
+          }
+        }
+      }
+    });
   }
 
   async reject(params: { orderId: number }) {
@@ -1658,18 +1787,6 @@ export class OrderChangeService {
                     }
                   },
                   status: 'PREPARING',
-                  task: {
-                    create: {
-                      taskNo: ulid(),
-                      type: 'RELEASE',
-                      status: 'PREPARING',
-                      taskQuantity: {
-                        create: {
-                          quantity: quantity,
-                        }
-                      }
-                    }
-                  }
                 },
               },
               dstPlan: {
