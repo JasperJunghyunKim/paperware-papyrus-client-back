@@ -50,14 +50,16 @@ export class CreateOfficialPriceDto implements OfficialPriceCreateRequest {
     @IsPositive()
     readonly grammage: number;
 
+    @IsOptional()
     @IsInt()
     @Type(() => Number)
-    @IsPositive()
-    readonly sizeX: number;
+    @Min(0)
+    readonly sizeX: number = 0;
 
     @IsOptional()
     @IsInt()
     @Type(() => Number)
+    @Min(0)
     readonly sizeY: number = 0;
 
     @IsOptional()

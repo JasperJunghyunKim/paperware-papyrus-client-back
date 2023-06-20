@@ -358,6 +358,66 @@ export const DEPOSIT = {
   },
 } satisfies Prisma.DepositSelect;
 
+export const ORDER_PROCESS = {
+  id: true,
+  srcLocation: {
+    select: LOCATION,
+  },
+  dstLocation: {
+    select: LOCATION,
+  },
+  isDirectShipping: true,
+  srcWantedDate: true,
+  dstWantedDate: true,
+  order: {
+    select: {
+      id: true,
+      orderNo: true,
+      orderType: true,
+      status: true,
+      isEntrusted: true,
+      memo: true,
+    },
+  },
+  srcPlan: {
+    select: {
+      id: true,
+      planNo: true,
+      type: true,
+      assignStockEvent: { select: STOCK_EVENT },
+      targetStockEvent: { select: STOCK_EVENT },
+      companyId: true,
+      status: true,
+    },
+  },
+  dstPlan: {
+    select: {
+      id: true,
+      planNo: true,
+      type: true,
+      assignStockEvent: { select: STOCK_EVENT },
+      targetStockEvent: { select: STOCK_EVENT },
+      companyId: true,
+      status: true,
+    },
+  },
+} satisfies Prisma.OrderProcessSelect;
+
+export const ORDER_ETC = {
+  id: true,
+  item: true,
+  order: {
+    select: {
+      id: true,
+      orderNo: true,
+      orderType: true,
+      status: true,
+      isEntrusted: true,
+      memo: true,
+    },
+  },
+} satisfies Prisma.OrderEtcSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -378,6 +438,12 @@ export const ORDER = {
   },
   orderDeposit: {
     select: ORDER_DEPOSIT,
+  },
+  orderProcess: {
+    select: ORDER_PROCESS,
+  },
+  orderEtc: {
+    select: ORDER_ETC,
   },
   srcDepositEvent: {
     include: {

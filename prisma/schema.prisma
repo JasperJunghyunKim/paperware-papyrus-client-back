@@ -3,7 +3,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "linux-arm64-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
@@ -145,7 +145,6 @@ model Warehouse {
 }
 
 // Stock
-
 model Stock {
   id                      Int              @id @default(autoincrement())
   serial                  String           @unique
@@ -417,7 +416,7 @@ model Order {
   dstDepositEventId      Int?
   dstDepositEvent        DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
   orderProcess           OrderProcess?
-  OrderEtc               OrderEtc?
+  orderEtc               OrderEtc?
 }
 
 model OrderStock {
@@ -1296,7 +1295,7 @@ model OrderDepositTradePrice {
 model OrderDepositTradeAltBundle {
   orderId     Int
   companyId   Int
-  Company     Company @relation(fields: [companyId], references: [id])
+  company     Company @relation(fields: [companyId], references: [id])
   altSizeX    Int
   altSizeY    Int
   altQuantity Int
