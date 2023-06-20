@@ -318,7 +318,7 @@ export class StockRetriveService {
            GROUP BY stockId
         ) AS arrivalStockEvent ON arrivalStockEvent.stockId = s.id
    LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
-   LEFT JOIN Plan               AS p                        ON p.id = s.initialPlanId
+   LEFT JOIN Plan               AS p                        ON p.id = s.planId
    LEFT JOIN PlanShipping       AS ps                       ON ps.planId = p.id
    LEFT JOIN Location           AS psLocation               ON psLocation.id = ps.dstLocationId
 

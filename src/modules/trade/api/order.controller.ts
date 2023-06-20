@@ -484,31 +484,45 @@ export class OrderController {
   /** 외주공정 */
   @Post('/process')
   @UseGuards(AuthGuard)
-  async createOrderCutting(
+  async createOrderProcess(
     @Request() req: AuthType,
     @Body() dto: OrderProcessCreateDto,
   ) {
-    const order = await this.change.createOrderCutting({
+    const order = await this.change.createOrderProcess({
       companyId: req.user.companyId,
       ...dto,
     });
     return order;
   }
 
-  /** 외주공정 수정 */
-  @Put('/process/:id')
+  /** 외주공정 상세 */
+  @Post('/:id/process')
   @UseGuards(AuthGuard)
-  async updateOrderProcess() {
+  async getOrderProcess(
+    @Request() req: AuthType,
+  ) {
+    throw new NotImplementedException();
+  }
 
+  /** 외주공정 수정 */
+  @Put('/:id/process')
+  @UseGuards(AuthGuard)
+  async updateOrderProcess(
+    @Request() req: AuthType,
+
+  ) {
+    throw new NotImplementedException();
   }
 
   /** 외주공정 원지 수정 */
-  @Put('/process/:id')
+  @Put('/:id/process/stock')
   @UseGuards(AuthGuard)
-  async updateOrderProcessStock() {
+  async updateOrderProcessStock(
+    @Request() req: AuthType,
 
+  ) {
+    throw new NotImplementedException();
   }
-
 
   /** 기타거래 */
   @Post('/etc')
@@ -523,5 +537,25 @@ export class OrderController {
     });
 
     return order;
+  }
+
+  /** 기타거래 상세 */
+  @Get('/:id/etc')
+  @UseGuards(AuthGuard)
+  async getOrderEtc(
+    @Request() req: AuthType,
+
+  ) {
+    throw new NotImplementedException();
+  }
+
+  /** 기타거래 수정 */
+  @Put('/:id/etc')
+  @UseGuards(AuthGuard)
+  async updateOrderEtc(
+    @Request() req: AuthType,
+
+  ) {
+    throw new NotImplementedException();
   }
 }

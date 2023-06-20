@@ -1671,7 +1671,7 @@ export class OrderChangeService {
   }
 
   /** 외주공정 */
-  async createOrderCutting(
+  async createOrderProcess(
     params: {
       companyId: number;
       srcCompanyId: number;
