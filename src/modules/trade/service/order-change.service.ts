@@ -63,6 +63,17 @@ export class OrderChangeService {
     private readonly depositChangeService: DepositChangeService,
   ) { }
 
+  async getOrderCreateResponseTx(tx: PrismaTransaction, id: number): Promise<Model.Order> {
+    const result = await tx.order.findUnique({
+      select: ORDER,
+      where: {
+        id: id,
+      }
+    });
+
+    return Util.serialize(result);
+  }
+
   async insertOrder(params: {
     srcCompanyId: number;
     dstCompanyId: number;
@@ -82,7 +93,7 @@ export class OrderChangeService {
     memo: string;
     wantedDate: string;
     isOffer: boolean;
-  }) {
+  }): Promise<Model.Order> {
     const isEntrusted =
       !!(
         await this.prisma.company.findUnique({
@@ -105,7 +116,7 @@ export class OrderChangeService {
         })
       ).managedById;
 
-    return await this.prisma.$transaction(async (tx) => {
+    const order = await this.prisma.$transaction(async (tx) => {
       // 구매처 작업 계획
       const srcPlan = await tx.plan.create({
         data: {
@@ -252,14 +263,10 @@ export class OrderChangeService {
         }
       });
 
-      return {
-        srcPlanId: srcPlan.id,
-        dstPlanId: dstPlan.id,
-        stockId: stock.id,
-        stockEventId: stockEvent.id,
-        orderId: order.id,
-      };
+      return this.getOrderCreateResponseTx(tx, order.id);
     });
+
+    return order;
   }
 
   async updateOrder(params: {
@@ -1889,17 +1896,10 @@ export class OrderChangeService {
         }
       });
 
-      const result = tx.order.findUnique({
-        select: ORDER,
-        where: {
-          id: order.id,
-        }
-      })
-
-      return result;
+      return await this.getOrderCreateResponseTx(tx, order.id);
     });
 
-    return Util.serialize(order);
+    return order;
   }
 
   /** 기타거래 */
@@ -1911,7 +1911,7 @@ export class OrderChangeService {
       item: string;
       memo: string;
     }
-  ) {
+  ): Promise<Model.Order> {
     const {
       companyId,
       srcCompanyId,
@@ -1954,7 +1954,7 @@ export class OrderChangeService {
         }
       });
 
-      return order;
+      return await this.getOrderCreateResponseTx(tx, order.id);
     });
 
     return order;

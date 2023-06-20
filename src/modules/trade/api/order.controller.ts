@@ -39,6 +39,7 @@ import OrderStockCreateRequestDto, {
   UpdateTradePriceDto,
 } from './dto/order.request';
 import {
+  OrderCreateResponse,
   OrderDepositResponse,
   OrderProcessResponse,
   OrderStockArrivalListResponse,
@@ -131,7 +132,7 @@ export class OrderController {
   async createStockOrder(
     @Request() req: AuthType,
     @Body() body: OrderStockCreateRequestDto,
-  ) {
+  ): Promise<OrderCreateResponse> {
     if (
       body.srcCompanyId !== req.user.companyId &&
       body.dstCompanyId !== req.user.companyId
