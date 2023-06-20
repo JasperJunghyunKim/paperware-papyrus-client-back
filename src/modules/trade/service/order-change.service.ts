@@ -1902,6 +1902,70 @@ export class OrderChangeService {
     return order;
   }
 
+  /** 외주공정 수정 */
+  async updateOrderProcessInfo(
+    params: {
+      companyId: number;
+      orderId: number;
+      srcLocationId: number;
+      dstLocationId: number;
+      memo: string;
+      srcWantedDate: string;
+      dstWantedDate: string;
+    }
+  ): Promise<Model.Order> {
+    const order = await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          orderProcess: true,
+          srcCompany: true,
+          dstCompany: true,
+        },
+        where: {
+          id: params.orderId,
+        }
+      });
+      if (!order || (order.srcCompanyId !== params.companyId && order.dstCompanyId !== params.companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (order.orderType !== 'OUTSOURCE_PROCESS') throw new ConflictException(`잘못된 요청입니다. 주문타입을 확인해주세요`);
+
+      // TODO: 도착지 확인
+
+      if (params.companyId !== order.dstCompanyId && order.dstCompany.managedById === null) throw new ConflictException(`주문정보 수정은 판매기업에 요청해야합니다.`);
+
+      await tx.orderProcess.update({
+        data: {
+          srcLocation: {
+            connect: {
+              id: params.srcLocationId,
+            }
+          },
+          dstLocation: {
+            connect: {
+              id: params.dstLocationId,
+            }
+          },
+          srcWantedDate: params.srcWantedDate,
+          dstWantedDate: params.dstWantedDate,
+        },
+        where: {
+          id: order.orderProcess.id,
+        }
+      });
+      await tx.order.update({
+        data: {
+          memo: params.memo,
+        },
+        where: {
+          id: params.orderId,
+        }
+      });
+
+      return await this.getOrderCreateResponseTx(tx, order.id);
+    });
+
+    return order;
+  }
+
   /** 기타거래 */
   async createOrderEtc(
     params: {

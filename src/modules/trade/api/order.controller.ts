@@ -519,8 +519,14 @@ export class OrderController {
     @Request() req: AuthType,
     @Param() idDto: IdDto,
     @Body() dto: OrderProcessInfoUpdateDto,
-  ) {
-    throw new NotImplementedException();
+  ): Promise<OrderCreateResponse> {
+    const order = await this.change.updateOrderProcessInfo({
+      companyId: req.user.companyId,
+      orderId: idDto.id,
+      ...dto,
+    });
+
+    return order;
   }
 
   /** 외주공정 원지 수정 */
