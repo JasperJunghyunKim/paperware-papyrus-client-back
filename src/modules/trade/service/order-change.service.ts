@@ -787,7 +787,7 @@ export class OrderChangeService {
     const stock = srcPlan.initialStock[0];
     const quantity = Math.abs(stock.stockEvent[0].change);
 
-    // TODO: 출고 생성 (구매자)
+    // 출고 생성 (구매자)
     const task = await tx.task.create({
       data: {
         taskNo: ulid(),
@@ -802,12 +802,68 @@ export class OrderChangeService {
           create: {
             quantity,
           }
-        }
+        },
       }
     });
 
-    // TODO: 도착예정재고 생성 (판매자)
-    const targetStock = await tx.stockEvent.create({
+    // 도착예정재고 생성 (판매자)
+    const targetStock = await tx.stock.create({
+      data: {
+        serial: ulid(), // 판매자쪽 도창예정재고 시리얼은 ulid로 만들어도 됨?
+        company: {
+          connect: {
+            id: order.dstCompanyId,
+          }
+        },
+        plan: {
+          connect: {
+            id: dstPlan.id,
+          }
+        },
+        product: {
+          connect: {
+            id: stock.productId,
+          }
+        },
+        packaging: {
+          connect: {
+            id: stock.packagingId,
+          }
+        },
+        grammage: stock.grammage,
+        sizeX: stock.sizeX,
+        sizeY: stock.sizeY,
+        paperColorGroup: stock.paperColorGroupId ? {
+          connect: {
+            id: stock.paperColorGroupId,
+          }
+        } : undefined,
+        paperColor: stock.paperColorId ? {
+          connect: {
+            id: stock.paperColorId,
+          }
+        } : undefined,
+        paperPattern: stock.paperPatternId ? {
+          connect: {
+            id: stock.paperPatternId,
+          }
+        } : undefined,
+        paperCert: stock.paperCertId ? {
+          connect: {
+            id: stock.paperCertId,
+          }
+        } : undefined,
+        cachedQuantityAvailable: 0,
+        initialPlan: {
+          connect: {
+            id: dstPlan.id,
+          }
+        },
+      }
+    });
+
+    // 생성될 도착예정재고 이벤트
+    const targetStockEvent = await tx.stockEvent.create({
       data: {
         change: quantity,
         status: 'PENDING',
@@ -816,64 +872,37 @@ export class OrderChangeService {
             id: dstPlan.id,
           }
         },
-        // TODO: 도착예정이지만 목록에 보이지않는 재고 형태가 되어야함 (model에 추가?)
-        stock: {
-          create: {
-            serial: ulid(), // 판매자쪽 도창예정재고 시리얼은 ulid로 만들어도 됨?
-            company: {
-              connect: {
-                id: order.dstCompanyId,
-              }
-            },
-            plan: {
-              connect: {
-                id: dstPlan.id,
-              }
-            },
-            product: {
-              connect: {
-                id: stock.productId,
-              }
-            },
-            packaging: {
-              connect: {
-                id: stock.packagingId,
-              }
-            },
-            grammage: stock.grammage,
-            sizeX: stock.sizeX,
-            sizeY: stock.sizeY,
-            paperColorGroup: stock.paperColorGroupId ? {
-              connect: {
-                id: stock.paperColorGroupId,
-              }
-            } : undefined,
-            paperColor: stock.paperColorId ? {
-              connect: {
-                id: stock.paperColorId,
-              }
-            } : undefined,
-            paperPattern: stock.paperPatternId ? {
-              connect: {
-                id: stock.paperPatternId,
-              }
-            } : undefined,
-            paperCert: stock.paperCertId ? {
-              connect: {
-                id: stock.paperCertId,
-              }
-            } : undefined,
-            cachedQuantityAvailable: 0,
-            initialPlan: {
-              connect: {
-                id: dstPlan.id,
-              }
-            }
-          },
-        },
         orderProcess: {
           connect: {
             id: order.orderProcess.id,
+          }
+        },
+        stock: {
+          connect: {
+            id: targetStock.id,
+          }
+        }
+      }
+    });
+
+    // 투입될 도착예정재고 이벤트
+    const assignStock = await tx.stockEvent.create({
+      data: {
+        change: -quantity,
+        status: 'PENDING',
+        assignPlan: {
+          connect: {
+            id: dstPlan.id,
+          }
+        },
+        plan: {
+          connect: {
+            id: dstPlan.id,
+          }
+        },
+        stock: {
+          connect: {
+            id: targetStock.id,
           }
         }
       }
@@ -1984,10 +2013,36 @@ export class OrderChangeService {
       quantity: number;
     }
   ): Promise<Model.Order> {
+    const {
+      companyId,
+      orderId,
+      warehouseId,
+      planId,
+      productId,
+      packagingId,
+      grammage,
+      sizeX,
+      sizeY,
+      paperColorGroupId,
+      paperColorId,
+      paperPatternId,
+      paperCertId,
+      quantity,
+    } = params;
+
     const order = await this.prisma.$transaction(async tx => {
       const order = await tx.order.findUnique({
         include: {
-          orderProcess: true,
+          orderProcess: {
+            include: {
+              plan: {
+                include: {
+                  assignStockEvent: true,
+                  targetStockEvent: true,
+                }
+              },
+            }
+          },
           srcCompany: true,
           dstCompany: true,
         },
@@ -2000,6 +2055,108 @@ export class OrderChangeService {
       if (params.companyId !== order.srcCompanyId && order.srcCompany.managedById === null) throw new BadRequestException(`원지정보 변경은 구매기업만 가능합니다.`);
 
       // TODO: 원지 가용수량 체크 (판매자가 사용중일때만)
+
+      switch (order.status) {
+        case 'OFFER_PREPARING':
+        case 'ORDER_PREPARING':
+          break;
+        default:
+          throw new ConflictException(`원지 정보를 수정 불가능한 주문상태 입니다.`);
+      }
+
+      const srcPlan = order.orderProcess.plan.find(plan => order.srcCompanyId === plan.companyId);
+
+      // 기존 event취소
+      await tx.stockEvent.update({
+        data: {
+          status: 'CANCELLED'
+        },
+        where: {
+          id: srcPlan.assignStockEvent.id,
+        }
+      });
+
+      // assign stock 새로 생성
+      const stock = await tx.stock.create({
+        include: {
+          stockEvent: true,
+        },
+        data: {
+          serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
+          initialPlan: {
+            connect: {
+              id: srcPlan.id,
+            }
+          },
+          company: {
+            connect: {
+              id: order.srcCompanyId,
+            }
+          },
+          warehouse: warehouseId ? {
+            connect: {
+              id: warehouseId,
+            }
+          } : undefined,
+          plan: planId ? {
+            connect: {
+              id: planId
+            }
+          } : undefined,
+          product: {
+            connect: {
+              id: productId,
+            }
+          },
+          packaging: {
+            connect: {
+              id: packagingId,
+            }
+          },
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroup: paperColorGroupId ? {
+            connect: {
+              id: paperColorGroupId,
+            }
+          } : undefined,
+          paperColor: paperColorId ? {
+            connect: {
+              id: paperColorId,
+            }
+          } : undefined,
+          paperPattern: paperPatternId ? {
+            connect: {
+              id: paperPatternId,
+            }
+          } : undefined,
+          paperCert: paperCertId ? {
+            connect: {
+              id: paperCertId,
+            }
+          } : undefined,
+          stockEvent: {
+            create: {
+              change: -quantity,
+              status: 'PENDING',
+            }
+          }
+        },
+      });
+
+      await tx.plan.update({
+        data: {
+          assignStockEvent: {
+            connect: {
+              id: stock.stockEvent[0].id,
+            }
+          }
+        },
+        where: {
+          id: srcPlan.id
+        }
+      });
 
       return await this.getOrderCreateResponseTx(tx, order.id);
     });
