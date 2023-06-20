@@ -399,6 +399,7 @@ model Order {
   id                     Int           @id @default(autoincrement())
   orderType              OrderType
   orderNo                String        @unique
+  orderDate              DateTime      @default(now())
   srcCompanyId           Int
   srcCompany             Company       @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId           Int

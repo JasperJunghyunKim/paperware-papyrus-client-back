@@ -6,7 +6,6 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotImplementedException,
   Param,
   Post,
   Put,
@@ -24,7 +23,6 @@ import OrderStockCreateRequestDto, {
   OrderDepositAssignDepositCreateDto,
   OrderDepositAssignDepositUpdateDto,
   OrderDepositCreateDto,
-  OrderDepositListQueryDto,
   OrderEtcCreateDto,
   OrderEtcUpdateDto,
   OrderIdDto,
@@ -46,7 +44,6 @@ import {
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
-import { Api, Model } from 'src/@shared';
 import { Util } from 'src/common';
 
 @Controller('/order')
