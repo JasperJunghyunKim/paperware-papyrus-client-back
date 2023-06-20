@@ -379,18 +379,7 @@ export const ORDER_PROCESS = {
       memo: true,
     },
   },
-  srcPlan: {
-    select: {
-      id: true,
-      planNo: true,
-      type: true,
-      assignStockEvent: { select: STOCK_EVENT },
-      targetStockEvent: { select: STOCK_EVENT },
-      companyId: true,
-      status: true,
-    },
-  },
-  dstPlan: {
+  plan: {
     select: {
       id: true,
       planNo: true,

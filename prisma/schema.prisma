@@ -443,8 +443,7 @@ model OrderProcess {
   isDirectShipping Boolean      @default(false)
   srcWantedDate    DateTime?
   dstWantedDate    DateTime?
-  srcPlan          Plan[]       @relation("srcPlan")
-  dstPlan          Plan[]       @relation("dstPlan")
+  plan             Plan[]
   // 외주공정의 주문 원지 정보
   stockEvent       StockEvent[]
 }
@@ -554,10 +553,8 @@ model Plan {
   orderStockId       Int?
   initialStock       Stock[]       @relation("InitialPlan")
   planShipping       PlanShipping?
-  srcOrderProcessId  Int?
-  srcOrderProcess    OrderProcess? @relation("srcPlan", fields: [srcOrderProcessId], references: [id])
-  dstOrderProcessId  Int?
-  dstOrderProcess    OrderProcess? @relation("dstPlan", fields: [dstOrderProcessId], references: [id])
+  orderProcessId     Int?
+  OrderProcess       OrderProcess? @relation(fields: [orderProcessId], references: [id])
 }
 
 model PlanShipping {

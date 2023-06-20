@@ -261,22 +261,7 @@ export class OrderRetriveService {
         isDirectShipping: true,
         srcWantedDate: true,
         dstWantedDate: true,
-        srcPlan: {
-          select: {
-            id: true,
-            planNo: true,
-            type: true,
-            status: true,
-            assignStockEvent: {
-              select: STOCK_EVENT,
-            },
-            targetStockEvent: {
-              select: STOCK_EVENT,
-            },
-            companyId: true,
-          }
-        },
-        dstPlan: {
+        plan: {
           select: {
             id: true,
             planNo: true,
@@ -300,5 +285,29 @@ export class OrderRetriveService {
     if (!orderProcess || (orderProcess.order.srcCompanyId !== companyId && orderProcess.order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
 
     return Util.serialize(orderProcess);
+  }
+
+  async getOrderEtc(companyId: number, orderId: number): Promise<Model.OrderEtc> {
+    const item = await this.prisma.orderEtc.findFirst({
+      select: {
+        id: true,
+        order: {
+          select: {
+            id: true,
+            orderNo: true,
+            orderType: true,
+            status: true,
+            isEntrusted: true,
+            memo: true,
+          }
+        },
+        item: true,
+      },
+      where: {
+        orderId,
+      }
+    });
+
+    return item;
   }
 }

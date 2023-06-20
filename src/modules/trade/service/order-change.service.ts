@@ -765,7 +765,7 @@ export class OrderChangeService {
       include: {
         orderProcess: {
           include: {
-            srcPlan: {
+            plan: {
               include: {
                 initialStock: {
                   include: {
@@ -774,7 +774,6 @@ export class OrderChangeService {
                 }
               }
             },
-            dstPlan: true,
           }
         }
       },
@@ -783,7 +782,9 @@ export class OrderChangeService {
       }
     });
 
-    const stock = order.orderProcess.srcPlan[0].initialStock[0];
+    const srcPlan = order.orderProcess.plan.find(plan => plan.companyId === order.srcCompanyId);
+    const dstPlan = order.orderProcess.plan.find(plan => plan.companyId === order.dstCompanyId);
+    const stock = srcPlan.initialStock[0];
     const quantity = Math.abs(stock.stockEvent[0].change);
 
     // TODO: 출고 생성 (구매자)
@@ -792,7 +793,7 @@ export class OrderChangeService {
         taskNo: ulid(),
         plan: {
           connect: {
-            id: order.orderProcess.srcPlan[0].id,
+            id: srcPlan.id,
           }
         },
         type: 'RELEASE',
@@ -812,7 +813,7 @@ export class OrderChangeService {
         status: 'PENDING',
         plan: {
           connect: {
-            id: order.orderProcess.dstPlan[0].id,
+            id: dstPlan.id,
           }
         },
         // TODO: 도착예정이지만 목록에 보이지않는 재고 형태가 되어야함 (model에 추가?)
@@ -826,7 +827,7 @@ export class OrderChangeService {
             },
             plan: {
               connect: {
-                id: order.orderProcess.dstPlan[0].id,
+                id: dstPlan.id,
               }
             },
             product: {
@@ -865,7 +866,7 @@ export class OrderChangeService {
             cachedQuantityAvailable: 0,
             initialPlan: {
               connect: {
-                id: order.orderProcess.dstPlan[0].id,
+                id: dstPlan.id,
               }
             }
           },
@@ -1749,9 +1750,11 @@ export class OrderChangeService {
       const order = await tx.order.create({
         select: {
           id: true,
+          srcCompanyId: true,
+          dstCompanyId: true,
           orderProcess: {
             select: {
-              srcPlan: true,
+              plan: true,
             }
           },
         },
@@ -1785,34 +1788,30 @@ export class OrderChangeService {
               },
               srcWantedDate,
               dstWantedDate,
-              srcPlan: {
-                create: {
-                  type: 'TRADE_OUTSOURCE_PROCESS_BUYER',
-                  planNo: ulid(),
-                  company: {
-                    connect: {
-                      id: srcCompanyId,
+              plan: {
+                createMany: {
+                  data: [
+                    {
+                      type: 'TRADE_OUTSOURCE_PROCESS_BUYER',
+                      planNo: ulid(),
+                      companyId: srcCompanyId,
+                      status: 'PREPARING',
+                    },
+                    {
+                      type: 'TRADE_OUTSOURCE_PROCESS_SELLER',
+                      planNo: ulid(),
+                      companyId: dstCompanyId,
+                      status: 'PREPARING',
                     }
-                  },
-                  status: 'PREPARING',
-                },
-              },
-              dstPlan: {
-                create: {
-                  type: 'TRADE_OUTSOURCE_PROCESS_SELLER',
-                  planNo: ulid(),
-                  company: {
-                    connect: {
-                      id: dstCompanyId,
-                    }
-                  },
-                  status: 'PREPARING',
+                  ]
                 }
               },
             }
           }
         }
       });
+
+      const srcPlan = order.orderProcess.plan.find(plan => plan.companyId === order.srcCompanyId);
 
       // 구매 회사의 재고 선택
       const stock = await tx.stock.create({
@@ -1823,7 +1822,7 @@ export class OrderChangeService {
           serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
           initialPlan: {
             connect: {
-              id: order.orderProcess.srcPlan[0].id,
+              id: srcPlan.id,
             }
           },
           company: {
@@ -1892,7 +1891,7 @@ export class OrderChangeService {
           }
         },
         where: {
-          id: order.orderProcess.srcPlan[0].id
+          id: srcPlan.id
         }
       });
 
@@ -1959,6 +1958,48 @@ export class OrderChangeService {
           id: params.orderId,
         }
       });
+
+      return await this.getOrderCreateResponseTx(tx, order.id);
+    });
+
+    return order;
+  }
+
+  /** 외주공정 원지 수정 */
+  async updateOrderProcessStock(
+    params: {
+      companyId: number;
+      orderId: number;
+      warehouseId: number;
+      planId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+    }
+  ): Promise<Model.Order> {
+    const order = await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          orderProcess: true,
+          srcCompany: true,
+          dstCompany: true,
+        },
+        where: {
+          id: params.orderId,
+        }
+      });
+      if (!order || (order.srcCompanyId !== params.companyId && order.dstCompanyId !== params.companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (order.orderType !== 'OUTSOURCE_PROCESS') throw new ConflictException(`잘못된 요청입니다. 주문타입을 확인해주세요`);
+      if (params.companyId !== order.srcCompanyId && order.srcCompany.managedById === null) throw new BadRequestException(`원지정보 변경은 구매기업만 가능합니다.`);
+
+      // TODO: 원지 가용수량 체크 (판매자가 사용중일때만)
 
       return await this.getOrderCreateResponseTx(tx, order.id);
     });

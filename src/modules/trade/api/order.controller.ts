@@ -41,6 +41,7 @@ import OrderStockCreateRequestDto, {
 import {
   OrderCreateResponse,
   OrderDepositResponse,
+  OrderEtcResponse,
   OrderProcessResponse,
   OrderStockArrivalListResponse,
   TradePriceResponse,
@@ -536,8 +537,13 @@ export class OrderController {
     @Request() req: AuthType,
     @Param() idDto: IdDto,
     @Body() dto: OrderProcessStockUpdateDto,
-  ) {
-    throw new NotImplementedException();
+  ): Promise<OrderCreateResponse> {
+    const order = await this.change.updateOrderProcessStock({
+      companyId: req.user.companyId,
+      orderId: idDto.id,
+      ...dto,
+    });
+    return order;
   }
 
   /** 기타거래 */
@@ -546,7 +552,7 @@ export class OrderController {
   async createOrderEtc(
     @Request() req: AuthType,
     @Body() dto: OrderEtcCreateDto,
-  ) {
+  ): Promise<OrderCreateResponse> {
     const order = await this.change.createOrderEtc({
       companyId: req.user.companyId,
       ...dto
@@ -561,8 +567,9 @@ export class OrderController {
   async getOrderEtc(
     @Request() req: AuthType,
     @Param() idDto: IdDto,
-  ) {
-    throw new NotImplementedException();
+  ): Promise<OrderEtcResponse> {
+    const item = await this.retrive.getOrderEtc(req.user.companyId, idDto.id);
+    return item;
   }
 
   /** 기타거래 수정 */
