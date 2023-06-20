@@ -580,6 +580,12 @@ export class OrderController {
     @Param() idDto: IdDto,
     @Body() dto: OrderEtcUpdateDto,
   ) {
-    throw new NotImplementedException();
+    const order = await this.change.updateOrderEtc({
+      companyId: req.user.companyId,
+      orderId: idDto.id,
+      ...dto,
+    });
+
+    return order;
   }
 }
