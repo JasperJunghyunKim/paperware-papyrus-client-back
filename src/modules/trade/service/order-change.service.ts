@@ -2064,4 +2064,47 @@ export class OrderChangeService {
 
     return order;
   }
+
+  async updateOrderEtc(params: {
+    companyId: number,
+    orderId: number,
+    memo: string,
+    item: string,
+  }) {
+    const order = await this.prisma.$transaction(async tx => {
+      const order = await tx.order.findUnique({
+        include: {
+          orderEtc: true,
+          srcCompany: true,
+          dstCompany: true,
+        },
+        where: {
+          id: params.orderId,
+        }
+      });
+      if (!order || (order.srcCompanyId !== params.companyId && order.dstCompanyId !== params.companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (order.orderType !== 'ETC') throw new ConflictException(`잘못된 요청입니다. 주문타입을 확인해주세요`);
+      if (params.companyId !== order.dstCompanyId && order.dstCompany.managedById === null) throw new BadRequestException(`주문정보 변경은 판매기업에 요청해주세요.`);
+
+      await tx.order.update({
+        data: {
+          memo: params.memo,
+        },
+        where: {
+          id: order.id,
+        }
+      });
+      await tx.orderEtc.update({
+        data: {
+          item: params.item,
+        },
+        where: {
+          id: order.orderEtc.id,
+        }
+      });
+
+      return await this.getOrderCreateResponseTx(tx, order.id);
+    });
+    return order;
+  }
 }
