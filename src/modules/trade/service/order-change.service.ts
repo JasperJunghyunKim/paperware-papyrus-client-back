@@ -1396,7 +1396,7 @@ export class OrderChangeService {
     const tradePrice = order.tradePrice.find(tp => tp.orderDepositTradePrice.companyId === companyId) || null;
     // 기존 금액 삭제
     if (tradePrice.orderDepositTradePrice.orderDepositTradeAltBundle) {
-      await tx.orderStockTradeAltBundle.delete({
+      await tx.orderDepositTradeAltBundle.delete({
         where: {
           orderId_companyId: {
             orderId,
@@ -1405,7 +1405,7 @@ export class OrderChangeService {
         }
       });
     }
-    await tx.orderStockTradePrice.delete({
+    await tx.orderDepositTradePrice.delete({
       where: {
         orderId_companyId: {
           orderId,
@@ -1434,7 +1434,7 @@ export class OrderChangeService {
             id: companyId,
           }
         },
-        orderStockTradePrice: {
+        orderDepositTradePrice: {
           create: {
             officialPriceType: orderDepositTradePrice.officialPriceType,
             officialPrice: orderDepositTradePrice.officialPrice,
@@ -1444,7 +1444,7 @@ export class OrderChangeService {
             unitPrice: orderDepositTradePrice.unitPrice,
             unitPriceUnit: orderDepositTradePrice.unitPriceUnit,
             processPrice: orderDepositTradePrice.processPrice,
-            orderStockTradeAltBundle: orderDepositTradePrice.orderStockTradeAltBundle ? {
+            orderDepositTradeAltBundle: orderDepositTradePrice.orderStockTradeAltBundle ? {
               create: {
                 altSizeX: orderDepositTradePrice.orderStockTradeAltBundle.altSizeX,
                 altSizeY: orderDepositTradePrice.orderStockTradeAltBundle.altSizeY,

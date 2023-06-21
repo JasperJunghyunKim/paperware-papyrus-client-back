@@ -192,6 +192,11 @@ export class OrderRetriveService {
                 orderStockTradeAltBundle: true,
               },
             },
+            orderDepositTradePrice: {
+              include: {
+                orderDepositTradeAltBundle: true,
+              }
+            }
           },
         },
       },
