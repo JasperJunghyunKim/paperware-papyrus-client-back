@@ -5,7 +5,7 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { Company, DepositEventStatus, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PackagingType, PriceUnit } from '@prisma/client';
+import { Company, DepositEventStatus, DepositType, DiscountType, OfficialPriceType, OrderDeposit, OrderType, PackagingType, PlanType, PriceUnit } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { Util } from 'src/common';
@@ -15,6 +15,7 @@ import { TradePriceValidator } from './trade-price.validator';
 import { PrismaTransaction } from 'src/common/types';
 import { DepositChangeService } from './deposit-change.service';
 import { ORDER } from 'src/common/selector';
+import { Plan } from 'src/@shared/models';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -93,6 +94,8 @@ export class OrderChangeService {
     memo: string;
     wantedDate: string;
     isOffer: boolean;
+    orderDate: string;
+    isDirectShipping: boolean;
   }): Promise<Model.Order> {
     const isEntrusted =
       !!(
@@ -205,8 +208,10 @@ export class OrderChangeService {
           status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo: params.memo,
+          orderDate: params.orderDate,
           orderStock: {
             create: {
+              isDirectShipping: params.isOffer ? false : params.isDirectShipping,
               dstLocationId: params.locationId,
               wantedDate: params.wantedDate,
               plan: {
@@ -270,10 +275,13 @@ export class OrderChangeService {
   }
 
   async updateOrder(params: {
+    companyId: number;
     orderId: number;
     locationId: number;
     memo: string;
     wantedDate: string;
+    orderDate: string;
+    isDirectShipping: boolean;
   }) {
     return await this.prisma.$transaction(async (tx) => {
       // 주문 업데이트
@@ -283,6 +291,7 @@ export class OrderChangeService {
         },
         data: {
           memo: params.memo,
+          orderDate: params.orderDate,
         },
         select: {
           id: true,
@@ -299,6 +308,7 @@ export class OrderChangeService {
         data: {
           wantedDate: params.wantedDate,
           dstLocationId: params.locationId,
+          isDirectShipping: order.srcCompanyId === params.companyId ? params.isDirectShipping : undefined,
         },
         select: {
           id: true,
@@ -972,6 +982,7 @@ export class OrderChangeService {
   }
 
   async createArrival(params: {
+    companyId: number;
     orderId: number;
     productId: number;
     packagingId: number;
@@ -994,111 +1005,226 @@ export class OrderChangeService {
         select: {
           srcCompanyId: true,
           dstCompanyId: true,
+          orderType: true,
         },
       });
 
-      const orderStock = await tx.orderStock.findUnique({
-        where: {
-          orderId: params.orderId,
-        },
-      });
+      if (!order || (order.srcCompanyId !== params.companyId && order.dstCompanyId !== params.companyId)) throw new NotFoundException(`존재하지 않는 주문정보 입니다.`);
 
-      const srcPlan = await tx.plan.findFirst({
-        where: {
-          orderStockId: orderStock.id,
-          companyId: order.srcCompanyId,
-        },
-        select: {
-          id: true,
-          company: {
-            select: {
-              invoiceCode: true,
-            },
-          },
-        },
-      });
-
-      // 구매처 작업계획의 동일한 스펙 입고예정재고 모두 취소처리
-      await tx.stockEvent.updateMany({
-        data: {
-          status: 'CANCELLED',
-        },
-        where: {
-          plan: {
-            every: {
-              id: {
-                equals: srcPlan.id,
-              },
-            },
-          },
-          stock: {
-            productId: params.productId,
-            packagingId: params.packagingId,
-            grammage: params.grammage,
-            sizeX: params.sizeX,
-            sizeY: params.sizeY,
-            paperColorGroupId: params.paperColorGroupId,
-            paperColorId: params.paperColorId,
-            paperPatternId: params.paperPatternId,
-            paperCertId: params.paperCertId,
-          },
-          status: 'PENDING',
-        },
-      });
-
-      // 새 입고 예정 재고 추가
-      const stock = await tx.stock.create({
-        data: {
-          serial: Util.serialP(srcPlan.company.invoiceCode),
-          companyId: order.srcCompanyId,
-          planId: srcPlan.id,
-          initialPlanId: srcPlan.id,
-          productId: params.productId,
-          packagingId: params.packagingId,
-          grammage: params.grammage,
-          sizeX: params.sizeX,
-          sizeY: params.sizeY,
-          paperColorGroupId: params.paperColorGroupId,
-          paperColorId: params.paperColorId,
-          paperPatternId: params.paperPatternId,
-          paperCertId: params.paperCertId,
-          cachedQuantity: params.quantity,
-          stockPrice: params.isSyncPrice ? undefined : {
-            create: {
-              ...params.stockPrice,
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      const stockEvent = await tx.stockEvent.create({
-        data: {
-          stock: {
-            connect: {
-              id: stock.id,
-            },
-          },
-          change: params.quantity,
-          status: 'PENDING',
-          plan: {
-            connect: {
-              id: srcPlan.id,
-            },
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      return {
-        stockId: stock.id,
-        stockEventId: stockEvent.id,
-      };
+      switch (order.orderType) {
+        case OrderType.NORMAL:
+          await this.createArrivalToNormalTrade(tx, params);
+          break;
+        case OrderType.OUTSOURCE_PROCESS:
+          await this.createArrivalToOutsourceProcessTrade(tx, params);
+          break;
+        default:
+          throw new ConflictException(`도착예정재고를 추가할 수 없는 주문타입입니다.`);
+      }
     });
+  }
+
+  /** 정상거래에 도착예정재고 추가 */
+  async createArrivalToNormalTrade(
+    tx: PrismaTransaction,
+    params: {
+      companyId: number;
+      orderId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+      stockPrice: StockCreateStockPriceRequest;
+      isSyncPrice: boolean;
+    }
+  ) {
+    const orderStock = await tx.orderStock.findUnique({
+      include: {
+        order: true,
+      },
+      where: {
+        orderId: params.orderId,
+      },
+    });
+
+    const srcPlan = await tx.plan.findFirst({
+      where: {
+        orderStockId: orderStock.id,
+        companyId: orderStock.order.srcCompanyId,
+      },
+      select: {
+        id: true,
+        type: true,
+        company: {
+          select: {
+            id: true,
+            invoiceCode: true,
+          },
+        },
+      },
+    });
+
+    return this.addArrivalToPlanTx(tx, srcPlan, params);
+  }
+
+  /** 외주재단에 도착예정재고 추가  */
+  async createArrivalToOutsourceProcessTrade(
+    tx: PrismaTransaction,
+    params: {
+      companyId: number;
+      orderId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+      stockPrice: StockCreateStockPriceRequest;
+      isSyncPrice: boolean;
+    },
+  ) {
+    const orderProcess = await tx.orderProcess.findFirst({
+      include: {
+        order: true,
+        plan: {
+          select: {
+            company: {
+              select: {
+                id: true,
+                invoiceCode: true,
+              }
+            },
+            id: true,
+            type: true,
+          }
+        },
+      },
+      where: {
+        orderId: params.orderId,
+      }
+    });
+    if (orderProcess.order.srcCompanyId !== params.companyId) throw new ConflictException(`판매기업은 도착예정 재고를 추가할 수 없습니다.`);
+
+    const srcPlan = orderProcess.plan.find(plan => plan.type === 'TRADE_OUTSOURCE_PROCESS_BUYER');
+
+    return this.addArrivalToPlanTx(tx, srcPlan, params);
+  }
+
+  async addArrivalToPlanTx(
+    tx: PrismaTransaction,
+    plan: {
+      company: {
+        id: number;
+        invoiceCode: string;
+      };
+      id: number;
+      type: PlanType;
+    },
+    stockSpec: {
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+      stockPrice: StockCreateStockPriceRequest;
+      isSyncPrice: boolean;
+    }
+  ) {
+    // 구매처 작업계획의 동일한 스펙 입고예정재고 모두 취소처리
+    await tx.stockEvent.updateMany({
+      data: {
+        status: 'CANCELLED',
+      },
+      where: {
+        plan: {
+          every: {
+            id: {
+              equals: plan.id,
+            },
+          },
+        },
+        stock: {
+          productId: stockSpec.productId,
+          packagingId: stockSpec.packagingId,
+          grammage: stockSpec.grammage,
+          sizeX: stockSpec.sizeX,
+          sizeY: stockSpec.sizeY,
+          paperColorGroupId: stockSpec.paperColorGroupId,
+          paperColorId: stockSpec.paperColorId,
+          paperPatternId: stockSpec.paperPatternId,
+          paperCertId: stockSpec.paperCertId,
+        },
+        status: 'PENDING',
+      },
+    });
+
+    // 새 입고 예정 재고 추가
+    const stock = await tx.stock.create({
+      data: {
+        serial: Util.serialP(plan.company.invoiceCode),
+        companyId: plan.company.id,
+        planId: plan.id,
+        initialPlanId: plan.id,
+        productId: stockSpec.productId,
+        packagingId: stockSpec.packagingId,
+        grammage: stockSpec.grammage,
+        sizeX: stockSpec.sizeX,
+        sizeY: stockSpec.sizeY,
+        paperColorGroupId: stockSpec.paperColorGroupId,
+        paperColorId: stockSpec.paperColorId,
+        paperPatternId: stockSpec.paperPatternId,
+        paperCertId: stockSpec.paperCertId,
+        cachedQuantity: stockSpec.quantity,
+        stockPrice: stockSpec.isSyncPrice ? undefined : {
+          create: {
+            ...stockSpec.stockPrice,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const stockEvent = await tx.stockEvent.create({
+      data: {
+        stock: {
+          connect: {
+            id: stock.id,
+          },
+        },
+        change: stockSpec.quantity,
+        status: 'PENDING',
+        plan: {
+          connect: {
+            id: plan.id,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return {
+      stockId: stock.id,
+      stockEventId: stockEvent.id,
+    };
   }
 
   /** 거래금액 수정 */
@@ -1732,6 +1858,9 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
+      orderDate: string;
+      isSrcDirectShipping: boolean;
+      isDstDirectShipping: boolean;
     },
   ): Promise<Model.Order> {
     const {
@@ -1755,6 +1884,9 @@ export class OrderChangeService {
       paperPatternId,
       paperCertId,
       quantity,
+      orderDate,
+      isDstDirectShipping,
+      isSrcDirectShipping,
     } = params;
 
 
@@ -1803,6 +1935,7 @@ export class OrderChangeService {
           status: srcCompanyId === companyId ? 'ORDER_PREPARING' : 'OFFER_PREPARING',
           isEntrusted: srcCompanyId !== companyId,
           memo,
+          orderDate,
           orderProcess: {
             create: {
               srcLocation: {
@@ -1817,6 +1950,8 @@ export class OrderChangeService {
               },
               srcWantedDate,
               dstWantedDate,
+              isDstDirectShipping: companyId === dstCompanyId ? isDstDirectShipping : undefined,
+              isSrcDirectShipping: companyId === srcCompanyId ? isSrcDirectShipping : undefined,
               plan: {
                 createMany: {
                   data: [
@@ -1940,6 +2075,9 @@ export class OrderChangeService {
       memo: string;
       srcWantedDate: string;
       dstWantedDate: string;
+      orderDate: string;
+      isSrcDirectShipping: boolean;
+      isDstDirectShipping: boolean;
     }
   ): Promise<Model.Order> {
     const order = await this.prisma.$transaction(async tx => {
@@ -1974,6 +2112,8 @@ export class OrderChangeService {
           },
           srcWantedDate: params.srcWantedDate,
           dstWantedDate: params.dstWantedDate,
+          isDstDirectShipping: params.companyId === order.dstCompanyId ? params.isDstDirectShipping : undefined,
+          isSrcDirectShipping: params.companyId === order.srcCompanyId ? params.isSrcDirectShipping : undefined,
         },
         where: {
           id: order.orderProcess.id,
@@ -1982,6 +2122,7 @@ export class OrderChangeService {
       await tx.order.update({
         data: {
           memo: params.memo,
+          orderDate: params.orderDate,
         },
         where: {
           id: params.orderId,

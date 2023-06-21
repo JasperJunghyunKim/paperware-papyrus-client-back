@@ -146,23 +146,7 @@ export class OrderController {
     const isOffer = body.dstCompanyId === req.user.companyId;
 
     return await this.change.insertOrder({
-      srcCompanyId: body.srcCompanyId,
-      dstCompanyId: body.dstCompanyId,
-      locationId: body.locationId,
-      warehouseId: body.warehouseId,
-      planId: body.planId,
-      productId: body.productId,
-      packagingId: body.packagingId,
-      grammage: body.grammage,
-      sizeX: body.sizeX,
-      sizeY: body.sizeY,
-      paperColorGroupId: body.paperColorGroupId,
-      paperColorId: body.paperColorId,
-      paperPatternId: body.paperPatternId,
-      paperCertId: body.paperCertId,
-      quantity: body.quantity,
-      memo: body.memo,
-      wantedDate: body.wantedDate,
+      ...body,
       isOffer,
     });
   }
@@ -190,10 +174,9 @@ export class OrderController {
     }
 
     await this.change.updateOrder({
+      companyId: req.user.companyId,
       orderId: Number(id),
-      locationId: body.locationId,
-      memo: body.memo,
-      wantedDate: body.wantedDate,
+      ...body,
     });
   }
 
@@ -367,6 +350,7 @@ export class OrderController {
     }
 
     await this.change.createArrival({
+      companyId: req.user.companyId,
       orderId: Number(id),
       productId: body.productId,
       packagingId: body.packagingId,
