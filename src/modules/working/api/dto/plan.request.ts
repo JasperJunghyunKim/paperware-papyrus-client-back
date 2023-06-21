@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, IsPositive, Min } from 'class-validator';
 import {
   PlanCreateRequest,
   PlanListQuery,
@@ -68,8 +68,13 @@ export class PlanCreateRequestDto implements PlanCreateRequest {
 }
 
 export class RegisterInputStockRequestDto implements RegisterInputStockRequest {
-  stockId: number;
-  quantity: number;
+  @IsInt()
+  @IsPositive()
+  readonly stockId: number;
+
+  @IsInt()
+  @IsPositive()
+  readonly quantity: number;
 }
 
 export class PlanInputListQueryDto implements PlanListQuery {
