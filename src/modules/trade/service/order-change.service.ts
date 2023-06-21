@@ -1004,8 +1004,10 @@ export class OrderChangeService {
 
       switch (order.orderType) {
         case OrderType.NORMAL:
+          await this.createArrivalToNormalTrade(tx, params);
           break;
         case OrderType.OUTSOURCE_PROCESS:
+          await this.createArrivalToOutsourceProcessTrade(tx, params);
           break;
         default:
           throw new ConflictException(`도착예정재고를 추가할 수 없는 주문타입입니다.`);
