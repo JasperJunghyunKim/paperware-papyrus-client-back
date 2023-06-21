@@ -423,6 +423,7 @@ export class OrderController {
       dto.paperCertId,
       dto.quantity,
       dto.memo,
+      dto.orderDate,
     );
   }
 
