@@ -4,7 +4,6 @@ WORKDIR /app
 COPY . .
 
 RUN yarn install
-RUN npx prisma generate
 
 FROM node:18-alpine3.17
 
