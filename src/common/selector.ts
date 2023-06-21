@@ -282,6 +282,7 @@ export const ORDER_STOCK = {
   id: true,
   orderId: true,
   wantedDate: true,
+  isDirectShipping: true,
   dstLocation: {
     select: LOCATION,
   },
@@ -418,6 +419,7 @@ export const ORDER = {
     select: COMPANY,
   },
   orderType: true,
+  orderDate: true,
   status: true,
   isEntrusted: true,
   memo: true,
