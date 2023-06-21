@@ -258,7 +258,8 @@ export class OrderRetriveService {
             dstCompanyId: true,
           }
         },
-        isDirectShipping: true,
+        isDstDirectShipping: true,
+        isSrcDirectShipping: true,
         srcWantedDate: true,
         dstWantedDate: true,
         plan: {

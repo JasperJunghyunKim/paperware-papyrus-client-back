@@ -366,7 +366,8 @@ export const ORDER_PROCESS = {
   dstLocation: {
     select: LOCATION,
   },
-  isDirectShipping: true,
+  isSrcDirectShipping: true,
+  isDstDirectShipping: true,
   srcWantedDate: true,
   dstWantedDate: true,
   order: {

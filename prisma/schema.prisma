@@ -434,19 +434,20 @@ model OrderStock {
 }
 
 model OrderProcess {
-  id               Int          @id @default(autoincrement())
-  orderId          Int          @unique
-  order            Order        @relation(fields: [orderId], references: [id])
-  dstLocationId    Int
-  dstLocation      Location     @relation("dstLocation", fields: [dstLocationId], references: [id])
-  srcLocationId    Int
-  srcLocation      Location     @relation("srcLocation", fields: [srcLocationId], references: [id])
-  isDirectShipping Boolean      @default(false)
-  srcWantedDate    DateTime?
-  dstWantedDate    DateTime?
-  plan             Plan[]
+  id                  Int          @id @default(autoincrement())
+  orderId             Int          @unique
+  order               Order        @relation(fields: [orderId], references: [id])
+  dstLocationId       Int
+  dstLocation         Location     @relation("dstLocation", fields: [dstLocationId], references: [id])
+  srcLocationId       Int
+  srcLocation         Location     @relation("srcLocation", fields: [srcLocationId], references: [id])
+  isSrcDirectShipping Boolean      @default(false)
+  isDstDirectShipping Boolean      @default(false)
+  srcWantedDate       DateTime?
+  dstWantedDate       DateTime?
+  plan                Plan[]
   // 외주공정의 주문 원지 정보
-  stockEvent       StockEvent[]
+  stockEvent          StockEvent[]
 }
 
 model OrderEtc {

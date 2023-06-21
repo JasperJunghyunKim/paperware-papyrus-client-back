@@ -148,6 +148,13 @@ export default class OrderStockCreateRequestDto
 
   @IsString()
   wantedDate: string;
+
+  @IsDateString()
+  orderDate: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isDirectShipping: boolean = false;
 }
 
 /** 정상거래 수정 요청 */
@@ -163,6 +170,13 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 
   @IsString()
   wantedDate: string;
+
+  @IsDateString()
+  orderDate: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isDirectShipping: boolean = undefined;
 }
 
 export class OrderStockArrivalListQueryDto
@@ -743,6 +757,17 @@ export class OrderProcessCreateDto implements OrderProcessCreateRequest {
   @Type(() => Number)
   @IsPositive()
   readonly quantity: number;
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly isSrcDirectShipping: boolean = false;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly isDstDirectShipping: boolean = false;
 }
 
 /** 외주공정 정보 업데이트 */
@@ -767,6 +792,17 @@ export class OrderProcessInfoUpdateDto implements OrderProcessInfoUpdateRequest 
 
   @IsDateString()
   readonly dstWantedDate: string;
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly isSrcDirectShipping: boolean = false;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly isDstDirectShipping: boolean = false;
 }
 
 export class OrderProcessStockUpdateDto implements OrderProcessStockUpdateRequest {
