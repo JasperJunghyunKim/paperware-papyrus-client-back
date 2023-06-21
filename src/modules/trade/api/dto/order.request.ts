@@ -433,6 +433,9 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   @IsPositive()
   readonly dstCompanyId: number;
 
+  @IsDateString()
+  readonly orderDate: string;
+
   @IsInt()
   @Type(() => Number)
   @IsPositive()
@@ -895,6 +898,9 @@ export class OrderEtcCreateDto implements OrderEtcCreateRequest {
   @IsString()
   @Length(0, 300)
   readonly memo: string = '';
+
+  @IsDateString()
+  readonly orderDate: string;
 }
 
 export class OrderEtcUpdateDto implements OrderEtcUpdateRequest {
@@ -907,4 +913,7 @@ export class OrderEtcUpdateDto implements OrderEtcUpdateRequest {
   @IsString()
   @Length(0, 300)
   readonly memo: string = '';
+
+  @IsDateString()
+  readonly orderDate: string;
 }

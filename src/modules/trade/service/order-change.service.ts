@@ -1473,6 +1473,7 @@ export class OrderChangeService {
     paperCertId: number | null,
     quantity: number,
     memo: string,
+    orderDate: string,
   ) {
     await this.prisma.$transaction(async (tx) => {
       const businessRelationship = tx.businessRelationship.findUnique({
@@ -1528,6 +1529,7 @@ export class OrderChangeService {
           status: isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo,
+          orderDate,
           orderDeposit: {
             create: {
               packaging: {
@@ -2313,6 +2315,7 @@ export class OrderChangeService {
       dstCompanyId: number;
       item: string;
       memo: string;
+      orderDate: string;
     }
   ): Promise<Model.Order> {
     const {
@@ -2336,6 +2339,7 @@ export class OrderChangeService {
         data: {
           orderType: 'ETC',
           orderNo: ulid(),
+          orderDate: params.orderDate,
           srcCompany: {
             connect: {
               id: srcCompanyId,
@@ -2364,10 +2368,11 @@ export class OrderChangeService {
   }
 
   async updateOrderEtc(params: {
-    companyId: number,
-    orderId: number,
-    memo: string,
-    item: string,
+    companyId: number;
+    orderId: number;
+    memo: string;
+    item: string;
+    orderDate: string;
   }) {
     const order = await this.prisma.$transaction(async tx => {
       const order = await tx.order.findUnique({
@@ -2387,6 +2392,7 @@ export class OrderChangeService {
       await tx.order.update({
         data: {
           memo: params.memo,
+          orderDate: params.orderDate,
         },
         where: {
           id: order.id,
