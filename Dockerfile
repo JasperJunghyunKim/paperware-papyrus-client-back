@@ -4,6 +4,7 @@ WORKDIR /app
 COPY . .
 
 RUN yarn install
+RUN yarn build
 
 FROM node:18-alpine3.17
 
