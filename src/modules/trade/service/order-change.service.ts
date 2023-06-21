@@ -94,6 +94,8 @@ export class OrderChangeService {
     memo: string;
     wantedDate: string;
     isOffer: boolean;
+    orderDate: string;
+    isDirectShipping: boolean;
   }): Promise<Model.Order> {
     const isEntrusted =
       !!(
@@ -206,8 +208,10 @@ export class OrderChangeService {
           status: params.isOffer ? 'OFFER_PREPARING' : 'ORDER_PREPARING',
           isEntrusted,
           memo: params.memo,
+          orderDate: params.orderDate,
           orderStock: {
             create: {
+              isDirectShipping: params.isOffer ? false : params.isDirectShipping,
               dstLocationId: params.locationId,
               wantedDate: params.wantedDate,
               plan: {
@@ -271,10 +275,13 @@ export class OrderChangeService {
   }
 
   async updateOrder(params: {
+    companyId: number;
     orderId: number;
     locationId: number;
     memo: string;
     wantedDate: string;
+    orderDate: string;
+    isDirectShipping: boolean;
   }) {
     return await this.prisma.$transaction(async (tx) => {
       // 주문 업데이트
@@ -284,6 +291,7 @@ export class OrderChangeService {
         },
         data: {
           memo: params.memo,
+          orderDate: params.orderDate,
         },
         select: {
           id: true,
@@ -300,6 +308,7 @@ export class OrderChangeService {
         data: {
           wantedDate: params.wantedDate,
           dstLocationId: params.locationId,
+          isDirectShipping: order.srcCompanyId === params.companyId ? params.isDirectShipping : undefined,
         },
         select: {
           id: true,
@@ -1849,6 +1858,9 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
+      orderDate: string;
+      isSrcDirectShipping: boolean;
+      isDstDirectShipping: boolean;
     },
   ): Promise<Model.Order> {
     const {
@@ -1872,6 +1884,9 @@ export class OrderChangeService {
       paperPatternId,
       paperCertId,
       quantity,
+      orderDate,
+      isDstDirectShipping,
+      isSrcDirectShipping,
     } = params;
 
 
@@ -1920,6 +1935,7 @@ export class OrderChangeService {
           status: srcCompanyId === companyId ? 'ORDER_PREPARING' : 'OFFER_PREPARING',
           isEntrusted: srcCompanyId !== companyId,
           memo,
+          orderDate,
           orderProcess: {
             create: {
               srcLocation: {
@@ -1934,6 +1950,8 @@ export class OrderChangeService {
               },
               srcWantedDate,
               dstWantedDate,
+              isDstDirectShipping: companyId === dstCompanyId ? isDstDirectShipping : undefined,
+              isSrcDirectShipping: companyId === srcCompanyId ? isSrcDirectShipping : undefined,
               plan: {
                 createMany: {
                   data: [
@@ -2057,6 +2075,9 @@ export class OrderChangeService {
       memo: string;
       srcWantedDate: string;
       dstWantedDate: string;
+      orderDate: string;
+      isSrcDirectShipping: boolean;
+      isDstDirectShipping: boolean;
     }
   ): Promise<Model.Order> {
     const order = await this.prisma.$transaction(async tx => {
@@ -2091,6 +2112,8 @@ export class OrderChangeService {
           },
           srcWantedDate: params.srcWantedDate,
           dstWantedDate: params.dstWantedDate,
+          isDstDirectShipping: params.companyId === order.dstCompanyId ? params.isDstDirectShipping : undefined,
+          isSrcDirectShipping: params.companyId === order.srcCompanyId ? params.isSrcDirectShipping : undefined,
         },
         where: {
           id: order.orderProcess.id,
@@ -2099,6 +2122,7 @@ export class OrderChangeService {
       await tx.order.update({
         data: {
           memo: params.memo,
+          orderDate: params.orderDate,
         },
         where: {
           id: params.orderId,
