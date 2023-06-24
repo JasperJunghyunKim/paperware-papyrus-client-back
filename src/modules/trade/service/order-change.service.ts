@@ -16,6 +16,7 @@ import { PrismaTransaction } from 'src/common/types';
 import { DepositChangeService } from './deposit-change.service';
 import { ORDER } from 'src/common/selector';
 import { Plan } from 'src/@shared/models';
+import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -62,6 +63,7 @@ export class OrderChangeService {
     private readonly prisma: PrismaService,
     private readonly tradePriceValidator: TradePriceValidator,
     private readonly depositChangeService: DepositChangeService,
+    private readonly stockChangeService: StockChangeService,
   ) { }
 
   async getOrderCreateResponseTx(tx: PrismaTransaction, id: number): Promise<Model.Order> {
@@ -163,7 +165,7 @@ export class OrderChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          cachedQuantity: 0,
+          cachedQuantity: -params.quantity,
         },
         select: {
           id: true,
@@ -894,6 +896,8 @@ export class OrderChangeService {
         }
       }
     });
+
+    await this.stockChangeService.cacheStockQuantityTx(tx, { id: targetStock.id });
 
     // 투입될 도착예정재고 이벤트
     const assignStock = await tx.stockEvent.create({
@@ -2039,6 +2043,7 @@ export class OrderChangeService {
               id: paperCertId,
             }
           } : undefined,
+          cachedQuantity: -quantity,
           stockEvent: {
             create: {
               change: -quantity,
