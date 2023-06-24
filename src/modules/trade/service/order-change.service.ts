@@ -165,7 +165,7 @@ export class OrderChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          cachedQuantity: -params.quantity,
+          cachedQuantityAvailable: -params.quantity,
         },
         select: {
           id: true,
@@ -865,7 +865,7 @@ export class OrderChangeService {
             id: stock.paperCertId,
           }
         } : undefined,
-        cachedQuantityAvailable: 0,
+        cachedQuantityAvailable: quantity,
         initialPlan: {
           connect: {
             id: dstPlan.id,
@@ -2043,7 +2043,7 @@ export class OrderChangeService {
               id: paperCertId,
             }
           } : undefined,
-          cachedQuantity: -quantity,
+          cachedQuantityAvailable: -quantity,
           stockEvent: {
             create: {
               change: -quantity,
