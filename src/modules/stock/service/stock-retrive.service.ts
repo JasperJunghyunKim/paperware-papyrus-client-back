@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import {
+  OrderType,
   PackagingType,
   PlanStatus,
   PlanType,
@@ -322,6 +323,17 @@ export class StockRetriveService {
    LEFT JOIN PlanShipping       AS ps                       ON ps.planId = p.id
    LEFT JOIN Location           AS psLocation               ON psLocation.id = ps.dstLocationId
 
+   -- initialPlan (직송, 외주공정재고 걸러내기)
+   LEFT JOIN Plan               AS initialP                 ON initialP.id = s.initialPlanId
+   LEFT JOIN OrderStock         AS initialOs                ON initialOs.id = initialP.orderStockId
+   LEFT JOIN OrderProcess       AS initialOp                ON initialOp.id = initialP.orderProcessId
+   LEFT JOIN PlanShipping       AS initialPs                ON initialPs.planId = initialP.id
+   LEFT JOIN \`Order\`          AS initialO                 ON initialO.id = (CASE 
+                                                                              WHEN initialOs.orderId IS NOT NULL THEN initialOs.orderId
+                                                                              WHEN initialOp.orderId IS NOT NULL THEN initialOp.orderId
+                                                                              ELSE 0
+                                                                             END)
+
    -- 원지 정보
    LEFT JOIN StockEvent         AS ase                      ON ase.id = p.assignStockEventId
    LEFT JOIN Stock              AS \`as\`                   ON \`as\`.id = ase.stockId
@@ -358,6 +370,7 @@ export class StockRetriveService {
    LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
 
        WHERE s.companyId = ${companyId}
+         
          ${planIdQuery}
 
        GROUP BY s.packagingId
