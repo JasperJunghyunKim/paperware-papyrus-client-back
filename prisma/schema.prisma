@@ -556,7 +556,7 @@ model Plan {
   initialStock       Stock[]       @relation("InitialPlan")
   planShipping       PlanShipping?
   orderProcessId     Int?
-  OrderProcess       OrderProcess? @relation(fields: [orderProcessId], references: [id])
+  orderProcess       OrderProcess? @relation(fields: [orderProcessId], references: [id])
 }
 
 model PlanShipping {

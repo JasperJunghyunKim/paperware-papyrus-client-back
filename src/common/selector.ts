@@ -206,16 +206,13 @@ export const STOCK = {
   paperCert: {
     select: PAPER_CERT,
   },
-  // officialPriceType: true,
-  // officialPrice: true,
-  // discountType: true,
-  // stockPrice: true,
   cachedQuantity: true,
   cachedQuantityAvailable: true,
   isSyncPrice: true,
   stockPrice: {
     select: STOCK_PRICE,
   },
+  initialPlan: true,
 } satisfies Prisma.StockSelect;
 
 export const VENDOR_STOCK = {
@@ -554,7 +551,11 @@ export const INVOICE = {
 } satisfies Prisma.InvoiceSelect;
 
 export const INITIAL_PLAN = {
+  type: true,
   orderStock: {
     select: ORDER_STOCK,
+  },
+  orderProcess: {
+    select: ORDER_PROCESS,
   },
 } satisfies Prisma.PlanSelect;
