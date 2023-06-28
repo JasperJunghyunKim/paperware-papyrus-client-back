@@ -66,16 +66,17 @@ export class BusinessRelationshipRetriveService {
             ELSE srcCompanyId
           END AS c2,
           CASE
-            WHEN isActivated = FALSE THEN 0
+            WHEN isActivated = 0 THEN 0
             WHEN srcCompanyId = ${params.companyId} THEN 1
-            ELSE 2
+            WHEN dstCompanyId = ${params.companyId} THEN 2
+            ELSE 0
           END AS flag
         FROM BusinessRelationship br
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId}
-      GROUP BY a.c1, a.c2
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
+      GROUP BY a.c2
       LIMIT ${params.take ?? 1 << 30} OFFSET ${params.skip}
       `;
 
@@ -98,16 +99,17 @@ export class BusinessRelationshipRetriveService {
             ELSE srcCompanyId
           END AS c2,
           CASE
-            WHEN isActivated = FALSE THEN 0
+            WHEN isActivated = 0 THEN 0
             WHEN srcCompanyId = ${params.companyId} THEN 1
-            ELSE 2
+            WHEN dstCompanyId = ${params.companyId} THEN 2
+            ELSE 0
           END AS flag
         FROM BusinessRelationship br
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId}
-      GROUP BY a.c1, a.c2
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
+      GROUP BY a.c2
       `;
 
     return Number(total.at(0)?.total ?? 0);
@@ -129,16 +131,17 @@ export class BusinessRelationshipRetriveService {
             ELSE srcCompanyId
           END AS c2,
           CASE
-            WHEN isActivated = FALSE THEN 0
+            WHEN isActivated = 0 THEN 0
             WHEN srcCompanyId = ${params.companyId} THEN 1
-            ELSE 2
+            WHEN dstCompanyId = ${params.companyId} THEN 2
+            ELSE 0
           END AS flag
         FROM BusinessRelationship br
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId} AND a.c2 = ${params.targetCompanyId}
-      GROUP BY a.c1, a.c2
+      WHERE a.c1 = ${params.companyId} AND a.c2 = ${params.targetCompanyId} AND p.companyId = ${params.companyId}
+      GROUP BY a.c2
       `;
     return {
       ...item.at(0),

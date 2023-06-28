@@ -49,6 +49,8 @@ export class BusinessRelationshipRequestChangeService {
         },
       });
 
+      console.log(':::', request);
+
       await tx.businessRelationship.upsert({
         where: {
           srcCompanyId_dstCompanyId: {
