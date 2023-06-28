@@ -22,17 +22,31 @@ export class ShippingChangeService {
   async connectInvoices(params: { shippingId: number; invoiceIds: number[] }) {
     const { shippingId, invoiceIds } = params;
 
-    const shippings = await this.prisma.shipping.update({
-      where: {
-        id: shippingId,
-      },
-      data: {
-        invoice: {
-          connect: invoiceIds.map((invoiceId) => ({
-            id: invoiceId,
-          })),
+    const shippings = await this.prisma.$transaction(async (tx) => {
+      await tx.invoice.updateMany({
+        where: {
+          id: {
+            in: invoiceIds,
+          },
         },
-      },
+        data: {
+          shippingId: shippingId,
+          invoiceStatus: 'WAIT_SHIPPING',
+        },
+      });
+
+      return await tx.shipping.update({
+        where: {
+          id: shippingId,
+        },
+        data: {
+          invoice: {
+            connect: invoiceIds.map((invoiceId) => ({
+              id: invoiceId,
+            })),
+          },
+        },
+      });
     });
 
     return shippings;

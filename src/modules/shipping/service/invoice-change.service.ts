@@ -1,9 +1,13 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
 export class InvoiceChangeService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async disconnectShipping(params: { invoiceIds: number[] }) {
     const { invoiceIds } = params;
@@ -16,17 +20,15 @@ export class InvoiceChangeService {
       },
       data: {
         shippingId: null,
+        invoiceStatus: 'WAIT_LOADING',
       },
     });
 
     return invoices;
   }
 
-  async forwardInvoiceStatus(
-    companyId: number,
-    invoiceIds: number[],
-  ) {
-    await this.prisma.$transaction(async tx => {
+  async forwardInvoiceStatus(companyId: number, invoiceIds: number[]) {
+    await this.prisma.$transaction(async (tx) => {
       const invoices = await tx.invoice.findMany({
         where: {
           shipping: {
@@ -34,8 +36,8 @@ export class InvoiceChangeService {
           },
           id: {
             in: invoiceIds,
-          }
-        }
+          },
+        },
       });
       if (invoiceIds.length !== invoices.length) {
         throw new ConflictException(`존재하지 않는 송장이 포함되어 있습니다.`);
@@ -44,7 +46,8 @@ export class InvoiceChangeService {
       const status = invoices[0].invoiceStatus;
       let nextStatus = status;
       for (const invoice of invoices) {
-        if (invoice.invoiceStatus !== status) throw new BadRequestException(`배송상태가 같은 송장만 선택해야합니.`);
+        if (invoice.invoiceStatus !== status)
+          throw new BadRequestException(`배송상태가 같은 송장만 선택해야합니.`);
       }
 
       switch (status) {
@@ -68,18 +71,14 @@ export class InvoiceChangeService {
         where: {
           id: {
             in: invoiceIds,
-          }
-        }
+          },
+        },
       });
-
     });
   }
 
-  async backwardInvoiceStatus(
-    companyId: number,
-    invoiceIds: number[],
-  ) {
-    await this.prisma.$transaction(async tx => {
+  async backwardInvoiceStatus(companyId: number, invoiceIds: number[]) {
+    await this.prisma.$transaction(async (tx) => {
       const invoices = await tx.invoice.findMany({
         where: {
           shipping: {
@@ -87,8 +86,8 @@ export class InvoiceChangeService {
           },
           id: {
             in: invoiceIds,
-          }
-        }
+          },
+        },
       });
       if (invoiceIds.length !== invoices.length) {
         throw new ConflictException(`존재하지 않는 송장이 포함되어 있습니다.`);
@@ -97,7 +96,8 @@ export class InvoiceChangeService {
       const status = invoices[0].invoiceStatus;
       let nextStatus = status;
       for (const invoice of invoices) {
-        if (invoice.invoiceStatus !== status) throw new BadRequestException(`배송상태가 같은 송장만 선택해야합니.`);
+        if (invoice.invoiceStatus !== status)
+          throw new BadRequestException(`배송상태가 같은 송장만 선택해야합니.`);
       }
 
       switch (status) {
@@ -121,10 +121,9 @@ export class InvoiceChangeService {
         where: {
           id: {
             in: invoiceIds,
-          }
-        }
+          },
+        },
       });
-
     });
   }
 }
