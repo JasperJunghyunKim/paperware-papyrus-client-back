@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -12,8 +13,10 @@ import {
   BusinessRelationshipCompactListQuery,
   BusinessRelationshipCreateRequest,
   BusinessRelationshipListQuery,
+  BusinessRelationshipRequestRequest,
   RegisterPartnerRequest,
   SearchPartnerRequest,
+  UpsertPartnerRequest,
 } from 'src/@shared/api';
 
 export class BusinessRelationshipListQueryDto
@@ -96,6 +99,24 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @IsString()
   email: string = '';
   @IsOptional()
+  @IsString()
+  memo: string = '';
+}
+
+export class BusinessRelationshipReqeustRequestDto
+  implements BusinessRelationshipRequestRequest
+{
+  @IsNumber()
+  targetCompanyId: number;
+  @IsString()
+  type: 'PURCHASE' | 'SALES' | 'BOTH' | 'NONE';
+}
+
+export class UpsertPartnerRequestDto implements UpsertPartnerRequest {
+  @IsString()
+  companyRegistrationNumber: string;
+  @IsString()
+  partnerNickname: string;
   @IsString()
   memo: string = '';
 }

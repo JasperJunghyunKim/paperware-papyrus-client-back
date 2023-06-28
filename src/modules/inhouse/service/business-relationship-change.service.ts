@@ -120,6 +120,143 @@ export class BusinessRelationshipChangeService {
     });
   }
 
+  async upsertPartner(params: {
+    companyId: number;
+    companyRegistrationNumber: string;
+    partnerNickname: string;
+    memo: string;
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.partner.upsert({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: params.companyId,
+            companyRegistrationNumber: params.companyRegistrationNumber,
+          },
+        },
+        create: {
+          companyId: params.companyId,
+          companyRegistrationNumber: params.companyRegistrationNumber,
+          partnerNickName: params.partnerNickname,
+          memo: params.memo,
+        },
+        update: {
+          partnerNickName: params.partnerNickname,
+          memo: params.memo,
+        },
+      });
+    });
+  }
+
+  async request(params: {
+    companyId: number;
+    targetCompanyId: number;
+    type: 'PURCHASE' | 'SALES' | 'BOTH' | 'NONE';
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      const targetCompany = await tx.company.findFirst({
+        select: {
+          id: true,
+          managedBy: true,
+        },
+        where: {
+          id: params.targetCompanyId,
+        },
+      });
+
+      const prevPurchase = await tx.businessRelationship.findFirst({
+        where: {
+          srcCompanyId: targetCompany.id,
+          dstCompanyId: params.companyId,
+          isActivated: true,
+        },
+      });
+
+      const prevSales = await tx.businessRelationship.findFirst({
+        where: {
+          srcCompanyId: params.companyId,
+          dstCompanyId: targetCompany.id,
+          isActivated: true,
+        },
+      });
+
+      const lastType =
+        prevPurchase && prevSales
+          ? 'BOTH'
+          : prevPurchase
+          ? 'PURCHASE'
+          : prevSales
+          ? 'SALES'
+          : 'NONE';
+
+      const isPurchase = params.type === 'PURCHASE' || params.type === 'BOTH';
+      const isSales = params.type === 'SALES' || params.type === 'BOTH';
+
+      if (
+        targetCompany.managedBy === null &&
+        lastType !== 'BOTH' &&
+        params.type !== 'NONE' &&
+        lastType !== params.type
+      ) {
+        await tx.businessRelationshipRequest.upsert({
+          create: {
+            srcCompanyId: params.companyId,
+            dstCompanyId: targetCompany.id,
+            isPurchase,
+            isSales,
+            status: 'PENDING',
+            memo: '',
+          },
+          update: {
+            isPurchase,
+            isSales,
+            status: 'PENDING',
+            memo: '',
+          },
+          where: {
+            srcCompanyId_dstCompanyId: {
+              srcCompanyId: params.companyId,
+              dstCompanyId: targetCompany.id,
+            },
+          },
+        });
+      } else {
+        await tx.businessRelationship.upsert({
+          create: {
+            srcCompanyId: params.companyId,
+            dstCompanyId: targetCompany.id,
+            isActivated: isSales,
+          },
+          update: {
+            isActivated: isSales,
+          },
+          where: {
+            srcCompanyId_dstCompanyId: {
+              srcCompanyId: params.companyId,
+              dstCompanyId: targetCompany.id,
+            },
+          },
+        });
+        await tx.businessRelationship.upsert({
+          create: {
+            srcCompanyId: targetCompany.id,
+            dstCompanyId: params.companyId,
+            isActivated: isPurchase,
+          },
+          update: {
+            isActivated: isPurchase,
+          },
+          where: {
+            srcCompanyId_dstCompanyId: {
+              srcCompanyId: targetCompany.id,
+              dstCompanyId: params.companyId,
+            },
+          },
+        });
+      }
+    });
+  }
+
   async deactive(params: { srcCompanyId: number; dstCompanyId: number }) {
     await this.prisma.businessRelationship.updateMany({
       where: {

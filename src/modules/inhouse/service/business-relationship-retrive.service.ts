@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
 import { BusinessRelationshipCompact } from 'src/@shared/models';
 import { Selector } from 'src/common';
@@ -113,10 +113,67 @@ export class BusinessRelationshipRetriveService {
     return Number(total.at(0)?.total ?? 0);
   }
 
+  async getCompactItem(params: {
+    companyId: number;
+    targetCompanyId: number;
+  }): Promise<BusinessRelationshipCompact> {
+    const item: BusinessRelationshipCompact[] = await this.prisma.$queryRaw`
+      SELECT c.*, SUM(a.flag) AS flag FROM (
+        SELECT
+          CASE
+            WHEN srcCompanyId = ${params.companyId} THEN srcCompanyId
+            ELSE dstCompanyId
+          END AS c1,
+          CASE
+            WHEN srcCompanyId = ${params.companyId} THEN dstCompanyId
+            ELSE srcCompanyId
+          END AS c2,
+          CASE
+            WHEN isActivated = FALSE THEN 0
+            WHEN srcCompanyId = ${params.companyId} THEN 1
+            ELSE 2
+          END AS flag
+        FROM BusinessRelationship br
+      ) a
+      INNER JOIN Company c on c.id = a.c2
+      LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
+      WHERE a.c1 = ${params.companyId} AND a.c2 = ${params.targetCompanyId}
+      GROUP BY a.c1, a.c2
+      `;
+    return {
+      ...item.at(0),
+      flag: Number(item.at(0)?.flag ?? 0),
+    };
+  }
+
   async searchPartner(params: {
     companyId: number;
     companyRegistrationNumber: string;
   }): Promise<Model.CompanyPartner> {
+    const exists = await this.prisma.businessRelationship.findMany({
+      where: {
+        OR: [
+          {
+            srcCompanyId: params.companyId,
+            dstCompany: {
+              companyRegistrationNumber: params.companyRegistrationNumber,
+            },
+            isActivated: true,
+          },
+          {
+            dstCompanyId: params.companyId,
+            srcCompany: {
+              companyRegistrationNumber: params.companyRegistrationNumber,
+            },
+            isActivated: true,
+          },
+        ],
+      },
+    });
+    if (exists.length > 0) {
+      throw new BadRequestException('이미 등록된 거래처입니다.');
+    }
+
     const partner = await this.prisma.partner.findUnique({
       select: Selector.PARTNER,
       where: {

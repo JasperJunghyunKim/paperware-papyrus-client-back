@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -19,8 +20,10 @@ import {
   BusinessRelationshipCompactListQueryDto,
   BusinessRelationshipCreateRequestDto,
   BusinessRelationshipListQueryDto,
+  BusinessRelationshipReqeustRequestDto,
   RegisterPartnerRequestDto,
   SearchPartnerRequestDto,
+  UpsertPartnerRequestDto,
 } from './dto/business-relationship.request';
 import {
   BusinessRelationshipCompactListResponse,
@@ -92,6 +95,37 @@ export class BusinessRelationshipController {
     };
   }
 
+  @Get('compact/:companyId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async getCompactItem(
+    @Request() req: AuthType,
+    @Param('companyId') companyId: number,
+  ) {
+    const data = await this.retriveService.getCompactItem({
+      companyId: req.user.companyId,
+      targetCompanyId: companyId,
+    });
+
+    return data;
+  }
+
+  @Put('partner/:companyRegistrationNumber')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async upsertPartner(
+    @Request() req: AuthType,
+    @Param('companyRegistrationNumber') companyRegistrationNumber: string,
+    @Body() body: UpsertPartnerRequestDto,
+  ) {
+    await this.changeService.upsertPartner({
+      companyId: req.user.companyId,
+      companyRegistrationNumber,
+      partnerNickname: body.partnerNickname,
+      memo: body.memo,
+    });
+  }
+
   @Get(':srcCompanyId/:dstCompanyId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
@@ -157,6 +191,20 @@ export class BusinessRelationshipController {
       email: body.email,
       companyRegistrationNumber: body.companyRegistrationNumber,
       memo: body.memo,
+    });
+  }
+
+  @Post('request')
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  async request(
+    @Request() req: AuthType,
+    @Body() body: BusinessRelationshipReqeustRequestDto,
+  ) {
+    await this.changeService.request({
+      companyId: req.user.companyId,
+      targetCompanyId: body.targetCompanyId,
+      type: body.type,
     });
   }
 

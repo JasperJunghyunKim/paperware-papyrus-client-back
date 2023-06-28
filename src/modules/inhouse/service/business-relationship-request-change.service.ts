@@ -41,42 +41,88 @@ export class BusinessRelationshipRequestChangeService {
             dstCompanyId: params.dstCompanyId,
           },
         },
+        select: {
+          isPurchase: true,
+          isSales: true,
+          srcCompany: true,
+          dstCompany: true,
+        },
       });
 
-      if (request.isPurchase) {
-        await tx.businessRelationship.upsert({
-          where: {
-            srcCompanyId_dstCompanyId: {
-              srcCompanyId: params.dstCompanyId,
-              dstCompanyId: params.srcCompanyId,
-            },
-          },
-          create: {
+      await tx.businessRelationship.upsert({
+        where: {
+          srcCompanyId_dstCompanyId: {
             srcCompanyId: params.dstCompanyId,
             dstCompanyId: params.srcCompanyId,
-            isActivated: true,
           },
-          update: {
-            isActivated: true,
+        },
+        create: {
+          srcCompanyId: params.dstCompanyId,
+          dstCompanyId: params.srcCompanyId,
+          isActivated: request.isPurchase,
+        },
+        update: {
+          isActivated: request.isPurchase,
+        },
+      });
+
+      await tx.businessRelationship.upsert({
+        where: {
+          srcCompanyId_dstCompanyId: {
+            srcCompanyId: params.srcCompanyId,
+            dstCompanyId: params.dstCompanyId,
+          },
+        },
+        create: {
+          srcCompanyId: params.srcCompanyId,
+          dstCompanyId: params.dstCompanyId,
+          isActivated: request.isSales,
+        },
+        update: {
+          isActivated: request.isSales,
+        },
+      });
+
+      const srcPartner = await tx.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: params.srcCompanyId,
+            companyRegistrationNumber:
+              request.dstCompany.companyRegistrationNumber,
+          },
+        },
+      });
+
+      if (!srcPartner) {
+        await tx.partner.create({
+          data: {
+            companyId: params.srcCompanyId,
+            companyRegistrationNumber:
+              request.dstCompany.companyRegistrationNumber,
+            partnerNickName: request.dstCompany.businessName,
+            memo: '',
           },
         });
       }
 
-      if (request.isSales) {
-        await tx.businessRelationship.upsert({
-          where: {
-            srcCompanyId_dstCompanyId: {
-              srcCompanyId: params.srcCompanyId,
-              dstCompanyId: params.dstCompanyId,
-            },
+      const dstPartner = await tx.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: params.dstCompanyId,
+            companyRegistrationNumber:
+              request.srcCompany.companyRegistrationNumber,
           },
-          create: {
-            srcCompanyId: params.srcCompanyId,
-            dstCompanyId: params.dstCompanyId,
-            isActivated: true,
-          },
-          update: {
-            isActivated: true,
+        },
+      });
+
+      if (!dstPartner) {
+        await tx.partner.create({
+          data: {
+            companyId: params.dstCompanyId,
+            companyRegistrationNumber:
+              request.srcCompany.companyRegistrationNumber,
+            partnerNickName: request.srcCompany.businessName,
+            memo: '',
           },
         });
       }
