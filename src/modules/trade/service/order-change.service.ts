@@ -17,6 +17,7 @@ import { DepositChangeService } from './deposit-change.service';
 import { ORDER } from 'src/common/selector';
 import { Plan } from 'src/@shared/models';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
+import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -64,6 +65,7 @@ export class OrderChangeService {
     private readonly tradePriceValidator: TradePriceValidator,
     private readonly depositChangeService: DepositChangeService,
     private readonly stockChangeService: StockChangeService,
+    private readonly stockQuantityChecker: StockQuantityChecker,
   ) { }
 
   async getOrderCreateResponseTx(tx: PrismaTransaction, id: number): Promise<Model.Order> {
@@ -147,6 +149,31 @@ export class OrderChangeService {
           },
         },
       });
+
+      // 판매자가 사용거래처인 경우 부모재고 수량 조회
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: params.dstCompanyId
+        }
+      });
+      if (dstCompany.managedById === null) {
+        await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+          inquiryCompanyId: params.isOffer ? params.dstCompanyId : params.srcCompanyId,
+          companyId: params.dstCompanyId,
+          warehouseId: params.warehouseId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          quantity: params.quantity,
+        });
+      }
 
       // 원지 재고 생성
       const stock = await tx.stock.create({
