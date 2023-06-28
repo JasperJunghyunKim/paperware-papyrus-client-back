@@ -47,6 +47,7 @@ export class InhouseProcessChangeService {
     await this.prisma.$transaction(async tx => {
       // 부모재고 가용수량 체크
       await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+        inquiryCompanyId: companyId,
         companyId,
         warehouseId,
         planId,
