@@ -250,6 +250,7 @@ export class OrderStockArrivalCreateRequestDto
   stockPrice: StockCreateStockPriceDto = null;
 
   validate() {
+    if (!this.isSyncPrice) this.isSyncPrice = false;
     if (!this.isSyncPrice && !this.stockPrice) {
       throw new BadRequestException(
         `매입금액 동기화 미사용시 재고금액을 입력해야합니다.`,
