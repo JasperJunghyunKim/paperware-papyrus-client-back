@@ -1,6 +1,8 @@
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+	IsBoolean,
+	IsBooleanString,
 	IsDateString,
 	IsEnum,
 	IsInt,
@@ -43,6 +45,10 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
 	@IsOptional()
 	@IsAnyOrId()
 	readonly planId: number | 'any' = undefined;
+
+	@IsOptional()
+	@IsBooleanString()
+	readonly isDirectShippingIncluded: 'true' | 'false' = 'false';
 }
 
 /** 자사 재고목록 조회 */
