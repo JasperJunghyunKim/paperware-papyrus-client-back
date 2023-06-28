@@ -513,6 +513,100 @@ export class StockRetriveService {
     }
   }
 
+  async getStockGroupHistories(
+    params: {
+      skip: number;
+      take: number;
+      companyId: number;
+      warehouseId: number | null;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number | null;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+    }
+  ) {
+    const stocks = await this.getStockList({
+      companyId: params.companyId,
+      warehouseId: params.warehouseId,
+      productId: params.productId,
+      packagingId: params.packagingId,
+      grammage: params.grammage,
+      sizeX: params.sizeX,
+      sizeY: params.sizeY,
+      paperColorGroupId: params.paperColorGroupId,
+      paperColorId: params.paperColorId,
+      paperPatternId: params.paperPatternId,
+      paperCertId: params.paperCertId,
+      planId: null,
+    });
+
+    const [stockGroupHistories, total] = await this.prisma.$transaction([
+      this.prisma.stockEvent.findMany({
+        include: {
+          stock: {
+            include: {
+              initialPlan: true,
+            }
+          }
+        },
+        where: {
+          stock: {
+            companyId: params.companyId,
+            warehouseId: params.warehouseId,
+            productId: params.productId,
+            packagingId: params.packagingId,
+            grammage: params.grammage,
+            sizeX: params.sizeX,
+            sizeY: params.sizeY,
+            paperColorGroupId: params.paperColorGroupId,
+            paperColorId: params.paperColorId,
+            paperPatternId: params.paperPatternId,
+            paperCertId: params.paperCertId,
+            planId: null,
+          },
+          status: 'NORMAL',
+        },
+        skip: params.skip,
+        take: params.take,
+        orderBy: {
+          id: 'desc',
+        }
+      }),
+      this.prisma.stockEvent.count({
+        where: {
+          stock: {
+            companyId: params.companyId,
+            warehouseId: params.warehouseId,
+            productId: params.productId,
+            packagingId: params.packagingId,
+            grammage: params.grammage,
+            sizeX: params.sizeX,
+            sizeY: params.sizeY,
+            paperColorGroupId: params.paperColorGroupId,
+            paperColorId: params.paperColorId,
+            paperPatternId: params.paperPatternId,
+            paperCertId: params.paperCertId,
+            planId: null,
+          },
+          status: 'NORMAL',
+        },
+      }),
+    ]);
+
+    console.log(params)
+
+    return {
+      stocks,
+      stockGroupHistories,
+      total,
+    }
+  }
+
   async getStockGroup(
     params: {
       warehouseId: number | null;

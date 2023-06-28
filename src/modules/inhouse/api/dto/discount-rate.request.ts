@@ -25,8 +25,10 @@ export class DiscountRateDto {
 		switch (this.discountRateUnit) {
 			case 'PERCENT':
 				if (this.discountRate < 0 || this.discountRate > 100) throw new BadRequestException(`%할인율은 0~100 사이로 입력 가능합니다.`);
+				break;
 			default:
 				if (!Number.isInteger(this.discountRate)) throw new BadRequestException(`%이외의 할인율은 정수로 입력하셔야합니다.`);
+				break;
 		}
 	}
 }

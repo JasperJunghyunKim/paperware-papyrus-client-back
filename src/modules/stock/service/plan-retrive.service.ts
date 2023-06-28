@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetrive {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getAssignStockEventList(params: {
     orderId: number;
@@ -38,6 +38,6 @@ export class PlanRetrive {
       take: params.take,
       select: Selector.STOCK_EVENT,
     });
-    return list;
+    return Util.serialize(list);
   }
 }

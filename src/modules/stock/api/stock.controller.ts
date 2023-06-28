@@ -17,6 +17,7 @@ import {
   IdDto,
   StockCreateRequestDto,
   StockGroupDetailDto,
+  StockGroupHistoryDto,
   StockGroupListRequestDto,
   StockGroupQuantityQueryDto,
   StockListRequestDto,
@@ -115,6 +116,21 @@ export class StockController {
         dto.planId,
         dto.isDirectShippingIncluded === 'true',
       );
+
+    return result;
+  }
+
+  @Get('/group/history')
+  @UseGuards(AuthGuard)
+  async getStockGroupHistories(
+    @Request() req: AuthType,
+    @Query() dto: StockGroupHistoryDto,
+  ) {
+    const result = await this.stockRetriveService.getStockGroupHistories({
+      companyId: req.user.companyId,
+      ...dto,
+      sizeY: dto.sizeY || 0,
+    });
 
     return result;
   }
