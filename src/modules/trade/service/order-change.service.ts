@@ -402,13 +402,19 @@ export class OrderChangeService {
       console.log(dstPlan)
 
       // 기존 원지 이벤트 취소
-      await tx.stockEvent.update({
+      const cancelled = await tx.stockEvent.update({
+        select: {
+          stock: true,
+        },
         where: {
           id: dstPlan.assignStockEvent.id,
         },
         data: {
           status: 'CANCELLED',
         },
+      });
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: cancelled.stock.id,
       });
 
       // 원지 재고 생성
@@ -428,7 +434,7 @@ export class OrderChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          cachedQuantity: 0,
+          cachedQuantity: -params.quantity,
         },
         select: {
           id: true,
