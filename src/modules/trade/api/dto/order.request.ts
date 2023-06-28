@@ -239,8 +239,9 @@ export class OrderStockArrivalCreateRequestDto
   @Type(() => Number)
   quantity: number;
 
+  @IsOptional()
   @IsBoolean()
-  isSyncPrice: boolean;
+  isSyncPrice: boolean = false;
 
   @IsOptional()
   @IsObject()
