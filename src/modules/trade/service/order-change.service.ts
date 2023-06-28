@@ -396,17 +396,15 @@ export class OrderChangeService {
               invoiceCode: true,
             },
           },
+          assignStockEvent: true,
         },
       });
+      console.log(dstPlan)
 
       // 기존 원지 이벤트 취소
-      await tx.stockEvent.updateMany({
+      await tx.stockEvent.update({
         where: {
-          assignPlan: {
-            every: {
-              id: dstPlan.id,
-            },
-          },
+          id: dstPlan.assignStockEvent.id,
         },
         data: {
           status: 'CANCELLED',
