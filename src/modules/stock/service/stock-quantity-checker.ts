@@ -121,6 +121,8 @@ export class StockQuantityChecker {
 
     this.logger.log(`[재고그룹 수량 조회]
 조회회사: ${inquireCompany.businessName}
+요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / 1000000) : quantity}
+------------------------------------
 회사: ${stock.company ? stock.company.businessName : 'NULL'}
 포장: ${stock.packaging.name}
 창고: ${stock.warehouse ? stock.warehouse.name : 'NULL'}
