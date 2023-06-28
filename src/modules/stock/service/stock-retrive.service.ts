@@ -176,7 +176,7 @@ interface StockGroupDetailFromDB {
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getStockGroupList(companyId: number, skip: number, take: number, planId: 'any' | number): Promise<{
+  async getStockGroupList(companyId: number, skip: number, take: number, planId: 'any' | number, isDirectShippingIncluded: boolean): Promise<{
     items: StockGroup[];
     total: number;
   }> {
@@ -192,6 +192,16 @@ export class StockRetriveService {
           break;
       }
     }
+    let directShippingQuery =
+      isDirectShippingIncluded ?
+        Prisma.empty :
+        Prisma.sql`AND (
+          (initialOs.id IS NULL AND initialOp.id IS NULL AND initialPs.planId IS NULL) OR
+          (initialOs.id IS NOT NULL AND initialOs.isDirectShipping = ${false}) OR
+          (initialPs.planId IS NOT NULL AND initialPs.isDirectShipping = ${false}) OR
+          (initialOp.id IS NOT NULL AND initialO.srcCompanyId = ${companyId} AND initialOp.isSrcDirectShipping = ${false}) OR
+          (initialOp.id IS NOT NULL AND initialO.dstCompanyId = ${companyId} AND initialOp.isDstDirectShipping = ${false})
+        )`;
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
@@ -370,8 +380,12 @@ export class StockRetriveService {
    LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
 
        WHERE s.companyId = ${companyId}
-         
          ${planIdQuery}
+         AND (initialO.id IS NULL
+                OR (initialO.id IS NOT NULL AND initialO.orderType != ${OrderType.OUTSOURCE_PROCESS})
+                OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.srcCompanyId = ${companyId})
+              ) 
+         ${directShippingQuery}
 
        GROUP BY s.packagingId
                 , s.productId

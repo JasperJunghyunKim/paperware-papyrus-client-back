@@ -113,6 +113,7 @@ export class StockController {
         dto.skip,
         dto.take,
         dto.planId,
+        dto.isDirectShippingIncluded === 'true',
       );
 
     return result;
