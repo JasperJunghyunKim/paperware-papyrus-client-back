@@ -583,9 +583,10 @@ export class DepositCreateDto implements DepositCreateRequest {
   @NotEquals(0)
   readonly quantity: number;
 
+  @IsOptional()
   @IsString()
-  @Length(1, 200)
-  readonly memo: string;
+  @Length(0, 200)
+  readonly memo: string = '';
 }
 
 /** 원지 수정 */
