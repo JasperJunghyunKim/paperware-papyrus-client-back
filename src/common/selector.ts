@@ -273,6 +273,7 @@ export const STOCK_EVENT = {
   },
   change: true,
   status: true,
+  createdAt: true,
 } satisfies Prisma.StockEventSelect;
 
 export const ORDER_STOCK = {

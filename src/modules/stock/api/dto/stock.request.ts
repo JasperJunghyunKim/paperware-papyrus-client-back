@@ -20,6 +20,7 @@ import {
 	StockCreateRequest,
 	StockCreateStockPriceRequest,
 	StockGroupDetailQuery,
+	StockGroupHistoryQuery,
 	StockGroupListQuery,
 	StockGroupQuantityQuery,
 	StockListQuery,
@@ -49,6 +50,78 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
 	@IsOptional()
 	@IsBooleanString()
 	readonly isDirectShippingIncluded: 'true' | 'false' = 'false';
+}
+
+/** 자사 재고목록 조회 */
+export class StockGroupHistoryDto implements StockGroupHistoryQuery {
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@Min(0)
+	readonly skip: number = 0;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@Min(10)
+	@Max(100)
+	readonly take: number = undefined;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly warehouseId: number | null = null;
+
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly productId: number;
+
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly packagingId: number;
+
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly grammage: number;
+
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly sizeX: number;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@Min(0)
+	readonly sizeY: number | null = null;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly paperColorGroupId: number | null = null;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly paperColorId: number | null = null;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly paperPatternId: number | null = null;
+
+	@IsOptional()
+	@IsInt()
+	@Type(() => Number)
+	@IsPositive()
+	readonly paperCertId: number | null = null;
 }
 
 /** 자사 재고목록 조회 */

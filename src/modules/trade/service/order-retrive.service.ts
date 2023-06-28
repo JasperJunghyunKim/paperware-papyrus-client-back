@@ -119,7 +119,7 @@ export class OrderRetriveService {
       },
     });
 
-    return dstPlan.assignStockEvent;
+    return Util.serialize(dstPlan.assignStockEvent);
   }
 
   /** 도착 목록 가져오기 */

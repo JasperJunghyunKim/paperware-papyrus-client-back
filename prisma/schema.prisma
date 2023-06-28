@@ -216,6 +216,7 @@ model StockEvent {
   assignPlan        Plan[]           @relation("AssignStockEvent")
   orderProcessId    Int?
   orderProcess      OrderProcess?    @relation(fields: [orderProcessId], references: [id])
+  createdAt         DateTime         @default(now())
 }
 
 // User
