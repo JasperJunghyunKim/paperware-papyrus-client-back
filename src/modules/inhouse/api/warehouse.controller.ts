@@ -13,24 +13,24 @@ import {
   Query,
   Request,
   UseGuards,
-} from "@nestjs/common";
-import { WarehouseCreateRequest } from "src/@shared/api/inhouse/warehouse.request";
-import { WarehouseChangeService } from "src/modules/inhouse/service/warehouse-change.service";
-import { WarehouseRetriveService } from "src/modules/inhouse/service/warehouse-retrive.service";
+} from '@nestjs/common';
+import { WarehouseCreateRequest } from 'src/@shared/api/inhouse/warehouse.request';
+import { WarehouseChangeService } from 'src/modules/inhouse/service/warehouse-change.service';
+import { WarehouseRetriveService } from 'src/modules/inhouse/service/warehouse-retrive.service';
 import {
   WarehouseListQueryDto,
   WarehouseUpdateRequestDto,
-} from "./dto/warehouse.request";
-import { AuthType } from "src/modules/auth/auth.type";
-import { AuthGuard } from "src/modules/auth/auth.guard";
-import { WarehouseListResponse } from "src/@shared/api";
+} from './dto/warehouse.request';
+import { AuthType } from 'src/modules/auth/auth.type';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { WarehouseListResponse } from 'src/@shared/api';
 
-@Controller("inhouse/warehouse")
+@Controller('inhouse/warehouse')
 export class WarehouseController {
   constructor(
     private readonly warehouseRetriveService: WarehouseRetriveService,
     private readonly warehouseChangeService: WarehouseChangeService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -55,10 +55,10 @@ export class WarehouseController {
     };
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  async get(@Request() req: AuthType, @Param("id") id: number) {
+  async get(@Request() req: AuthType, @Param('id') id: number) {
     const warehouse = await this.warehouseRetriveService.getItem(id);
 
     if (warehouse.company.id !== req.user.companyId) {
@@ -85,12 +85,12 @@ export class WarehouseController {
     });
   }
 
-  @Put(":id")
+  @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async update(
     @Request() req: AuthType,
-    @Param("id") id: number,
+    @Param('id') id: number,
     @Body() body: WarehouseUpdateRequestDto,
   ) {
     const warehouse = await this.warehouseRetriveService.getItem(id);
@@ -107,10 +107,10 @@ export class WarehouseController {
     });
   }
 
-  @Delete(":id")
+  @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
-  async delete(@Request() req: AuthType, @Param("id") id: number) {
+  async delete(@Request() req: AuthType, @Param('id') id: number) {
     const warehouse = await this.warehouseRetriveService.getItem(id);
 
     if (warehouse.company.id !== req.user.companyId) {

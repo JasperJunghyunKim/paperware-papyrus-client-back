@@ -1,7 +1,12 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByBankAccountCreateRequest, ByBankAccountUpdateRequest } from "src/@shared/api/accounted/by-bank-account.request";
-export class ByBankAccountCreateRequestDto implements ByBankAccountCreateRequest {
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ByBankAccountCreateRequest,
+  ByBankAccountUpdateRequest,
+} from 'src/@shared/api/accounted/by-bank-account.request';
+export class ByBankAccountCreateRequestDto
+  implements ByBankAccountCreateRequest
+{
   @IsNumber()
   readonly companyId: number;
 
@@ -31,7 +36,9 @@ export class ByBankAccountCreateRequestDto implements ByBankAccountCreateRequest
   readonly bankAccountId: number;
 }
 
-export class ByBankAccountUpdateRequestDto implements ByBankAccountUpdateRequest {
+export class ByBankAccountUpdateRequestDto
+  implements ByBankAccountUpdateRequest
+{
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 

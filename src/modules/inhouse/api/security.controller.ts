@@ -9,28 +9,37 @@ import {
   Patch,
   Post,
   Request,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { SecurityChangeService } from '../service/security-change.service';
 import { SecurityRetriveService } from '../service/security-retrive.service';
-import { SecurityCreateRequestDto, SecurityUpdateRequestDto, SecurityUpdateStatusRequestDto } from './dto/security.request';
-import { SecurityItemResponseDto, SecurityListResponseDto } from './dto/security.response';
+import {
+  SecurityCreateRequestDto,
+  SecurityUpdateRequestDto,
+  SecurityUpdateStatusRequestDto,
+} from './dto/security.request';
+import {
+  SecurityItemResponseDto,
+  SecurityListResponseDto,
+} from './dto/security.response';
 
 @Controller('/security')
 export class SecurityController {
   constructor(
     private readonly securityRetriveService: SecurityRetriveService,
     private readonly securityCahngeService: SecurityChangeService,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
   async getSecurityList(
     @Request() req: AuthType,
   ): Promise<SecurityListResponseDto> {
-    return await this.securityRetriveService.getSecurityList(req.user.companyId);
+    return await this.securityRetriveService.getSecurityList(
+      req.user.companyId,
+    );
   }
 
   @Get(':securityId')
@@ -44,8 +53,14 @@ export class SecurityController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createSecurity(@Request() req: AuthType, @Body() securityCreateRequest: SecurityCreateRequestDto): Promise<void> {
-    await this.securityCahngeService.createSecurity(req.user.companyId, securityCreateRequest);
+  async createSecurity(
+    @Request() req: AuthType,
+    @Body() securityCreateRequest: SecurityCreateRequestDto,
+  ): Promise<void> {
+    await this.securityCahngeService.createSecurity(
+      req.user.companyId,
+      securityCreateRequest,
+    );
   }
 
   @Patch(':securityId')
@@ -55,7 +70,10 @@ export class SecurityController {
     @Param('securityId') securityId: number,
     @Body() securityUpdateRequest: SecurityUpdateRequestDto,
   ): Promise<void> {
-    await this.securityCahngeService.updateSecurity(securityId, securityUpdateRequest);
+    await this.securityCahngeService.updateSecurity(
+      securityId,
+      securityUpdateRequest,
+    );
   }
 
   @Patch(':securityId/status')
@@ -65,7 +83,10 @@ export class SecurityController {
     @Param('securityId') securityId: number,
     @Body() securityUpdateStatusRequest: SecurityUpdateStatusRequestDto,
   ): Promise<void> {
-    await this.securityCahngeService.updateSecurityStatus(securityId, securityUpdateStatusRequest);
+    await this.securityCahngeService.updateSecurityStatus(
+      securityId,
+      securityUpdateStatusRequest,
+    );
   }
 
   @Delete(':securityId')

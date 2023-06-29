@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsInt, IsOptional, IsPositive, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  Min,
+} from 'class-validator';
 import {
   InvoiceDisconnectShippingRequest,
   InvoiceListQuery,
@@ -26,7 +34,8 @@ export default class InvoiceListQueryDto implements InvoiceListQuery {
 }
 
 export class InvoiceDisconnectShippingRequestDto
-  implements InvoiceDisconnectShippingRequest {
+  implements InvoiceDisconnectShippingRequest
+{
   @IsInt({ each: true })
   @Type(() => Number)
   readonly invoiceIds: number[];

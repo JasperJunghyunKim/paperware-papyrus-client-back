@@ -1,6 +1,9 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByOffsetCreateRequest, ByOffsetUpdateRequest } from "src/@shared/api/accounted/by-offset.request";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ByOffsetCreateRequest,
+  ByOffsetUpdateRequest,
+} from 'src/@shared/api/accounted/by-offset.request';
 
 export class ByOffsetCreateRequestDto implements ByOffsetCreateRequest {
   @IsNumber()

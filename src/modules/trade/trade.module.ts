@@ -12,7 +12,13 @@ import { DepositChangeService } from './service/deposit-change.service';
 
 @Module({
   imports: [WorkingModule, StockModule],
-  providers: [OrderChangeService, OrderRetriveService, TradePriceValidator, DepositRetriveService, DepositChangeService],
+  providers: [
+    OrderChangeService,
+    OrderRetriveService,
+    TradePriceValidator,
+    DepositRetriveService,
+    DepositChangeService,
+  ],
   controllers: [OrderController, DepositController],
 })
-export class TradeModule { }
+export class TradeModule {}

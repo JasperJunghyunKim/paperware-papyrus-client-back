@@ -1,17 +1,30 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post, Query, Request, UseGuards } from "@nestjs/common";
-import { AuthGuard } from "src/modules/auth/auth.guard";
-import { AuthType } from "src/modules/auth/auth.type";
-import { DepositCreateDto, OrderDepositListQueryDto } from "./dto/order.request";
-import { DepositRetriveService } from "../service/deposit-retrive.service";
-import { DepositChangeService } from "../service/deposit-change.service";
-import { DepositHistoryResponse } from "src/@shared/api";
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from 'src/modules/auth/auth.guard';
+import { AuthType } from 'src/modules/auth/auth.type';
+import {
+  DepositCreateDto,
+  OrderDepositListQueryDto,
+} from './dto/order.request';
+import { DepositRetriveService } from '../service/deposit-retrive.service';
+import { DepositChangeService } from '../service/deposit-change.service';
+import { DepositHistoryResponse } from 'src/@shared/api';
 
 @Controller('/deposit')
 export class DepositController {
   constructor(
     private readonly retrive: DepositRetriveService,
     private readonly change: DepositChangeService,
-  ) { }
+  ) {}
 
   /** 매입/매출 보관량 조회 */
   @Get()
@@ -42,10 +55,7 @@ export class DepositController {
   /** 보관량 증감 */
   @Post()
   @UseGuards(AuthGuard)
-  async createDeposit(
-    @Request() req: AuthType,
-    @Body() dto: DepositCreateDto,
-  ) {
+  async createDeposit(@Request() req: AuthType, @Body() dto: DepositCreateDto) {
     await this.change.createDeposit({
       companyId: req.user.companyId,
       ...dto,

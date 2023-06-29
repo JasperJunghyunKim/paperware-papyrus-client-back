@@ -6,4 +6,4 @@ import { PartnerRetriveService } from './service/partner-retrive.service';
   controllers: [PartnerController],
   providers: [PartnerRetriveService],
 })
-export class PartnerModule { }
+export class PartnerModule {}

@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { BankAccountCreateRequestDto, BankAccountUpdateRequestDto } from '../api/dto/bank-account.request';
+import {
+  BankAccountCreateRequestDto,
+  BankAccountUpdateRequestDto,
+} from '../api/dto/bank-account.request';
 
 @Injectable()
 export class BankAccountChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createBankAccount(companyId: number, bankAccountCreateRequestDto: BankAccountCreateRequestDto): Promise<void> {
+  async createBankAccount(
+    companyId: number,
+    bankAccountCreateRequestDto: BankAccountCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.bankAccount.create({
@@ -20,18 +26,21 @@ export class BankAccountChangeService {
             company: {
               connect: {
                 id: companyId,
-              }
-            }
+              },
+            },
           },
           select: {
             id: true,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateBankAccount(bankAccountId: number, bankAccountUpdateRequest: BankAccountUpdateRequestDto): Promise<void> {
+  async updateBankAccount(
+    bankAccountId: number,
+    bankAccountUpdateRequest: BankAccountUpdateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.bankAccount.update({
@@ -43,9 +52,9 @@ export class BankAccountChangeService {
           },
           where: {
             id: bankAccountId,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 
@@ -57,10 +66,10 @@ export class BankAccountChangeService {
             isDeleted: true,
           },
           where: {
-            id: bankAccountId
-          }
-        })
-      )
+            id: bankAccountId,
+          },
+        }),
+      ),
     );
   }
 }

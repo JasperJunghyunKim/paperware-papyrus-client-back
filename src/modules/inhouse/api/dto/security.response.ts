@@ -1,8 +1,16 @@
-import { Bank, DrawedStatus, SecurityStatus, SecurityType } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsArray, IsEnum, IsNumber, IsString } from "class-validator";
-import { SecurityItemResponse, SecurityListResponse } from "src/@shared/api/inhouse/security.response";
-import { Security } from "src/@shared/models";
+import {
+  Bank,
+  DrawedStatus,
+  SecurityStatus,
+  SecurityType,
+} from '@prisma/client';
+import { Type } from 'class-transformer';
+import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import {
+  SecurityItemResponse,
+  SecurityListResponse,
+} from 'src/@shared/api/inhouse/security.response';
+import { Security } from 'src/@shared/models';
 
 export class SecurityListResponseDto implements SecurityListResponse {
   @IsArray()

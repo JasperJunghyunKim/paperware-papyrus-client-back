@@ -7,7 +7,9 @@ export enum BySecurityErrorEnum {
   BY_SECURITY_002 = 'BY_SECURITY_002',
 }
 
-export const BySecurityError: Readonly<{ [key in BySecurityErrorEnum]: AppError }> = {
+export const BySecurityError: Readonly<{
+  [key in BySecurityErrorEnum]: AppError;
+}> = {
   [BySecurityErrorEnum.BY_SECURITY_001]: {
     name: BY_SECURITY_ERROR,
     code: BySecurityErrorEnum.BY_SECURITY_001,
@@ -16,6 +18,7 @@ export const BySecurityError: Readonly<{ [key in BySecurityErrorEnum]: AppError 
   [BySecurityErrorEnum.BY_SECURITY_002]: {
     name: BY_SECURITY_ERROR,
     code: BySecurityErrorEnum.BY_SECURITY_001,
-    message: '유가증권이 이미 사용 상태로 확인 됩니다. 유가증권 관리에 상태 확인 후 다시 시도해 주세요.',
+    message:
+      '유가증권이 이미 사용 상태로 확인 됩니다. 유가증권 관리에 상태 확인 후 다시 시도해 주세요.',
   },
 };

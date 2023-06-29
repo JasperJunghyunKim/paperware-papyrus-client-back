@@ -1,9 +1,38 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { DiscountRateCondition, DiscountRateMap, DiscountRateMapType, DiscountRateType, DiscountRateUnit, Manufacturer, PackagingType, PaperCert, PaperColor, PaperColorGroup, PaperDomain, PaperGroup, PaperPattern, PaperType, Prisma } from "@prisma/client";
-import { Model } from "src/@shared";
-import { DiscountRateListResponse } from "src/@shared/api/inhouse/discount-rate.response";
-import { MANUFACTURER, PAPER_CERT, PAPER_COLOR, PAPER_COLOR_GROUP, PAPER_DOMAIN, PAPER_GROUP, PAPER_PATTERN, PAPER_TYPE } from "src/common/selector";
-import { PrismaService } from "src/core";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  DiscountRateCondition,
+  DiscountRateMap,
+  DiscountRateMapType,
+  DiscountRateType,
+  DiscountRateUnit,
+  Manufacturer,
+  PackagingType,
+  PaperCert,
+  PaperColor,
+  PaperColorGroup,
+  PaperDomain,
+  PaperGroup,
+  PaperPattern,
+  PaperType,
+  Prisma,
+} from '@prisma/client';
+import { Model } from 'src/@shared';
+import { DiscountRateListResponse } from 'src/@shared/api/inhouse/discount-rate.response';
+import {
+  MANUFACTURER,
+  PAPER_CERT,
+  PAPER_COLOR,
+  PAPER_COLOR_GROUP,
+  PAPER_DOMAIN,
+  PAPER_GROUP,
+  PAPER_PATTERN,
+  PAPER_TYPE,
+} from 'src/common/selector';
+import { PrismaService } from 'src/core';
 
 type Bit = '0' | '1';
 type DiscountRateConditionWithMap = DiscountRateCondition & {
@@ -19,8 +48,8 @@ type DiscountRateConditionWithMap = DiscountRateCondition & {
   paperColor: PaperColor | null;
   paperPattern: PaperPattern | null;
   paperCert: PaperCert | null;
-  discountRateMap: DiscountRateMap[]
-}
+  discountRateMap: DiscountRateMap[];
+};
 
 export interface DiscountRate {
   discountRateCondition: {
@@ -47,7 +76,7 @@ export class FisrtFiltered {
     private discountRateCondition: DiscountRateConditionWithMap,
     private accordanceBits: string,
     private count: number,
-  ) { }
+  ) {}
 
   getDiscountRateCondition = () => this.discountRateCondition;
   getBits = () => this.accordanceBits;
@@ -57,8 +86,7 @@ export class FisrtFiltered {
     if (this.getCount() >= other.getCount()) return false;
 
     for (let i = 0; i < this.getBits().length; i++) {
-      if (this.getBits()[i] === '1' && other.getBits()[i] !== '1')
-        return false;
+      if (this.getBits()[i] === '1' && other.getBits()[i] !== '1') return false;
     }
 
     return true;
@@ -82,9 +110,7 @@ export interface DiscountRateClient {
 
 @Injectable()
 export class DiscountRateRetriveService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getClientList(
     companyId: number,
@@ -131,12 +157,14 @@ export class DiscountRateRetriveService {
     skip: number,
     take: number,
   ): Promise<DiscountRateListResponse> {
-    const registrationNumberCondition = companyRegistrationNumber ? Prisma.sql`AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}` : Prisma.empty;
+    const registrationNumberCondition = companyRegistrationNumber
+      ? Prisma.sql`AND drc.partnerCompanyRegistrationNumber = ${companyRegistrationNumber}`
+      : Prisma.empty;
 
     const ids: {
-      id: number,
-      partnerCompanyRegistrationNumber: string,
-      total: bigint,
+      id: number;
+      partnerCompanyRegistrationNumber: string;
+      total: bigint;
     }[] = await this.prisma.$queryRaw`
       SELECT drc.id AS id, drc.partnerCompanyRegistrationNumber AS partnerCompanyRegistrationNumber, COUNT(1) OVER() AS total
 
@@ -149,71 +177,86 @@ export class DiscountRateRetriveService {
     `;
 
     const total = ids.length === 0 ? 0 : Number(ids[0].total) / 2;
-    const items = ids.length === 0 ? [] : await this.prisma.discountRateCondition.findMany({
-      include: {
-        paperDomain: {
-          select: PAPER_DOMAIN,
-        },
-        manufacturer: {
-          select: MANUFACTURER,
-        },
-        paperGroup: {
-          select: PAPER_GROUP
-        },
-        paperType: {
-          select: PAPER_TYPE,
-        },
-        paperColorGroup: {
-          select: PAPER_COLOR_GROUP,
-        },
-        paperColor: {
-          select: PAPER_COLOR,
-        },
-        paperPattern: {
-          select: PAPER_PATTERN,
-        },
-        paperCert: {
-          select: PAPER_CERT,
-        },
-        discountRateMap: {
-          select: {
-            discountRateMapType: true,
-            discountRate: true,
-            discountRateUnit: true,
-          },
-          where: {
-            discountRateType,
-          }
-        }
-      },
-      where: {
-        id: {
-          in: ids.map(id => id.id),
-        }
-      }
-    });
+    const items =
+      ids.length === 0
+        ? []
+        : await this.prisma.discountRateCondition.findMany({
+            include: {
+              paperDomain: {
+                select: PAPER_DOMAIN,
+              },
+              manufacturer: {
+                select: MANUFACTURER,
+              },
+              paperGroup: {
+                select: PAPER_GROUP,
+              },
+              paperType: {
+                select: PAPER_TYPE,
+              },
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+              discountRateMap: {
+                select: {
+                  discountRateMapType: true,
+                  discountRate: true,
+                  discountRateUnit: true,
+                },
+                where: {
+                  discountRateType,
+                },
+              },
+            },
+            where: {
+              id: {
+                in: ids.map((id) => id.id),
+              },
+            },
+          });
 
-    const partnerCompanyRegistrationNumbers = Array.from(new Set(ids.map(id => id.partnerCompanyRegistrationNumber)));
+    const partnerCompanyRegistrationNumbers = Array.from(
+      new Set(ids.map((id) => id.partnerCompanyRegistrationNumber)),
+    );
 
     const partnerMap = new Map<string, Model.Partner>();
     const partners: {
       companyRegistrationNumber: string;
       partnerNickName: string;
       memo: string;
-    }[] = ids.length === 0 ? [] : await this.prisma.$queryRaw`
+    }[] =
+      ids.length === 0
+        ? []
+        : await this.prisma.$queryRaw`
       SELECT companyRegistrationNumber, partnerNickName, memo
         FROM Partner
        WHERE companyId = ${companyId}
-         AND companyRegistrationNumber IN (${Prisma.join(partnerCompanyRegistrationNumbers)})
+         AND companyRegistrationNumber IN (${Prisma.join(
+           partnerCompanyRegistrationNumbers,
+         )})
     `;
     const companies: {
       id: number;
       companyRegistrationNumber: string;
       businessName: string;
-    }[] = ids.length === 0 ? [] : await this.prisma.$queryRaw`
+    }[] =
+      ids.length === 0
+        ? []
+        : await this.prisma.$queryRaw`
       SELECT id, companyRegistrationNumber, businessName, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC)
         FROM Company
-       WHERE companyRegistrationNumber IN (${Prisma.join(partnerCompanyRegistrationNumbers)})
+       WHERE companyRegistrationNumber IN (${Prisma.join(
+         partnerCompanyRegistrationNumbers,
+       )})
     `;
     for (const company of companies) {
       partnerMap.set(company.companyRegistrationNumber, {
@@ -232,13 +275,18 @@ export class DiscountRateRetriveService {
     }
 
     return {
-      items: items.map(item => {
-        const basicDiscountRate = item.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
-        const specialDiscountRate = item.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+      items: items.map((item) => {
+        const basicDiscountRate = item.discountRateMap.find(
+          (map) => map.discountRateMapType === 'BASIC',
+        );
+        const specialDiscountRate = item.discountRateMap.find(
+          (map) => map.discountRateMapType === 'SPECIAL',
+        );
 
         return {
           id: item.id,
-          partner: partnerMap.get(item.partnerCompanyRegistrationNumber) || null,
+          partner:
+            partnerMap.get(item.partnerCompanyRegistrationNumber) || null,
           packagingType: item.packagingType,
           paperDomain: item.paperDomain,
           manufacturer: item.manufacturer,
@@ -259,10 +307,10 @@ export class DiscountRateRetriveService {
             discountRate: specialDiscountRate.discountRate,
             discountRateUnit: specialDiscountRate.discountRateUnit,
           },
-        }
+        };
       }),
       total,
-    }
+    };
   }
 
   async get(
@@ -279,7 +327,7 @@ export class DiscountRateRetriveService {
           select: MANUFACTURER,
         },
         paperGroup: {
-          select: PAPER_GROUP
+          select: PAPER_GROUP,
         },
         paperType: {
           select: PAPER_TYPE,
@@ -300,42 +348,51 @@ export class DiscountRateRetriveService {
           where: {
             discountRateType,
             isDeleted: false,
-          }
-        }
+          },
+        },
       },
       where: {
         id: discountRateConditionId,
         companyId,
       },
     });
-    if (!condition || condition.discountRateMap.length === 0) throw new NotFoundException(`존재하지 않는 할인율입니다.`);
+    if (!condition || condition.discountRateMap.length === 0)
+      throw new NotFoundException(`존재하지 않는 할인율입니다.`);
 
-    const partner = await this.prisma.partner.findUnique({
-      where: {
-        companyId_companyRegistrationNumber: {
-          companyId,
-          companyRegistrationNumber: condition.partnerCompanyRegistrationNumber,
-        }
-      }
-    }) || null;
+    const partner =
+      (await this.prisma.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId,
+            companyRegistrationNumber:
+              condition.partnerCompanyRegistrationNumber,
+          },
+        },
+      })) || null;
     const partnerCompany = await this.prisma.company.findFirst({
       where: {
         companyRegistrationNumber: condition.partnerCompanyRegistrationNumber,
       },
       orderBy: {
-        id: 'desc'
-      }
+        id: 'desc',
+      },
     });
 
-    const basicDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'BASIC');
-    const specialDiscountRate = condition.discountRateMap.find(map => map.discountRateMapType === 'SPECIAL');
+    const basicDiscountRate = condition.discountRateMap.find(
+      (map) => map.discountRateMapType === 'BASIC',
+    );
+    const specialDiscountRate = condition.discountRateMap.find(
+      (map) => map.discountRateMapType === 'SPECIAL',
+    );
 
     return {
       id: condition.id,
       partner: {
         companyId: partnerCompany.id,
         companyRegistrationNumber: partnerCompany.companyRegistrationNumber,
-        partnerNickName: partner ? partner.partnerNickName : partnerCompany.businessName,
+        partnerNickName: partner
+          ? partner.partnerNickName
+          : partnerCompany.businessName,
         memo: partner ? partner.memo : '',
       },
       packagingType: condition.packagingType,
@@ -358,7 +415,7 @@ export class DiscountRateRetriveService {
         discountRate: specialDiscountRate.discountRate,
         discountRateUnit: specialDiscountRate.discountRateUnit,
       },
-    }
+    };
   }
 
   async mapping(
@@ -383,7 +440,7 @@ export class DiscountRateRetriveService {
         companyId,
         companyRegistrationNumber,
         isDeleted: false,
-      }
+      },
     });
     if (!partner) throw new BadRequestException(`존재하지 않는 거래처입니다.`);
 
@@ -408,7 +465,7 @@ export class DiscountRateRetriveService {
               AND (drc.paperColorId = ${paperColorId} OR drc.paperColorId IS NULL)
               AND (drc.paperPatternId = ${paperPatternId} OR drc.paperPatternId IS NULL)
               AND (drc.paperCertId = ${paperCertId} OR drc.paperCertId IS NULL)
-        `
+        `;
 
     const conditions = await this.prisma.discountRateCondition.findMany({
       include: {
@@ -424,16 +481,16 @@ export class DiscountRateRetriveService {
           where: {
             discountRateType,
             isDeleted: false,
-          }
-        }
+          },
+        },
       },
       where: {
         companyId,
         partnerCompanyRegistrationNumber: companyRegistrationNumber,
         id: {
-          in: conditionIds.map(id => id.discountRateConditionId)
-        }
-      }
+          in: conditionIds.map((id) => id.discountRateConditionId),
+        },
+      },
     });
 
     const firstFiltered = this.getFirstFiltering(
@@ -451,11 +508,20 @@ export class DiscountRateRetriveService {
       paperPatternId,
       paperCertId,
     );
-    console.log('[할인율 1st filtering]', firstFiltered.map(fisrt => ({ id: fisrt.getDiscountRateCondition().id, bits: fisrt.getBits() })));
+    console.log(
+      '[할인율 1st filtering]',
+      firstFiltered.map((fisrt) => ({
+        id: fisrt.getDiscountRateCondition().id,
+        bits: fisrt.getBits(),
+      })),
+    );
 
     const conditionMap = new Map<number, DiscountRateConditionWithMap>();
     for (const first of firstFiltered) {
-      conditionMap.set(first.getDiscountRateCondition().id, first.getDiscountRateCondition());
+      conditionMap.set(
+        first.getDiscountRateCondition().id,
+        first.getDiscountRateCondition(),
+      );
     }
 
     const graph = this.createGraph(firstFiltered);
@@ -464,29 +530,28 @@ export class DiscountRateRetriveService {
       if (graph.get(key).length === 0) leafNodeIds.push(key);
     }
 
-    return leafNodeIds.flatMap(id => {
+    return leafNodeIds.flatMap((id) => {
       const condition = conditionMap.get(id);
-      return condition
-        .discountRateMap.map(map => ({
-          discountRateCondition: {
-            packagingType: condition.packagingType,
-            paperDomain: condition.paperDomain,
-            manufacturer: condition.manufacturer,
-            paperGroup: condition.paperGroup,
-            paperType: condition.paperType,
-            grammage: condition.grammage,
-            sizeX: condition.sizeX,
-            sizeY: condition.sizeY,
-            paperColorGroup: condition.paperColorGroup,
-            paperColor: condition.paperColor,
-            paperPattern: condition.paperPattern,
-            paperCert: condition.paperCert,
-          },
-          discountRateMapType: map.discountRateMapType,
-          discountRate: map.discountRate,
-          discountRateUnit: map.discountRateUnit,
-        }));
-    })
+      return condition.discountRateMap.map((map) => ({
+        discountRateCondition: {
+          packagingType: condition.packagingType,
+          paperDomain: condition.paperDomain,
+          manufacturer: condition.manufacturer,
+          paperGroup: condition.paperGroup,
+          paperType: condition.paperType,
+          grammage: condition.grammage,
+          sizeX: condition.sizeX,
+          sizeY: condition.sizeY,
+          paperColorGroup: condition.paperColorGroup,
+          paperColor: condition.paperColor,
+          paperPattern: condition.paperPattern,
+          paperCert: condition.paperCert,
+        },
+        discountRateMapType: map.discountRateMapType,
+        discountRate: map.discountRate,
+        discountRateUnit: map.discountRateUnit,
+      }));
+    });
   }
 
   private getFirstFiltering(
@@ -508,18 +573,45 @@ export class DiscountRateRetriveService {
     for (const condition of conditions) {
       if (condition.discountRateMap.length === 0) continue;
 
-      const packagingTypeBit = this.getAccordanceBit(condition.packagingType, packagingType);
-      const paperDomainIdBit = this.getAccordanceBit(condition.paperDomainId, paperDomainId);
-      const manufacturerIdBit = this.getAccordanceBit(condition.manufacturerId, manufacturerId);
-      const paperGroupIdBit = this.getAccordanceBit(condition.paperGroupId, paperGroupId);
-      const paperTypeIdBit = this.getAccordanceBit(condition.paperTypeId, paperTypeId);
+      const packagingTypeBit = this.getAccordanceBit(
+        condition.packagingType,
+        packagingType,
+      );
+      const paperDomainIdBit = this.getAccordanceBit(
+        condition.paperDomainId,
+        paperDomainId,
+      );
+      const manufacturerIdBit = this.getAccordanceBit(
+        condition.manufacturerId,
+        manufacturerId,
+      );
+      const paperGroupIdBit = this.getAccordanceBit(
+        condition.paperGroupId,
+        paperGroupId,
+      );
+      const paperTypeIdBit = this.getAccordanceBit(
+        condition.paperTypeId,
+        paperTypeId,
+      );
       const grammageBit = this.getAccordanceBit(condition.grammage, grammage);
       const sizeXBit = this.getAccordanceBit(condition.sizeX, sizeX);
       const sizeYBit = this.getAccordanceBit(condition.sizeY, sizeY);
-      const paperColorGroupIdBit = this.getAccordanceBit(condition.paperColorGroupId, paperColorGroupId);
-      const paperColorIdBit = this.getAccordanceBit(condition.paperColorId, paperColorId);
-      const paperPatternIdBit = this.getAccordanceBit(condition.paperPatternId, paperPatternId);
-      const paperCertIdBit = this.getAccordanceBit(condition.paperCertId, paperCertId);
+      const paperColorGroupIdBit = this.getAccordanceBit(
+        condition.paperColorGroupId,
+        paperColorGroupId,
+      );
+      const paperColorIdBit = this.getAccordanceBit(
+        condition.paperColorId,
+        paperColorId,
+      );
+      const paperPatternIdBit = this.getAccordanceBit(
+        condition.paperPatternId,
+        paperPatternId,
+      );
+      const paperCertIdBit = this.getAccordanceBit(
+        condition.paperCertId,
+        paperCertId,
+      );
 
       const bits = [
         packagingTypeBit,
@@ -533,7 +625,7 @@ export class DiscountRateRetriveService {
         paperColorGroupIdBit,
         paperColorIdBit,
         paperPatternIdBit,
-        paperCertIdBit
+        paperCertIdBit,
       ];
       if (
         sizeXBit &&
@@ -546,9 +638,9 @@ export class DiscountRateRetriveService {
         firstFiltered.push(
           new FisrtFiltered(
             condition,
-            bits.join(""),
-            bits.filter(bit => bit === '1').length,
-          )
+            bits.join(''),
+            bits.filter((bit) => bit === '1').length,
+          ),
         );
       }
     }
@@ -556,17 +648,22 @@ export class DiscountRateRetriveService {
     return firstFiltered;
   }
 
-  private getAccordanceBit(conditionField: number | PackagingType | null, queryParam: number | PackagingType | null): Bit | null {
+  private getAccordanceBit(
+    conditionField: number | PackagingType | null,
+    queryParam: number | PackagingType | null,
+  ): Bit | null {
     // 3, 5 조건 걸러내기
     if (
       (conditionField && !queryParam) ||
-      (conditionField && queryParam && (conditionField !== queryParam))
-    ) return null;
+      (conditionField && queryParam && conditionField !== queryParam)
+    )
+      return null;
 
     // 고시가 조건이 없으면 0
     if (!conditionField) return '0';
     // 고시가조건 존재하고 쿼리와 같으면 1
-    else if (conditionField && queryParam && conditionField === queryParam) return '1';
+    else if (conditionField && queryParam && conditionField === queryParam)
+      return '1';
 
     return null;
   }
@@ -588,7 +685,9 @@ export class DiscountRateRetriveService {
         const b = firstFiltered[j];
 
         if (a.isParentOf(b))
-          graph.get(a.getDiscountRateCondition().id).push(b.getDiscountRateCondition().id)
+          graph
+            .get(a.getDiscountRateCondition().id)
+            .push(b.getDiscountRateCondition().id);
       }
     }
 

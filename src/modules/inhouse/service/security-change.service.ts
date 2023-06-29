@@ -2,15 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { DrawedStatus, SecurityStatus } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { SecurityCreateRequestDto, SecurityUpdateRequestDto, SecurityUpdateStatusRequestDto } from '../api/dto/security.request';
+import {
+  SecurityCreateRequestDto,
+  SecurityUpdateRequestDto,
+  SecurityUpdateStatusRequestDto,
+} from '../api/dto/security.request';
 import { SecurityError } from '../infrastructure/constants/security-error.enum';
 import { SecurityPaidException } from '../infrastructure/exception/security-paid.exception';
 
 @Injectable()
 export class SecurityChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createSecurity(companyId: number, securityCreateRequest: SecurityCreateRequestDto): Promise<void> {
+  async createSecurity(
+    companyId: number,
+    securityCreateRequest: SecurityCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.security.create({
@@ -33,15 +40,18 @@ export class SecurityChangeService {
             company: {
               connect: {
                 id: companyId,
-              }
-            }
+              },
+            },
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateSecurity(securityId: number, securityUpdateRequest: SecurityUpdateRequestDto): Promise<void> {
+  async updateSecurity(
+    securityId: number,
+    securityUpdateRequest: SecurityUpdateRequestDto,
+  ): Promise<void> {
     const result = await this.prisma.security.findUnique({
       select: {
         securitySerial: true,
@@ -51,24 +61,33 @@ export class SecurityChangeService {
           select: {
             id: true,
             security: true,
-          }
-        }
+          },
+        },
       },
       where: {
-        id: securityId
-      }
+        id: securityId,
+      },
     });
 
     if (result.drawedStatus !== DrawedStatus.SELF) {
-      throw new SecurityPaidException(SecurityError.SECURITY_001, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_001,
+        result.securitySerial,
+      );
     }
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_002,
+        result.securitySerial,
+      );
     }
 
     if (result.securityStatus !== SecurityStatus.NONE) {
-      throw new SecurityPaidException(SecurityError.SECURITY_003, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_003,
+        result.securitySerial,
+      );
     }
 
     await lastValueFrom(
@@ -94,13 +113,16 @@ export class SecurityChangeService {
           },
           where: {
             id: securityId,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 
-  async updateSecurityStatus(securityId: number, securityUpdateStatusRequest: SecurityUpdateStatusRequestDto): Promise<void> {
+  async updateSecurityStatus(
+    securityId: number,
+    securityUpdateStatusRequest: SecurityUpdateStatusRequestDto,
+  ): Promise<void> {
     const result = await this.prisma.security.findFirst({
       select: {
         securitySerial: true,
@@ -109,11 +131,14 @@ export class SecurityChangeService {
       },
       where: {
         id: securityId,
-      }
+      },
     });
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_002,
+        result.securitySerial,
+      );
     }
 
     await lastValueFrom(
@@ -128,9 +153,9 @@ export class SecurityChangeService {
           },
           where: {
             id: securityId,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 
@@ -143,19 +168,28 @@ export class SecurityChangeService {
       },
       where: {
         id: securityId,
-      }
+      },
     });
 
     if (result.drawedStatus !== DrawedStatus.SELF) {
-      throw new SecurityPaidException(SecurityError.SECURITY_001, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_001,
+        result.securitySerial,
+      );
     }
 
     if (result.securityStatus === SecurityStatus.ENDORSED) {
-      throw new SecurityPaidException(SecurityError.SECURITY_002, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_002,
+        result.securitySerial,
+      );
     }
 
     if (result.securityStatus !== SecurityStatus.NONE) {
-      throw new SecurityPaidException(SecurityError.SECURITY_003, result.securitySerial)
+      throw new SecurityPaidException(
+        SecurityError.SECURITY_003,
+        result.securitySerial,
+      );
     }
 
     await lastValueFrom(
@@ -165,10 +199,10 @@ export class SecurityChangeService {
             isDeleted: true,
           },
           where: {
-            id: securityId
-          }
-        })
-      )
+            id: securityId,
+          },
+        }),
+      ),
     );
   }
 }

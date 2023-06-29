@@ -1,6 +1,6 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByEtcCreateRequest, ByEtcUpdateRequest } from "src/@shared/api";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ByEtcCreateRequest, ByEtcUpdateRequest } from 'src/@shared/api';
 
 export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
   @IsNumber()

@@ -1,160 +1,174 @@
-import { PriceUnit } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsInt, IsObject, IsOptional, IsPositive, Max, Min, ValidateNested } from "class-validator";
-import { OfficialPriceCreateRequest, OfficialPriceListQuery, OfficialPriceMappingQuery, OfficialPriceUpdateRequest } from "src/@shared/api/inhouse/official-price.request";
-import { OfficialPrice } from "src/@shared/models";
+import { PriceUnit } from '@prisma/client';
+import { Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsInt,
+  IsObject,
+  IsOptional,
+  IsPositive,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
+import {
+  OfficialPriceCreateRequest,
+  OfficialPriceListQuery,
+  OfficialPriceMappingQuery,
+  OfficialPriceUpdateRequest,
+} from 'src/@shared/api/inhouse/official-price.request';
+import { OfficialPrice } from 'src/@shared/models';
 
 /** 고시가 목록 */
 export class OfficialPriceListDto implements OfficialPriceListQuery {
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @Min(0)
-    readonly skip: number = 0;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @Min(10)
-    @Max(100)
-    readonly take: number = undefined;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = undefined;
 }
 
 /** 고시가 상세 */
 export class OfficialPriceConditionIdDto {
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly officialPriceConditionId: number;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly officialPriceConditionId: number;
 }
 
 /** 고시가 등록 */
 export class OfficialPriceDto implements OfficialPrice {
-    @IsInt()
-    @Type(() => Number)
-    @Min(0)
-    readonly officialPrice: number;
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly officialPrice: number;
 
-    @IsEnum(PriceUnit)
-    readonly officialPriceUnit: PriceUnit;
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
 }
 
 export class CreateOfficialPriceDto implements OfficialPriceCreateRequest {
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly productId: number;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
 
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly grammage: number;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly sizeX: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number | null = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly sizeY: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeY: number | null = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperColorGroupId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperColorId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperPatternId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperCertId: number | null = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
 
-    @IsObject()
-    @ValidateNested()
-    @Type(() => OfficialPriceDto)
-    readonly wholesalePrice: OfficialPriceDto;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => OfficialPriceDto)
+  readonly wholesalePrice: OfficialPriceDto;
 
-    @IsObject()
-    @ValidateNested()
-    @Type(() => OfficialPriceDto)
-    readonly retailPrice: OfficialPriceDto;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => OfficialPriceDto)
+  readonly retailPrice: OfficialPriceDto;
 }
 
 /** 고시가 수정 */
 export class OfficialPriceUpdateDto implements OfficialPriceUpdateRequest {
-    @IsObject()
-    @ValidateNested()
-    @Type(() => OfficialPriceDto)
-    readonly wholesalePrice: OfficialPriceDto;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => OfficialPriceDto)
+  readonly wholesalePrice: OfficialPriceDto;
 
-    @IsObject()
-    @ValidateNested()
-    @Type(() => OfficialPriceDto)
-    readonly retailPrice: OfficialPriceDto;
+  @IsObject()
+  @ValidateNested()
+  @Type(() => OfficialPriceDto)
+  readonly retailPrice: OfficialPriceDto;
 }
 
 /** 고시가 매핑 */
 export class OfficialPriceMappingDto implements OfficialPriceMappingQuery {
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly productId: number;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
 
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly grammage: number;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly sizeX: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly sizeY: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeY: number = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperColorGroupId: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperColorId: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperPatternId: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number = null;
 
-    @IsOptional()
-    @IsInt()
-    @Type(() => Number)
-    @IsPositive()
-    readonly paperCertId: number = null;
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number = null;
 }

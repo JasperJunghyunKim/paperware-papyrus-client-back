@@ -1,7 +1,7 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByCashCreateRequest, ByCashUpdateRequest } from "src/@shared/api";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ByCashCreateRequest, ByCashUpdateRequest } from 'src/@shared/api';
 
 export class ByCashCreateRequestDto implements ByCashCreateRequest {
   @IsNumber()

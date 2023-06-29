@@ -2,13 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByCardCreateRequestDto, ByCardUpdateRequestDto } from '../api/dto/card.request';
+import {
+  ByCardCreateRequestDto,
+  ByCardUpdateRequestDto,
+} from '../api/dto/card.request';
 
 @Injectable()
 export class ByCardChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createCard(accountedType: AccountedType, byCardCreateRequest: ByCardCreateRequestDto): Promise<void> {
+  async createCard(
+    accountedType: AccountedType,
+    byCardCreateRequest: ByCardCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -16,9 +22,10 @@ export class ByCardChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: byCardCreateRequest.companyRegistrationNumber,
+                  companyRegistrationNumber:
+                    byCardCreateRequest.companyRegistrationNumber,
                   companyId: byCardCreateRequest.companyId,
-                }
+                },
               },
             },
             accountedType,
@@ -38,15 +45,19 @@ export class ByCardChangeService {
                     id: byCardCreateRequest.cardId,
                   },
                 },
-              }
+              },
             },
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateCard(accountedType: AccountedType, accountedId: number, byCardUpdateRequest: ByCardUpdateRequestDto): Promise<void> {
+  async updateCard(
+    accountedType: AccountedType,
+    accountedId: number,
+    byCardUpdateRequest: ByCardUpdateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -62,18 +73,21 @@ export class ByCardChangeService {
                 isCharge: byCardUpdateRequest.isCharge,
                 chargeAmount: byCardUpdateRequest.chargeAmount,
                 approvalNumber: byCardUpdateRequest.approvalNumber,
-              }
+              },
             },
           },
           where: {
-            id: accountedId
-          }
-        })
-      )
+            id: accountedId,
+          },
+        }),
+      ),
     );
   }
 
-  async deleteCard(accountedType: AccountedType, accountedId: number): Promise<void> {
+  async deleteCard(
+    accountedType: AccountedType,
+    accountedId: number,
+  ): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byCard: true,
@@ -81,7 +95,7 @@ export class ByCardChangeService {
       where: {
         id: accountedId,
         accountedType,
-      }
+      },
     });
 
     await lastValueFrom(
@@ -92,17 +106,17 @@ export class ByCardChangeService {
             accounted: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           include: {
             accounted: true,
           },
           where: {
             id: result.byCard.id,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 }

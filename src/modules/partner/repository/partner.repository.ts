@@ -1,1 +1,1 @@
-export class PartnerRepository { }
+export class PartnerRepository {}

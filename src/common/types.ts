@@ -1,3 +1,6 @@
-import { PrismaService } from "src/core";
+import { PrismaService } from 'src/core';
 
-export type PrismaTransaction = Omit<PrismaService, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">;
+export type PrismaTransaction = Omit<
+  PrismaService,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'
+>;

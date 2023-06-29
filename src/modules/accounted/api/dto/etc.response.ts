@@ -1,6 +1,6 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsString } from "class-validator";
-import { ByEtcItemResponse } from "src/@shared/api";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { ByEtcItemResponse } from 'src/@shared/api';
 
 export class ByEtcResponse implements ByEtcItemResponse {
   @IsNumber()

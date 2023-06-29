@@ -1,5 +1,5 @@
-import { IsInt, IsOptional, IsPositive, Min } from "class-validator";
-import { InhouseProcessCreateRequest } from "src/@shared/api";
+import { IsInt, IsOptional, IsPositive, Min } from 'class-validator';
+import { InhouseProcessCreateRequest } from 'src/@shared/api';
 
 /** 내부공정 등록 */
 export class InhouseProcessCreateDto implements InhouseProcessCreateRequest {

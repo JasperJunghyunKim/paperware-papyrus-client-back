@@ -4,76 +4,76 @@ import { StockGroup } from 'src/@shared/models';
 import { PrismaService } from 'src/core';
 
 export interface PartnerStockGroupFromDB {
-    warehouseId: number;
-    warehouseName: string;
-    warehouseCode: string;
-    warehouseIsPublic: boolean;
-    warehouseAddress: string;
+  warehouseId: number;
+  warehouseName: string;
+  warehouseCode: string;
+  warehouseIsPublic: boolean;
+  warehouseAddress: string;
 
-    partnerCompanyId: number;
-    partnerCompanyBusinessName: string;
-    partnerCompanyRegistrationNumber: string;
-    partnerCompanyInvoiceCode: string;
-    partnerCompanyRepresentative: string;
-    partnerCompanyAddress: string;
-    partnerCompanyPhoneNo: string;
-    partnerCompanyFaxNo: string;
-    partnerCompanyEmail: string;
-    partnerCompanyManagedById: number;
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyRegistrationNumber: string;
+  partnerCompanyInvoiceCode: string;
+  partnerCompanyRepresentative: string;
+  partnerCompanyAddress: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyEmail: string;
+  partnerCompanyManagedById: number;
 
-    packagingId: number;
-    packagingName: string;
-    packagingType: PackagingType;
-    packagingPackA: number;
-    packagingPackB: number;
+  packagingId: number;
+  packagingName: string;
+  packagingType: PackagingType;
+  packagingPackA: number;
+  packagingPackB: number;
 
-    productId: number;
-    paperDomainId: number;
-    paperDomainName: string;
-    paperGroupId: number;
-    paperGroupName: string;
-    manufacturerId: number;
-    manufacturerName: string;
-    paperTypeId: number;
-    paperTypeName: string;
+  productId: number;
+  paperDomainId: number;
+  paperDomainName: string;
+  paperGroupId: number;
+  paperGroupName: string;
+  manufacturerId: number;
+  manufacturerName: string;
+  paperTypeId: number;
+  paperTypeName: string;
 
-    grammage: number;
-    sizeX: number;
-    sizeY: number;
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
 
-    paperColorGroupId: number;
-    paperColorGroupName: string;
-    paperColorId: number;
-    paperColorName: string;
-    paperPatternId: number;
-    paperPatternName: string;
-    paperCertId: number;
-    paperCertName: string;
+  paperColorGroupId: number;
+  paperColorGroupName: string;
+  paperColorId: number;
+  paperColorName: string;
+  paperPatternId: number;
+  paperPatternName: string;
+  paperCertId: number;
+  paperCertName: string;
 
-    totalQuantity: number;
-    availableQuantity: number;
-    total: bigint;
+  totalQuantity: number;
+  availableQuantity: number;
+  total: bigint;
 }
 
 @Injectable()
 export class PartnerStockRetriveService {
-    constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-    async getStockGroupList(
-        companyId: number,
-        skip: number,
-        take: number,
-        partnerCompanyId: number | null,
-    ): Promise<{
-        items: StockGroup[];
-        total: number;
-    }> {
-        const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
-        const companyConditionQuery = partnerCompanyId
-            ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
-            : Prisma.empty;
+  async getStockGroupList(
+    companyId: number,
+    skip: number,
+    take: number,
+    partnerCompanyId: number | null,
+  ): Promise<{
+    items: StockGroup[];
+    total: number;
+  }> {
+    const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
+    const companyConditionQuery = partnerCompanyId
+      ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
+      : Prisma.empty;
 
-        const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
+    const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
             SELECT w.id AS warehouseId
                   , w.name AS warehouseName
                   , w.code AS warehouseCode
@@ -166,71 +166,81 @@ export class PartnerStockRetriveService {
       
             ${limit}
           `;
-        const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
+    const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
 
+    return {
+      items: stockGroups.map((sg) => {
         return {
-            items: stockGroups.map(sg => {
-                return {
-                    warehouse: sg.warehouseId ? {
-                        id: sg.warehouseId,
-                        name: sg.warehouseName,
-                        address: sg.warehouseAddress,
-                        code: sg.warehouseCode,
-                        isPublic: sg.warehouseIsPublic,
-                    } : null,
-                    product: {
-                        id: sg.productId,
-                        paperDomain: {
-                            id: sg.paperDomainId,
-                            name: sg.paperDomainName,
-                        },
-                        paperGroup: {
-                            id: sg.paperGroupId,
-                            name: sg.paperGroupName,
-                        },
-                        manufacturer: {
-                            id: sg.manufacturerId,
-                            name: sg.manufacturerName,
-                        },
-                        paperType: {
-                            id: sg.paperTypeId,
-                            name: sg.paperTypeName,
-                        },
-                    },
-                    packaging: {
-                        id: sg.packagingId,
-                        type: sg.packagingType,
-                        packA: sg.packagingPackA,
-                        packB: sg.packagingPackB,
-                    },
-                    grammage: sg.grammage,
-                    sizeX: sg.sizeX,
-                    sizeY: sg.sizeY,
-                    paperColorGroup: sg.paperColorGroupId ? {
-                        id: sg.paperColorGroupId,
-                        name: sg.paperColorGroupName,
-                    } : null,
-                    paperColor: sg.paperColorId ? {
-                        id: sg.paperColorId,
-                        name: sg.paperColorName,
-                    } : null,
-                    paperPattern: sg.paperPatternId ? {
-                        id: sg.paperPatternId,
-                        name: sg.paperPatternName,
-                    } : null,
-                    paperCert: sg.paperCertId ? {
-                        id: sg.paperCertId,
-                        name: sg.paperCertName,
-                    } : null,
-                    plan: null, // 거래처 재고는 도착예정재고 보이지 않음
-                    totalQuantity: Number(sg.totalQuantity),
-                    availableQuantity: Number(sg.availableQuantity),
-                    totalArrivalQuantity: 0,
-                    storingQuantity: 0,
-                    nonStoringQuantity: 0,
-                }
-            }),
-            total,
-        }
-    }
+          warehouse: sg.warehouseId
+            ? {
+                id: sg.warehouseId,
+                name: sg.warehouseName,
+                address: sg.warehouseAddress,
+                code: sg.warehouseCode,
+                isPublic: sg.warehouseIsPublic,
+              }
+            : null,
+          product: {
+            id: sg.productId,
+            paperDomain: {
+              id: sg.paperDomainId,
+              name: sg.paperDomainName,
+            },
+            paperGroup: {
+              id: sg.paperGroupId,
+              name: sg.paperGroupName,
+            },
+            manufacturer: {
+              id: sg.manufacturerId,
+              name: sg.manufacturerName,
+            },
+            paperType: {
+              id: sg.paperTypeId,
+              name: sg.paperTypeName,
+            },
+          },
+          packaging: {
+            id: sg.packagingId,
+            type: sg.packagingType,
+            packA: sg.packagingPackA,
+            packB: sg.packagingPackB,
+          },
+          grammage: sg.grammage,
+          sizeX: sg.sizeX,
+          sizeY: sg.sizeY,
+          paperColorGroup: sg.paperColorGroupId
+            ? {
+                id: sg.paperColorGroupId,
+                name: sg.paperColorGroupName,
+              }
+            : null,
+          paperColor: sg.paperColorId
+            ? {
+                id: sg.paperColorId,
+                name: sg.paperColorName,
+              }
+            : null,
+          paperPattern: sg.paperPatternId
+            ? {
+                id: sg.paperPatternId,
+                name: sg.paperPatternName,
+              }
+            : null,
+          paperCert: sg.paperCertId
+            ? {
+                id: sg.paperCertId,
+                name: sg.paperCertName,
+              }
+            : null,
+          plan: null, // 거래처 재고는 도착예정재고 보이지 않음
+          totalQuantity: Number(sg.totalQuantity),
+          availableQuantity: Number(sg.availableQuantity),
+          totalArrivalQuantity: 0,
+          storingQuantity: 0,
+          nonStoringQuantity: 0,
+        };
+      }),
+      total,
+    };
+  }
 }

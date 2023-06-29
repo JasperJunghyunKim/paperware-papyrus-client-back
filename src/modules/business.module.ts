@@ -26,4 +26,4 @@ import { AccountedModule } from './accounted/accounted.module';
     AccountedModule,
   ],
 })
-export class BusinessModule { }
+export class BusinessModule {}

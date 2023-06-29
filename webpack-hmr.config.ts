@@ -17,7 +17,10 @@ module.exports = function (options, webpack) {
       new webpack.WatchIgnorePlugin({
         paths: [/\.js$/, /\.d\.ts$/],
       }),
-      new RunScriptWebpackPlugin({ name: options.output.filename, nodeArgs: ['--inspect=0.0.0.0:9229'] }),
+      new RunScriptWebpackPlugin({
+        name: options.output.filename,
+        nodeArgs: ['--inspect=0.0.0.0:9229'],
+      }),
     ],
   };
 };

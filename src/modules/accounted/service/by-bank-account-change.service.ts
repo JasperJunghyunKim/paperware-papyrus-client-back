@@ -2,13 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from '../api/dto/bank-account.request';
+import {
+  ByBankAccountCreateRequestDto,
+  ByBankAccountUpdateRequestDto,
+} from '../api/dto/bank-account.request';
 
 @Injectable()
 export class ByBankAccountChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createBankAccount(accountedType: AccountedType, byBankCreateRequest: ByBankAccountCreateRequestDto): Promise<void> {
+  async createBankAccount(
+    accountedType: AccountedType,
+    byBankCreateRequest: ByBankAccountCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -16,9 +22,10 @@ export class ByBankAccountChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: byBankCreateRequest.companyRegistrationNumber,
+                  companyRegistrationNumber:
+                    byBankCreateRequest.companyRegistrationNumber,
                   companyId: byBankCreateRequest.companyId,
-                }
+                },
               },
             },
             accountedType,
@@ -34,15 +41,19 @@ export class ByBankAccountChangeService {
                     id: byBankCreateRequest.bankAccountId,
                   },
                 },
-              }
+              },
             },
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateBankAccount(accountedType: AccountedType, accountedId: number, byBankUpdateRequest: ByBankAccountUpdateRequestDto): Promise<void> {
+  async updateBankAccount(
+    accountedType: AccountedType,
+    accountedId: number,
+    byBankUpdateRequest: ByBankAccountUpdateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -55,18 +66,21 @@ export class ByBankAccountChangeService {
             byBankAccount: {
               update: {
                 bankAccountAmount: byBankUpdateRequest.amount,
-              }
+              },
             },
           },
           where: {
-            id: accountedId
-          }
-        })
-      )
+            id: accountedId,
+          },
+        }),
+      ),
     );
   }
 
-  async deleteBankAccount(accountedType: AccountedType, accountedId: number): Promise<void> {
+  async deleteBankAccount(
+    accountedType: AccountedType,
+    accountedId: number,
+  ): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byBankAccount: true,
@@ -74,7 +88,7 @@ export class ByBankAccountChangeService {
       where: {
         id: accountedId,
         accountedType,
-      }
+      },
     });
 
     await lastValueFrom(
@@ -85,17 +99,17 @@ export class ByBankAccountChangeService {
             accounted: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           include: {
             accounted: true,
           },
           where: {
             id: result.byBankAccount.id,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 }

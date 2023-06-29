@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   OrderType,
   PackagingType,
@@ -174,9 +178,15 @@ interface StockGroupDetailFromDB {
 
 @Injectable()
 export class StockRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async getStockGroupList(companyId: number, skip: number, take: number, planId: 'any' | number, isDirectShippingIncluded: boolean): Promise<{
+  async getStockGroupList(
+    companyId: number,
+    skip: number,
+    take: number,
+    planId: 'any' | number,
+    isDirectShippingIncluded: boolean,
+  ): Promise<{
     items: StockGroup[];
     total: number;
   }> {
@@ -192,10 +202,9 @@ export class StockRetriveService {
           break;
       }
     }
-    let directShippingQuery =
-      isDirectShippingIncluded ?
-        Prisma.empty :
-        Prisma.sql`AND (
+    const directShippingQuery = isDirectShippingIncluded
+      ? Prisma.empty
+      : Prisma.sql`AND (
           (initialOs.id IS NULL AND initialOp.id IS NULL AND initialPs.planId IS NULL) OR
           (initialOs.id IS NOT NULL AND initialOs.isDirectShipping = ${false}) OR
           (initialPs.planId IS NOT NULL AND initialPs.isDirectShipping = ${false}) OR
@@ -409,15 +418,17 @@ export class StockRetriveService {
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
 
     return {
-      items: stockGroups.map(sg => {
+      items: stockGroups.map((sg) => {
         return {
-          warehouse: sg.warehouseId ? {
-            id: sg.warehouseId,
-            name: sg.warehouseName,
-            address: sg.warehouseAddress,
-            code: sg.warehouseCode,
-            isPublic: sg.warehouseIsPublic,
-          } : null,
+          warehouse: sg.warehouseId
+            ? {
+                id: sg.warehouseId,
+                name: sg.warehouseName,
+                address: sg.warehouseAddress,
+                code: sg.warehouseCode,
+                isPublic: sg.warehouseIsPublic,
+              }
+            : null,
           product: {
             id: sg.productId,
             paperDomain: {
@@ -446,90 +457,103 @@ export class StockRetriveService {
           grammage: sg.grammage,
           sizeX: sg.sizeX,
           sizeY: sg.sizeY,
-          paperColorGroup: sg.paperColorGroupId ? {
-            id: sg.paperColorGroupId,
-            name: sg.paperColorGroupName,
-          } : null,
-          paperColor: sg.paperColorId ? {
-            id: sg.paperColorId,
-            name: sg.paperColorName,
-          } : null,
-          paperPattern: sg.paperPatternId ? {
-            id: sg.paperPatternId,
-            name: sg.paperPatternName,
-          } : null,
-          paperCert: sg.paperCertId ? {
-            id: sg.paperCertId,
-            name: sg.paperCertName,
-          } : null,
-          plan: sg.planId ? {
-            id: sg.planId,
-            planNo: sg.planNo,
-            orderStock: sg.orderStockId ? {
-              wantedDate: sg.wantedDate,
-              order: {
-                id: sg.orderId,
-                orderNo: sg.orderNo,
-                partnerCompany: {
-                  id: sg.partnerCompanyId,
-                  businessName: sg.partnerCompanyBusinessName,
-                  companyRegistrationNumber: sg.partnerCompanyCompanyRegistrationNumber,
-                  invoiceCode: sg.partnerCompanyInvoiceCode,
-                  representative: sg.partnerCompanyRepresentative,
-                  address: sg.partnerCompanyAddress,
-                  phoneNo: sg.partnerCompanyPhoneNo,
-                  faxNo: sg.partnerCompanyFaxNo,
-                  email: sg.partnerCompanyEmail,
-                  managedById: sg.partnerCompanyManagedById,
-                }
-              },
-              dstLocation: {
-                id: sg.dstLocationId,
-                name: sg.dstLocationName,
-                code: sg.dstLocationCode,
-                isPublic: sg.dstLocationIsPublic,
-                address: sg.dstLocationAddress,
-              },
-            } : null,
-            planShipping: sg.psWantedDate ? {
-              wantedDate: sg.psWantedDate,
-              dstLocation: {
-                id: sg.psLocationId,
-                name: sg.psLocationName,
-                code: sg.psLocationCode,
-                isPublic: sg.psLocationIsPublic,
-                address: sg.psLocationAddress,
+          paperColorGroup: sg.paperColorGroupId
+            ? {
+                id: sg.paperColorGroupId,
+                name: sg.paperColorGroupName,
               }
-            } : null,
-          } : null,
+            : null,
+          paperColor: sg.paperColorId
+            ? {
+                id: sg.paperColorId,
+                name: sg.paperColorName,
+              }
+            : null,
+          paperPattern: sg.paperPatternId
+            ? {
+                id: sg.paperPatternId,
+                name: sg.paperPatternName,
+              }
+            : null,
+          paperCert: sg.paperCertId
+            ? {
+                id: sg.paperCertId,
+                name: sg.paperCertName,
+              }
+            : null,
+          plan: sg.planId
+            ? {
+                id: sg.planId,
+                planNo: sg.planNo,
+                orderStock: sg.orderStockId
+                  ? {
+                      wantedDate: sg.wantedDate,
+                      order: {
+                        id: sg.orderId,
+                        orderNo: sg.orderNo,
+                        partnerCompany: {
+                          id: sg.partnerCompanyId,
+                          businessName: sg.partnerCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.partnerCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.partnerCompanyInvoiceCode,
+                          representative: sg.partnerCompanyRepresentative,
+                          address: sg.partnerCompanyAddress,
+                          phoneNo: sg.partnerCompanyPhoneNo,
+                          faxNo: sg.partnerCompanyFaxNo,
+                          email: sg.partnerCompanyEmail,
+                          managedById: sg.partnerCompanyManagedById,
+                        },
+                      },
+                      dstLocation: {
+                        id: sg.dstLocationId,
+                        name: sg.dstLocationName,
+                        code: sg.dstLocationCode,
+                        isPublic: sg.dstLocationIsPublic,
+                        address: sg.dstLocationAddress,
+                      },
+                    }
+                  : null,
+                planShipping: sg.psWantedDate
+                  ? {
+                      wantedDate: sg.psWantedDate,
+                      dstLocation: {
+                        id: sg.psLocationId,
+                        name: sg.psLocationName,
+                        code: sg.psLocationCode,
+                        isPublic: sg.psLocationIsPublic,
+                        address: sg.psLocationAddress,
+                      },
+                    }
+                  : null,
+              }
+            : null,
           totalQuantity: Number(sg.totalQuantity),
           availableQuantity: Number(sg.availableQuantity),
           totalArrivalQuantity: Number(sg.totalArrivalQuantity),
           storingQuantity: Number(sg.storingQuantity),
           nonStoringQuantity: Number(sg.nonStoringQuantity),
-        }
+        };
       }),
       total,
-    }
+    };
   }
 
-  async getStockGroupHistories(
-    params: {
-      skip: number;
-      take: number;
-      companyId: number;
-      warehouseId: number | null;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY: number | null;
-      paperColorGroupId: number | null;
-      paperColorId: number | null;
-      paperPatternId: number | null;
-      paperCertId: number | null;
-    }
-  ) {
+  async getStockGroupHistories(params: {
+    skip: number;
+    take: number;
+    companyId: number;
+    warehouseId: number | null;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number | null;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+  }) {
     const stocks = await this.getStockList({
       companyId: params.companyId,
       warehouseId: params.warehouseId,
@@ -545,89 +569,162 @@ export class StockRetriveService {
       planId: null,
     });
 
-    const [stockGroupHistories, total] = await this.prisma.$transaction([
-      this.prisma.stockEvent.findMany({
-        include: {
-          stock: {
-            include: {
-              initialPlan: true,
-            }
-          }
-        },
-        where: {
-          stock: {
-            companyId: params.companyId,
-            warehouseId: params.warehouseId,
-            productId: params.productId,
-            packagingId: params.packagingId,
-            grammage: params.grammage,
-            sizeX: params.sizeX,
-            sizeY: params.sizeY,
-            paperColorGroupId: params.paperColorGroupId,
-            paperColorId: params.paperColorId,
-            paperPatternId: params.paperPatternId,
-            paperCertId: params.paperCertId,
-            planId: null,
-          },
-          status: 'NORMAL',
-        },
-        skip: params.skip,
-        take: params.take,
-        orderBy: {
-          id: 'desc',
-        }
-      }),
-      this.prisma.stockEvent.count({
-        where: {
-          stock: {
-            companyId: params.companyId,
-            warehouseId: params.warehouseId,
-            productId: params.productId,
-            packagingId: params.packagingId,
-            grammage: params.grammage,
-            sizeX: params.sizeX,
-            sizeY: params.sizeY,
-            paperColorGroupId: params.paperColorGroupId,
-            paperColorId: params.paperColorId,
-            paperPatternId: params.paperPatternId,
-            paperCertId: params.paperCertId,
-            planId: null,
-          },
-          status: 'NORMAL',
-        },
-      }),
-    ]);
+    const stockInfo = await this.prisma.stock.findFirst({
+      select: STOCK,
+      where: {
+        companyId: params.companyId,
+        warehouseId: params.warehouseId,
+        productId: params.productId,
+        packagingId: params.packagingId,
+        grammage: params.grammage,
+        sizeX: params.sizeX,
+        sizeY: params.sizeY,
+        paperColorGroupId: params.paperColorGroupId,
+        paperColorId: params.paperColorId,
+        paperPatternId: params.paperPatternId,
+        paperCertId: params.paperCertId,
+        planId: null,
+      },
+    });
 
-    console.log(params)
+    const [stockGroupHistories, total, prevSum] =
+      await this.prisma.$transaction([
+        this.prisma.stockEvent.findMany({
+          include: {
+            stock: {
+              include: {
+                initialPlan: {
+                  include: {
+                    orderStock: {
+                      include: {
+                        order: true,
+                      },
+                    },
+                    orderProcess: {
+                      include: {
+                        order: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          where: {
+            stock: {
+              companyId: params.companyId,
+              warehouseId: params.warehouseId,
+              productId: params.productId,
+              packagingId: params.packagingId,
+              grammage: params.grammage,
+              sizeX: params.sizeX,
+              sizeY: params.sizeY,
+              paperColorGroupId: params.paperColorGroupId,
+              paperColorId: params.paperColorId,
+              paperPatternId: params.paperPatternId,
+              paperCertId: params.paperCertId,
+              planId: null,
+            },
+            status: 'NORMAL',
+          },
+          skip: params.skip,
+          take: params.take,
+          orderBy: {
+            id: 'desc',
+          },
+        }),
+        this.prisma.stockEvent.count({
+          where: {
+            stock: {
+              companyId: params.companyId,
+              warehouseId: params.warehouseId,
+              productId: params.productId,
+              packagingId: params.packagingId,
+              grammage: params.grammage,
+              sizeX: params.sizeX,
+              sizeY: params.sizeY,
+              paperColorGroupId: params.paperColorGroupId,
+              paperColorId: params.paperColorId,
+              paperPatternId: params.paperPatternId,
+              paperCertId: params.paperCertId,
+              planId: null,
+            },
+            status: 'NORMAL',
+          },
+        }),
+        this.prisma.stockEvent.aggregate({
+          _sum: {
+            change: true,
+          },
+          orderBy: {
+            id: 'desc',
+          },
+          skip: params.skip + params.take,
+          where: {
+            stock: {
+              companyId: params.companyId,
+              warehouseId: params.warehouseId,
+              productId: params.productId,
+              packagingId: params.packagingId,
+              grammage: params.grammage,
+              sizeX: params.sizeX,
+              sizeY: params.sizeY,
+              paperColorGroupId: params.paperColorGroupId,
+              paperColorId: params.paperColorId,
+              paperPatternId: params.paperPatternId,
+              paperCertId: params.paperCertId,
+              planId: null,
+            },
+            status: 'NORMAL',
+          },
+        }),
+      ]);
+
+    let prevTotalQuantity = prevSum._sum.change || 0;
+    for (let i = stockGroupHistories.length - 1; i >= 0; i--) {
+      prevTotalQuantity += stockGroupHistories[i].change;
+      stockGroupHistories[i]['remainingQuantity'] = prevTotalQuantity;
+    }
 
     return {
+      stockInfo,
       stocks,
       stockGroupHistories,
       total,
-    }
+    };
   }
 
-  async getStockGroup(
-    params: {
-      warehouseId: number | null;
-      planId: number | null;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY: number;
-      paperColorGroupId: number | null;
-      paperColorId: number | null;
-      paperPatternId: number | null;
-      paperCertId: number | null;
-    }
-  ): Promise<Model.StockGroup> {
-    const warehouseCondition = params.warehouseId ? Prisma.sql`s.warehouseId = ${params.warehouseId}` : Prisma.sql`s.warehouseId IS NULL`;
-    const planCondition = params.planId ? Prisma.sql`s.planId = ${params.planId}` : Prisma.sql`s.planId IS NULL`;
-    const paperColorGroupCondition = params.paperColorGroupId ? Prisma.sql`s.paperColorGroupId = ${params.paperColorGroupId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperColorCondition = params.paperColorId ? Prisma.sql`s.paperColorId = ${params.paperColorId}` : Prisma.sql`s.paperColorId IS NULL`;
-    const paperPatternCondition = params.paperPatternId ? Prisma.sql`s.paperPatternId = ${params.paperPatternId}` : Prisma.sql`s.paperPatternId IS NULL`;
-    const paperCertCondition = params.paperCertId ? Prisma.sql`s.paperCertId = ${params.paperCertId}` : Prisma.sql`s.paperCertId IS NULL`;
+  async getStockGroup(params: {
+    warehouseId: number | null;
+    planId: number | null;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+  }): Promise<Model.StockGroup> {
+    const warehouseCondition = params.warehouseId
+      ? Prisma.sql`s.warehouseId = ${params.warehouseId}`
+      : Prisma.sql`s.warehouseId IS NULL`;
+    const planCondition = params.planId
+      ? Prisma.sql`s.planId = ${params.planId}`
+      : Prisma.sql`s.planId IS NULL`;
+    const paperColorGroupCondition = params.paperColorGroupId
+      ? Prisma.sql`s.paperColorGroupId = ${params.paperColorGroupId}`
+      : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperColorCondition = params.paperColorId
+      ? Prisma.sql`s.paperColorId = ${params.paperColorId}`
+      : Prisma.sql`s.paperColorId IS NULL`;
+    const paperPatternCondition = params.paperPatternId
+      ? Prisma.sql`s.paperPatternId = ${params.paperPatternId}`
+      : Prisma.sql`s.paperPatternId IS NULL`;
+    const paperCertCondition = params.paperCertId
+      ? Prisma.sql`s.paperCertId = ${params.paperCertId}`
+      : Prisma.sql`s.paperCertId IS NULL`;
 
     const stockGroups: StockGroupDetailFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
@@ -722,17 +819,20 @@ export class StockRetriveService {
                 , s.planId
     `;
 
-    if (stockGroups.length === 0) throw new NotFoundException(`존재하지 않는 재고그룹입니다.`);
+    if (stockGroups.length === 0)
+      throw new NotFoundException(`존재하지 않는 재고그룹입니다.`);
     const stockGroup = stockGroups[0];
 
     return {
-      warehouse: stockGroup.warehouseId ? {
-        id: stockGroup.warehouseId,
-        name: stockGroup.warehouseName,
-        code: stockGroup.warehouseCode,
-        isPublic: stockGroup.warehouseIsPublic,
-        address: stockGroup.warehouseAddress,
-      } : null,
+      warehouse: stockGroup.warehouseId
+        ? {
+            id: stockGroup.warehouseId,
+            name: stockGroup.warehouseName,
+            code: stockGroup.warehouseCode,
+            isPublic: stockGroup.warehouseIsPublic,
+            address: stockGroup.warehouseAddress,
+          }
+        : null,
       product: {
         id: stockGroup.productId,
         paperDomain: {
@@ -761,37 +861,55 @@ export class StockRetriveService {
       grammage: stockGroup.grammage,
       sizeX: stockGroup.sizeX,
       sizeY: stockGroup.sizeY,
-      paperColorGroup: stockGroup.paperColorGroupId ? {
-        id: stockGroup.paperColorGroupId,
-        name: stockGroup.paperColorGroupName,
-      } : null,
-      paperColor: stockGroup.paperColorId ? {
-        id: stockGroup.paperColorId,
-        name: stockGroup.paperColorName,
-      } : null,
-      paperPattern: stockGroup.paperPatternId ? {
-        id: stockGroup.paperPatternId,
-        name: stockGroup.paperPatternName,
-      } : null,
-      paperCert: stockGroup.paperCertId ? {
-        id: stockGroup.paperCertId,
-        name: stockGroup.paperCertName,
-      } : null,
+      paperColorGroup: stockGroup.paperColorGroupId
+        ? {
+            id: stockGroup.paperColorGroupId,
+            name: stockGroup.paperColorGroupName,
+          }
+        : null,
+      paperColor: stockGroup.paperColorId
+        ? {
+            id: stockGroup.paperColorId,
+            name: stockGroup.paperColorName,
+          }
+        : null,
+      paperPattern: stockGroup.paperPatternId
+        ? {
+            id: stockGroup.paperPatternId,
+            name: stockGroup.paperPatternName,
+          }
+        : null,
+      paperCert: stockGroup.paperCertId
+        ? {
+            id: stockGroup.paperCertId,
+            name: stockGroup.paperCertName,
+          }
+        : null,
       plan: null, // TODO... 필요하면 추가
       totalQuantity: Number(stockGroup.totalQuantity),
       availableQuantity: Number(stockGroup.availableQuantity),
       totalArrivalQuantity: Number(stockGroup.totalArrivalQuantity),
       storingQuantity: Number(stockGroup.storingQuantity),
       nonStoringQuantity: Number(stockGroup.nonStoringQuantity),
-    }
+    };
   }
 
   async getStockList(data: Prisma.StockWhereInput) {
-    const paperColorGroupId = data.paperColorGroupId ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperColorId = data.paperColorId ? Prisma.sql`s.paperColorId = ${data.paperColorId}` : Prisma.sql`s.paperColorId IS NULL`;
-    const paperPatternId = data.paperPatternId ? Prisma.sql`s.paperPatternId = ${data.paperPatternId}` : Prisma.sql`s.paperPatternId IS NULL`;
-    const paperCertId = data.paperCertId ? Prisma.sql`s.paperCertId = ${data.paperCertId}` : Prisma.sql`s.paperCertId IS NULL`;
-    const planId = data.planId ? Prisma.sql`s.planId = ${data.planId}` : Prisma.sql`s.planId IS NULL`;
+    const paperColorGroupId = data.paperColorGroupId
+      ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}`
+      : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperColorId = data.paperColorId
+      ? Prisma.sql`s.paperColorId = ${data.paperColorId}`
+      : Prisma.sql`s.paperColorId IS NULL`;
+    const paperPatternId = data.paperPatternId
+      ? Prisma.sql`s.paperPatternId = ${data.paperPatternId}`
+      : Prisma.sql`s.paperPatternId IS NULL`;
+    const paperCertId = data.paperCertId
+      ? Prisma.sql`s.paperCertId = ${data.paperCertId}`
+      : Prisma.sql`s.paperCertId IS NULL`;
+    const planId = data.planId
+      ? Prisma.sql`s.planId = ${data.planId}`
+      : Prisma.sql`s.planId IS NULL`;
 
     const stockIds: { id: number }[] = await this.prisma.$queryRaw`
       SELECT s.id
@@ -847,8 +965,8 @@ export class StockRetriveService {
       },
       where: {
         id: {
-          in: stockIds.map(id => id.id),
-        }
+          in: stockIds.map((id) => id.id),
+        },
       },
     });
 
@@ -892,20 +1010,34 @@ export class StockRetriveService {
     });
 
     // 일반재고
-    const availableQuantity = quantity.filter(e => e.stock.planId === null && e.status !== 'CANCELLED').reduce((acc, cur) => {
-      return acc + cur.change;
-    }, 0);
-    const totalQuantity = quantity.filter(e => e.stock.planId === null && e.status === 'NORMAL').reduce((acc, cur) => {
-      return acc + cur.change;
-    }, 0);
+    const availableQuantity = quantity
+      .filter((e) => e.stock.planId === null && e.status !== 'CANCELLED')
+      .reduce((acc, cur) => {
+        return acc + cur.change;
+      }, 0);
+    const totalQuantity = quantity
+      .filter((e) => e.stock.planId === null && e.status === 'NORMAL')
+      .reduce((acc, cur) => {
+        return acc + cur.change;
+      }, 0);
 
     // 도착예정재고
-    const totalArrivalQuantity = quantity.filter(e => e.stock.planId !== null && e.status === 'PENDING' && e.change > 0).reduce((acc, cur) => {
-      return acc + cur.change;
-    }, 0);
-    const nonStoringQuantity = -quantity.filter(e => e.stock.planId !== null && e.status === 'PENDING' && e.change < 0).reduce((acc, cur) => {
-      return acc + cur.change;
-    }, 0);
+    const totalArrivalQuantity = quantity
+      .filter(
+        (e) =>
+          e.stock.planId !== null && e.status === 'PENDING' && e.change > 0,
+      )
+      .reduce((acc, cur) => {
+        return acc + cur.change;
+      }, 0);
+    const nonStoringQuantity = -quantity
+      .filter(
+        (e) =>
+          e.stock.planId !== null && e.status === 'PENDING' && e.change < 0,
+      )
+      .reduce((acc, cur) => {
+        return acc + cur.change;
+      }, 0);
     const storingQuantity = totalArrivalQuantity - nonStoringQuantity;
 
     return {
@@ -923,7 +1055,7 @@ export class StockRetriveService {
       where: {
         id: stockId,
         companyId,
-      }
+      },
     });
     if (!stock) throw new NotFoundException(`존재하지 않는 재고입니다.`);
 

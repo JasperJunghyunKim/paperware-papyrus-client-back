@@ -5,7 +5,7 @@ import { PartnerResponseDto } from '../api/dto/partner.request';
 
 @Injectable()
 export class PartnerRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getPartnerList(companyId: number): Promise<PartnerResponseDto[]> {
     return await lastValueFrom(

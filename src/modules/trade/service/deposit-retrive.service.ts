@@ -1,7 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { DepositEventStatus, DepositType, PackagingType, Partner, Prisma } from "@prisma/client";
-import { Model } from "src/@shared";
-import { PrismaService } from "src/core";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  DepositEventStatus,
+  DepositType,
+  PackagingType,
+  Partner,
+  Prisma,
+} from '@prisma/client';
+import { Model } from 'src/@shared';
+import { PrismaService } from 'src/core';
 
 export interface DepositFromDB {
   id: number;
@@ -39,20 +45,16 @@ export interface DepositFromDB {
 
 @Injectable()
 export class DepositRetriveService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   /** 보관량 조회 */
-  async getDepositList(
-    params: {
-      companyId: number;
-      skip: number;
-      take: number;
-      type: DepositType;
-      companyRegistrationNumber: string | null;
-    }
-  ): Promise<{
+  async getDepositList(params: {
+    companyId: number;
+    skip: number;
+    take: number;
+    type: DepositType;
+    companyRegistrationNumber: string | null;
+  }): Promise<{
     items: Model.Deposit[];
     total: number;
   }> {
@@ -64,7 +66,9 @@ export class DepositRetriveService {
       companyRegistrationNumber,
     } = params;
 
-    const companySearch = companyRegistrationNumber ? Prisma.sql`AND p.companyRegistrationNumber = ${companyRegistrationNumber}` : Prisma.empty;
+    const companySearch = companyRegistrationNumber
+      ? Prisma.sql`AND p.companyRegistrationNumber = ${companyRegistrationNumber}`
+      : Prisma.empty;
 
     const result: DepositFromDB[] = await this.prisma.$queryRaw`
       SELECT d.id
@@ -131,7 +135,9 @@ export class DepositRetriveService {
     const total = result.length === 0 ? 0 : Number(result[0].total);
 
     const companyNameMap = new Map<string, string>();
-    const noPartnerCompanyRegistrationNumbers = result.filter(data => data.partnerId === null).map(data => data.companyRegistrationNumber);
+    const noPartnerCompanyRegistrationNumbers = result
+      .filter((data) => data.partnerId === null)
+      .map((data) => data.companyRegistrationNumber);
     if (noPartnerCompanyRegistrationNumbers.length > 0) {
       const companyNames: {
         businessName: string;
@@ -141,7 +147,9 @@ export class DepositRetriveService {
           FROM (
             SELECT *, ROW_NUMBER() OVER(PARTITION BY companyRegistrationNumber ORDER BY id DESC) AS rownum
               FROM Company
-             WHERE companyRegistrationNumber IN (${Prisma.join(noPartnerCompanyRegistrationNumbers)})
+             WHERE companyRegistrationNumber IN (${Prisma.join(
+               noPartnerCompanyRegistrationNumbers,
+             )})
           ) AS company 
         WHERE rownum = 1
       `;
@@ -151,10 +159,12 @@ export class DepositRetriveService {
     }
 
     return {
-      items: result.map(deposit => ({
+      items: result.map((deposit) => ({
         id: deposit.id,
         companyRegistrationNumber: deposit.companyRegistrationNumber,
-        partnerNickName: deposit.partnerNickName || companyNameMap.get(deposit.companyRegistrationNumber),
+        partnerNickName:
+          deposit.partnerNickName ||
+          companyNameMap.get(deposit.companyRegistrationNumber),
         packaging: {
           id: deposit.packagingId,
           type: deposit.packagingType,
@@ -183,22 +193,30 @@ export class DepositRetriveService {
         grammage: deposit.grammage,
         sizeX: deposit.sizeX,
         sizeY: deposit.sizeY,
-        paperColorGroup: deposit.paperColorGroupId ? {
-          id: deposit.paperColorGroupId,
-          name: deposit.paperColorGroupName,
-        } : null,
-        paperColor: deposit.paperColorId ? {
-          id: deposit.paperColorId,
-          name: deposit.paperColorName,
-        } : null,
-        paperPattern: deposit.paperPatternId ? {
-          id: deposit.paperPatternId,
-          name: deposit.paperPatternName,
-        } : null,
-        paperCert: deposit.paperCertId ? {
-          id: deposit.paperCertId,
-          name: deposit.paperCertName,
-        } : null,
+        paperColorGroup: deposit.paperColorGroupId
+          ? {
+              id: deposit.paperColorGroupId,
+              name: deposit.paperColorGroupName,
+            }
+          : null,
+        paperColor: deposit.paperColorId
+          ? {
+              id: deposit.paperColorId,
+              name: deposit.paperColorName,
+            }
+          : null,
+        paperPattern: deposit.paperPatternId
+          ? {
+              id: deposit.paperPatternId,
+              name: deposit.paperPatternName,
+            }
+          : null,
+        paperCert: deposit.paperCertId
+          ? {
+              id: deposit.paperCertId,
+              name: deposit.paperCertName,
+            }
+          : null,
         quantity: Number(deposit.quantity),
       })),
       total,
@@ -223,13 +241,13 @@ export class DepositRetriveService {
                     manufacturer: true,
                     paperGroup: true,
                     paperType: true,
-                  }
+                  },
                 },
                 paperColorGroup: true,
                 paperColor: true,
                 paperPattern: true,
                 paperCert: true,
-              }
+              },
             },
             orderDeposit: {
               include: {
@@ -247,19 +265,20 @@ export class DepositRetriveService {
                 paperColor: true,
                 paperPattern: true,
                 paperCert: true,
-              }
+              },
             },
-          }
+          },
         },
       },
       where: {
         id,
-      }
+      },
     });
 
-    if (!deposit || deposit.companyId !== companyId) throw new NotFoundException(`등록되지 않은 보관입니다.`);
+    if (!deposit || deposit.companyId !== companyId)
+      throw new NotFoundException(`등록되지 않은 보관입니다.`);
 
-    return deposit.depositEvents.map(e => ({
+    return deposit.depositEvents.map((e) => ({
       id: e.id,
       change: e.change,
       createdAt: e.createdAt.toISOString(),

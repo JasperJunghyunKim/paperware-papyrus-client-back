@@ -16,7 +16,7 @@ export class LocationListQueryDto implements LocationListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number = 0;
+  skip = 0;
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -53,7 +53,7 @@ export class LocationForSalesListQueryDto implements LocationListQuery {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  skip: number = 0;
+  skip = 0;
   @IsOptional()
   @Type(() => Number)
   @IsInt()

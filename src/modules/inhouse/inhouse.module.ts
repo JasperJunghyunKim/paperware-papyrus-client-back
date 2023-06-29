@@ -36,9 +36,7 @@ import { InhouseProcessChangeService } from './service/inhouse-process-change.se
 import { StockModule } from '../stock/stock.module';
 
 @Module({
-  imports: [
-    StockModule,
-  ],
+  imports: [StockModule],
   providers: [
     BusinessRelationshipRetriveService,
     BusinessRelationshipChangeService,
@@ -83,6 +81,6 @@ import { StockModule } from '../stock/stock.module';
     BankAccountRetriveService,
     CardRetriveService,
     LocationRetriveService,
-  ]
+  ],
 })
-export class InhouseModule { }
+export class InhouseModule {}
