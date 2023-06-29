@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { TON_TO_GRAM } from "src/common/const";
 import { PrismaTransaction } from "src/common/types";
 
 @Injectable()
@@ -121,7 +122,7 @@ export class StockQuantityChecker {
 
     this.logger.log(`[재고그룹 수량 조회]
 조회회사: ${inquireCompany.businessName}
-요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / 1000000) : quantity}
+요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / TON_TO_GRAM) : quantity}
 ------------------------------------
 회사: ${stock.company ? stock.company.businessName : 'NULL'}
 포장: ${stock.packaging.name}
@@ -139,10 +140,10 @@ export class StockQuantityChecker {
 색상: ${stock.paperColor ? stock.paperColor.name : 'NULL'}
 무늬: ${stock.paperPattern ? stock.paperPattern.name : 'NULL'}
 인증: ${stock.paperCert ? stock.paperCert.name : 'NULL'}
-가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / 1000000) : availableQuantity}
-총수량: ${stock.packaging.type === 'ROLL' ? (totalQuantity / 1000000) : totalQuantity}
+가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / TON_TO_GRAM) : availableQuantity}
+총수량: ${stock.packaging.type === 'ROLL' ? (totalQuantity / TON_TO_GRAM) : totalQuantity}
     `)
 
-    if (availableQuantity < quantity) throw new ConflictException(`재고그룹 가용수량이 부족합니다 (요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / 1000000) : quantity} / 가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / 1000000) : availableQuantity})`)
+    if (availableQuantity < quantity) throw new ConflictException(`재고그룹 가용수량이 부족합니다 (요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / TON_TO_GRAM) : quantity} / 가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / TON_TO_GRAM) : availableQuantity})`)
   }
 }

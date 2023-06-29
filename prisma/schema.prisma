@@ -50,6 +50,7 @@ model PaperColorGroup {
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
+  OrderStock             OrderStock[]
 }
 
 model PaperColor {
@@ -61,6 +62,7 @@ model PaperColor {
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
+  OrderStock             OrderStock[]
 }
 
 model PaperPattern {
@@ -72,6 +74,7 @@ model PaperPattern {
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
+  OrderStock             OrderStock[]
 }
 
 model PaperCert {
@@ -83,6 +86,7 @@ model PaperCert {
   DiscountRateCondition  DiscountRateCondition[]
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
+  OrderStock             OrderStock[]
 }
 
 enum PackagingType {
@@ -102,6 +106,7 @@ model Packaging {
   Invoice      Invoice[]
   deposit      Deposit[]
   OrderDeposit OrderDeposit[]
+  OrderStock   OrderStock[]
 
   @@unique([type, packA, packB])
 }
@@ -121,6 +126,7 @@ model Product {
   OfficialPriceCondition OfficialPriceCondition[]
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
+  OrderStock             OrderStock[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -131,15 +137,16 @@ model Product {
 // Warehouse
 
 model Warehouse {
-  id        Int     @id @default(autoincrement())
-  name      String
-  code      String?
-  address   String  @default("") @db.VarChar(500)
-  companyId Int
-  company   Company @relation(fields: [companyId], references: [id])
-  isPublic  Boolean
-  isDeleted Boolean @default(false)
-  stock     Stock[]
+  id         Int          @id @default(autoincrement())
+  name       String
+  code       String?
+  address    String       @default("") @db.VarChar(500)
+  companyId  Int
+  company    Company      @relation(fields: [companyId], references: [id])
+  isPublic   Boolean
+  isDeleted  Boolean      @default(false)
+  stock      Stock[]
+  OrderStock OrderStock[]
 
   @@unique([companyId, code])
 }
@@ -269,6 +276,7 @@ model Company {
   OrderDepositTradePrice         OrderDepositTradePrice[]
   OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
   DiscountRateCondition          DiscountRateCondition[]
+  OrderStock                     OrderStock[]
 }
 
 model BusinessRelationship {
@@ -419,19 +427,41 @@ model Order {
   dstDepositEvent        DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
   orderProcess           OrderProcess?
   orderEtc               OrderEtc?
+  revision               Int           @default(0)
 }
 
 model OrderStock {
-  id               Int          @id @default(autoincrement())
-  orderId          Int          @unique
-  order            Order        @relation(fields: [orderId], references: [id])
-  dstLocationId    Int?
-  dstLocation      Location?    @relation(fields: [dstLocationId], references: [id])
-  isDirectShipping Boolean      @default(false)
-  wantedDate       DateTime?
-  plan             Plan[]
+  id                Int              @id @default(autoincrement())
+  orderId           Int              @unique
+  order             Order            @relation(fields: [orderId], references: [id])
+  dstLocationId     Int?
+  dstLocation       Location?        @relation(fields: [dstLocationId], references: [id])
+  isDirectShipping  Boolean          @default(false)
+  wantedDate        DateTime?
+  plan              Plan[]
   // 정상거래의 주문 원지 정보
-  stockEvent       StockEvent[]
+  arrivalStockEvent StockEvent[] // 필요없는거 확인되면 삭제
+  companyId         Int
+  company           Company          @relation(fields: [companyId], references: [id])
+  planId            Int?
+  warehouseId       Int?
+  warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  quantity          Int              @default(0)
 }
 
 model OrderProcess {

@@ -202,6 +202,7 @@ export class OrderController {
     }
 
     await this.change.updateOrderAssignStock({
+      companyId: req.user.companyId,
       orderId: Number(id),
       warehouseId: body.warehouseId,
       planId: body.planId,
@@ -275,7 +276,7 @@ export class OrderController {
 
     // TODO: 조건 확인 필요함
 
-    await this.change.request({ orderId: Number(id) });
+    await this.change.request({ companyId: req.user.companyId, orderId: Number(id) });
   }
 
   @Post(':id/accept')
