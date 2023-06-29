@@ -15,7 +15,8 @@ import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
 import { StockGroup } from 'src/@shared/models';
 import { Model } from 'src/@shared';
-import { STOCK } from 'src/common/selector';
+import { STOCK, STOCK_EVENT } from 'src/common/selector';
+import { StockGroupHistoryResponse } from 'src/@shared/api';
 
 interface StockGroupFromDB {
   warehouseId: number;
@@ -590,26 +591,7 @@ export class StockRetriveService {
     const [stockGroupHistories, total, prevSum] =
       await this.prisma.$transaction([
         this.prisma.stockEvent.findMany({
-          include: {
-            stock: {
-              include: {
-                initialPlan: {
-                  include: {
-                    orderStock: {
-                      include: {
-                        order: true,
-                      },
-                    },
-                    orderProcess: {
-                      include: {
-                        order: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          select: STOCK_EVENT,
           where: {
             stock: {
               companyId: params.companyId,
@@ -689,8 +671,13 @@ export class StockRetriveService {
     return {
       stockInfo,
       stocks,
-      stockGroupHistories,
-      total,
+      stockEvents: {
+        items: stockGroupHistories.map((e) => ({
+          ...e,
+          remainingQuantity: e['remainingQuantity'],
+        })),
+        total,
+      },
     };
   }
 
