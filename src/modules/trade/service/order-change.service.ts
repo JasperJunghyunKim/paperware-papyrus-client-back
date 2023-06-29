@@ -1446,7 +1446,7 @@ export class OrderChangeService {
         paperColorId: stockSpec.paperColorId,
         paperPatternId: stockSpec.paperPatternId,
         paperCertId: stockSpec.paperCertId,
-        cachedQuantity: stockSpec.quantity,
+        cachedQuantityAvailable: stockSpec.quantity,
         stockPrice: stockSpec.isSyncPrice
           ? undefined
           : {
