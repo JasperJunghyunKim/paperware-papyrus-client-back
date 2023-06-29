@@ -1123,7 +1123,11 @@ export class OrderChangeService {
           orderType: true,
           orderStock: {
             include: {
-              plan: true,
+              plan: {
+                where: {
+                  isDeleted: false,
+                },
+              },
             },
           },
         },
@@ -1175,7 +1179,11 @@ export class OrderChangeService {
           status: true,
           orderStock: {
             select: {
-              plan: true,
+              plan: {
+                where: {
+                  isDeleted: false,
+                },
+              },
             },
           },
         },
