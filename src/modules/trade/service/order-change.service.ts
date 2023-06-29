@@ -1108,12 +1108,31 @@ export class OrderChangeService {
           id: orderId,
         },
         select: {
+          id: true,
+          orderType: true,
           status: true,
+          orderStock: {
+            select: {
+              plan: true,
+            }
+          }
         },
       });
 
       if (!Util.inc(order.status, 'OFFER_REJECTED', 'ORDER_REJECTED', 'OFFER_REQUESTED', 'ORDER_REQUESTED')) {
         throw new Error('Invalid order status');
+      }
+
+      switch (order.orderType) {
+        case OrderType.NORMAL:
+          if (order.status === 'OFFER_REQUESTED') {
+            // 판매자가 요청한 주문을 되돌릴시 가용수량 원복
+            const dstPlan = order.orderStock.plan.find(plan => plan.type === 'TRADE_NORMAL_SELLER');
+            await this.cancelAssignStockTx(tx, dstPlan.id);
+          }
+          break;
+        default:
+          break;
       }
 
       await tx.order.update({
@@ -1127,6 +1146,8 @@ export class OrderChangeService {
               : 'ORDER_PREPARING',
         },
       });
+
+      await this.updateOrderRevisionTx(tx, order.id);
     });
   }
 
