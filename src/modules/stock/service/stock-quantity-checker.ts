@@ -25,6 +25,7 @@ export class StockQuantityChecker {
       paperCertId: number | null;
       quantity: number;
     }) {
+    console.log(params);
     const {
       inquiryCompanyId,
       companyId,
@@ -113,6 +114,7 @@ export class StockQuantityChecker {
         paperCertId,
       }
     });
+    console.log(111, stock);
 
     const inquireCompany = await tx.company.findUnique({
       where: {

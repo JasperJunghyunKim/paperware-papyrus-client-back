@@ -323,7 +323,7 @@ export class OrderChangeService {
               plan: {
                 connect: [dstPlan.id, srcPlan.id].map((p) => ({ id: p })),
               },
-              companyId: params.srcCompanyId,
+              companyId: params.dstCompanyId,
               warehouseId: params.warehouseId,
               planId: params.planId,
               productId: params.productId,
