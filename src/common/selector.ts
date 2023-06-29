@@ -6,6 +6,7 @@ export const USER = {
   company: {
     select: {
       companyRegistrationNumber: true,
+      invoiceCode: true,
     },
   },
   username: true,

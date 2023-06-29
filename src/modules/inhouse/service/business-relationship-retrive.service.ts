@@ -75,7 +75,9 @@ export class BusinessRelationshipRetriveService {
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${
+      params.companyId
+    } AND (c.managedById IS NULL OR a.flag <> 0)
       GROUP BY a.c2
       LIMIT ${params.take ?? 1 << 30} OFFSET ${params.skip}
       `;
@@ -108,7 +110,7 @@ export class BusinessRelationshipRetriveService {
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId} AND (c.managedById IS NULL OR a.flag <> 0)
       GROUP BY a.c2
       `;
 
