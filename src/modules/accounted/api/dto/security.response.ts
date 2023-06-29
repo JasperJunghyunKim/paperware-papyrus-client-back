@@ -1,7 +1,12 @@
-import { AccountedType, EndorsementType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { BySecurityItemResponse } from "src/@shared/api/accounted/by-security.response";
-import { Security } from "src/@shared/models";
+import {
+  AccountedType,
+  EndorsementType,
+  Method,
+  Subject,
+} from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { BySecurityItemResponse } from 'src/@shared/api/accounted/by-security.response';
+import { Security } from 'src/@shared/models';
 
 export class BySecurityResponseDto implements BySecurityItemResponse {
   @IsNumber()

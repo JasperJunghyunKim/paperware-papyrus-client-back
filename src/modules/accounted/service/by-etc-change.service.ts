@@ -2,13 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByEtcCreateRequestDto, ByEtcUpdateRequestDto } from '../api/dto/etc.request';
+import {
+  ByEtcCreateRequestDto,
+  ByEtcUpdateRequestDto,
+} from '../api/dto/etc.request';
 
 @Injectable()
 export class ByEtcChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createEtc(accountedType: AccountedType, byEtcCreateRequest: ByEtcCreateRequestDto): Promise<void> {
+  async createEtc(
+    accountedType: AccountedType,
+    byEtcCreateRequest: ByEtcCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -16,9 +22,10 @@ export class ByEtcChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: byEtcCreateRequest.companyRegistrationNumber,
+                  companyRegistrationNumber:
+                    byEtcCreateRequest.companyRegistrationNumber,
                   companyId: byEtcCreateRequest.companyId,
-                }
+                },
               },
             },
             accountedType,
@@ -29,18 +36,22 @@ export class ByEtcChangeService {
             byEtc: {
               create: {
                 etcAmount: byEtcCreateRequest.amount,
-              }
-            }
+              },
+            },
           },
           select: {
             id: true,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateEtc(accountedType: AccountedType, accountedId: number, byEtcUpdateRequest: ByEtcUpdateRequestDto): Promise<void> {
+  async updateEtc(
+    accountedType: AccountedType,
+    accountedId: number,
+    byEtcUpdateRequest: ByEtcUpdateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -53,29 +64,32 @@ export class ByEtcChangeService {
             byEtc: {
               update: {
                 etcAmount: byEtcUpdateRequest.amount,
-              }
-            }
+              },
+            },
           },
           select: {
             id: true,
           },
           where: {
-            id: accountedId
-          }
-        })
-      )
+            id: accountedId,
+          },
+        }),
+      ),
     );
   }
 
-  async deleteEtc(accountedType: AccountedType, accountedId: number): Promise<void> {
+  async deleteEtc(
+    accountedType: AccountedType,
+    accountedId: number,
+  ): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byEtc: true,
       },
       where: {
         id: accountedId,
-        accountedType
-      }
+        accountedType,
+      },
     });
 
     await lastValueFrom(
@@ -86,15 +100,15 @@ export class ByEtcChangeService {
             accounted: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           include: {
             accounted: true,
           },
-          where: { id: result.byEtc.id }
-        })
-      )
+          where: { id: result.byEtc.id },
+        }),
+      ),
     );
   }
 }

@@ -1,15 +1,33 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Request, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { ByBankAccountChangeService } from '../service/by-bank-account-change.service';
 import { ByBankAccountRetriveService } from '../service/by-bank-account-retrive.service';
-import { ByBankAccountCreateRequestDto, ByBankAccountUpdateRequestDto } from './dto/bank-account.request';
+import {
+  ByBankAccountCreateRequestDto,
+  ByBankAccountUpdateRequestDto,
+} from './dto/bank-account.request';
 import { ByBankAccountItemResponseDto } from './dto/bank-account.response';
 
 @Controller('/accounted')
 export class ByBankAccountController {
-  constructor(private readonly byBankAccountRetriveService: ByBankAccountRetriveService, private readonly byBankAccountChangeService: ByBankAccountChangeService) { }
+  constructor(
+    private readonly byBankAccountRetriveService: ByBankAccountRetriveService,
+    private readonly byBankAccountChangeService: ByBankAccountChangeService,
+  ) {}
 
   @Get('accountedType/:accountedType/accountedId/:accountedId/bank-account')
   @UseGuards(AuthGuard)
@@ -18,14 +36,24 @@ export class ByBankAccountController {
     @Param('accountedType') accountedType: AccountedType,
     @Param('accountedId') accountedId: number,
   ): Promise<ByBankAccountItemResponseDto> {
-    return await this.byBankAccountRetriveService.getByBankAccount(req.user.companyId, accountedType, accountedId);
+    return await this.byBankAccountRetriveService.getByBankAccount(
+      req.user.companyId,
+      accountedType,
+      accountedId,
+    );
   }
 
   @Post('accountedType/:accountedType/bank-account')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createByBankAccount(@Param('accountedType') accountedType: AccountedType, @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto): Promise<void> {
-    await this.byBankAccountChangeService.createBankAccount(accountedType, byBankAccountCreateRequest);
+  async createByBankAccount(
+    @Param('accountedType') accountedType: AccountedType,
+    @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto,
+  ): Promise<void> {
+    await this.byBankAccountChangeService.createBankAccount(
+      accountedType,
+      byBankAccountCreateRequest,
+    );
   }
 
   @Patch('accountedType/:accountedType/accountedId/:accountedId/bank-account')
@@ -36,13 +64,23 @@ export class ByBankAccountController {
     @Param('accountedId') accountedId: number,
     @Body() byBankAccountUpdateRequest: ByBankAccountUpdateRequestDto,
   ): Promise<void> {
-    await this.byBankAccountChangeService.updateBankAccount(accountedType, accountedId, byBankAccountUpdateRequest);
+    await this.byBankAccountChangeService.updateBankAccount(
+      accountedType,
+      accountedId,
+      byBankAccountUpdateRequest,
+    );
   }
 
   @Delete('accountedType/:accountedType/accountedId/:accountedId/bank-account')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async deleteByBankAccount(@Param('accountedType') accountedType: AccountedType, @Param('accountedId') accountedId: number): Promise<void> {
-    await this.byBankAccountChangeService.deleteBankAccount(accountedType, accountedId);
+  async deleteByBankAccount(
+    @Param('accountedType') accountedType: AccountedType,
+    @Param('accountedId') accountedId: number,
+  ): Promise<void> {
+    await this.byBankAccountChangeService.deleteBankAccount(
+      accountedType,
+      accountedId,
+    );
   }
 }

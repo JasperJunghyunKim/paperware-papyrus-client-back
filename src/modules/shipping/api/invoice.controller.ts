@@ -13,7 +13,8 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { InvoiceChangeService } from '../service/invoice-change.service';
 import { InvoiceRetriveService } from '../service/invoice-retrive.service';
 import InvoiceListQueryDto, {
-  InvoiceDisconnectShippingRequestDto, UpdateInvoiceStatusDto,
+  InvoiceDisconnectShippingRequestDto,
+  UpdateInvoiceStatusDto,
 } from './dto/invoice.request';
 import { InvoiceListResponse } from 'src/@shared/api';
 
@@ -22,7 +23,7 @@ export class InvoiceController {
   constructor(
     private change: InvoiceChangeService,
     private retrive: InvoiceRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)

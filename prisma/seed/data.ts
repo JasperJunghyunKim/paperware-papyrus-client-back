@@ -235,14 +235,49 @@ export const USER = [
 ] as [number, string, string, string][];
 
 export const WAREHOUSE = [
-  [9, '공개창고1', '[[24015]] [[강원 철원군 동송읍 금학로210번길 4-7::4-7, Geumhak-ro 210beon-gil, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[강원 철원군 동송읍 이평리 683-18::683-18, Ipyeong-ri, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[]]', true],
-  [9, '공개창고2', '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]', true],
-  [9, '비공개창고', '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]', false],
+  [
+    9,
+    '공개창고1',
+    '[[24015]] [[강원 철원군 동송읍 금학로210번길 4-7::4-7, Geumhak-ro 210beon-gil, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[강원 철원군 동송읍 이평리 683-18::683-18, Ipyeong-ri, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[]]',
+    true,
+  ],
+  [
+    9,
+    '공개창고2',
+    '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]',
+    true,
+  ],
+  [
+    9,
+    '비공개창고',
+    '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]',
+    false,
+  ],
 ] as [number, string, string, boolean][];
 
 export const LOCATION = [
-  [9, '자사도착지1', '[[24015]] [[강원 철원군 동송읍 금학로210번길 4-7::4-7, Geumhak-ro 210beon-gil, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[강원 철원군 동송읍 이평리 683-18::683-18, Ipyeong-ri, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[]]', false],
-  [9, '자사도착지2', '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]', false],
-  [9, '기타도착지1', '[[08827]] [[서울 관악구 관악산나들길 149::149, Gwanaksannadeul-gil, Gwanak-gu, Seoul, Korea]] [[서울 관악구 신림동 산 56-2::56-2, mountain, Sillim-dong, Gwanak-gu, Seoul, Korea]] [[]]', true],
-  [9, '기타도착지2', '[[14508]] [[경기 부천시 계남로 19::19, Gyenam-ro, Bucheon-si, Gyeonggi-do, Korea]] [[경기 부천시 상동 525-6::525-6, Sang-dong, Bucheon-si, Gyeonggi-do, Korea]] [[]]', true],
+  [
+    9,
+    '자사도착지1',
+    '[[24015]] [[강원 철원군 동송읍 금학로210번길 4-7::4-7, Geumhak-ro 210beon-gil, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[강원 철원군 동송읍 이평리 683-18::683-18, Ipyeong-ri, Dongsong-eup, Cheorwon-gun, Gangwon-do, Korea]] [[]]',
+    false,
+  ],
+  [
+    9,
+    '자사도착지2',
+    '[[04788]] [[서울 성동구 광나루로 142-24::142-24, Gwangnaru-ro, Seongdong-gu, Seoul, Korea]] [[서울 성동구 성수동1가 656-1172::656-1172, Seongsu-dong 1(il)-ga, Seongdong-gu, Seoul, Korea]] [[]]',
+    false,
+  ],
+  [
+    9,
+    '기타도착지1',
+    '[[08827]] [[서울 관악구 관악산나들길 149::149, Gwanaksannadeul-gil, Gwanak-gu, Seoul, Korea]] [[서울 관악구 신림동 산 56-2::56-2, mountain, Sillim-dong, Gwanak-gu, Seoul, Korea]] [[]]',
+    true,
+  ],
+  [
+    9,
+    '기타도착지2',
+    '[[14508]] [[경기 부천시 계남로 19::19, Gyenam-ro, Bucheon-si, Gyeonggi-do, Korea]] [[경기 부천시 상동 525-6::525-6, Sang-dong, Bucheon-si, Gyeonggi-do, Korea]] [[]]',
+    true,
+  ],
 ] as [number, string, string, boolean][];

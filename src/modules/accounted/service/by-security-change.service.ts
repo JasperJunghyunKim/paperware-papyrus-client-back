@@ -1,18 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import { AccountedType, DrawedStatus, Prisma, SecurityStatus } from '@prisma/client';
+import {
+  AccountedType,
+  DrawedStatus,
+  Prisma,
+  SecurityStatus,
+} from '@prisma/client';
 import { isNil } from 'lodash';
 import { PrismaService } from 'src/core';
-import { BySecurityCreateRequestDto, BySecurityUpdateRequestDto } from '../api/dto/security.request';
+import {
+  BySecurityCreateRequestDto,
+  BySecurityUpdateRequestDto,
+} from '../api/dto/security.request';
 import { BySecurityError } from '../infrastructure/constants/by-security-error.enum';
 import { BySecurityException } from '../infrastructure/exception/by-security-status.exception';
 
 @Injectable()
 export class BySecurityChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createBySecurity(accountedType: AccountedType, bySecurityCreateRequest: BySecurityCreateRequestDto): Promise<void> {
+  async createBySecurity(
+    accountedType: AccountedType,
+    bySecurityCreateRequest: BySecurityCreateRequestDto,
+  ): Promise<void> {
     if (accountedType === AccountedType.PAID) {
-
       this.prisma.$transaction(async (tx) => {
         // 지급일때...
         await tx.accounted.create({
@@ -20,9 +30,10 @@ export class BySecurityChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: bySecurityCreateRequest.companyRegistrationNumber,
+                  companyRegistrationNumber:
+                    bySecurityCreateRequest.companyRegistrationNumber,
                   companyId: bySecurityCreateRequest.companyId,
-                }
+                },
               },
             },
             accountedType,
@@ -36,7 +47,7 @@ export class BySecurityChangeService {
               },
             },
           },
-        })
+        });
 
         await tx.security.update({
           data: {
@@ -44,9 +55,9 @@ export class BySecurityChangeService {
           },
           where: {
             id: bySecurityCreateRequest.security.securityId,
-          }
-        })
-      })
+          },
+        });
+      });
     } else {
       // 수금일때...
       // 수금 생성과 동시에 유가증권을 생성한다.
@@ -55,9 +66,10 @@ export class BySecurityChangeService {
           partner: {
             connect: {
               companyId_companyRegistrationNumber: {
-                companyRegistrationNumber: bySecurityCreateRequest.companyRegistrationNumber,
+                companyRegistrationNumber:
+                  bySecurityCreateRequest.companyRegistrationNumber,
                 companyId: bySecurityCreateRequest.companyId,
-              }
+              },
             },
           },
           accountedType,
@@ -72,37 +84,44 @@ export class BySecurityChangeService {
               security: {
                 create: {
                   securityType: bySecurityCreateRequest.security.securityType,
-                  securitySerial: bySecurityCreateRequest.security.securitySerial,
-                  securityAmount: bySecurityCreateRequest.security.securityAmount,
-                  securityStatus: bySecurityCreateRequest.security.securityStatus,
+                  securitySerial:
+                    bySecurityCreateRequest.security.securitySerial,
+                  securityAmount:
+                    bySecurityCreateRequest.security.securityAmount,
+                  securityStatus:
+                    bySecurityCreateRequest.security.securityStatus,
                   drawedStatus: DrawedStatus.ACCOUNTED,
                   drawedDate: bySecurityCreateRequest.security.drawedDate,
                   drawedBank: bySecurityCreateRequest.security.drawedBank,
-                  drawedBankBranch: bySecurityCreateRequest.security.drawedBankBranch,
+                  drawedBankBranch:
+                    bySecurityCreateRequest.security.drawedBankBranch,
                   drawedRegion: bySecurityCreateRequest.security.drawedRegion,
                   drawer: bySecurityCreateRequest.security.drawer,
                   maturedDate: bySecurityCreateRequest.security.maturedDate,
                   payingBank: bySecurityCreateRequest.security.payingBank,
-                  payingBankBranch: bySecurityCreateRequest.security.payingBankBranch,
+                  payingBankBranch:
+                    bySecurityCreateRequest.security.payingBankBranch,
                   payer: bySecurityCreateRequest.security.payer,
                   memo: bySecurityCreateRequest.memo ?? '',
                   company: {
                     connect: {
                       id: bySecurityCreateRequest.companyId,
-                    }
-                  }
-                }
-              }
-            }
+                    },
+                  },
+                },
+              },
+            },
           },
         },
-      })
+      });
     }
-
   }
 
-  async updateBySecurity(accountedType: AccountedType, accountedId: number, bySecurityUpdateRequest: BySecurityUpdateRequestDto): Promise<void> {
-
+  async updateBySecurity(
+    accountedType: AccountedType,
+    accountedId: number,
+    bySecurityUpdateRequest: BySecurityUpdateRequestDto,
+  ): Promise<void> {
     if (accountedType === AccountedType.PAID) {
       // 유가증권 정보에 상태가 기본값인지 확인을 먼저한다. 그게 아닐경우 수정을 못하게 한다.
       const resultSecurity = await this.prisma.security.findFirst({
@@ -113,14 +132,16 @@ export class BySecurityChangeService {
           id: bySecurityUpdateRequest.security.securityId,
           NOT: {
             securityStatus: SecurityStatus.ENDORSED,
-          }
-        }
-      })
+          },
+        },
+      });
 
       // 1.  지급일때...
       // 1.1 유가증권의 상태가 배서지급일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
       if (!isNil(resultSecurity)) {
-        throw new BySecurityException(BySecurityError.BY_SECURITY_001, { bySecurityId: bySecurityUpdateRequest.security.securityId });
+        throw new BySecurityException(BySecurityError.BY_SECURITY_001, {
+          bySecurityId: bySecurityUpdateRequest.security.securityId,
+        });
       }
 
       await this.prisma.accounted.update({
@@ -133,13 +154,13 @@ export class BySecurityChangeService {
           bySecurity: {
             update: {
               securityId: bySecurityUpdateRequest.security.securityId,
-            }
+            },
           },
         },
         where: {
           id: accountedId,
-        }
-      })
+        },
+      });
     } else {
       // 2.  수금일때...
       // 2.1 유가증권의 상태가 기본일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
@@ -155,10 +176,10 @@ export class BySecurityChangeService {
                 select: {
                   id: true,
                   securityStatus: true,
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
         where: {
           id: accountedId,
@@ -166,14 +187,16 @@ export class BySecurityChangeService {
           bySecurity: {
             security: {
               id: bySecurityUpdateRequest.security.securityId,
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       // 해당 row가 있으면 지급에 등록된 정보가 있다는 뜻이다.
       if (!isNil(resultAccounted)) {
-        throw new BySecurityException(BySecurityError.BY_SECURITY_002, { bySecurityId: bySecurityUpdateRequest.security.securityId });
+        throw new BySecurityException(BySecurityError.BY_SECURITY_002, {
+          bySecurityId: bySecurityUpdateRequest.security.securityId,
+        });
       }
 
       this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -188,14 +211,13 @@ export class BySecurityChangeService {
               update: {
                 endorsement: bySecurityUpdateRequest.endorsement,
                 endorsementType: bySecurityUpdateRequest.endorsementType,
-
-              }
+              },
             },
           },
           where: {
             id: accountedId,
-          }
-        })
+          },
+        });
 
         await tx.security.updateMany({
           data: {
@@ -218,14 +240,16 @@ export class BySecurityChangeService {
           },
           where: {
             id: bySecurityUpdateRequest.security.securityId,
-          }
-        })
-      })
+          },
+        });
+      });
     }
-
   }
 
-  async deleteBySecurity(accountedType: AccountedType, accountedId: number): Promise<void> {
+  async deleteBySecurity(
+    accountedType: AccountedType,
+    accountedId: number,
+  ): Promise<void> {
     if (accountedType === AccountedType.PAID) {
       // 1. 지급일때...
       // 1.1 지급 생성은 삭제 한다.
@@ -239,16 +263,15 @@ export class BySecurityChangeService {
                 security: {
                   select: {
                     id: true,
-                  }
-                }
-              }
+                  },
+                },
+              },
             },
-
           },
           where: {
             id: accountedId,
             accountedType,
-          }
+          },
         });
 
         await tx.bySecurity.update({
@@ -257,8 +280,8 @@ export class BySecurityChangeService {
             accounted: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           include: {
             accounted: true,
@@ -266,7 +289,7 @@ export class BySecurityChangeService {
           where: {
             id: result.bySecurity.id,
           },
-        })
+        });
 
         await tx.security.update({
           data: {
@@ -274,9 +297,9 @@ export class BySecurityChangeService {
           },
           where: {
             id: result.bySecurity.security.id,
-          }
-        })
-      })
+          },
+        });
+      });
     } else {
       // 2.  수금일때...
       // 2.1 유가증권의 상태가 기본일때만 삭제 한다.
@@ -292,19 +315,23 @@ export class BySecurityChangeService {
                   select: {
                     id: true,
                     securityStatus: true,
-                  }
-                }
-              }
+                  },
+                },
+              },
             },
           },
           where: {
             id: accountedId,
             accountedType,
-          }
+          },
         });
 
-        if (result?.bySecurity?.security?.securityStatus !== SecurityStatus.NONE) {
-          throw new BySecurityException(BySecurityError.BY_SECURITY_002, { bySecurityId: result.bySecurity.id });
+        if (
+          result?.bySecurity?.security?.securityStatus !== SecurityStatus.NONE
+        ) {
+          throw new BySecurityException(BySecurityError.BY_SECURITY_002, {
+            bySecurityId: result.bySecurity.id,
+          });
         }
 
         await tx.accounted.update({
@@ -313,13 +340,13 @@ export class BySecurityChangeService {
             bySecurity: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           where: {
             id: accountedId,
-          }
-        })
+          },
+        });
 
         await tx.security.update({
           data: {
@@ -327,10 +354,9 @@ export class BySecurityChangeService {
           },
           where: {
             id: result.bySecurity.security.id,
-          }
-        })
-
-      })
+          },
+        });
+      });
     }
   }
 }

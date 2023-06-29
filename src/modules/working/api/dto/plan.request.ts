@@ -81,7 +81,7 @@ export class PlanInputListQueryDto implements PlanListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number = 0;
+  skip = 0;
   @IsOptional()
   @IsInt()
   @Type(() => Number)

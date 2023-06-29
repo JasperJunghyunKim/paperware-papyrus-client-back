@@ -1,4 +1,10 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException, NotImplementedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from './stock-change.service';
 import { ulid } from 'ulid';
@@ -9,7 +15,7 @@ export class StockArrivalChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stock: StockChangeService,
-  ) { }
+  ) {}
 
   async applyStockArrival(params: {
     companyId: number;
@@ -66,11 +72,14 @@ export class StockArrivalChangeService {
           paperColorId,
           paperPatternId,
           paperCertId,
-        }
+        },
       });
-      if (arrivalStocks.length === 0) throw new NotFoundException(`존재하지 않는 도착예정재고입니다.`);
+      if (arrivalStocks.length === 0)
+        throw new NotFoundException(`존재하지 않는 도착예정재고입니다.`);
 
-      const storingStock = arrivalStocks.find(stock => stock.planId === stock.initialPlanId);
+      const storingStock = arrivalStocks.find(
+        (stock) => stock.planId === stock.initialPlanId,
+      );
 
       // planId => null, warehouse => 등록
       await tx.stock.updateMany({
@@ -80,20 +89,20 @@ export class StockArrivalChangeService {
         },
         where: {
           id: {
-            in: arrivalStocks.map(stock => stock.id),
-          }
-        }
+            in: arrivalStocks.map((stock) => stock.id),
+          },
+        },
       });
 
       // PENDING => NORMAL (입고재고만)
       await tx.stockEvent.updateMany({
         data: {
-          status: 'NORMAL'
+          status: 'NORMAL',
         },
         where: {
           stockId: storingStock.id,
           status: 'PENDING',
-        }
+        },
       });
 
       // 입고재고 cache 업데이트
@@ -141,7 +150,7 @@ export class StockArrivalChangeService {
       isSyncPrice,
       stockPrice,
     } = params;
-    await this.prisma.$transaction(async tx => {
+    await this.prisma.$transaction(async (tx) => {
       const stocks = await tx.stock.findMany({
         include: {
           stockPrice: true,
@@ -160,18 +169,25 @@ export class StockArrivalChangeService {
           paperPatternId,
           paperCertId,
           warehouseId: null,
-        }
+        },
       });
-      if (stocks.length === 0) throw new NotFoundException(`존재하지 않는 도착예정재고 입니다.`);
+      if (stocks.length === 0)
+        throw new NotFoundException(`존재하지 않는 도착예정재고 입니다.`);
 
-      const storingStock = stocks.find(stock => stock.planId === stock.initialPlanId);
-      if (isSyncPrice && (
-        storingStock.initialPlan.type === 'INHOUSE_CREATE' ||
-        storingStock.initialPlan.type === 'INHOUSE_PROCESS' ||
-        storingStock.initialPlan.type === 'INHOUSE_STOCK_QUANTITY_CHANGE' ||
-        storingStock.initialPlan.type === 'INHOUSE_MODIFY' ||
-        storingStock.initialPlan.type === 'INHOUSE_RELOCATION'
-      )) throw new BadRequestException(`금액동기화를 적용할 수 없는 도착예정재고입니다.`);
+      const storingStock = stocks.find(
+        (stock) => stock.planId === stock.initialPlanId,
+      );
+      if (
+        isSyncPrice &&
+        (storingStock.initialPlan.type === 'INHOUSE_CREATE' ||
+          storingStock.initialPlan.type === 'INHOUSE_PROCESS' ||
+          storingStock.initialPlan.type === 'INHOUSE_STOCK_QUANTITY_CHANGE' ||
+          storingStock.initialPlan.type === 'INHOUSE_MODIFY' ||
+          storingStock.initialPlan.type === 'INHOUSE_RELOCATION')
+      )
+        throw new BadRequestException(
+          `금액동기화를 적용할 수 없는 도착예정재고입니다.`,
+        );
 
       // TODO: 재고유형, 금액단위 체크
 
@@ -182,27 +198,27 @@ export class StockArrivalChangeService {
         },
         where: {
           id: {
-            in: stocks.map(stock => stock.id),
-          }
-        }
+            in: stocks.map((stock) => stock.id),
+          },
+        },
       });
 
       // 기존금액 삭제
       await tx.stockPrice.deleteMany({
         where: {
           stockId: {
-            in: stocks.map(stock => stock.id),
-          }
-        }
+            in: stocks.map((stock) => stock.id),
+          },
+        },
       });
 
       // 금액동기화가 아닌경우 금액 생성
       if (!isSyncPrice) {
         await tx.stockPrice.createMany({
-          data: stocks.map(stock => ({
+          data: stocks.map((stock) => ({
             stockId: stock.id,
             ...stockPrice,
-          }))
+          })),
         });
       }
     });

@@ -1,7 +1,7 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { Type } from "class-transformer";
-import { IsEnum, IsNumber, IsString } from "class-validator";
-import { AccountedQuery } from "src/@shared/api";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { AccountedQuery } from 'src/@shared/api';
 
 type AccountedRequestDto = Omit<AccountedQuery, 'partnerNickName'>;
 

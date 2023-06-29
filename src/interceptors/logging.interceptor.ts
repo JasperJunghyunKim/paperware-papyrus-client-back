@@ -24,7 +24,8 @@ export class HttpLoggingInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request: Request = context.switchToHttp().getRequest();
     this.logger.log(
-      `Request - HTTP Method: [START - ${request.method}] Request URL: ${(request as any).originalUrl
+      `Request - HTTP Method: [START - ${request.method}] Request URL: ${
+        (request as any).originalUrl
       } Time: ${moment().format('YYYY년 MM월 DD일  HH시mm분ss초')}`,
     );
     return next.handle().pipe(
@@ -32,13 +33,16 @@ export class HttpLoggingInterceptor implements NestInterceptor {
         throwError(() => {
           if (!isNil(err?.response)) {
             // eslint-disable-next-line prettier/prettier
-            const msg = `Code: ${err.response.code} Message: ${Util.formatString(
+            const msg = `Code: ${
+              err.response.code
+            } Message: ${Util.formatString(
               err.response.message,
               err.response.msgArgs,
             )}`;
 
             this.logger.error(
-              `Error: HTTP Method - [ERROR - ${request.method}] Request URL: ${(request as any).originalUrl
+              `Error: HTTP Method - [ERROR - ${request.method}] Request URL: ${
+                (request as any).originalUrl
               } Time: ${moment().format(
                 'YYYY년 MM월 DD일  HH시mm분ss초',
               )} ${Util.formatString(msg, err.response.msgArgs)}`,
@@ -58,7 +62,8 @@ export class HttpLoggingInterceptor implements NestInterceptor {
       ),
       finalize(() => {
         this.logger.log(
-          `Response - HTTP Method: [END - ${request.method}] Request URL: ${(request as any).originalUrl
+          `Response - HTTP Method: [END - ${request.method}] Request URL: ${
+            (request as any).originalUrl
           } Time: ${moment().format('YYYY년 MM월 DD일  HH시mm분ss초')}`,
         );
       }),

@@ -1,33 +1,31 @@
-import { Injectable } from "@nestjs/common";
-import { Util } from "src/common";
-import { PrismaService } from "src/core";
-import { StockQuantityChecker } from "src/modules/stock/service/stock-quantity-checker";
-import { ulid } from "ulid";
+import { Injectable } from '@nestjs/common';
+import { Util } from 'src/common';
+import { PrismaService } from 'src/core';
+import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
+import { ulid } from 'ulid';
 
 @Injectable()
 export class InhouseProcessChangeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stockQuantityChecker: StockQuantityChecker,
-  ) { }
+  ) {}
 
-  async create(
-    params: {
-      companyId: number;
-      warehouseId: number | null;
-      planId: number | null;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY: number;
-      paperColorGroupId: number | null;
-      paperColorId: number | null;
-      paperPatternId: number | null;
-      paperCertId: number | null;
-      quantity: number;
-    }
-  ) {
+  async create(params: {
+    companyId: number;
+    warehouseId: number | null;
+    planId: number | null;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }) {
     const {
       companyId,
       warehouseId,
@@ -44,7 +42,7 @@ export class InhouseProcessChangeService {
       quantity,
     } = params;
 
-    await this.prisma.$transaction(async tx => {
+    await this.prisma.$transaction(async (tx) => {
       // 부모재고 가용수량 체크
       await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
         inquiryCompanyId: companyId,
@@ -66,7 +64,7 @@ export class InhouseProcessChangeService {
       const company = await tx.company.findUnique({
         where: {
           id: companyId,
-        }
+        },
       });
 
       const plan = await tx.plan.create({
@@ -75,10 +73,10 @@ export class InhouseProcessChangeService {
           type: 'INHOUSE_PROCESS',
           company: {
             connect: {
-              id: company.id
-            }
+              id: company.id,
+            },
           },
-        }
+        },
       });
 
       // 원지 재고 생성
@@ -106,13 +104,12 @@ export class InhouseProcessChangeService {
               assignPlan: {
                 connect: {
                   id: plan.id,
-                }
-              }
-            }
-          }
+                },
+              },
+            },
+          },
         },
       });
-
     });
   }
 }

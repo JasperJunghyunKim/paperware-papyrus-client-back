@@ -5,7 +5,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class PlanRetrive {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getAssignStockEventList(params: {
     orderId: number;

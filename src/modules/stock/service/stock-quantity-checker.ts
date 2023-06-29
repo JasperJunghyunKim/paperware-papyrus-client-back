@@ -1,7 +1,12 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { TON_TO_GRAM } from "src/common/const";
-import { PrismaTransaction } from "src/common/types";
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { TON_TO_GRAM } from 'src/common/const';
+import { PrismaTransaction } from 'src/common/types';
 
 @Injectable()
 export class StockQuantityChecker {
@@ -11,7 +16,7 @@ export class StockQuantityChecker {
     tx: PrismaTransaction,
     params: {
       inquiryCompanyId: number;
-      companyId: number,
+      companyId: number;
       warehouseId: number | null;
       planId: number | null;
       productId: number;
@@ -24,7 +29,8 @@ export class StockQuantityChecker {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
-    }) {
+    },
+  ) {
     console.log(params);
     const {
       inquiryCompanyId,
@@ -43,13 +49,28 @@ export class StockQuantityChecker {
       quantity,
     } = params;
 
-    const warehouseCondition = warehouseId ? Prisma.sql`s.warehouseId = ${warehouseId}` : Prisma.sql`s.warehouseId IS NULL`;
-    const planCondition = planId ? Prisma.sql`s.planId = ${planId}` : Prisma.sql`s.planId IS NULL`;
-    const paperColorGroupCondition = paperColorGroupId ? Prisma.sql`s.paperColorGroupId = ${paperColorGroupId}` : Prisma.sql`s.paperColorGroupId IS NULL`;
-    const paperColorCondition = paperColorId ? Prisma.sql`s.paperColorId = ${paperColorId}` : Prisma.sql`s.paperColorId IS NULL`;
-    const paperPatternCondition = paperPatternId ? Prisma.sql`s.paperPatternId = ${paperPatternId}` : Prisma.sql`s.paperPatternId IS NULL`;
-    const paperCertCondition = paperCertId ? Prisma.sql`s.paperCertId = ${paperCertId}` : Prisma.sql`s.paperCertId IS NULL`;
-    const isPublicCondition = inquiryCompanyId === companyId ? Prisma.empty : Prisma.sql`AND w.isPublic = ${true} AND s.planId IS NULL`;
+    const warehouseCondition = warehouseId
+      ? Prisma.sql`s.warehouseId = ${warehouseId}`
+      : Prisma.sql`s.warehouseId IS NULL`;
+    const planCondition = planId
+      ? Prisma.sql`s.planId = ${planId}`
+      : Prisma.sql`s.planId IS NULL`;
+    const paperColorGroupCondition = paperColorGroupId
+      ? Prisma.sql`s.paperColorGroupId = ${paperColorGroupId}`
+      : Prisma.sql`s.paperColorGroupId IS NULL`;
+    const paperColorCondition = paperColorId
+      ? Prisma.sql`s.paperColorId = ${paperColorId}`
+      : Prisma.sql`s.paperColorId IS NULL`;
+    const paperPatternCondition = paperPatternId
+      ? Prisma.sql`s.paperPatternId = ${paperPatternId}`
+      : Prisma.sql`s.paperPatternId IS NULL`;
+    const paperCertCondition = paperCertId
+      ? Prisma.sql`s.paperCertId = ${paperCertId}`
+      : Prisma.sql`s.paperCertId IS NULL`;
+    const isPublicCondition =
+      inquiryCompanyId === companyId
+        ? Prisma.empty
+        : Prisma.sql`AND w.isPublic = ${true} AND s.planId IS NULL`;
 
     const stockGroups: {
       totalQuantity: any;
@@ -76,7 +97,8 @@ export class StockQuantityChecker {
             ${isPublicCondition}
         `;
 
-    if (stockGroups.length === 0) throw new NotFoundException(`존재하지 않는 재고그룹 입니다.`);
+    if (stockGroups.length === 0)
+      throw new NotFoundException(`존재하지 않는 재고그룹 입니다.`);
     const totalQuantity = Number(stockGroups[0].totalQuantity);
     const availableQuantity = Number(stockGroups[0].availableQuantity);
 
@@ -91,7 +113,7 @@ export class StockQuantityChecker {
             paperGroup: true,
             manufacturer: true,
             paperType: true,
-          }
+          },
         },
         packaging: true,
         paperColorGroup: true,
@@ -112,19 +134,19 @@ export class StockQuantityChecker {
         paperColorId,
         paperPatternId,
         paperCertId,
-      }
+      },
     });
     console.log(111, stock);
 
     const inquireCompany = await tx.company.findUnique({
       where: {
         id: inquiryCompanyId,
-      }
-    })
+      },
+    });
 
     this.logger.log(`[재고그룹 수량 조회]
 조회회사: ${inquireCompany.businessName}
-요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / TON_TO_GRAM) : quantity}
+요청수량: ${stock.packaging.type === 'ROLL' ? quantity / TON_TO_GRAM : quantity}
 ------------------------------------
 회사: ${stock.company ? stock.company.businessName : 'NULL'}
 포장: ${stock.packaging.name}
@@ -137,15 +159,32 @@ export class StockQuantityChecker {
 제지사: ${stock.product.manufacturer.name}
 평량: ${stock.grammage} g/m^2
 지폭: ${stock.sizeX} mm
-지장: ${stock.sizeY ? (stock.sizeY + ' mm') : 'NULL'}
+지장: ${stock.sizeY ? stock.sizeY + ' mm' : 'NULL'}
 색군: ${stock.paperColorGroup ? stock.paperColorGroup.name : 'NULL'}
 색상: ${stock.paperColor ? stock.paperColor.name : 'NULL'}
 무늬: ${stock.paperPattern ? stock.paperPattern.name : 'NULL'}
 인증: ${stock.paperCert ? stock.paperCert.name : 'NULL'}
-가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / TON_TO_GRAM) : availableQuantity}
-총수량: ${stock.packaging.type === 'ROLL' ? (totalQuantity / TON_TO_GRAM) : totalQuantity}
-    `)
+가용수량: ${
+      stock.packaging.type === 'ROLL'
+        ? availableQuantity / TON_TO_GRAM
+        : availableQuantity
+    }
+총수량: ${
+      stock.packaging.type === 'ROLL'
+        ? totalQuantity / TON_TO_GRAM
+        : totalQuantity
+    }
+    `);
 
-    if (availableQuantity < quantity) throw new ConflictException(`재고그룹 가용수량이 부족합니다 (요청수량: ${stock.packaging.type === 'ROLL' ? (quantity / TON_TO_GRAM) : quantity} / 가용수량: ${stock.packaging.type === 'ROLL' ? (availableQuantity / TON_TO_GRAM) : availableQuantity})`)
+    if (availableQuantity < quantity)
+      throw new ConflictException(
+        `재고그룹 가용수량이 부족합니다 (요청수량: ${
+          stock.packaging.type === 'ROLL' ? quantity / TON_TO_GRAM : quantity
+        } / 가용수량: ${
+          stock.packaging.type === 'ROLL'
+            ? availableQuantity / TON_TO_GRAM
+            : availableQuantity
+        })`,
+      );
   }
 }

@@ -51,7 +51,7 @@ export class OrderController {
   constructor(
     private readonly change: OrderChangeService,
     private readonly retrive: OrderRetriveService,
-  ) { }
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -71,21 +71,21 @@ export class OrderController {
 
     const status: OrderStatus[] = isSales
       ? [
-        'OFFER_PREPARING',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-        'ACCEPTED',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-      ]
+          'OFFER_PREPARING',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+          'ACCEPTED',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+        ]
       : [
-        'ORDER_PREPARING',
-        'ORDER_REQUESTED',
-        'ORDER_REJECTED',
-        'ACCEPTED',
-        'OFFER_REQUESTED',
-        'OFFER_REJECTED',
-      ];
+          'ORDER_PREPARING',
+          'ORDER_REQUESTED',
+          'ORDER_REJECTED',
+          'ACCEPTED',
+          'OFFER_REQUESTED',
+          'OFFER_REJECTED',
+        ];
 
     const items = await this.retrive.getList({
       skip: query.skip,
@@ -248,7 +248,7 @@ export class OrderController {
     });
 
     return {
-      items: items.map(item => {
+      items: items.map((item) => {
         return Util.serialize({
           ...item,
           // TODO: plan ~ nonStoringQuantity
@@ -258,7 +258,7 @@ export class OrderController {
           totalArrivalQuantity: 0,
           storingQuantity: 0,
           nonStoringQuantity: 0,
-        })
+        });
       }),
       total,
     };
@@ -276,7 +276,10 @@ export class OrderController {
 
     // TODO: 조건 확인 필요함
 
-    await this.change.request({ companyId: req.user.companyId, orderId: Number(id) });
+    await this.change.request({
+      companyId: req.user.companyId,
+      orderId: Number(id),
+    });
   }
 
   @Post(':id/accept')
@@ -434,11 +437,14 @@ export class OrderController {
     @Request() req: AuthType,
     @Param() idDto: IdDto,
   ): Promise<OrderDepositResponse> {
-    const result = await this.retrive.getOrderDeposit(req.user.companyId, idDto.id);
+    const result = await this.retrive.getOrderDeposit(
+      req.user.companyId,
+      idDto.id,
+    );
 
     return {
       depositEvent: result ? Util.serialize(result) : null,
-    }
+    };
   }
 
   @Post('/:id/deposit')
@@ -448,7 +454,12 @@ export class OrderController {
     @Param() idDto: IdDto,
     @Body() dto: OrderDepositAssignDepositCreateDto,
   ) {
-    await this.change.createOrderDeposit(req.user.companyId, idDto.id, dto.depositId, dto.quantity);
+    await this.change.createOrderDeposit(
+      req.user.companyId,
+      idDto.id,
+      dto.depositId,
+      dto.quantity,
+    );
   }
 
   @Put('/:id/deposit')
@@ -458,15 +469,17 @@ export class OrderController {
     @Param() idDto: IdDto,
     @Body() dto: OrderDepositAssignDepositUpdateDto,
   ) {
-    await this.change.updateOrderDeposit(req.user.companyId, idDto.id, dto.depositId, dto.quantity);
+    await this.change.updateOrderDeposit(
+      req.user.companyId,
+      idDto.id,
+      dto.depositId,
+      dto.quantity,
+    );
   }
 
   @Delete('/:id/deposit')
   @UseGuards(AuthGuard)
-  async deleteOrderDeposit(
-    @Request() req: AuthType,
-    @Param() idDto: IdDto,
-  ) {
+  async deleteOrderDeposit(@Request() req: AuthType, @Param() idDto: IdDto) {
     await this.change.deleteOrderDeposit(req.user.companyId, idDto.id);
   }
 
@@ -491,7 +504,10 @@ export class OrderController {
     @Request() req: AuthType,
     @Param() idDto: IdDto,
   ): Promise<OrderProcessResponse> {
-    const item = await this.retrive.getOrderProcess(req.user.companyId, idDto.id);
+    const item = await this.retrive.getOrderProcess(
+      req.user.companyId,
+      idDto.id,
+    );
 
     return item;
   }
@@ -538,7 +554,7 @@ export class OrderController {
   ): Promise<OrderCreateResponse> {
     const order = await this.change.createOrderEtc({
       companyId: req.user.companyId,
-      ...dto
+      ...dto,
     });
 
     return order;

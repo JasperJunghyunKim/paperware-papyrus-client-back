@@ -2,13 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { ByCashCreateRequestDto, ByCashUpdateRequestDto } from '../api/dto/cash.request';
+import {
+  ByCashCreateRequestDto,
+  ByCashUpdateRequestDto,
+} from '../api/dto/cash.request';
 
 @Injectable()
 export class ByCashChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createCash(accountedType: AccountedType, byCashCreateRequest: ByCashCreateRequestDto): Promise<void> {
+  async createCash(
+    accountedType: AccountedType,
+    byCashCreateRequest: ByCashCreateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -16,9 +22,10 @@ export class ByCashChangeService {
             partner: {
               connect: {
                 companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber: byCashCreateRequest.companyRegistrationNumber,
+                  companyRegistrationNumber:
+                    byCashCreateRequest.companyRegistrationNumber,
                   companyId: byCashCreateRequest.companyId,
-                }
+                },
               },
             },
             accountedType,
@@ -29,18 +36,22 @@ export class ByCashChangeService {
             byCash: {
               create: {
                 cashAmount: byCashCreateRequest.amount,
-              }
+              },
             },
           },
           select: {
             id: true,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateCash(accountedType: AccountedType, accountedId: number, byCashUpdateRequestDto: ByCashUpdateRequestDto): Promise<void> {
+  async updateCash(
+    accountedType: AccountedType,
+    accountedId: number,
+    byCashUpdateRequestDto: ByCashUpdateRequestDto,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
@@ -53,18 +64,21 @@ export class ByCashChangeService {
             byCash: {
               update: {
                 cashAmount: byCashUpdateRequestDto.amount,
-              }
-            }
+              },
+            },
           },
           where: {
-            id: accountedId
-          }
-        })
-      )
+            id: accountedId,
+          },
+        }),
+      ),
     );
   }
 
-  async deleteCash(accountedType: AccountedType, accountedId: number): Promise<void> {
+  async deleteCash(
+    accountedType: AccountedType,
+    accountedId: number,
+  ): Promise<void> {
     const result = await this.prisma.accounted.findFirst({
       select: {
         byCash: true,
@@ -72,7 +86,7 @@ export class ByCashChangeService {
       where: {
         id: accountedId,
         accountedType,
-      }
+      },
     });
 
     await lastValueFrom(
@@ -83,17 +97,17 @@ export class ByCashChangeService {
             accounted: {
               update: {
                 isDeleted: true,
-              }
-            }
+              },
+            },
           },
           include: {
             accounted: true,
           },
           where: {
             id: result.byCash.id,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 }

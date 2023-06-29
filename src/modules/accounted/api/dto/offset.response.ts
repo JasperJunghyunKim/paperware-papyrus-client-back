@@ -1,6 +1,6 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsEnum, IsNumber, IsString } from "class-validator";
-import { ByOffsetItemResponse } from "src/@shared/api/accounted/by-offset.response";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { ByOffsetItemResponse } from 'src/@shared/api/accounted/by-offset.response';
 
 export class ByOffsetItemResponseDto implements ByOffsetItemResponse {
   @IsNumber()

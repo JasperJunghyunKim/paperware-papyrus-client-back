@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
@@ -16,7 +21,7 @@ export class StockChangeService {
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
     private readonly locationRetriveService: LocationRetriveService,
-  ) { }
+  ) {}
 
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
@@ -162,9 +167,13 @@ export class StockChangeService {
     dstLocationId: number;
     wantedDate: string;
   }) {
-    const location = await this.locationRetriveService.getItem(params.dstLocationId);
-    if (!location || location.company.id !== params.companyId) throw new NotFoundException(`존재하지 않는 도착지 입니다.`);
-    if (location.isPublic) throw new BadRequestException(`자사도착지를 선택하셔야 합니다.`);
+    const location = await this.locationRetriveService.getItem(
+      params.dstLocationId,
+    );
+    if (!location || location.company.id !== params.companyId)
+      throw new NotFoundException(`존재하지 않는 도착지 입니다.`);
+    if (location.isPublic)
+      throw new BadRequestException(`자사도착지를 선택하셔야 합니다.`);
 
     return await this.prisma.$transaction(async (tx) => {
       const plan = await tx.plan.create({
@@ -177,11 +186,11 @@ export class StockChangeService {
               dstLocation: {
                 connect: {
                   id: params.dstLocationId,
-                }
+                },
               },
               wantedDate: params.wantedDate,
-            }
-          }
+            },
+          },
         },
         select: {
           id: true,
@@ -248,18 +257,27 @@ export class StockChangeService {
     });
   }
 
-  async changeStockQuantity(companyId: number, stockId: number, quantity: number) {
-    await this.prisma.$transaction(async tx => {
+  async changeStockQuantity(
+    companyId: number,
+    stockId: number,
+    quantity: number,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
       const stock = await tx.stock.findUnique({
         where: {
           id: stockId,
-        }
+        },
       });
-      if (!stock || stock.companyId !== companyId) throw new NotFoundException(`존재하지 않는 재고입니다.`);
-      if (stock.planId !== null) throw new ConflictException(`도착예정재고는 재고증감을 할 수 없습니다.`);
+      if (!stock || stock.companyId !== companyId)
+        throw new NotFoundException(`존재하지 않는 재고입니다.`);
+      if (stock.planId !== null)
+        throw new ConflictException(
+          `도착예정재고는 재고증감을 할 수 없습니다.`,
+        );
 
       if (quantity < 0) {
-        if (stock.cachedQuantityAvailable < Math.abs(quantity)) throw new ConflictException(`가용수량 이하로 감소시킬 수 없습니다.`);
+        if (stock.cachedQuantityAvailable < Math.abs(quantity))
+          throw new ConflictException(`가용수량 이하로 감소시킬 수 없습니다.`);
       }
 
       await tx.stockEvent.create({
@@ -267,7 +285,7 @@ export class StockChangeService {
           stock: {
             connect: {
               id: stock.id,
-            }
+            },
           },
           change: quantity,
           status: 'NORMAL',
@@ -278,17 +296,17 @@ export class StockChangeService {
               company: {
                 connect: {
                   id: companyId,
-                }
+                },
               },
               status: 'PROGRESSED',
-            }
-          }
-        }
+            },
+          },
+        },
       });
 
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
-      })
+      });
     });
   }
 }

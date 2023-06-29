@@ -86,21 +86,21 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   partnerNickname: string;
   @Optional()
   @IsString()
-  invoiceCode: string = '';
+  invoiceCode = '';
   @IsString()
   address: string;
   @IsOptional()
   @IsString()
-  phoneNo: string = '';
+  phoneNo = '';
   @IsOptional()
   @IsString()
-  faxNo: string = '';
+  faxNo = '';
   @IsOptional()
   @IsString()
-  email: string = '';
+  email = '';
   @IsOptional()
   @IsString()
-  memo: string = '';
+  memo = '';
 }
 
 export class BusinessRelationshipReqeustRequestDto
@@ -118,5 +118,5 @@ export class UpsertPartnerRequestDto implements UpsertPartnerRequest {
   @IsString()
   partnerNickname: string;
   @IsString()
-  memo: string = '';
+  memo = '';
 }

@@ -1,7 +1,10 @@
-import { AccountType, Bank } from "@prisma/client";
-import { IsArray, IsEnum, IsNumber, IsString } from "class-validator";
-import { BankAccountItemResponse, BankAccountListResponse } from "src/@shared/api/inhouse/bank-account.response";
-import { BankAccount } from "src/@shared/models";
+import { AccountType, Bank } from '@prisma/client';
+import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
+import {
+  BankAccountItemResponse,
+  BankAccountListResponse,
+} from 'src/@shared/api/inhouse/bank-account.response';
+import { BankAccount } from 'src/@shared/models';
 
 export class BankAccountListResponseDto implements BankAccountListResponse {
   @IsArray()
@@ -10,7 +13,6 @@ export class BankAccountListResponseDto implements BankAccountListResponse {
   @IsNumber()
   readonly total: number;
 }
-
 
 export class BankAccountItemResponseDto implements BankAccountItemResponse {
   @IsNumber()

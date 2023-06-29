@@ -46,4 +46,4 @@ import { BySecurityRetriveService } from './service/by-security-retrive.service'
     BySecurityChangeService,
   ],
 })
-export class AccountedModule { }
+export class AccountedModule {}

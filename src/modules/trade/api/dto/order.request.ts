@@ -73,7 +73,8 @@ export class OrderListQueryDto implements OrderListQuery {
 
 /** 정상거래 등록 요청 */
 export default class OrderStockCreateRequestDto
-  implements OrderStockCreateRequest {
+  implements OrderStockCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   srcCompanyId: number;
@@ -154,7 +155,7 @@ export default class OrderStockCreateRequestDto
 
   @IsOptional()
   @IsBoolean()
-  isDirectShipping: boolean = false;
+  isDirectShipping = false;
 }
 
 /** 정상거래 수정 요청 */
@@ -180,7 +181,8 @@ export class OrderStockUpdateRequestDto implements OrderStockUpdateRequest {
 }
 
 export class OrderStockArrivalListQueryDto
-  implements OrderStockArrivalListQuery {
+  implements OrderStockArrivalListQuery
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -193,7 +195,8 @@ export class OrderStockArrivalListQueryDto
 }
 
 export class OrderStockArrivalCreateRequestDto
-  implements OrderStockArrivalCreateRequest {
+  implements OrderStockArrivalCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   productId: number;
@@ -241,7 +244,7 @@ export class OrderStockArrivalCreateRequestDto
 
   @IsOptional()
   @IsBoolean()
-  isSyncPrice: boolean = false;
+  isSyncPrice = false;
 
   @IsOptional()
   @IsObject()
@@ -276,7 +279,8 @@ export class IdDto {
 
 /** 거래금액 수정 */
 export class UpdateOrderStockTradeAltBundleDto
-  implements OrderStockTradeAltBundleUpdateRequest {
+  implements OrderStockTradeAltBundleUpdateRequest
+{
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -294,7 +298,8 @@ export class UpdateOrderStockTradeAltBundleDto
 }
 
 export class UpdateOrderStockTradePriceDto
-  implements OrderStockTradePriceUpdateRequest {
+  implements OrderStockTradePriceUpdateRequest
+{
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -338,7 +343,8 @@ export class UpdateOrderStockTradePriceDto
 }
 
 export class UpdateOrderDepositTradeAltBundleDto
-  implements OrderStockTradeAltBundleUpdateRequest {
+  implements OrderStockTradeAltBundleUpdateRequest
+{
   @IsInt()
   @Type(() => Number)
   @Min(0)
@@ -356,7 +362,8 @@ export class UpdateOrderDepositTradeAltBundleDto
 }
 
 export class UpdateOrderDepositTradePriceDto
-  implements OrderStockTradePriceUpdateRequest {
+  implements OrderStockTradePriceUpdateRequest
+{
   @IsEnum(OfficialPriceType)
   readonly officialPriceType: OfficialPriceType;
 
@@ -420,7 +427,8 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateOrderDepositTradePriceDto)
-  readonly orderDepositTradePrice: UpdateOrderDepositTradePriceDto | null = null;
+  readonly orderDepositTradePrice: UpdateOrderDepositTradePriceDto | null =
+    null;
 }
 
 /** 보관등록 */
@@ -593,7 +601,8 @@ export class DepositCreateDto implements DepositCreateRequest {
 
 /** 원지 수정 */
 export class OrderStockAssignStockUpdateRequestDto
-  implements OrderStockAssignStockUpdateRequest {
+  implements OrderStockAssignStockUpdateRequest
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -639,7 +648,9 @@ export class OrderStockAssignStockUpdateRequestDto
 }
 
 /** 보관매입/매출 등록 */
-export class OrderDepositAssignDepositCreateDto implements OrderDepositAssignDepositCreateRequest {
+export class OrderDepositAssignDepositCreateDto
+  implements OrderDepositAssignDepositCreateRequest
+{
   @IsInt()
   @Type(() => Number)
   @IsPositive()
@@ -652,7 +663,9 @@ export class OrderDepositAssignDepositCreateDto implements OrderDepositAssignDep
 }
 
 /** 보관매입/매출 수정 */
-export class OrderDepositAssignDepositUpdateDto implements OrderDepositAssignDepositUpdateRequest {
+export class OrderDepositAssignDepositUpdateDto
+  implements OrderDepositAssignDepositUpdateRequest
+{
   @IsInt()
   @Type(() => Number)
   @IsPositive()
@@ -777,7 +790,9 @@ export class OrderProcessCreateDto implements OrderProcessCreateRequest {
 }
 
 /** 외주공정 정보 업데이트 */
-export class OrderProcessInfoUpdateDto implements OrderProcessInfoUpdateRequest {
+export class OrderProcessInfoUpdateDto
+  implements OrderProcessInfoUpdateRequest
+{
   @IsInt()
   @Type(() => Number)
   @IsPositive()
@@ -811,7 +826,9 @@ export class OrderProcessInfoUpdateDto implements OrderProcessInfoUpdateRequest 
   readonly isDstDirectShipping: boolean = false;
 }
 
-export class OrderProcessStockUpdateDto implements OrderProcessStockUpdateRequest {
+export class OrderProcessStockUpdateDto
+  implements OrderProcessStockUpdateRequest
+{
   @IsOptional()
   @IsInt()
   @Type(() => Number)

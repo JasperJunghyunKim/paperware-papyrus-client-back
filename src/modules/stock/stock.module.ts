@@ -13,9 +13,7 @@ import { StockQuantityChecker } from './service/stock-quantity-checker';
 import { InhouseModule } from '../inhouse/inhouse.module';
 
 @Module({
-  imports: [
-    forwardRef(() => InhouseModule),
-  ],
+  imports: [forwardRef(() => InhouseModule)],
   controllers: [
     StockController,
     StockArrivalController,
@@ -33,4 +31,4 @@ import { InhouseModule } from '../inhouse/inhouse.module';
   ],
   exports: [StockChangeService, StockValidator, StockQuantityChecker],
 })
-export class StockModule { }
+export class StockModule {}

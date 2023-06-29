@@ -1,6 +1,15 @@
-import { AccountedType, Method, Subject } from "@prisma/client";
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { ByCardCreateRequest, ByCardUpdateRequest } from "src/@shared/api/accounted/by-card.request";
+import { AccountedType, Method, Subject } from '@prisma/client';
+import {
+  IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import {
+  ByCardCreateRequest,
+  ByCardUpdateRequest,
+} from 'src/@shared/api/accounted/by-card.request';
 
 export class ByCardCreateRequestDto implements ByCardCreateRequest {
   @IsNumber()

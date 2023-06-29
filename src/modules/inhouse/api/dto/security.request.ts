@@ -1,6 +1,15 @@
-import { Bank, DrawedStatus, SecurityStatus, SecurityType } from "@prisma/client";
-import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { SecurityCreateRequest, SecurityUpdateRequest, SecurityUpdateStatusRequest } from "src/@shared/api/inhouse/security.request";
+import {
+  Bank,
+  DrawedStatus,
+  SecurityStatus,
+  SecurityType,
+} from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  SecurityCreateRequest,
+  SecurityUpdateRequest,
+  SecurityUpdateStatusRequest,
+} from 'src/@shared/api/inhouse/security.request';
 
 export class SecurityCreateRequestDto implements SecurityCreateRequest {
   @IsEnum(SecurityType)
@@ -54,7 +63,6 @@ export class SecurityCreateRequestDto implements SecurityCreateRequest {
 }
 
 export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
-
   @IsEnum(SecurityType)
   readonly securityType: SecurityType;
 
@@ -113,7 +121,9 @@ export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
   readonly memo: string;
 }
 
-export class SecurityUpdateStatusRequestDto implements SecurityUpdateStatusRequest {
+export class SecurityUpdateStatusRequestDto
+  implements SecurityUpdateStatusRequest
+{
   @IsEnum(SecurityStatus)
   readonly securityStatus: SecurityStatus;
 

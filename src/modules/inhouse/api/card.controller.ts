@@ -9,9 +9,12 @@ import {
   Patch,
   Post,
   Request,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
-import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/inhouse/card.request';
+import {
+  CardCreateRequest,
+  CardUpdateRequest,
+} from 'src/@shared/api/inhouse/card.request';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { CardChangeService } from '../service/card-change.service';
@@ -23,13 +26,11 @@ export class CardController {
   constructor(
     private readonly cardRetriveService: CardRetriveService,
     private readonly cardCahngeService: CardChangeService,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
-  async getCardList(
-    @Request() req: AuthType,
-  ): Promise<CardListResponseDto> {
+  async getCardList(@Request() req: AuthType): Promise<CardListResponseDto> {
     return await this.cardRetriveService.getCardList(req.user.companyId);
   }
 
@@ -44,8 +45,14 @@ export class CardController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async createCard(@Request() req: AuthType, @Body() cardCreateRequest: CardCreateRequest): Promise<void> {
-    await this.cardCahngeService.createCard(req.user.companyId, cardCreateRequest);
+  async createCard(
+    @Request() req: AuthType,
+    @Body() cardCreateRequest: CardCreateRequest,
+  ): Promise<void> {
+    await this.cardCahngeService.createCard(
+      req.user.companyId,
+      cardCreateRequest,
+    );
   }
 
   @Patch(':cardId')

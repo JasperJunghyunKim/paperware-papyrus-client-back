@@ -27,6 +27,7 @@ import { StockRetriveService } from '../service/stock-retrive.service';
 import {
   StockDetailResponse,
   StockGroupDetailResponse,
+  StockGroupHistoryResponse,
   StockGroupListResponse,
   StockGroupQuantityResponse,
   StockListResponse,
@@ -38,7 +39,7 @@ export class StockController {
   constructor(
     private readonly stockChangeService: StockChangeService,
     private readonly stockRetriveService: StockRetriveService,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard)
@@ -108,14 +109,13 @@ export class StockController {
     @Request() req: AuthType,
     @Query() dto: StockGroupListRequestDto,
   ): Promise<StockGroupListResponse> {
-    const result =
-      await this.stockRetriveService.getStockGroupList(
-        req.user.companyId,
-        dto.skip,
-        dto.take,
-        dto.planId,
-        dto.isDirectShippingIncluded === 'true',
-      );
+    const result = await this.stockRetriveService.getStockGroupList(
+      req.user.companyId,
+      dto.skip,
+      dto.take,
+      dto.planId,
+      dto.isDirectShippingIncluded === 'true',
+    );
 
     return result;
   }
@@ -132,7 +132,7 @@ export class StockController {
       sizeY: dto.sizeY || 0,
     });
 
-    return result;
+    return Util.serialize(result);
   }
 
   @Get('/group/detail')
@@ -152,7 +152,9 @@ export class StockController {
     @Request() req: AuthType,
     @Query() dto: StockGroupQuantityQueryDto,
   ): Promise<StockGroupQuantityResponse> {
-    const result = await this.stockRetriveService.getStockGroupQuantity({ ...dto });
+    const result = await this.stockRetriveService.getStockGroupQuantity({
+      ...dto,
+    });
 
     return result;
   }
@@ -165,7 +167,11 @@ export class StockController {
     @Param() idDto: IdDto,
     @Body() dto: StockQuantityChangeDto,
   ) {
-    await this.stockChangeService.changeStockQuantity(req.user.companyId, idDto.id, dto.quantity);
+    await this.stockChangeService.changeStockQuantity(
+      req.user.companyId,
+      idDto.id,
+      dto.quantity,
+    );
   }
 
   /** 재고 상세 */

@@ -1,13 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { from, lastValueFrom } from 'rxjs';
-import { CardCreateRequest, CardUpdateRequest } from 'src/@shared/api/inhouse/card.request';
+import {
+  CardCreateRequest,
+  CardUpdateRequest,
+} from 'src/@shared/api/inhouse/card.request';
 import { PrismaService } from 'src/core';
 
 @Injectable()
 export class CardChangeService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createCard(companyId: number, cardCreateRequest: CardCreateRequest): Promise<void> {
+  async createCard(
+    companyId: number,
+    cardCreateRequest: CardCreateRequest,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.card.create({
@@ -19,18 +25,21 @@ export class CardChangeService {
             company: {
               connect: {
                 id: companyId,
-              }
-            }
+              },
+            },
           },
           select: {
             id: true,
           },
-        })
-      )
+        }),
+      ),
     );
   }
 
-  async updateCard(cardId: number, cardUpdateRequest: CardUpdateRequest): Promise<void> {
+  async updateCard(
+    cardId: number,
+    cardUpdateRequest: CardUpdateRequest,
+  ): Promise<void> {
     await lastValueFrom(
       from(
         this.prisma.card.update({
@@ -42,9 +51,9 @@ export class CardChangeService {
           },
           where: {
             id: cardId,
-          }
-        })
-      )
+          },
+        }),
+      ),
     );
   }
 
@@ -56,10 +65,10 @@ export class CardChangeService {
             isDeleted: true,
           },
           where: {
-            id: cardId
-          }
-        })
-      )
+            id: cardId,
+          },
+        }),
+      ),
     );
   }
 }

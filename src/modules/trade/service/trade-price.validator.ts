@@ -1,5 +1,14 @@
-import { BadRequestException, Injectable, NotImplementedException } from "@nestjs/common";
-import { DiscountType, OfficialPriceType, PackagingType, PriceUnit } from "@prisma/client";
+import {
+  BadRequestException,
+  Injectable,
+  NotImplementedException,
+} from '@nestjs/common';
+import {
+  DiscountType,
+  OfficialPriceType,
+  PackagingType,
+  PriceUnit,
+} from '@prisma/client';
 
 type altPackagingType = 'ROLL' | 'SHEET';
 
@@ -19,8 +28,8 @@ interface TradePrice {
       altSizeX: number;
       altSizeY: number;
       altQuantity: number;
-    }
-  }
+    };
+  };
 }
 
 interface OrderStockTradePrice {
@@ -36,7 +45,7 @@ interface OrderStockTradePrice {
     altSizeX: number;
     altSizeY: number;
     altQuantity: number;
-  }
+  };
 }
 
 interface OrderDepositTradePrice {
@@ -52,21 +61,22 @@ interface OrderDepositTradePrice {
     altSizeX: number;
     altSizeY: number;
     altQuantity: number;
-  }
+  };
 }
-
 
 @Injectable()
 export class TradePriceValidator {
-  validateOrderStockTradePrice(packagingType: PackagingType, orderStockTradePrice: OrderStockTradePrice) {
-    if (!orderStockTradePrice) throw new BadRequestException(`거래금액을 입력해야 합니다.`);
+  validateOrderStockTradePrice(
+    packagingType: PackagingType,
+    orderStockTradePrice: OrderStockTradePrice,
+  ) {
+    if (!orderStockTradePrice)
+      throw new BadRequestException(`거래금액을 입력해야 합니다.`);
 
     const altBundle = orderStockTradePrice.orderStockTradeAltBundle || null;
 
     if (altBundle) {
-
     } else {
-
     }
 
     switch (orderStockTradePrice.officialPriceType) {
@@ -81,15 +91,17 @@ export class TradePriceValidator {
     }
   }
 
-  validateOrderDepositTradePrice(packagingType: PackagingType, orderDepositTradePrice: OrderDepositTradePrice) {
-    if (!orderDepositTradePrice) throw new BadRequestException(`거래금액을 입력해야 합니다.`);
+  validateOrderDepositTradePrice(
+    packagingType: PackagingType,
+    orderDepositTradePrice: OrderDepositTradePrice,
+  ) {
+    if (!orderDepositTradePrice)
+      throw new BadRequestException(`거래금액을 입력해야 합니다.`);
 
     const altBundle = orderDepositTradePrice.orderStockTradeAltBundle || null;
 
     if (altBundle) {
-
     } else {
-
     }
 
     switch (orderDepositTradePrice.officialPriceType) {

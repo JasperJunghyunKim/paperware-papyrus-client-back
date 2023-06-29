@@ -6,7 +6,9 @@ export enum AccountedErrorEnum {
   ACCOUNTED001 = 'ACCOUNTED001',
 }
 
-export const AccountedError: Readonly<{ [key in AccountedErrorEnum]: AppError }> = {
+export const AccountedError: Readonly<{
+  [key in AccountedErrorEnum]: AppError;
+}> = {
   [AccountedErrorEnum.ACCOUNTED001]: {
     name: ACCOUNTED_ERROR,
     code: AccountedErrorEnum.ACCOUNTED001,

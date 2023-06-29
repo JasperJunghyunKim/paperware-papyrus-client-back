@@ -3,12 +3,17 @@ import { OrderStatus } from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { DEPOSIT, LOCATION, ORDER_DEPOSIT, STOCK_EVENT } from 'src/common/selector';
+import {
+  DEPOSIT,
+  LOCATION,
+  ORDER_DEPOSIT,
+  STOCK_EVENT,
+} from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getList(params: {
     skip?: number;
@@ -37,8 +42,8 @@ export class OrderRetriveService {
             deposit: {
               select: DEPOSIT,
             },
-          }
-        }
+          },
+        },
       },
       where: {
         srcCompanyId: srcCompanyId,
@@ -195,8 +200,8 @@ export class OrderRetriveService {
             orderDepositTradePrice: {
               include: {
                 orderDepositTradeAltBundle: true,
-              }
-            }
+              },
+            },
           },
         },
       },
@@ -221,27 +226,37 @@ export class OrderRetriveService {
             deposit: {
               select: DEPOSIT,
             },
-          }
+          },
         },
         dstDepositEvent: {
           include: {
             deposit: {
               select: DEPOSIT,
             },
-          }
-        }
+          },
+        },
       },
       where: {
         id: orderId,
-      }
+      },
     });
-    if (!order || (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 주문입니다.`);
+    if (
+      !order ||
+      (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)
+    )
+      throw new NotFoundException(`존재하지 않는 주문입니다.`);
 
-    const depositEvent = order.srcCompanyId === companyId ? order.srcDepositEvent : order.dstDepositEvent;
+    const depositEvent =
+      order.srcCompanyId === companyId
+        ? order.srcDepositEvent
+        : order.dstDepositEvent;
     return depositEvent;
   }
 
-  async getOrderProcess(companyId: number, orderId: number): Promise<Model.OrderProcess> {
+  async getOrderProcess(
+    companyId: number,
+    orderId: number,
+  ): Promise<Model.OrderProcess> {
     const orderProcess = await this.prisma.orderProcess.findFirst({
       select: {
         id: true,
@@ -261,7 +276,7 @@ export class OrderRetriveService {
             memo: true,
             srcCompanyId: true,
             dstCompanyId: true,
-          }
+          },
         },
         isDstDirectShipping: true,
         isSrcDirectShipping: true,
@@ -280,20 +295,28 @@ export class OrderRetriveService {
               select: STOCK_EVENT,
             },
             companyId: true,
-          }
-        }
+          },
+        },
       },
       where: {
         orderId,
-      }
+      },
     });
 
-    if (!orderProcess || (orderProcess.order.srcCompanyId !== companyId && orderProcess.order.dstCompanyId !== companyId)) throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
+    if (
+      !orderProcess ||
+      (orderProcess.order.srcCompanyId !== companyId &&
+        orderProcess.order.dstCompanyId !== companyId)
+    )
+      throw new NotFoundException(`존재하지 않는 외주공정 주문입니다.`);
 
     return Util.serialize(orderProcess);
   }
 
-  async getOrderEtc(companyId: number, orderId: number): Promise<Model.OrderEtc> {
+  async getOrderEtc(
+    companyId: number,
+    orderId: number,
+  ): Promise<Model.OrderEtc> {
     const item = await this.prisma.orderEtc.findFirst({
       select: {
         id: true,
@@ -305,13 +328,13 @@ export class OrderRetriveService {
             status: true,
             isEntrusted: true,
             memo: true,
-          }
+          },
         },
         item: true,
       },
       where: {
         orderId,
-      }
+      },
     });
 
     return item;
