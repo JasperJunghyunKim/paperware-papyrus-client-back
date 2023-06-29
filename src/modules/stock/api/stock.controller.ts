@@ -125,7 +125,7 @@ export class StockController {
   async getStockGroupHistories(
     @Request() req: AuthType,
     @Query() dto: StockGroupHistoryDto,
-  ) {
+  ): Promise<StockGroupHistoryResponse> {
     const result = await this.stockRetriveService.getStockGroupHistories({
       companyId: req.user.companyId,
       ...dto,
