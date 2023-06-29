@@ -294,6 +294,31 @@ export const ORDER_STOCK = {
       status: true,
     },
   },
+  company: true,
+  planId: true,
+  warehouse: true,
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
 } satisfies Prisma.OrderStockSelect;
 
 export const ORDER_DEPOSIT = {
