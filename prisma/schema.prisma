@@ -51,6 +51,7 @@ model PaperColorGroup {
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
+  OrderProcess           OrderProcess[]
 }
 
 model PaperColor {
@@ -63,6 +64,7 @@ model PaperColor {
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
+  OrderProcess           OrderProcess[]
 }
 
 model PaperPattern {
@@ -75,6 +77,7 @@ model PaperPattern {
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
+  OrderProcess           OrderProcess[]
 }
 
 model PaperCert {
@@ -87,6 +90,7 @@ model PaperCert {
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
+  OrderProcess           OrderProcess[]
 }
 
 enum PackagingType {
@@ -107,6 +111,7 @@ model Packaging {
   deposit      Deposit[]
   OrderDeposit OrderDeposit[]
   OrderStock   OrderStock[]
+  OrderProcess OrderProcess[]
 
   @@unique([type, packA, packB])
 }
@@ -127,6 +132,7 @@ model Product {
   deposit                Deposit[]
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
+  OrderProcess           OrderProcess[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -137,16 +143,17 @@ model Product {
 // Warehouse
 
 model Warehouse {
-  id         Int          @id @default(autoincrement())
-  name       String
-  code       String?
-  address    String       @default("") @db.VarChar(500)
-  companyId  Int
-  company    Company      @relation(fields: [companyId], references: [id])
-  isPublic   Boolean
-  isDeleted  Boolean      @default(false)
-  stock      Stock[]
-  OrderStock OrderStock[]
+  id           Int            @id @default(autoincrement())
+  name         String
+  code         String?
+  address      String         @default("") @db.VarChar(500)
+  companyId    Int
+  company      Company        @relation(fields: [companyId], references: [id])
+  isPublic     Boolean
+  isDeleted    Boolean        @default(false)
+  stock        Stock[]
+  OrderStock   OrderStock[]
+  OrderProcess OrderProcess[]
 
   @@unique([companyId, code])
 }
@@ -272,11 +279,12 @@ model Company {
   BankAccount                    BankAccount[]
   Card                           Card[]
   security                       Security[]
-  Deposit                        Deposit[]
-  OrderDepositTradePrice         OrderDepositTradePrice[]
-  OrderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
-  DiscountRateCondition          DiscountRateCondition[]
-  OrderStock                     OrderStock[]
+  deposit                        Deposit[]
+  orderDepositTradePrice         OrderDepositTradePrice[]
+  orderDepositTradeAltBundle     OrderDepositTradeAltBundle[]
+  discountRateCondition          DiscountRateCondition[]
+  orderStock                     OrderStock[]
+  orderProcess                   OrderProcess[]
 }
 
 model BusinessRelationship {
@@ -465,20 +473,41 @@ model OrderStock {
 }
 
 model OrderProcess {
-  id                  Int          @id @default(autoincrement())
-  orderId             Int          @unique
-  order               Order        @relation(fields: [orderId], references: [id])
+  id                  Int              @id @default(autoincrement())
+  orderId             Int              @unique
+  order               Order            @relation(fields: [orderId], references: [id])
   dstLocationId       Int
-  dstLocation         Location     @relation("dstLocation", fields: [dstLocationId], references: [id])
+  dstLocation         Location         @relation("dstLocation", fields: [dstLocationId], references: [id])
   srcLocationId       Int
-  srcLocation         Location     @relation("srcLocation", fields: [srcLocationId], references: [id])
-  isSrcDirectShipping Boolean      @default(false)
-  isDstDirectShipping Boolean      @default(false)
+  srcLocation         Location         @relation("srcLocation", fields: [srcLocationId], references: [id])
+  isSrcDirectShipping Boolean          @default(false)
+  isDstDirectShipping Boolean          @default(false)
   srcWantedDate       DateTime?
   dstWantedDate       DateTime?
   plan                Plan[]
   // 외주공정의 주문 원지 정보
-  stockEvent          StockEvent[]
+  stockEvent          StockEvent[] // 필요없는거 확인되면 삭제
+  companyId           Int
+  company             Company          @relation(fields: [companyId], references: [id])
+  planId              Int?
+  warehouseId         Int?
+  warehouse           Warehouse?       @relation(fields: [warehouseId], references: [id])
+  productId           Int
+  product             Product          @relation(fields: [productId], references: [id])
+  packagingId         Int
+  packaging           Packaging        @relation(fields: [packagingId], references: [id])
+  grammage            Int
+  sizeX               Int
+  sizeY               Int
+  paperColorGroupId   Int?
+  paperColorGroup     PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId        Int?
+  paperColor          PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId      Int?
+  paperPattern        PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId         Int?
+  paperCert           PaperCert?       @relation(fields: [paperCertId], references: [id])
+  quantity            Int              @default(0)
 }
 
 model OrderEtc {
@@ -578,6 +607,7 @@ model Plan {
   createdAt          DateTime      @default(now())
   task               Task[]
   invoice            Invoice[]
+  isDeleted          Boolean       @default(false)
   assignStockEventId Int?
   assignStockEvent   StockEvent?   @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
   targetStockEvent   StockEvent[]  @relation("TargetStockEvent")
