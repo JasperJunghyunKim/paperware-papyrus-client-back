@@ -7,6 +7,7 @@ import {
   Post,
   Body,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { ShippingChangeService } from '../service/shipping-change.service';
 import { ShippingRetriveService } from '../service/shipping-retrive.service';
@@ -18,6 +19,7 @@ import {
   ShippingListQueryDto,
 } from './dto/shipping.request';
 import { ShippingListResponse } from 'src/@shared/api';
+import { IdDto } from 'src/common/request';
 
 @Controller('shipping')
 export class ShippingController {
@@ -94,5 +96,11 @@ export class ShippingController {
     await this.change.backward({
       shippingId: id,
     });
+  }
+
+  @Delete('/:id')
+  @UseGuards(AuthGuard)
+  async delete(@Request() req: AuthType, @Param() idDto: IdDto) {
+    await this.change.delete(req.user.companyId, idDto.id);
   }
 }

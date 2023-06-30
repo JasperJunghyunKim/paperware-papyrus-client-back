@@ -17,6 +17,7 @@ export class ShippingRetriveService {
     const shippings = await this.prisma.shipping.findMany({
       where: {
         companyId: companyId,
+        isDeleted: false,
       },
       skip: params.skip,
       take: params.take,
@@ -42,6 +43,7 @@ export class ShippingRetriveService {
     const count = await this.prisma.shipping.count({
       where: {
         companyId: companyId,
+        isDeleted: false,
       },
     });
 

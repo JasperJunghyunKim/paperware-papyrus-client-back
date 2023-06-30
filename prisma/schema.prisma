@@ -681,6 +681,7 @@ model Shipping {
   status     ShippingStatus @default(PREPARING)
   company    Company        @relation(fields: [companyId], references: [id])
   invoice    Invoice[]
+  isDeleted  Boolean        @default(false)
 }
 
 enum InvoiceStatus {

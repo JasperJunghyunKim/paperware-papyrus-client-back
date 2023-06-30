@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
 
@@ -98,5 +102,37 @@ export class ShippingChangeService {
     });
 
     return shipping;
+  }
+
+  async delete(companyId: number, shippingId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const shipping = await tx.shipping.findUnique({
+        where: {
+          id: shippingId,
+        },
+        include: {
+          invoice: {
+            where: {
+              invoiceStatus: {
+                not: 'WAIT_LOADING',
+              },
+            },
+          },
+        },
+      });
+      if (!shipping || shipping.isDeleted || shipping.companyId !== companyId)
+        throw new NotFoundException(`존재하지 않는 배송입니다.`);
+      if (shipping.invoice.length > 0)
+        throw new ConflictException(`송장이 포함되어 있어 삭제할 수 없습니다.`);
+
+      await tx.shipping.update({
+        where: {
+          id: shippingId,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+    });
   }
 }
