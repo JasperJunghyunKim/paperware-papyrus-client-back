@@ -4,10 +4,19 @@ import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
 import {
+  COMPANY,
   DEPOSIT,
   LOCATION,
   ORDER_DEPOSIT,
+  ORDER_PROCESS,
+  PACKAGING,
+  PAPER_CERT,
+  PAPER_COLOR,
+  PAPER_COLOR_GROUP,
+  PAPER_PATTERN,
+  PRODUCT,
   STOCK_EVENT,
+  WAREHOUSE,
 } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
@@ -297,6 +306,36 @@ export class OrderRetriveService {
             companyId: true,
           },
         },
+        // 외주공정의 주문 원지 정보
+        company: {
+          select: COMPANY,
+        },
+        planId: true,
+        warehouse: {
+          select: WAREHOUSE,
+        },
+        product: {
+          select: PRODUCT,
+        },
+        packaging: {
+          select: PACKAGING,
+        },
+        grammage: true,
+        sizeX: true,
+        sizeY: true,
+        paperColorGroup: {
+          select: PAPER_COLOR_GROUP,
+        },
+        paperColor: {
+          select: PAPER_COLOR,
+        },
+        paperPattern: {
+          select: PAPER_PATTERN,
+        },
+        paperCert: {
+          select: PAPER_CERT,
+        },
+        quantity: true,
       },
       where: {
         orderId,

@@ -285,6 +285,7 @@ model Company {
   discountRateCondition          DiscountRateCondition[]
   orderStock                     OrderStock[]
   orderProcess                   OrderProcess[]
+  order                          Order[]                       @relation("stockAcceptedCompany")
 }
 
 model BusinessRelationship {
@@ -425,6 +426,7 @@ model Order {
   isEntrusted            Boolean       @default(false)
   memo                   String
   stockAcceptedCompanyId Int?
+  stockAcceptedCompany   Company?      @relation("stockAcceptedCompany", fields: [stockAcceptedCompanyId], references: [id])
   isStockRejected        Boolean       @default(false)
   orderStock             OrderStock?
   tradePrice             TradePrice[]
