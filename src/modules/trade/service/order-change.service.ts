@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
@@ -91,33 +92,49 @@ export class OrderChangeService {
     const orderStock = await tx.orderStock.findUnique({
       include: {
         order: true,
-        plan: true,
+        company: true,
       },
       where: {
         orderId,
       },
     });
 
-    await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
-      inquiryCompanyId,
-      companyId: orderStock.companyId,
-      warehouseId: orderStock.warehouseId,
-      planId: orderStock.planId,
-      productId: orderStock.productId,
-      packagingId: orderStock.packagingId,
-      grammage: orderStock.grammage,
-      sizeX: orderStock.sizeX,
-      sizeY: orderStock.sizeY,
-      paperColorGroupId: orderStock.paperColorGroupId,
-      paperColorId: orderStock.paperColorId,
-      paperPatternId: orderStock.paperPatternId,
-      paperCertId: orderStock.paperCertId,
-      quantity: orderStock.quantity,
-    });
+    // 판매처가 사용중인 경우 재고 체크
+    if (orderStock.company.managedById === null) {
+      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+        inquiryCompanyId,
+        companyId: orderStock.companyId,
+        warehouseId: orderStock.warehouseId,
+        planId: orderStock.planId,
+        productId: orderStock.productId,
+        packagingId: orderStock.packagingId,
+        grammage: orderStock.grammage,
+        sizeX: orderStock.sizeX,
+        sizeY: orderStock.sizeY,
+        paperColorGroupId: orderStock.paperColorGroupId,
+        paperColorId: orderStock.paperColorId,
+        paperPatternId: orderStock.paperPatternId,
+        paperCertId: orderStock.paperCertId,
+        quantity: orderStock.quantity,
+      });
+    }
 
-    const dstPlan = orderStock.plan.find(
-      (plan) => plan.type === 'TRADE_NORMAL_SELLER',
-    );
+    const dstPlan = await tx.plan.create({
+      data: {
+        planNo: ulid(),
+        type: 'TRADE_NORMAL_SELLER',
+        company: {
+          connect: {
+            id: orderStock.order.dstCompanyId,
+          },
+        },
+        orderStock: {
+          connect: {
+            id: orderStock.id,
+          },
+        },
+      },
+    });
 
     // 재고 할당
     const stock = await tx.stock.create({
@@ -164,7 +181,11 @@ export class OrderChangeService {
     });
   }
 
-  private async cancelAssignStockTx(tx: PrismaTransaction, planId: number) {
+  private async cancelAssignStockTx(
+    tx: PrismaTransaction,
+    planId: number,
+    deletePlan: boolean,
+  ) {
     const plan = await tx.plan.findUnique({
       where: {
         id: planId,
@@ -174,20 +195,34 @@ export class OrderChangeService {
       },
     });
 
-    if (plan.assignStockEvent) {
-      await tx.stockEvent.update({
+    // assign이 없는 경우 에러
+    if (!plan.assignStockEvent) throw new InternalServerErrorException();
+
+    await tx.stockEvent.update({
+      where: {
+        id: plan.assignStockEvent.id,
+      },
+      data: {
+        status: 'CANCELLED',
+      },
+    });
+
+    await this.stockChangeService.cacheStockQuantityTx(tx, {
+      id: plan.assignStockEvent.stockId,
+    });
+
+    if (deletePlan) {
+      // 플랜 삭제
+      await tx.plan.update({
         where: {
-          id: plan.assignStockEvent.id,
+          id: planId,
         },
         data: {
-          status: 'CANCELLED',
+          isDeleted: true,
         },
       });
-
-      await this.stockChangeService.cacheStockQuantityTx(tx, {
-        id: plan.assignStockEvent.stockId,
-      });
-
+    } else {
+      // assign만 해제
       await tx.plan.update({
         where: {
           id: planId,
@@ -260,32 +295,6 @@ export class OrderChangeService {
       ).managedById;
 
     const order = await this.prisma.$transaction(async (tx) => {
-      // 구매처 작업 계획
-      const srcPlan = await tx.plan.create({
-        data: {
-          planNo: ulid(),
-          type: 'TRADE_NORMAL_BUYER',
-          companyId: params.srcCompanyId,
-        },
-      });
-
-      // 판매처 작업 계획
-      const dstPlan = await tx.plan.create({
-        data: {
-          planNo: ulid(),
-          type: 'TRADE_NORMAL_SELLER',
-          companyId: params.dstCompanyId,
-        },
-        select: {
-          id: true,
-          company: {
-            select: {
-              invoiceCode: true,
-            },
-          },
-        },
-      });
-
       // 판매자가 사용거래처인 경우 부모재고 수량 조회
       const dstCompany = await tx.company.findUnique({
         where: {
@@ -339,9 +348,6 @@ export class OrderChangeService {
                 : params.isDirectShipping,
               dstLocationId: params.locationId,
               wantedDate: params.wantedDate,
-              plan: {
-                connect: [dstPlan.id, srcPlan.id].map((p) => ({ id: p })),
-              },
               companyId: params.dstCompanyId,
               warehouseId: params.warehouseId,
               planId: params.planId,
@@ -617,7 +623,7 @@ export class OrderChangeService {
       switch (order.orderType) {
         case OrderType.NORMAL:
           if (order.status === 'OFFER_PREPARING') {
-            // 판매자가 요청 보낼시 재고 가용수량 차감(재고 배정)
+            // 판매자가 요청 보낼시 재고 가용수량 차감(plan 생성)
             await this.assignStockToNormalOrder(tx, companyId, orderId);
           } else if (order.status === 'ORDER_PREPARING') {
             // 구매자가 요청 보낼시 재고수량만 체크
@@ -691,7 +697,7 @@ export class OrderChangeService {
     });
   }
 
-  async accept(params: { orderId: number }) {
+  async accept(params: { companyId: number; orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -708,14 +714,28 @@ export class OrderChangeService {
         },
       });
 
-      if (!Util.inc(order.status, 'ORDER_REQUESTED', 'OFFER_REQUESTED')) {
+      const partnerCompany =
+        order.srcCompany.id === params.companyId
+          ? order.dstCompany
+          : order.srcCompany;
+
+      if (
+        (partnerCompany.managedById === null &&
+          !Util.inc(order.status, 'ORDER_REQUESTED', 'OFFER_REQUESTED')) ||
+        (partnerCompany.managedById !== null &&
+          !Util.inc(order.status, 'ORDER_PREPARING', 'OFFER_PREPARING'))
+      ) {
         throw new ConflictException(`Invaid Order Status`);
       }
 
       switch (order.orderType) {
         case OrderType.NORMAL:
-          // 구매자가 요청한 주문 승인시 가용수량 차감 (재고 배정)
-          if (order.status === 'ORDER_REQUESTED') {
+          // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (plan 생성)
+          if (
+            order.status === 'ORDER_REQUESTED' ||
+            order.status === 'ORDER_PREPARING' ||
+            order.status === 'OFFER_PREPARING'
+          ) {
             await this.assignStockToNormalOrder(
               tx,
               order.dstCompany.id,
@@ -1125,7 +1145,11 @@ export class OrderChangeService {
           orderType: true,
           orderStock: {
             include: {
-              plan: true,
+              plan: {
+                where: {
+                  isDeleted: false,
+                },
+              },
             },
           },
         },
@@ -1138,11 +1162,11 @@ export class OrderChangeService {
       switch (order.orderType) {
         case OrderType.NORMAL:
           if (order.status === 'OFFER_REQUESTED') {
-            // 판매자쪽에서 요청한 주문의 경우 가용수량 원복
+            // 판매자쪽에서 요청한 주문의 경우 가용수량 원복 (plan 삭제)
             const dstPlan = order.orderStock.plan.find(
               (plan) => plan.type === 'TRADE_NORMAL_SELLER',
             );
-            await this.cancelAssignStockTx(tx, dstPlan.id);
+            await this.cancelAssignStockTx(tx, dstPlan.id, true);
           }
           break;
         default:
@@ -1177,7 +1201,11 @@ export class OrderChangeService {
           status: true,
           orderStock: {
             select: {
-              plan: true,
+              plan: {
+                where: {
+                  isDeleted: false,
+                },
+              },
             },
           },
         },
@@ -1202,7 +1230,7 @@ export class OrderChangeService {
             const dstPlan = order.orderStock.plan.find(
               (plan) => plan.type === 'TRADE_NORMAL_SELLER',
             );
-            await this.cancelAssignStockTx(tx, dstPlan.id);
+            await this.cancelAssignStockTx(tx, dstPlan.id, true);
           }
           break;
         default:
@@ -2287,7 +2315,24 @@ export class OrderChangeService {
 
       // TODO: 거래처 확인
       // TODO: 도착지 확인
-      // TODO: 재고 가용수량 확인
+
+      // 재고 가용수량 확인
+      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+        inquiryCompanyId: companyId,
+        companyId: srcCompanyId,
+        warehouseId,
+        planId,
+        productId,
+        packagingId,
+        grammage,
+        sizeX,
+        sizeY,
+        paperColorGroupId,
+        paperColorId,
+        paperPatternId,
+        paperCertId,
+        quantity,
+      });
 
       const order = await tx.order.create({
         select: {
@@ -2336,125 +2381,62 @@ export class OrderChangeService {
                 companyId === dstCompanyId ? isDstDirectShipping : undefined,
               isSrcDirectShipping:
                 companyId === srcCompanyId ? isSrcDirectShipping : undefined,
-              plan: {
-                createMany: {
-                  data: [
-                    {
-                      type: 'TRADE_OUTSOURCE_PROCESS_BUYER',
-                      planNo: ulid(),
-                      companyId: srcCompanyId,
-                      status: 'PREPARING',
-                    },
-                    {
-                      type: 'TRADE_OUTSOURCE_PROCESS_SELLER',
-                      planNo: ulid(),
-                      companyId: dstCompanyId,
-                      status: 'PREPARING',
-                    },
-                  ],
+              // 원지 정보
+              company: {
+                connect: {
+                  id: srcCompanyId,
                 },
               },
-            },
-          },
-        },
-      });
-
-      const srcPlan = order.orderProcess.plan.find(
-        (plan) => plan.companyId === order.srcCompanyId,
-      );
-
-      // 구매 회사의 재고 선택
-      const stock = await tx.stock.create({
-        include: {
-          stockEvent: true,
-        },
-        data: {
-          serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
-          initialPlan: {
-            connect: {
-              id: srcPlan.id,
-            },
-          },
-          company: {
-            connect: {
-              id: srcCompanyId,
-            },
-          },
-          warehouse: warehouseId
-            ? {
+              warehouse: {
                 connect: {
                   id: warehouseId,
                 },
-              }
-            : undefined,
-          plan: planId
-            ? {
+              },
+              planId,
+              product: {
                 connect: {
-                  id: planId,
+                  id: productId,
                 },
-              }
-            : undefined,
-          product: {
-            connect: {
-              id: productId,
+              },
+              packaging: {
+                connect: {
+                  id: packagingId,
+                },
+              },
+              grammage,
+              sizeX,
+              sizeY,
+              paperColorGroup: paperColorGroupId
+                ? {
+                    connect: {
+                      id: paperColorGroupId,
+                    },
+                  }
+                : undefined,
+              paperColor: paperColorId
+                ? {
+                    connect: {
+                      id: paperColorId,
+                    },
+                  }
+                : undefined,
+              paperPattern: paperPatternId
+                ? {
+                    connect: {
+                      id: paperColorGroupId,
+                    },
+                  }
+                : undefined,
+              paperCert: paperCertId
+                ? {
+                    connect: {
+                      id: paperColorGroupId,
+                    },
+                  }
+                : undefined,
+              quantity,
             },
           },
-          packaging: {
-            connect: {
-              id: packagingId,
-            },
-          },
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroup: paperColorGroupId
-            ? {
-                connect: {
-                  id: paperColorGroupId,
-                },
-              }
-            : undefined,
-          paperColor: paperColorId
-            ? {
-                connect: {
-                  id: paperColorId,
-                },
-              }
-            : undefined,
-          paperPattern: paperPatternId
-            ? {
-                connect: {
-                  id: paperPatternId,
-                },
-              }
-            : undefined,
-          paperCert: paperCertId
-            ? {
-                connect: {
-                  id: paperCertId,
-                },
-              }
-            : undefined,
-          cachedQuantityAvailable: -quantity,
-          stockEvent: {
-            create: {
-              change: -quantity,
-              status: 'PENDING',
-            },
-          },
-        },
-      });
-
-      await tx.plan.update({
-        data: {
-          assignStockEvent: {
-            connect: {
-              id: stock.stockEvent[0].id,
-            },
-          },
-        },
-        where: {
-          id: srcPlan.id,
         },
       });
 

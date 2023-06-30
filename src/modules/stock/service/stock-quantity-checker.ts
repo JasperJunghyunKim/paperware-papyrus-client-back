@@ -31,7 +31,6 @@ export class StockQuantityChecker {
       quantity: number;
     },
   ) {
-    console.log(params);
     const {
       inquiryCompanyId,
       companyId,
@@ -136,7 +135,7 @@ export class StockQuantityChecker {
         paperCertId,
       },
     });
-    console.log(111, stock);
+    if (!stock) throw new NotFoundException(`존재하지 않는 재고그룹 입니다.`);
 
     const inquireCompany = await tx.company.findUnique({
       where: {
