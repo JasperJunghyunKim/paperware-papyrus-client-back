@@ -213,7 +213,7 @@ export class PlanChangeService {
     });
   }
 
-  // 플랜 생성
+  /** 플랜 생성 */
   private async createPlanTx(
     tx: PrismaTransaction,
     params: {
@@ -258,6 +258,22 @@ export class PlanChangeService {
     });
   }
 
+  /** 정상거래 구매자 계획 */
+  async createOrderStockSrcPlanTx(
+    tx: PrismaTransaction,
+    companyId: number,
+    orderStockId: number,
+  ) {
+    return await this.createPlanTx(tx, {
+      type: 'TRADE_NORMAL_BUYER',
+      companyId,
+      assignStockEventId: null,
+      orderStockId,
+      orderProcessId: null,
+    });
+  }
+
+  /** 외주공정 판매자 계획 */
   async createOrderProcessDstPlanTx(
     tx: PrismaTransaction,
     companyId: number,

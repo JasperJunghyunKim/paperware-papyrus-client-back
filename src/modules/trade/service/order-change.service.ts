@@ -827,6 +827,7 @@ export class OrderChangeService {
           dstCompany: true,
           status: true,
           orderType: true,
+          orderStock: true,
           orderDeposit: true,
           orderProcess: true,
         },
@@ -848,7 +849,7 @@ export class OrderChangeService {
 
       switch (order.orderType) {
         case OrderType.NORMAL:
-          // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (plan 생성)
+          // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (dstPlan 생성)
           if (
             order.status === 'ORDER_REQUESTED' ||
             order.status === 'ORDER_PREPARING' ||
@@ -860,6 +861,12 @@ export class OrderChangeService {
               orderId,
             );
           }
+          // srcPlan도 생성 (도착예정재고 추가용)
+          await this.planChangeService.createOrderStockSrcPlanTx(
+            tx,
+            order.srcCompany.id,
+            order.orderStock.id,
+          );
           break;
         case OrderType.DEPOSIT:
           await this.createDeposit(
