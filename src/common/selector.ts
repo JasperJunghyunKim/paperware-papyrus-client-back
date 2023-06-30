@@ -415,6 +415,36 @@ export const ORDER_PROCESS = {
       status: true,
     },
   },
+  // 외주공정의 주문 원지 정보
+  company: {
+    select: COMPANY,
+  },
+  planId: true,
+  warehouse: {
+    select: WAREHOUSE,
+  },
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
 } satisfies Prisma.OrderProcessSelect;
 
 export const ORDER_ETC = {
@@ -511,6 +541,13 @@ export const PLAN = {
     select: STOCK_EVENT,
   },
   orderStock: {
+    select: {
+      order: {
+        select: ORDER,
+      },
+    },
+  },
+  orderProcess: {
     select: {
       order: {
         select: ORDER,
