@@ -607,7 +607,7 @@ export class OrderChangeService {
       if (order.orderType !== 'NORMAL')
         throw new ConflictException(`거래타입이 맞지 않습니다.`);
       if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
-        throw new ConflictException(`Invalid Order Status`);
+        throw new ConflictException(`원지를 수정가능한 주문상태가 아닙니다.`);
       }
 
       // 재고 체크
@@ -724,7 +724,9 @@ export class OrderChangeService {
         companyId === order.srcCompanyId ? order.dstCompany : order.srcCompany;
 
       if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
-        throw new ConflictException('Invalid order status');
+        throw new ConflictException(
+          '주문 요청을 보낼 수 있는 주문상태가 아닙니다.',
+        );
       }
       if (partnerCompany.managedById !== null)
         throw new ConflictException(
@@ -797,7 +799,7 @@ export class OrderChangeService {
       });
 
       if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
-        throw new Error('Invalid order status');
+        throw new ConflictException('주문을 취소할 수 없는 상태입니다.');
       }
 
       await tx.order.update({
@@ -1330,7 +1332,7 @@ export class OrderChangeService {
       });
 
       if (!Util.inc(order.status, 'OFFER_REQUESTED', 'ORDER_REQUESTED')) {
-        throw new Error('Invalid order status');
+        throw new ConflictException('주문을 거절할 수 없는 상태입니다.');
       }
 
       switch (order.orderType) {
@@ -1401,7 +1403,7 @@ export class OrderChangeService {
           'ORDER_REQUESTED',
         )
       ) {
-        throw new Error('Invalid order status');
+        throw new ConflictException('주문을 취소할 수 없는 상태입니다.');
       }
 
       switch (order.orderType) {
