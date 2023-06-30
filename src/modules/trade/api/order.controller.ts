@@ -288,7 +288,11 @@ export class OrderController {
   async acceptOrder(@Request() req: AuthType, @Param('id') id: string) {
     const order = await this.retrive.getItem({ orderId: Number(id) });
 
-    if (!order) {
+    if (
+      !order &&
+      req.user.companyId !== order.dstCompany.id &&
+      req.user.companyId !== order.srcCompany.id
+    ) {
       throw new ForbiddenException('존재하지 않는 주문입니다.');
     }
 

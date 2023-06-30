@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { PlanType } from '@prisma/client';
 import { Task } from 'src/@shared';
 import { Util } from 'src/common';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
+import { ulid } from 'ulid';
 
 @Injectable()
 export class PlanChangeService {
@@ -208,6 +210,81 @@ export class PlanChangeService {
       await this.stockChangeService.cacheStockQuantityTx(tx, {
         id: se.stockId,
       });
+    });
+  }
+
+  /** 플랜 생성 */
+  private async createPlanTx(
+    tx: PrismaTransaction,
+    params: {
+      type: PlanType;
+      companyId: number;
+      assignStockEventId: number | null;
+      orderStockId: number | null;
+      orderProcessId: number | null;
+    },
+  ) {
+    return await tx.plan.create({
+      data: {
+        planNo: ulid(),
+        type: params.type,
+        company: {
+          connect: {
+            id: params.companyId,
+          },
+        },
+        assignStockEvent: params.assignStockEventId
+          ? {
+              connect: {
+                id: params.assignStockEventId,
+              },
+            }
+          : undefined,
+        orderStock: params.orderStockId
+          ? {
+              connect: {
+                id: params.orderStockId,
+              },
+            }
+          : undefined,
+        orderProcess: params.orderProcessId
+          ? {
+              connect: {
+                id: params.orderProcessId,
+              },
+            }
+          : undefined,
+      },
+    });
+  }
+
+  /** 정상거래 구매자 계획 */
+  async createOrderStockSrcPlanTx(
+    tx: PrismaTransaction,
+    companyId: number,
+    orderStockId: number,
+  ) {
+    return await this.createPlanTx(tx, {
+      type: 'TRADE_NORMAL_BUYER',
+      companyId,
+      assignStockEventId: null,
+      orderStockId,
+      orderProcessId: null,
+    });
+  }
+
+  /** 외주공정 판매자 계획 */
+  async createOrderProcessDstPlanTx(
+    tx: PrismaTransaction,
+    companyId: number,
+    orderProcessId: number,
+  ) {
+    return await this.createPlanTx(tx, {
+      type: 'TRADE_OUTSOURCE_PROCESS_SELLER',
+      companyId,
+      assignStockEventId: null,
+      orderStockId: null,
+      orderProcessId,
     });
   }
 }
