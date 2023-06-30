@@ -457,6 +457,7 @@ export class StockRetriveService {
 
                 -- mysql error
                 , partnerCompany.id
+                , o.id
                 , os.id
                 , p.id
 
