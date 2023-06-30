@@ -835,21 +835,41 @@ export class OrderChangeService {
         },
       });
 
-      const partnerCompany =
-        order.srcCompany.id === params.companyId
-          ? order.dstCompany
-          : order.srcCompany;
-
       if (
         !Util.inc(
           order.status,
           'ORDER_PREPARING',
-          'OFFER_PREPARING',
           'ORDER_REQUESTED',
+          'OFFER_PREPARING',
           'OFFER_REQUESTED',
         )
       ) {
         throw new ConflictException(`승인 가능한 주문상태가 아닙니다.`);
+      }
+
+      const isDstCompany = order.dstCompany.id === params.companyId;
+      const partnerCompany = isDstCompany ? order.srcCompany : order.dstCompany;
+
+      // 거래처가 사용중인 경우 승인권한 체크
+      if (partnerCompany.managedById === null) {
+        if (
+          // 구매자가 자체 승인 (X)
+          (order.status === 'ORDER_PREPARING' && !isDstCompany) ||
+          // 판매자가 자체승인 + 외주공정 (X)
+          (order.status === 'OFFER_PREPARING' &&
+            isDstCompany &&
+            order.orderType === 'OUTSOURCE_PROCESS') ||
+          // 작성중인 주문을 거래처가 승인하려는 경우 (X)
+          (order.status === 'ORDER_PREPARING' && isDstCompany) ||
+          (order.status === 'OFFER_PREPARING' && !isDstCompany) ||
+          // 요청후 자체승인 (X)
+          (order.status === 'ORDER_REQUESTED' && !isDstCompany) ||
+          (order.status === 'OFFER_REQUESTED' && isDstCompany)
+        ) {
+          throw new ForbiddenException(
+            `주문승인 권한이 없습니다. 거래처에 문의해주세요.`,
+          );
+        }
       }
 
       switch (order.orderType) {
@@ -920,7 +940,9 @@ export class OrderChangeService {
               order.orderProcess.id,
             );
           } else {
-            throw new ForbiddenException(`거래 승인 권한이 없습니다.`);
+            throw new ForbiddenException(
+              `주문승인 권한이 없습니다. 거래처에 문의해주세요.`,
+            );
           }
           // 출고 및 도착예정재고 자동 생성
           await this.acceptOrderProcessTx(tx, orderId);
