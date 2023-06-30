@@ -841,10 +841,13 @@ export class OrderChangeService {
           : order.srcCompany;
 
       if (
-        (partnerCompany.managedById === null &&
-          !Util.inc(order.status, 'ORDER_REQUESTED', 'OFFER_REQUESTED')) ||
-        (partnerCompany.managedById !== null &&
-          !Util.inc(order.status, 'ORDER_PREPARING', 'OFFER_PREPARING'))
+        !Util.inc(
+          order.status,
+          'ORDER_PREPARING',
+          'OFFER_PREPARING',
+          'ORDER_REQUESTED',
+          'OFFER_REQUESTED',
+        )
       ) {
         throw new ConflictException(`승인 가능한 주문상태가 아닙니다.`);
       }
@@ -932,6 +935,11 @@ export class OrderChangeService {
         },
         data: {
           status: 'ACCEPTED',
+          acceptedCompany: {
+            connect: {
+              id: params.companyId,
+            },
+          },
         },
       });
     });

@@ -155,7 +155,7 @@ export const INITIAL_ORDER = {
   status: true,
   isEntrusted: true,
   memo: true,
-  stockAcceptedCompanyId: true,
+  acceptedCompany: true,
   isStockRejected: true,
   orderStock: {
     select: {
@@ -477,7 +477,8 @@ export const ORDER = {
   status: true,
   isEntrusted: true,
   memo: true,
-  stockAcceptedCompanyId: true,
+  acceptedCompanyId: true,
+  acceptedCompany: true,
   isStockRejected: true,
   orderStock: {
     select: ORDER_STOCK,
