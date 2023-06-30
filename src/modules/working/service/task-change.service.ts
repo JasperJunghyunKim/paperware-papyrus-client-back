@@ -303,6 +303,17 @@ export class TaskChangeService {
           },
         });
         if (task.plan.orderStock) {
+          const skid = await tx.packaging.findFirstOrThrow({
+            where: {
+              type: 'SKID',
+            },
+          });
+
+          const nextPackaging =
+            result.packagingType === 'SKID'
+              ? skid
+              : task.plan.assignStockEvent.stock.packaging;
+
           // 주문에 연결된 작업은 송장을 생성
           await tx.invoice.create({
             data: {
@@ -319,7 +330,7 @@ export class TaskChangeService {
               },
               packaging: {
                 connect: {
-                  id: packaging.id,
+                  id: nextPackaging.id,
                 },
               },
               grammage: task.plan.assignStockEvent.stock.grammage,
