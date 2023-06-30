@@ -163,7 +163,7 @@ export class PartnerStockRetriveService {
                       , s.paperCertId
                       , s.warehouseId
                       , s.planId
-              HAVING (availableQuantity != 0 AND totalQuantity !=0)
+              HAVING availableQuantity != 0
       
             ${limit}
           `;
