@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -30,6 +31,7 @@ import { ORDER } from 'src/common/selector';
 import { Plan } from 'src/@shared/models';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
+import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -78,6 +80,7 @@ export class OrderChangeService {
     private readonly depositChangeService: DepositChangeService,
     private readonly stockChangeService: StockChangeService,
     private readonly stockQuantityChecker: StockQuantityChecker,
+    private readonly planChangeService: PlanChangeService,
   ) {}
 
   private async updateOrderRevisionTx(tx: PrismaTransaction, orderId: number) {
@@ -180,6 +183,105 @@ export class OrderChangeService {
       },
     });
   }
+
+  private async assignStockToProcessOrder(
+    tx: PrismaTransaction,
+    inquiryCompanyId: number,
+    orderId: number,
+  ) {
+    const orderProcess = await tx.orderProcess.findUnique({
+      include: {
+        order: true,
+        company: true,
+      },
+      where: {
+        orderId,
+      },
+    });
+
+    // 판매처가 사용중인 경우 재고 체크
+    if (orderProcess.company.managedById === null) {
+      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+        inquiryCompanyId,
+        companyId: orderProcess.companyId,
+        warehouseId: orderProcess.warehouseId,
+        planId: orderProcess.planId,
+        productId: orderProcess.productId,
+        packagingId: orderProcess.packagingId,
+        grammage: orderProcess.grammage,
+        sizeX: orderProcess.sizeX,
+        sizeY: orderProcess.sizeY,
+        paperColorGroupId: orderProcess.paperColorGroupId,
+        paperColorId: orderProcess.paperColorId,
+        paperPatternId: orderProcess.paperPatternId,
+        paperCertId: orderProcess.paperCertId,
+        quantity: orderProcess.quantity,
+      });
+    }
+
+    const srcPlan = await tx.plan.create({
+      data: {
+        planNo: ulid(),
+        type: 'TRADE_OUTSOURCE_PROCESS_BUYER',
+        company: {
+          connect: {
+            id: orderProcess.order.srcCompanyId,
+          },
+        },
+        orderProcess: {
+          connect: {
+            id: orderProcess.id,
+          },
+        },
+      },
+    });
+
+    // 재고 할당
+    const stock = await tx.stock.create({
+      data: {
+        serial: ulid(),
+        companyId: orderProcess.companyId,
+        initialPlanId: srcPlan.id,
+        warehouseId: orderProcess.warehouseId,
+        planId: orderProcess.planId,
+        productId: orderProcess.productId,
+        packagingId: orderProcess.packagingId,
+        grammage: orderProcess.grammage,
+        sizeX: orderProcess.sizeX,
+        sizeY: orderProcess.sizeY,
+        paperColorGroupId: orderProcess.paperColorGroupId,
+        paperColorId: orderProcess.paperColorId,
+        paperPatternId: orderProcess.paperPatternId,
+        paperCertId: orderProcess.paperCertId,
+        cachedQuantityAvailable: -orderProcess.quantity,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    await tx.stockEvent.create({
+      data: {
+        stock: {
+          connect: {
+            id: stock.id,
+          },
+        },
+        change: -orderProcess.quantity,
+        status: 'PENDING',
+        assignPlan: {
+          connect: {
+            id: srcPlan.id,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  // plan service로 이동시킬것(?)
 
   private async cancelAssignStockTx(
     tx: PrismaTransaction,
@@ -613,12 +715,21 @@ export class OrderChangeService {
           orderStock: true,
           srcCompanyId: true,
           dstCompanyId: true,
+          srcCompany: true,
+          dstCompany: true,
         },
       });
 
+      const partnerCompany =
+        companyId === order.srcCompanyId ? order.dstCompany : order.srcCompany;
+
       if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
-        throw new Error('Invalid order status');
+        throw new ConflictException('Invalid order status');
       }
+      if (partnerCompany.managedById !== null)
+        throw new ConflictException(
+          `미사용 거래처 대상 거래는 주문요청을 할 수 없습니다.`,
+        );
 
       switch (order.orderType) {
         case OrderType.NORMAL:
@@ -646,6 +757,12 @@ export class OrderChangeService {
                 quantity: order.orderStock.quantity,
               },
             );
+          }
+          break;
+        case OrderType.OUTSOURCE_PROCESS:
+          if (order.status === 'ORDER_PREPARING') {
+            // 구매자가 요청 보낼시 재고 가용수량 차감(srcPlan 생성)
+            await this.assignStockToProcessOrder(tx, companyId, orderId);
           }
           break;
         default:
@@ -711,6 +828,7 @@ export class OrderChangeService {
           status: true,
           orderType: true,
           orderDeposit: true,
+          orderProcess: true,
         },
       });
 
@@ -752,6 +870,46 @@ export class OrderChangeService {
           );
           break;
         case OrderType.OUTSOURCE_PROCESS:
+          if (params.companyId === order.dstCompany.id) {
+            // 판매자가 승인시 (판매)
+            if (order.srcCompany.managedById === null) {
+              // 구매자가 사용 거래처 (dstPlan생성)
+              await this.planChangeService.createOrderProcessDstPlanTx(
+                tx,
+                order.dstCompany.id,
+                order.orderProcess.id,
+              );
+            } else {
+              // 구매자가 미사용 거래처 (srcPlan, dstPlan생성) // 요청없이 바로 승인하는 경우이므로
+              await this.assignStockToProcessOrder(
+                tx,
+                order.srcCompany.id,
+                orderId,
+              );
+              await this.planChangeService.createOrderProcessDstPlanTx(
+                tx,
+                order.dstCompany.id,
+                order.orderProcess.id,
+              );
+            }
+          } else if (
+            params.companyId === order.srcCompany.id &&
+            order.dstCompany.managedById !== null
+          ) {
+            // 구매자가 직접 승인시(판매자가 미사용) (srcPlan, dstPlan 생성) // 요청없이 바로 승인하는 경우이므로
+            await this.assignStockToProcessOrder(
+              tx,
+              order.srcCompany.id,
+              orderId,
+            );
+            await this.planChangeService.createOrderProcessDstPlanTx(
+              tx,
+              order.dstCompany.id,
+              order.orderProcess.id,
+            );
+          } else {
+            throw new ForbiddenException(`거래 승인 권한이 없습니다.`);
+          }
           // 출고 및 도착예정재고 자동 생성
           await this.acceptOrderProcessTx(tx, orderId);
           break;
@@ -1152,6 +1310,15 @@ export class OrderChangeService {
               },
             },
           },
+          orderProcess: {
+            include: {
+              plan: {
+                where: {
+                  isDeleted: false,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -1168,6 +1335,13 @@ export class OrderChangeService {
             );
             await this.cancelAssignStockTx(tx, dstPlan.id, true);
           }
+          break;
+        case OrderType.OUTSOURCE_PROCESS:
+          // 구매자 plan 삭제
+          const srcPlan = order.orderProcess.plan.find(
+            (plan) => plan.type === 'TRADE_OUTSOURCE_PROCESS_BUYER',
+          );
+          await this.cancelAssignStockTx(tx, srcPlan.id, true);
           break;
         default:
           break;
@@ -2299,12 +2473,12 @@ export class OrderChangeService {
         throw new BadRequestException(`잘못된 주문입니다.`);
 
       // 매출등록은 상대방이 미사용인경우에만 가능
+      const srcCompany = await tx.company.findUnique({
+        where: {
+          id: srcCompanyId,
+        },
+      });
       if (companyId !== srcCompanyId) {
-        const srcCompany = await tx.company.findUnique({
-          where: {
-            id: srcCompanyId,
-          },
-        });
         if (!srcCompany)
           throw new BadRequestException(`존재하지 않는 거래처입니다.`);
         if (srcCompany.managedById === null)
@@ -2316,23 +2490,25 @@ export class OrderChangeService {
       // TODO: 거래처 확인
       // TODO: 도착지 확인
 
-      // 재고 가용수량 확인
-      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
-        inquiryCompanyId: companyId,
-        companyId: srcCompanyId,
-        warehouseId,
-        planId,
-        productId,
-        packagingId,
-        grammage,
-        sizeX,
-        sizeY,
-        paperColorGroupId,
-        paperColorId,
-        paperPatternId,
-        paperCertId,
-        quantity,
-      });
+      // 재고 가용수량 확인 (구매자가 사용중인 경우에만)
+      if (srcCompany.managedById === null) {
+        await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+          inquiryCompanyId: companyId,
+          companyId: srcCompanyId,
+          warehouseId,
+          planId,
+          productId,
+          packagingId,
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          quantity,
+        });
+      }
 
       const order = await tx.order.create({
         select: {
@@ -2387,11 +2563,13 @@ export class OrderChangeService {
                   id: srcCompanyId,
                 },
               },
-              warehouse: {
-                connect: {
-                  id: warehouseId,
-                },
-              },
+              warehouse: warehouseId
+                ? {
+                    connect: {
+                      id: warehouseId,
+                    },
+                  }
+                : undefined,
               planId,
               product: {
                 connect: {
@@ -2587,13 +2765,12 @@ export class OrderChangeService {
           dstCompany: true,
         },
         where: {
-          id: params.orderId,
+          id: orderId,
         },
       });
       if (
         !order ||
-        (order.srcCompanyId !== params.companyId &&
-          order.dstCompanyId !== params.companyId)
+        (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)
       )
         throw new NotFoundException(`존재하지 않는 주문입니다.`);
       if (order.orderType !== 'OUTSOURCE_PROCESS')
@@ -2601,12 +2778,30 @@ export class OrderChangeService {
           `잘못된 요청입니다. 주문타입을 확인해주세요`,
         );
       if (
-        params.companyId !== order.srcCompanyId &&
+        companyId !== order.srcCompanyId &&
         order.srcCompany.managedById === null
       )
         throw new BadRequestException(`원지정보 변경은 구매기업만 가능합니다.`);
 
-      // TODO: 원지 가용수량 체크 (판매자가 사용중일때만)
+      // 구매자가 사용중 기업이면 가용수량 체크
+      if (order.srcCompany.managedById === null) {
+        await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+          inquiryCompanyId: companyId,
+          companyId: order.srcCompany.id,
+          warehouseId,
+          planId,
+          productId,
+          packagingId,
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          quantity,
+        });
+      }
 
       switch (order.status) {
         case 'OFFER_PREPARING':
@@ -2618,111 +2813,24 @@ export class OrderChangeService {
           );
       }
 
-      const srcPlan = order.orderProcess.plan.find(
-        (plan) => order.srcCompanyId === plan.companyId,
-      );
-
-      // 기존 event취소
-      await tx.stockEvent.update({
-        data: {
-          status: 'CANCELLED',
-        },
+      await tx.orderProcess.update({
         where: {
-          id: srcPlan.assignStockEvent.id,
-        },
-      });
-
-      // assign stock 새로 생성
-      const stock = await tx.stock.create({
-        include: {
-          stockEvent: true,
+          id: order.orderProcess.id,
         },
         data: {
-          serial: ulid(), // 부모재고선택용 재고는 serial을 이렇게 만들어도 되는건지?
-          initialPlan: {
-            connect: {
-              id: srcPlan.id,
-            },
-          },
-          company: {
-            connect: {
-              id: order.srcCompanyId,
-            },
-          },
-          warehouse: warehouseId
-            ? {
-                connect: {
-                  id: warehouseId,
-                },
-              }
-            : undefined,
-          plan: planId
-            ? {
-                connect: {
-                  id: planId,
-                },
-              }
-            : undefined,
-          product: {
-            connect: {
-              id: productId,
-            },
-          },
-          packaging: {
-            connect: {
-              id: packagingId,
-            },
-          },
-          grammage,
-          sizeX,
-          sizeY,
-          paperColorGroup: paperColorGroupId
-            ? {
-                connect: {
-                  id: paperColorGroupId,
-                },
-              }
-            : undefined,
-          paperColor: paperColorId
-            ? {
-                connect: {
-                  id: paperColorId,
-                },
-              }
-            : undefined,
-          paperPattern: paperPatternId
-            ? {
-                connect: {
-                  id: paperPatternId,
-                },
-              }
-            : undefined,
-          paperCert: paperCertId
-            ? {
-                connect: {
-                  id: paperCertId,
-                },
-              }
-            : undefined,
-          stockEvent: {
-            create: {
-              change: -quantity,
-              status: 'PENDING',
-            },
-          },
-        },
-      });
-
-      await tx.plan.update({
-        data: {
-          assignStockEvent: {
-            connect: {
-              id: stock.stockEvent[0].id,
-            },
-          },
-        },
-        where: {
-          id: srcPlan.id,
+          companyId: order.srcCompanyId,
+          warehouseId: warehouseId,
+          planId: planId,
+          productId: productId,
+          packagingId: packagingId,
+          grammage: grammage,
+          sizeX: sizeX,
+          sizeY: sizeY,
+          paperColorGroupId: paperColorGroupId,
+          paperColorId: paperColorId,
+          paperPatternId: paperPatternId,
+          paperCertId: paperCertId,
+          quantity: quantity,
         },
       });
 

@@ -101,6 +101,8 @@ export class StockQuantityChecker {
     const totalQuantity = Number(stockGroups[0].totalQuantity);
     const availableQuantity = Number(stockGroups[0].availableQuantity);
 
+    console.log(stockGroups);
+
     const stock = await tx.stock.findFirst({
       include: {
         company: true,
