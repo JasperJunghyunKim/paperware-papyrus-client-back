@@ -846,7 +846,7 @@ export class OrderChangeService {
         (partnerCompany.managedById !== null &&
           !Util.inc(order.status, 'ORDER_PREPARING', 'OFFER_PREPARING'))
       ) {
-        throw new ConflictException(`Invaid Order Status`);
+        throw new ConflictException(`승인 가능한 주문상태가 아닙니다.`);
       }
 
       switch (order.orderType) {
