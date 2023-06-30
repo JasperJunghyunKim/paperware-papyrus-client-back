@@ -1048,4 +1048,27 @@ export class StockRetriveService {
 
     return stock;
   }
+
+  async getStockBySerial(companyId: number, serial: string) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+      select: {
+        invoiceCode: true,
+      },
+    });
+
+    const stock = await this.prisma.stock.findUnique({
+      where: {
+        serial: `P${company.invoiceCode}${serial}`,
+      },
+      select: STOCK,
+    });
+
+    if (!stock || stock.company.id !== companyId)
+      throw new NotFoundException(`존재하지 않는 재고입니다.`);
+
+    return stock;
+  }
 }

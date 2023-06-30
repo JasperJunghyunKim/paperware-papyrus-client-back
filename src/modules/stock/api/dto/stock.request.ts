@@ -10,6 +10,8 @@ import {
   IsObject,
   IsOptional,
   IsPositive,
+  IsString,
+  Length,
   Max,
   Min,
   NotEquals,
@@ -195,6 +197,12 @@ export class GetStockDto {
   @Type(() => Number)
   @IsPositive()
   readonly stockId: number;
+}
+
+export class GetStockBySerialDto {
+  @IsString()
+  @Length(10)
+  readonly serial: string;
 }
 
 /** 재고생성 (신규등록) */

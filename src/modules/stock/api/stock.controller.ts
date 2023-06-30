@@ -13,6 +13,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
   ArrivalStockCreateRequestDto,
+  GetStockBySerialDto,
   GetStockDto,
   IdDto,
   StockCreateRequestDto,
@@ -174,16 +175,16 @@ export class StockController {
     );
   }
 
-  /** 재고 상세 */
-  @Get('/:stockId')
+  /** 재고 상세 (재고번호) */
+  @Get('/by-serial/:serial')
   @UseGuards(AuthGuard)
   async get(
     @Request() req: AuthType,
-    @Param() dto: GetStockDto,
+    @Param() dto: GetStockBySerialDto,
   ): Promise<StockDetailResponse> {
-    const stock = await this.stockRetriveService.getStock(
+    const stock = await this.stockRetriveService.getStockBySerial(
       req.user.companyId,
-      dto.stockId,
+      dto.serial,
     );
     return Util.serialize(stock);
   }
