@@ -292,7 +292,10 @@ export class OrderController {
       throw new ForbiddenException('존재하지 않는 주문입니다.');
     }
 
-    await this.change.accept({ orderId: Number(id) });
+    await this.change.accept({
+      companyId: req.user.companyId,
+      orderId: Number(id),
+    });
   }
 
   @Post(':id/reject')

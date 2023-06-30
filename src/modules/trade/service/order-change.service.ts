@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
@@ -91,28 +92,32 @@ export class OrderChangeService {
     const orderStock = await tx.orderStock.findUnique({
       include: {
         order: true,
+        company: true,
       },
       where: {
         orderId,
       },
     });
 
-    await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
-      inquiryCompanyId,
-      companyId: orderStock.companyId,
-      warehouseId: orderStock.warehouseId,
-      planId: orderStock.planId,
-      productId: orderStock.productId,
-      packagingId: orderStock.packagingId,
-      grammage: orderStock.grammage,
-      sizeX: orderStock.sizeX,
-      sizeY: orderStock.sizeY,
-      paperColorGroupId: orderStock.paperColorGroupId,
-      paperColorId: orderStock.paperColorId,
-      paperPatternId: orderStock.paperPatternId,
-      paperCertId: orderStock.paperCertId,
-      quantity: orderStock.quantity,
-    });
+    // 판매처가 사용중인 경우 재고 체크
+    if (orderStock.company.managedById === null) {
+      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+        inquiryCompanyId,
+        companyId: orderStock.companyId,
+        warehouseId: orderStock.warehouseId,
+        planId: orderStock.planId,
+        productId: orderStock.productId,
+        packagingId: orderStock.packagingId,
+        grammage: orderStock.grammage,
+        sizeX: orderStock.sizeX,
+        sizeY: orderStock.sizeY,
+        paperColorGroupId: orderStock.paperColorGroupId,
+        paperColorId: orderStock.paperColorId,
+        paperPatternId: orderStock.paperPatternId,
+        paperCertId: orderStock.paperCertId,
+        quantity: orderStock.quantity,
+      });
+    }
 
     const dstPlan = await tx.plan.create({
       data: {
@@ -190,20 +195,34 @@ export class OrderChangeService {
       },
     });
 
-    if (plan.assignStockEvent) {
-      await tx.stockEvent.update({
+    // assign이 없는 경우 에러
+    if (!plan.assignStockEvent) throw new InternalServerErrorException();
+
+    await tx.stockEvent.update({
+      where: {
+        id: plan.assignStockEvent.id,
+      },
+      data: {
+        status: 'CANCELLED',
+      },
+    });
+
+    await this.stockChangeService.cacheStockQuantityTx(tx, {
+      id: plan.assignStockEvent.stockId,
+    });
+
+    if (deletePlan) {
+      // 플랜 삭제
+      await tx.plan.update({
         where: {
-          id: plan.assignStockEvent.id,
+          id: planId,
         },
         data: {
-          status: 'CANCELLED',
+          isDeleted: true,
         },
       });
-
-      await this.stockChangeService.cacheStockQuantityTx(tx, {
-        id: plan.assignStockEvent.stockId,
-      });
-
+    } else {
+      // assign만 해제
       await tx.plan.update({
         where: {
           id: planId,
@@ -212,17 +231,6 @@ export class OrderChangeService {
           assignStockEvent: {
             disconnect: true,
           },
-        },
-      });
-    }
-
-    if (deletePlan) {
-      await tx.plan.update({
-        where: {
-          id: planId,
-        },
-        data: {
-          isDeleted: true,
         },
       });
     }
@@ -689,7 +697,7 @@ export class OrderChangeService {
     });
   }
 
-  async accept(params: { orderId: number }) {
+  async accept(params: { companyId: number; orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -706,14 +714,28 @@ export class OrderChangeService {
         },
       });
 
-      if (!Util.inc(order.status, 'ORDER_REQUESTED', 'OFFER_REQUESTED')) {
+      const partnerCompany =
+        order.srcCompany.id === params.companyId
+          ? order.dstCompany
+          : order.srcCompany;
+
+      if (
+        (partnerCompany.managedById === null &&
+          !Util.inc(order.status, 'ORDER_REQUESTED', 'OFFER_REQUESTED')) ||
+        (partnerCompany.managedById !== null &&
+          !Util.inc(order.status, 'ORDER_PREPARING', 'OFFER_PREPARING'))
+      ) {
         throw new ConflictException(`Invaid Order Status`);
       }
 
       switch (order.orderType) {
         case OrderType.NORMAL:
-          // 구매자가 요청한 주문 승인시 가용수량 차감 (plan 생성)
-          if (order.status === 'ORDER_REQUESTED') {
+          // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (plan 생성)
+          if (
+            order.status === 'ORDER_REQUESTED' ||
+            order.status === 'ORDER_PREPARING' ||
+            order.status === 'OFFER_PREPARING'
+          ) {
             await this.assignStockToNormalOrder(
               tx,
               order.dstCompany.id,
