@@ -56,27 +56,44 @@ interface StockGroupFromDB {
   paperCertName: string;
 
   // 도착예정 정보
-  orderStockId: number;
+  planId: number;
+  planNo: string;
+  planStatus: PlanStatus;
+  planType: PlanType;
+  palnCreatedAt: string;
+
   orderId: number;
   orderNo: string;
-  dstLocationId: number;
-  dstLocationName: string;
-  dstLocationCode: string;
-  dstLocationIsPublic: boolean;
-  dstLocationAddress: string;
-  wantedDate: string;
+  orderType: OrderType;
+
+  orderStockId: number;
+  osDstLocationId: number;
+  osDstLocationName: string;
+  osDstLocationCode: string;
+  osDstLocationIsPublic: boolean;
+  osDstLocationAddress: string;
+  osWantedDate: string;
+
+  orderProcessId: number;
+  opDstLocationId: number;
+  opDstLocationName: string;
+  opDstLocationCode: string;
+  opDstLocationIsPublic: boolean;
+  opDstLocationAddress: string;
+  opDstWantedDate: string;
+  opSrcLocationId: number;
+  opSrcLocationName: string;
+  opSrcLocationCode: string;
+  opSrcLocationIsPublic: boolean;
+  opSrcLocationAddress: string;
+  opSrcWtantedDate: string;
+
   psLocationId: number;
   psLocationName: string;
   psLocationCode: string;
   psLocationIsPublic: boolean;
   psLocationAddress: string;
   psWantedDate: string;
-
-  planId: number;
-  planNo: string;
-  planStatus: PlanStatus;
-  planType: PlanType;
-  palnCreatedAt: string;
 
   // 원지정보
   asWarehouseId: number;
@@ -248,26 +265,46 @@ export class StockRetriveService {
             , paperCert.name AS paperCertName
 
             -- 도착예정 정보
-            , os.id AS orderStockId
-            , o.id AS orderId
-            , o.orderNo AS orderNo
-            , dstLocation.id AS dstLocationId
-            , dstLocation.name AS dstLocationName
-            , dstLocation.code AS dstLocationCode
-            , dstLocation.isPublic AS dstLocationIsPublic
-            , dstLocation.address AS dstLocationAddress
-            , os.wantedDate AS wantedDate
             , p.id AS planId
-            , p.planNo As planNo
+            , p.planNo AS planNo
             , p.status As planStatus
             , p.type As planType
             , p.createdAt As planCreatedAt
             , ps.wantedDate AS psWantedDate
+
+            , os.id AS orderStockId
+            , o.id AS orderId
+            , o.orderNo AS orderNo
+            , o.orderType AS orderType
+
+            , osDstLocation.id AS osDstLocationId
+            , osDstLocation.name AS osDstLocationName
+            , osDstLocation.code AS osDstLocationCode
+            , osDstLocation.isPublic AS osDstLocationIsPublic
+            , osDstLocation.address AS osDstLocationAddress
+            , os.wantedDate AS osWantedDate
+
+            , op.id AS orderProcessId
+            , opDstLocation.id AS opDstLocationId
+            , opDstLocation.name AS opDstLocationName
+            , opDstLocation.code AS opDstLocationCode
+            , opDstLocation.isPublic AS opDstLocationIsPublic
+            , opDstLocation.address AS opDstLocationAddress
+            , op.dstWantedDate AS opDstWantedDate
+            
+            , opSrcLocation.id AS opSrcLocationId
+            , opSrcLocation.name AS opSrcLocationName
+            , opSrcLocation.code AS opSrcLocationCode
+            , opSrcLocation.isPublic AS opSrcLocationIsPublic
+            , opSrcLocation.address AS opSrcLocationAddress
+            , op.srcWantedDate AS opSrcWtantedDate
+
             , psLocation.id AS psLocationId
             , psLocation.name AS psLocationName
             , psLocation.code AS psLocationCode
             , psLocation.isPublic AS psLocationIsPublic
             , psLocation.address AS psLocationAddress
+            
 
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
@@ -373,9 +410,18 @@ export class StockRetriveService {
 
    -- 거래 정보
    LEFT JOIN OrderStock         AS os                       ON os.id = p.orderStockId
-   LEFT JOIN \`Order\`          AS o                        ON o.id = os.orderId
+   LEFT JOIN \`Location\`       AS osDstLocation            ON osDstLocation.id = os.dstLocationId
+
+   LEFT JOIN OrderProcess       AS op                       ON op.id = p.orderProcessId AND op.companyId = ${companyId}
+   LEFT JOIN \`Location\`       AS opSrcLocation            ON opSrcLocation.id = op.srcLocationId
+   LEFT JOIN \`Location\`       AS opDstLocation            ON opDstLocation.id = op.dstLocationId
+
+   LEFT JOIN \`Order\`          AS o                        ON o.id = (CASE 
+                                                                        WHEN os.orderId IS NOT NULL THEN os.orderId 
+                                                                        WHEN op.orderId IS NOT NULL THEN op.orderId 
+                                                                        ELSE 0
+                                                                      END)
    LEFT JOIN Company            AS partnerCompany           ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
-   LEFT JOIN \`Location\`       AS dstLocation              ON dstLocation.id = os.dstLocationId
 
       -- 메타데이터
         JOIN Packaging          AS packaging                ON packaging.id = s.packagingId
@@ -486,12 +532,14 @@ export class StockRetriveService {
             ? {
                 id: sg.planId,
                 planNo: sg.planNo,
+                planType: sg.planType,
                 orderStock: sg.orderStockId
                   ? {
-                      wantedDate: sg.wantedDate,
+                      wantedDate: sg.osWantedDate,
                       order: {
                         id: sg.orderId,
                         orderNo: sg.orderNo,
+                        orderType: sg.orderType,
                         partnerCompany: {
                           id: sg.partnerCompanyId,
                           businessName: sg.partnerCompanyBusinessName,
@@ -507,11 +555,49 @@ export class StockRetriveService {
                         },
                       },
                       dstLocation: {
-                        id: sg.dstLocationId,
-                        name: sg.dstLocationName,
-                        code: sg.dstLocationCode,
-                        isPublic: sg.dstLocationIsPublic,
-                        address: sg.dstLocationAddress,
+                        id: sg.osDstLocationId,
+                        name: sg.osDstLocationName,
+                        code: sg.osDstLocationCode,
+                        isPublic: sg.osDstLocationIsPublic,
+                        address: sg.osDstLocationAddress,
+                      },
+                    }
+                  : null,
+                orderProcess: sg.orderProcessId
+                  ? {
+                      srcWantedDate: sg.opSrcWtantedDate,
+                      dstWantedDate: sg.opDstWantedDate,
+                      srcLocation: {
+                        id: sg.opSrcLocationId,
+                        name: sg.opSrcLocationName,
+                        code: sg.opSrcLocationCode,
+                        isPublic: sg.opSrcLocationIsPublic,
+                        address: sg.opSrcLocationAddress,
+                      },
+                      dstLocation: {
+                        id: sg.opDstLocationId,
+                        name: sg.opDstLocationName,
+                        code: sg.opDstLocationCode,
+                        isPublic: sg.opDstLocationIsPublic,
+                        address: sg.opDstLocationAddress,
+                      },
+                      order: {
+                        id: sg.orderId,
+                        orderNo: sg.orderNo,
+                        orderType: sg.orderType,
+                        partnerCompany: {
+                          id: sg.partnerCompanyId,
+                          businessName: sg.partnerCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.partnerCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.partnerCompanyInvoiceCode,
+                          representative: sg.partnerCompanyRepresentative,
+                          address: sg.partnerCompanyAddress,
+                          phoneNo: sg.partnerCompanyPhoneNo,
+                          faxNo: sg.partnerCompanyFaxNo,
+                          email: sg.partnerCompanyEmail,
+                          managedById: sg.partnerCompanyManagedById,
+                        },
                       },
                     }
                   : null,
