@@ -887,11 +887,12 @@ export class OrderChangeService {
             );
           }
           // srcPlan도 생성 (도착예정재고 추가용)
-          await this.planChangeService.createOrderStockSrcPlanTx(
+          const plan = await this.planChangeService.createOrderStockSrcPlanTx(
             tx,
             order.srcCompany.id,
             order.orderStock.id,
           );
+          // TODO: srcPlan에 도착예정재고 자동 추가
           break;
         case OrderType.DEPOSIT:
           await this.createDeposit(
