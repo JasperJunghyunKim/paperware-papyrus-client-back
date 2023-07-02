@@ -601,6 +601,7 @@ export class OrderChangeService {
           orderType: true,
           status: true,
           orderStock: true,
+          dstCompany: true,
         },
       });
       if (!order) throw new NotFoundException(`존재하지 않는 주문입니다.`);
@@ -610,23 +611,26 @@ export class OrderChangeService {
         throw new ConflictException(`원지를 수정가능한 주문상태가 아닙니다.`);
       }
 
-      // 재고 체크
-      await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
-        inquiryCompanyId: params.companyId,
-        companyId: order.dstCompanyId,
-        warehouseId: params.warehouseId,
-        planId: params.planId,
-        productId: params.productId,
-        packagingId: params.packagingId,
-        grammage: params.grammage,
-        sizeX: params.sizeX,
-        sizeY: params.sizeY,
-        paperColorGroupId: params.paperColorGroupId,
-        paperColorId: params.paperColorId,
-        paperPatternId: params.paperPatternId,
-        paperCertId: params.paperCertId,
-        quantity: params.quantity,
-      });
+      // 재고 체크 (판매자가 사용중인 경우)
+      console.log(order);
+      if (order.dstCompany.managedById === null) {
+        await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+          inquiryCompanyId: params.companyId,
+          companyId: order.dstCompanyId,
+          warehouseId: params.warehouseId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          quantity: params.quantity,
+        });
+      }
 
       // 원지정보 업데이트
       await tx.orderStock.update({
