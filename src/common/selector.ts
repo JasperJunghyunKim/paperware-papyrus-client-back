@@ -294,6 +294,9 @@ export const ORDER_STOCK = {
       companyId: true,
       status: true,
     },
+    where: {
+      isDeleted: false,
+    },
   },
   company: true,
   planId: true,
