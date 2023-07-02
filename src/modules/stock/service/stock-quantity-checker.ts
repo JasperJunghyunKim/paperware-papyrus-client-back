@@ -101,8 +101,6 @@ export class StockQuantityChecker {
     const totalQuantity = Number(stockGroups[0].totalQuantity);
     const availableQuantity = Number(stockGroups[0].availableQuantity);
 
-    console.log(stockGroups);
-
     const stock = await tx.stock.findFirst({
       include: {
         company: true,
@@ -145,6 +143,7 @@ export class StockQuantityChecker {
       },
     });
 
+    console.log(111111, stockGroups);
     this.logger.log(`[재고그룹 수량 조회]
 조회회사: ${inquireCompany.businessName}
 요청수량: ${stock.packaging.type === 'ROLL' ? quantity / TON_TO_GRAM : quantity}

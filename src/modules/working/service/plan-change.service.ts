@@ -111,7 +111,7 @@ export class PlanChangeService {
               paperColorId: plan.assignStockEvent.stock.paperColor?.id,
               paperPatternId: plan.assignStockEvent.stock.paperPattern?.id,
               paperCertId: plan.assignStockEvent.stock.paperCert?.id,
-              cachedQuantity: result.quantity,
+              cachedQuantityAvailable: result.quantity,
               stockPrice: {
                 create: {
                   officialPriceUnit: 'WON_PER_TON',
