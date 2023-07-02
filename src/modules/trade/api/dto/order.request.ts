@@ -140,7 +140,8 @@ export default class OrderStockCreateRequestDto
 
   @IsInt()
   @Type(() => Number)
-  quantity: number;
+  @Min(0)
+  quantity: number = 0;
 
   @IsOptional()
   @IsString()
@@ -644,7 +645,8 @@ export class OrderStockAssignStockUpdateRequestDto
   paperCertId: number | null = null;
   @IsInt()
   @Type(() => Number)
-  quantity: number;
+  @Min(0)
+  quantity: number = 0;
 }
 
 /** 보관매입/매출 등록 */

@@ -735,6 +735,13 @@ export class OrderChangeService {
 
       switch (order.orderType) {
         case OrderType.NORMAL:
+          if (order.orderStock.quantity <= 0) {
+            throw new BadRequestException(
+              companyId === order.dstCompanyId
+                ? `원지 사용 수량이 입력되지 않았습니다.`
+                : `원지 주문 수량이 입력되지 않았습니다.`,
+            );
+          }
           if (order.status === 'OFFER_PREPARING') {
             // 판매자가 요청 보낼시 재고 가용수량 차감(plan 생성)
             await this.assignStockToNormalOrder(tx, companyId, orderId);
@@ -878,13 +885,13 @@ export class OrderChangeService {
         }
       }
 
-      throw new BadRequestException('test');
-
       switch (order.orderType) {
         case OrderType.NORMAL:
           if (order.orderStock.quantity <= 0) {
             throw new BadRequestException(
-              `재고 사용 수량이 입력되지 않았습니다.`,
+              isDstCompany
+                ? `원지 사용 수량이 입력되지 않았습니다.`
+                : `원지 주문 수량이 입력되지 않았습니다.`,
             );
           }
           // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (dstPlan 생성)
