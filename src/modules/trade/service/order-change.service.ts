@@ -874,6 +874,11 @@ export class OrderChangeService {
 
       switch (order.orderType) {
         case OrderType.NORMAL:
+          if (order.orderStock.quantity <= 0) {
+            throw new BadRequestException(
+              `재고 사용 수량이 입력되지 않았습니다.`,
+            );
+          }
           // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (dstPlan 생성)
           if (
             order.status === 'ORDER_REQUESTED' ||
@@ -887,11 +892,44 @@ export class OrderChangeService {
             );
           }
           // srcPlan도 생성 (도착예정재고 추가용)
-          await this.planChangeService.createOrderStockSrcPlanTx(
+          const plan = await this.planChangeService.createOrderStockSrcPlanTx(
             tx,
             order.srcCompany.id,
             order.orderStock.id,
           );
+          // 구매자가 사용기업일때 srcPlan에 도착예정재고 자동 추가
+          if (order.srcCompany.managedById === null) {
+            await tx.stock.create({
+              data: {
+                serial: Util.serialP(order.srcCompany.invoiceCode),
+                companyId: order.srcCompany.id,
+                warehouseId: order.orderStock.warehouseId,
+                planId: plan.id,
+                productId: order.orderStock.productId,
+                packagingId: order.orderStock.packagingId,
+                grammage: order.orderStock.grammage,
+                sizeX: order.orderStock.sizeX,
+                sizeY: order.orderStock.sizeY,
+                paperColorGroupId: order.orderStock.paperColorGroupId,
+                paperColorId: order.orderStock.paperColorId,
+                paperPatternId: order.orderStock.paperPatternId,
+                paperCertId: order.orderStock.paperCertId,
+                isSyncPrice: true,
+                initialPlanId: plan.id,
+                stockEvent: {
+                  create: {
+                    change: order.orderStock.quantity,
+                    status: 'PENDING',
+                    plan: {
+                      connect: {
+                        id: plan.id,
+                      },
+                    },
+                  },
+                },
+              },
+            });
+          }
           break;
         case OrderType.DEPOSIT:
           await this.createDeposit(
