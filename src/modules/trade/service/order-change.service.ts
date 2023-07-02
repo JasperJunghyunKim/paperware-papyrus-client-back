@@ -921,7 +921,6 @@ export class OrderChangeService {
               data: {
                 serial: Util.serialP(order.srcCompany.invoiceCode),
                 companyId: order.srcCompany.id,
-                warehouseId: order.orderStock.warehouseId,
                 planId: plan.id,
                 productId: order.orderStock.productId,
                 packagingId: order.orderStock.packagingId,
@@ -934,6 +933,7 @@ export class OrderChangeService {
                 paperCertId: order.orderStock.paperCertId,
                 isSyncPrice: true,
                 initialPlanId: plan.id,
+                cachedQuantityAvailable: order.orderStock.quantity,
                 stockEvent: {
                   create: {
                     change: order.orderStock.quantity,
