@@ -317,7 +317,7 @@ export class TaskChangeService {
           // 주문에 연결된 작업은 송장을 생성
           await tx.invoice.create({
             data: {
-              invoiceNo: ulid(),
+              invoiceNo: Util.serialI(task.plan.company.invoiceCode),
               plan: {
                 connect: {
                   id: task.plan.id,
