@@ -7,7 +7,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { PartnerListResponse } from 'src/@shared/api/inhouse/partner.Response';
+import { PartnerListResponse } from 'src/@shared/api/inhouse/partner.response';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { PartnerRetriveService } from '../service/partner-retrive.service';
