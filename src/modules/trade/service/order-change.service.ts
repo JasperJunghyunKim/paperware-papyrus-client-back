@@ -612,7 +612,6 @@ export class OrderChangeService {
       }
 
       // 재고 체크 (판매자가 사용중인 경우)
-      console.log(order);
       if (order.dstCompany.managedById === null) {
         await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
           inquiryCompanyId: params.companyId,
