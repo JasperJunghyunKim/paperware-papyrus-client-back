@@ -21,7 +21,6 @@ import { StockGroupHistoryResponse } from 'src/@shared/api';
 interface StockGroupFromDB {
   warehouseId: number;
   warehouseName: string;
-  warehouseCode: string;
   warehouseIsPublic: boolean;
   warehouseAddress: string;
 
@@ -69,7 +68,6 @@ interface StockGroupFromDB {
   orderStockId: number;
   osDstLocationId: number;
   osDstLocationName: string;
-  osDstLocationCode: string;
   osDstLocationIsPublic: boolean;
   osDstLocationAddress: string;
   osWantedDate: string;
@@ -77,20 +75,17 @@ interface StockGroupFromDB {
   orderProcessId: number;
   opDstLocationId: number;
   opDstLocationName: string;
-  opDstLocationCode: string;
   opDstLocationIsPublic: boolean;
   opDstLocationAddress: string;
   opDstWantedDate: string;
   opSrcLocationId: number;
   opSrcLocationName: string;
-  opSrcLocationCode: string;
   opSrcLocationIsPublic: boolean;
   opSrcLocationAddress: string;
   opSrcWtantedDate: string;
 
   psLocationId: number;
   psLocationName: string;
-  psLocationCode: string;
   psLocationIsPublic: boolean;
   psLocationAddress: string;
   psWantedDate: string;
@@ -98,7 +93,6 @@ interface StockGroupFromDB {
   // 원지정보
   asWarehouseId: number;
   asWarehouseName: string;
-  asWarehouseCode: string;
   asWarehouseIsPublic: boolean;
   asWarehouseAddress: string;
 
@@ -153,7 +147,6 @@ interface StockGroupFromDB {
 interface StockGroupDetailFromDB {
   warehouseId: number;
   warehouseName: string;
-  warehouseCode: string;
   warehouseIsPublic: boolean;
   warehouseAddress: string;
 
@@ -233,7 +226,6 @@ export class StockRetriveService {
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
             , w.name AS warehouseName
-            , w.code AS warehouseCode
             , w.isPublic AS warehouseIsPublic
             , w.address AS warehouseAddress
 
@@ -279,7 +271,6 @@ export class StockRetriveService {
 
             , osDstLocation.id AS osDstLocationId
             , osDstLocation.name AS osDstLocationName
-            , osDstLocation.code AS osDstLocationCode
             , osDstLocation.isPublic AS osDstLocationIsPublic
             , osDstLocation.address AS osDstLocationAddress
             , os.wantedDate AS osWantedDate
@@ -287,21 +278,18 @@ export class StockRetriveService {
             , op.id AS orderProcessId
             , opDstLocation.id AS opDstLocationId
             , opDstLocation.name AS opDstLocationName
-            , opDstLocation.code AS opDstLocationCode
             , opDstLocation.isPublic AS opDstLocationIsPublic
             , opDstLocation.address AS opDstLocationAddress
             , op.dstWantedDate AS opDstWantedDate
             
             , opSrcLocation.id AS opSrcLocationId
             , opSrcLocation.name AS opSrcLocationName
-            , opSrcLocation.code AS opSrcLocationCode
             , opSrcLocation.isPublic AS opSrcLocationIsPublic
             , opSrcLocation.address AS opSrcLocationAddress
             , op.srcWantedDate AS opSrcWtantedDate
 
             , psLocation.id AS psLocationId
             , psLocation.name AS psLocationName
-            , psLocation.code AS psLocationCode
             , psLocation.isPublic AS psLocationIsPublic
             , psLocation.address AS psLocationAddress
             
@@ -321,7 +309,6 @@ export class StockRetriveService {
             -- 원지정보
             , asw.id AS asWarehouseId
             , asw.name AS asWarehouseName
-            , asw.code AS asWarehouseCode
             , asw.isPublic AS asWarehouseIsPublic
             , asw.address AS asWarehouseAddress
 
@@ -473,7 +460,6 @@ export class StockRetriveService {
                 id: sg.warehouseId,
                 name: sg.warehouseName,
                 address: sg.warehouseAddress,
-                code: sg.warehouseCode,
                 isPublic: sg.warehouseIsPublic,
               }
             : null,
@@ -558,7 +544,6 @@ export class StockRetriveService {
                       dstLocation: {
                         id: sg.osDstLocationId,
                         name: sg.osDstLocationName,
-                        code: sg.osDstLocationCode,
                         isPublic: sg.osDstLocationIsPublic,
                         address: sg.osDstLocationAddress,
                       },
@@ -571,14 +556,12 @@ export class StockRetriveService {
                       srcLocation: {
                         id: sg.opSrcLocationId,
                         name: sg.opSrcLocationName,
-                        code: sg.opSrcLocationCode,
                         isPublic: sg.opSrcLocationIsPublic,
                         address: sg.opSrcLocationAddress,
                       },
                       dstLocation: {
                         id: sg.opDstLocationId,
                         name: sg.opDstLocationName,
-                        code: sg.opDstLocationCode,
                         isPublic: sg.opDstLocationIsPublic,
                         address: sg.opDstLocationAddress,
                       },
@@ -608,7 +591,6 @@ export class StockRetriveService {
                       dstLocation: {
                         id: sg.psLocationId,
                         name: sg.psLocationName,
-                        code: sg.psLocationCode,
                         isPublic: sg.psLocationIsPublic,
                         address: sg.psLocationAddress,
                       },
@@ -803,7 +785,6 @@ export class StockRetriveService {
     const stockGroups: StockGroupDetailFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
             , w.name AS warehouseName
-            , w.code AS warehouseCode
             , w.isPublic AS warehouseIsPublic
             , w.address AS warehouseAddress
 
@@ -902,7 +883,6 @@ export class StockRetriveService {
         ? {
             id: stockGroup.warehouseId,
             name: stockGroup.warehouseName,
-            code: stockGroup.warehouseCode,
             isPublic: stockGroup.warehouseIsPublic,
             address: stockGroup.warehouseAddress,
           }

@@ -27,9 +27,6 @@ export class LocationCreateRequestDto implements LocationCreateRequest {
   @IsString()
   @MaxLength(50)
   name: string;
-  @IsString()
-  @MaxLength(4)
-  code: string;
   @IsBoolean()
   isPublic: boolean;
   @IsString()
@@ -40,9 +37,6 @@ export class LocationUpdateRequestDto implements LocationUpdateRequest {
   @IsString()
   @MaxLength(50)
   name: string;
-  @IsString()
-  @MaxLength(4)
-  code: string;
   @IsBoolean()
   isPublic: boolean;
   @IsString()

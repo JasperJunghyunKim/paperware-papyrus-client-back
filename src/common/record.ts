@@ -43,7 +43,6 @@ export interface User {
 export interface Warehouse {
   id: number;
   name: string;
-  code: string | null;
   isPublic: boolean;
   address: string;
 }
@@ -56,7 +55,6 @@ export interface WarehouseStats {
 export interface Location {
   id: number;
   name: string;
-  code: string | null;
   isPublic: boolean;
   address: string;
 }

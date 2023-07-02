@@ -59,7 +59,6 @@ export const BUSINESS_RELATIONSHIP_REQUEST = {
 export const WAREHOUSE = {
   id: true,
   name: true,
-  code: true,
   isPublic: true,
   company: {
     select: COMPANY,
@@ -70,7 +69,6 @@ export const WAREHOUSE = {
 export const LOCATION = {
   id: true,
   name: true,
-  code: true,
   isPublic: true,
   company: {
     select: COMPANY,

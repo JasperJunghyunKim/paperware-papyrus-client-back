@@ -100,7 +100,6 @@ export class LocationController {
   async create(@Request() req: AuthType, @Body() body: LocationCreateRequest) {
     await this.locationChangeService.create({
       name: body.name,
-      code: body.code,
       isPublic: body.isPublic,
       address: body.address,
       company: {
@@ -127,7 +126,6 @@ export class LocationController {
 
     await this.locationChangeService.update(id, {
       name: body.name,
-      code: body.code,
       isPublic: body.isPublic,
       address: body.address,
     });

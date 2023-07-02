@@ -74,7 +74,6 @@ export class WarehouseController {
   async create(@Request() req: AuthType, @Body() body: any) {
     await this.warehouseChangeService.create({
       name: body.name,
-      code: body.code,
       isPublic: body.isPublic,
       address: body.address,
       company: {
@@ -101,7 +100,6 @@ export class WarehouseController {
 
     await this.warehouseChangeService.update(id, {
       name: body.name,
-      code: body.code,
       isPublic: body.isPublic,
       address: body.address,
     });

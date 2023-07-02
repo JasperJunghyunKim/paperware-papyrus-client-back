@@ -76,7 +76,6 @@ export class PartnerStockRetriveService {
     const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
             SELECT w.id AS warehouseId
                   , w.name AS warehouseName
-                  , w.code AS warehouseCode
                   , w.isPublic AS warehouseIsPublic
                   , w.address AS warehouseAddress
       
@@ -177,7 +176,6 @@ export class PartnerStockRetriveService {
                 id: sg.warehouseId,
                 name: sg.warehouseName,
                 address: sg.warehouseAddress,
-                code: sg.warehouseCode,
                 isPublic: sg.warehouseIsPublic,
               }
             : null,

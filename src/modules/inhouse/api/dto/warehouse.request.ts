@@ -29,9 +29,6 @@ export class WarehouseCreateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;
-  @IsString()
-  @MaxLength(4)
-  code: string;
   @IsBoolean()
   isPublic: boolean;
   @IsString()
@@ -43,9 +40,6 @@ export class WarehouseUpdateRequestDto {
   @IsString()
   @MaxLength(50)
   name: string;
-  @IsString()
-  @MaxLength(4)
-  code: string;
   @IsBoolean()
   isPublic: boolean;
   @IsString()

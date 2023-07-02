@@ -145,7 +145,6 @@ model Product {
 model Warehouse {
   id           Int            @id @default(autoincrement())
   name         String
-  code         String?
   address      String         @default("") @db.VarChar(500)
   companyId    Int
   company      Company        @relation(fields: [companyId], references: [id])
@@ -154,8 +153,6 @@ model Warehouse {
   stock        Stock[]
   OrderStock   OrderStock[]
   OrderProcess OrderProcess[]
-
-  @@unique([companyId, code])
 }
 
 // Stock
@@ -320,7 +317,6 @@ model BusinessRelationshipRequest {
 model Location {
   id              Int            @id @default(autoincrement())
   name            String
-  code            String?
   address         String         @default("") @db.VarChar(500)
   companyId       Int
   company         Company        @relation(fields: [companyId], references: [id])
@@ -330,8 +326,6 @@ model Location {
   PlanShipping    PlanShipping[]
   dstOrderProcess OrderProcess[] @relation("dstLocation")
   srcOrderProcess OrderProcess[] @relation("srcLocation")
-
-  @@unique([companyId, code])
 }
 
 // Prices
