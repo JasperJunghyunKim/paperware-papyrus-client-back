@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PlanType } from '@prisma/client';
 import { Task } from 'src/@shared';
 import { Util } from 'src/common';
@@ -150,26 +150,43 @@ export class PlanChangeService {
   async completePlan(params: { planId: number }) {
     const { planId } = params;
 
-    const plan = await this.prisma.plan.findUnique({
-      where: {
-        id: planId,
-      },
-      select: {
-        status: true,
-      },
-    });
+    return await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.findUnique({
+        where: {
+          id: planId,
+        },
+        select: {
+          status: true,
+          assignStockEvent: true,
+        },
+      });
 
-    if (plan.status !== 'PROGRESSING') {
-      throw new Error('완료할 수 없는 Plan입니다.');
-    }
+      if (plan.status !== 'PROGRESSING') {
+        throw new Error('완료할 수 없는 Plan입니다.');
+      }
 
-    return await this.prisma.plan.update({
-      where: {
-        id: planId,
-      },
-      data: {
-        status: 'PROGRESSED',
-      },
+      if (plan.assignStockEvent) {
+        await tx.stockEvent.update({
+          data: {
+            status: 'CANCELLED',
+          },
+          where: {
+            id: plan.assignStockEvent.id,
+          },
+        });
+        await this.stockChangeService.cacheStockQuantityTx(tx, {
+          id: plan.assignStockEvent.stockId,
+        });
+      }
+
+      return await tx.plan.update({
+        where: {
+          id: planId,
+        },
+        data: {
+          status: 'PROGRESSED',
+        },
+      });
     });
   }
 
