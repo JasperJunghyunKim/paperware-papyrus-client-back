@@ -735,6 +735,13 @@ export class OrderChangeService {
 
       switch (order.orderType) {
         case OrderType.NORMAL:
+          if (order.orderStock.quantity <= 0) {
+            throw new BadRequestException(
+              companyId === order.dstCompanyId
+                ? `원지 사용 수량이 입력되지 않았습니다.`
+                : `원지 주문 수량이 입력되지 않았습니다.`,
+            );
+          }
           if (order.status === 'OFFER_PREPARING') {
             // 판매자가 요청 보낼시 재고 가용수량 차감(plan 생성)
             await this.assignStockToNormalOrder(tx, companyId, orderId);
@@ -851,6 +858,7 @@ export class OrderChangeService {
       const partnerCompany = isDstCompany ? order.srcCompany : order.dstCompany;
 
       // 거래처가 사용중인 경우 승인권한 체크
+      console.log(order.orderType, order.status, isDstCompany);
       if (partnerCompany.managedById === null) {
         if (
           // 구매자가 자체 승인 (X)
@@ -859,9 +867,6 @@ export class OrderChangeService {
           (order.status === 'OFFER_PREPARING' &&
             isDstCompany &&
             order.orderType === 'OUTSOURCE_PROCESS') ||
-          // 작성중인 주문을 거래처가 승인하려는 경우 (X)
-          (order.status === 'ORDER_PREPARING' && isDstCompany) ||
-          (order.status === 'OFFER_PREPARING' && !isDstCompany) ||
           // 요청후 자체승인 (X)
           (order.status === 'ORDER_REQUESTED' && !isDstCompany) ||
           (order.status === 'OFFER_REQUESTED' && isDstCompany)
@@ -870,13 +875,23 @@ export class OrderChangeService {
             `주문승인 권한이 없습니다. 거래처에 문의해주세요.`,
           );
         }
+
+        if (
+          // 작성중인 주문을 거래처가 승인하려는 경우 (X)
+          (order.status === 'ORDER_PREPARING' && isDstCompany) ||
+          (order.status === 'OFFER_PREPARING' && !isDstCompany)
+        ) {
+          throw new ForbiddenException(`승인가능한 주문 상태가 아닙니다.`);
+        }
       }
 
       switch (order.orderType) {
         case OrderType.NORMAL:
           if (order.orderStock.quantity <= 0) {
             throw new BadRequestException(
-              `재고 사용 수량이 입력되지 않았습니다.`,
+              isDstCompany
+                ? `원지 사용 수량이 입력되지 않았습니다.`
+                : `원지 주문 수량이 입력되지 않았습니다.`,
             );
           }
           // 구매자가 요청한 주문 승인시 OR 미사용거래처 대상 판매자 승인시 가용수량 차감 (dstPlan 생성)
