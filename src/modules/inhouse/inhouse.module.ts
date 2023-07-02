@@ -34,6 +34,8 @@ import { SecurityRetriveService } from './service/security-retrive.service';
 import { InhouseProcessController } from './api/inhouse-process.controller';
 import { InhouseProcessChangeService } from './service/inhouse-process-change.service';
 import { StockModule } from '../stock/stock.module';
+import { PartnerRetriveService } from './service/partner-retrive.service';
+import { PartnerController } from './api/partner.controller';
 
 @Module({
   imports: [StockModule],
@@ -60,8 +62,10 @@ import { StockModule } from '../stock/stock.module';
     SecurityRetriveService,
     SecurityChangeService,
     InhouseProcessChangeService,
+    PartnerRetriveService,
   ],
   controllers: [
+    PartnerController,
     BusinessRelationshipController,
     BusinessRelationshipRequestRequestController,
     CompanyController,
