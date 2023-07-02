@@ -96,7 +96,7 @@ export class InhouseProcessChangeService {
           paperColorId: params.paperColorId,
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
-          cachedQuantity: -quantity,
+          cachedQuantityAvailable: -quantity,
           stockEvent: {
             create: {
               change: -quantity,
