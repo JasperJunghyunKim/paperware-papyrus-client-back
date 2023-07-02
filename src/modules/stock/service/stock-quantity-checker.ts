@@ -94,6 +94,8 @@ export class StockQuantityChecker {
             AND ${paperPatternCondition}
             AND ${paperCertCondition}
             ${isPublicCondition}
+        
+        FOR UPDATE;
         `;
 
     if (stockGroups.length === 0)

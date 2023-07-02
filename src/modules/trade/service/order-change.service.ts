@@ -861,7 +861,6 @@ export class OrderChangeService {
       const partnerCompany = isDstCompany ? order.srcCompany : order.dstCompany;
 
       // 거래처가 사용중인 경우 승인권한 체크
-      console.log(order.orderType, order.status, isDstCompany);
       if (partnerCompany.managedById === null) {
         if (
           // 구매자가 자체 승인 (X)
