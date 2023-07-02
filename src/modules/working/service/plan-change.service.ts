@@ -258,7 +258,7 @@ export class PlanChangeService {
     });
   }
 
-  /** 정상거래 구매자 계획 */
+  /** 정상거래 구매자 계획 생성 */
   async createOrderStockSrcPlanTx(
     tx: PrismaTransaction,
     companyId: number,
@@ -273,7 +273,7 @@ export class PlanChangeService {
     });
   }
 
-  /** 외주공정 판매자 계획 */
+  /** 외주공정 판매자 계획 생성 */
   async createOrderProcessDstPlanTx(
     tx: PrismaTransaction,
     companyId: number,
