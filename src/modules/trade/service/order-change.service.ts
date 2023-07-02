@@ -2693,14 +2693,14 @@ export class OrderChangeService {
               paperPattern: paperPatternId
                 ? {
                     connect: {
-                      id: paperColorGroupId,
+                      id: paperPatternId,
                     },
                   }
                 : undefined,
               paperCert: paperCertId
                 ? {
                     connect: {
-                      id: paperColorGroupId,
+                      id: paperCertId,
                     },
                   }
                 : undefined,
