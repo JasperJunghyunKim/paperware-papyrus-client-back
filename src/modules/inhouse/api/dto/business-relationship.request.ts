@@ -84,6 +84,9 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   type: 'PURCHASE' | 'SALES' | 'BOTH';
   @IsString()
   partnerNickname: string;
+  @IsOptional()
+  @IsString()
+  businessName = '';
   @Optional()
   @IsString()
   invoiceCode = '';

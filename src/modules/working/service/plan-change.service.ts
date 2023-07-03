@@ -198,6 +198,16 @@ export class PlanChangeService {
     const { planId, stockId, quantity } = params;
 
     await this.prisma.$transaction(async (tx) => {
+      const stock = await tx.stock.findUnique({
+        where: {
+          id: stockId,
+        },
+      });
+
+      if (stock.cachedQuantityAvailable < quantity) {
+        throw new BadRequestException('재고의 실물 수량을 초과할 수 없습니다.');
+      }
+
       const plan = await tx.plan.findUnique({
         where: {
           id: planId,
@@ -208,7 +218,9 @@ export class PlanChangeService {
       });
 
       if (plan.status !== 'PROGRESSING') {
-        throw new Error('실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.');
+        throw new BadRequestException(
+          '실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.',
+        );
       }
 
       const se = await tx.stockEvent.create({

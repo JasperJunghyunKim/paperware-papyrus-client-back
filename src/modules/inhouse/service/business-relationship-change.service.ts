@@ -20,6 +20,7 @@ export class BusinessRelationshipChangeService {
     type: 'PURCHASE' | 'SALES' | 'BOTH';
     companyRegistrationNumber: string;
     partnerNickname: string;
+    businessName: string;
     invoiceCode: string;
     address: string;
     phoneNo: string;
@@ -90,7 +91,7 @@ export class BusinessRelationshipChangeService {
         const company = await tx.company.create({
           data: {
             companyRegistrationNumber: params.companyRegistrationNumber,
-            businessName: params.partnerNickname,
+            businessName: params.businessName,
             invoiceCode: params.invoiceCode,
             address: params.address,
             phoneNo: params.phoneNo,

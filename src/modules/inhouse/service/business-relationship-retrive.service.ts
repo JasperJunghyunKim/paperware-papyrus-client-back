@@ -19,6 +19,7 @@ export class BusinessRelationshipRetriveService {
       where: {
         srcCompanyId: params.srcCompanyId,
         dstCompanyId: params.dstCompanyId,
+        isActivated: true,
       },
       skip: params.skip,
       take: params.take,
@@ -75,9 +76,7 @@ export class BusinessRelationshipRetriveService {
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId} AND p.companyId = ${
-      params.companyId
-    } AND (c.managedById IS NULL OR a.flag <> 0)
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
       GROUP BY a.c2
       LIMIT ${params.take ?? 1 << 30} OFFSET ${params.skip}
       `;
@@ -110,7 +109,7 @@ export class BusinessRelationshipRetriveService {
       ) a
       INNER JOIN Company c on c.id = a.c2
       LEFT JOIN Partner p ON p.companyRegistrationNumber = c.companyRegistrationNumber
-      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId} AND (c.managedById IS NULL OR a.flag <> 0)
+      WHERE a.c1 = ${params.companyId} AND p.companyId = ${params.companyId}
       GROUP BY a.c2
       `;
 
@@ -155,6 +154,13 @@ export class BusinessRelationshipRetriveService {
     companyId: number;
     companyRegistrationNumber: string;
   }): Promise<Model.CompanyPartner> {
+    const targetCompany = await this.prisma.company.findFirst({
+      select: Selector.COMPANY,
+      where: {
+        companyRegistrationNumber: params.companyRegistrationNumber,
+      },
+    });
+
     const exists = await this.prisma.businessRelationship.findMany({
       where: {
         OR: [
@@ -163,19 +169,27 @@ export class BusinessRelationshipRetriveService {
             dstCompany: {
               companyRegistrationNumber: params.companyRegistrationNumber,
             },
-            isActivated: true,
           },
           {
             dstCompanyId: params.companyId,
             srcCompany: {
               companyRegistrationNumber: params.companyRegistrationNumber,
             },
-            isActivated: true,
           },
         ],
       },
+      include: {
+        srcCompany: true,
+        dstCompany: true,
+      },
     });
-    if (exists.length > 0) {
+    if (
+      exists.some((p) =>
+        [p.dstCompany, p.srcCompany]
+          .filter((q) => q.id !== params.companyId)
+          .some((r) => !!r.managedById == !!targetCompany.managedById),
+      )
+    ) {
       throw new BadRequestException('이미 등록된 거래처입니다.');
     }
 

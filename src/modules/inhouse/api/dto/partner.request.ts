@@ -3,7 +3,6 @@ import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PartnerListQuery } from 'src/@shared/api/inhouse/partner.request';
 import {
   VirtualCompanyCreateRequest,
-  VirtualCompanyListQuery,
   VirtualCompanyUpdateRequest,
 } from 'src/@shared/api/inhouse/virtual-company.request';
 
@@ -11,7 +10,7 @@ export class PartnerListQueryDto implements PartnerListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
-  skip: number = 0;
+  skip = 0;
   @IsOptional()
   @IsInt()
   @Type(() => Number)

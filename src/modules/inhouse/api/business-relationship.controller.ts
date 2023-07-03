@@ -184,6 +184,7 @@ export class BusinessRelationshipController {
       create: body.create,
       invoiceCode: body.invoiceCode,
       partnerNickname: body.partnerNickname,
+      businessName: body.businessName,
       type: body.type,
       address: body.address,
       phoneNo: body.phoneNo,

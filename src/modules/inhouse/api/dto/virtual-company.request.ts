@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 import {
   VirtualCompanyCreateRequest,
   VirtualCompanyListQuery,
