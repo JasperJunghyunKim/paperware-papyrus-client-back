@@ -992,6 +992,7 @@ model Partner {
   /// 파트너 닉네임(회사 닉네임)
   partnerNickName           String      @db.VarChar(100)
   /// 여신한도
+  creditLimit               Int         @default(0)
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
