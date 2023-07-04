@@ -132,7 +132,6 @@ interface StockGroupFromDB {
   partnerCompanyAddress: string;
   partnerCompanyPhoneNo: string;
   partnerCompanyFaxNo: string;
-  partnerCompanyEmail: string;
   partnerCompanyManagedById: number;
 
   totalQuantity: number;
@@ -303,7 +302,6 @@ export class StockRetriveService {
             , partnerCompany.address AS partnerCompanyAddress
             , partnerCompany.phoneNo AS partnerCompanyPhoneNo
             , partnerCompany.faxNo As partnerCompanyFaxNo
-            , partnerCompany.email AS partnerCompanyEmail
             , partnerCompany.managedById AS partnerCompanyManagedById
 
             -- 원지정보
@@ -537,7 +535,6 @@ export class StockRetriveService {
                           address: sg.partnerCompanyAddress,
                           phoneNo: sg.partnerCompanyPhoneNo,
                           faxNo: sg.partnerCompanyFaxNo,
-                          email: sg.partnerCompanyEmail,
                           managedById: sg.partnerCompanyManagedById,
                         },
                       },
@@ -579,7 +576,6 @@ export class StockRetriveService {
                           address: sg.partnerCompanyAddress,
                           phoneNo: sg.partnerCompanyPhoneNo,
                           faxNo: sg.partnerCompanyFaxNo,
-                          email: sg.partnerCompanyEmail,
                           managedById: sg.partnerCompanyManagedById,
                         },
                       },
