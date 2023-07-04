@@ -2335,6 +2335,9 @@ export class OrderChangeService {
       ) {
         throw new NotFoundException(`존재하지 않는 주문입니다.`);
       }
+      if (order.orderType !== 'DEPOSIT') {
+        throw new ConflictException(`주문타입이 맞지 않습니다.`);
+      }
       if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
         throw new ConflictException(`원지를 수정할 수 없는 주문상태 입니다.`);
       }
