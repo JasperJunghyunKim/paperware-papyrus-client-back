@@ -2331,7 +2331,7 @@ export class OrderChangeService {
       if (
         !order ||
         (order.srcCompany.id !== params.companyId &&
-          order.dstCompany.id === params.companyId)
+          order.dstCompany.id !== params.companyId)
       ) {
         throw new NotFoundException(`존재하지 않는 주문입니다.`);
       }
