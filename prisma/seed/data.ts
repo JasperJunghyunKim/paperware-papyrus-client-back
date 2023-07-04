@@ -217,7 +217,7 @@ export const COMPANY = [
   ['삼지프린테크', '2174612374', '0551231234', '0551231234', '김정진', 'SMZP'],
   ['한솔PNS', '5031278561', '0212341234', '0212341234', '강준석', 'HPNS'],
   ['페이퍼웨어', '3568701989', '0212341234', '0212341234', '김정현', 'PPWR'],
-  ['테스트회사', '1111111111', '0212341234', '0212341234', '안형은', 'TEST'],
+  ['테스트회사', '1234567890', '0212341234', '0212341234', '김불닭', 'TEST'],
 ];
 
 export const USER = [
@@ -232,6 +232,8 @@ export const USER = [
   [6, '김남훈', 'samzieprintech_knh', 'knh@samzieprintech.com'],
   [6, '김정진', 'samzieprintech_kjj', 'kjj@samzieprintech.com'],
   [9, '안형은', 'test_ahe', 'ahe@test.com'],
+  [9, '박혜준', 'test_phj', 'phj@test.com'],
+  [9, '김정현', 'test_kjh', 'kjh@test.com'],
 ] as [number, string, string, string][];
 
 export const WAREHOUSE = [
