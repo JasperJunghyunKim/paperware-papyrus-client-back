@@ -175,10 +175,24 @@ export class StockController {
     );
   }
 
+  /** 재고 상세 */
+  @Get('/:stockId')
+  @UseGuards(AuthGuard)
+  async get(
+    @Request() req: AuthType,
+    @Param() dto: GetStockDto,
+  ): Promise<StockDetailResponse> {
+    const stock = await this.stockRetriveService.getStock(
+      req.user.companyId,
+      dto.stockId,
+    );
+    return Util.serialize(stock);
+  }
+
   /** 재고 상세 (재고번호) */
   @Get('/by-serial/:serial')
   @UseGuards(AuthGuard)
-  async get(
+  async getBySerial(
     @Request() req: AuthType,
     @Param() dto: GetStockBySerialDto,
   ): Promise<StockDetailResponse> {
