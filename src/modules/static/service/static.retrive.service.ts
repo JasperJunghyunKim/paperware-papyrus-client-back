@@ -117,7 +117,7 @@ export class StaticService {
         managedById: true,
         phoneNo: true,
         faxNo: true,
-        email: true,
+        representative: true,
       },
     });
   }

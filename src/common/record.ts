@@ -197,7 +197,6 @@ export interface Company {
   companyRegistrationNumber: string;
   phoneNo: string;
   faxNo: string;
-  email: string;
   managedById: number | null;
 }
 

@@ -189,7 +189,7 @@ export class BusinessRelationshipController {
       address: body.address,
       phoneNo: body.phoneNo,
       faxNo: body.faxNo,
-      email: body.email,
+      representative: body.representative,
       companyRegistrationNumber: body.companyRegistrationNumber,
       memo: body.memo,
     });

@@ -249,7 +249,6 @@ model Company {
   companyRegistrationNumber      String
   phoneNo                        String                        @default("")
   faxNo                          String                        @default("")
-  email                          String                        @default("")
   representative                 String                        @default("")
   invoiceCode                    String
   address                        String                        @default("") @db.VarChar(500)

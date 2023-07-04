@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { Record, Util } from 'src/common';
 import { AuthType } from '../../auth/auth.type';
 import { AuthGuard } from '../../auth/auth.guard';
+import { Model } from 'src/@shared';
 
 @Controller('static')
 export class StaticController {
@@ -41,7 +42,7 @@ export class StaticController {
   async getCompanyList(
     @Request() req: AuthType,
     @Query() query: { skip?: string; take?: string },
-  ): Promise<Record.List<Record.Company>> {
+  ): Promise<Record.List<Model.Company>> {
     const { skip, take } = query;
 
     const where: Prisma.CompanyWhereInput = {

@@ -39,9 +39,6 @@ export class VirtualCompanyCreateRequestDto
   @IsString()
   @MaxLength(30)
   faxNo: string;
-  @IsString()
-  @MaxLength(100)
-  email: string;
 }
 
 export class VirtualCompanyUpdateRequestDto
@@ -68,7 +65,4 @@ export class VirtualCompanyUpdateRequestDto
   @IsString()
   @MaxLength(30)
   faxNo: string;
-  @IsString()
-  @MaxLength(100)
-  email: string;
 }

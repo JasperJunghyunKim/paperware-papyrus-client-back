@@ -100,7 +100,7 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   faxNo = '';
   @IsOptional()
   @IsString()
-  email = '';
+  representative = '';
   @IsOptional()
   @IsString()
   memo = '';

@@ -81,7 +81,6 @@ export class VirtualCompanyController {
       address: body.address,
       phoneNo: body.phoneNo,
       faxNo: body.faxNo,
-      email: body.email,
       managedBy: {
         connect: {
           id: req.user.companyId,
@@ -108,7 +107,7 @@ export class VirtualCompanyController {
       businessName: body.businessName,
       phoneNo: body.phoneNo,
       faxNo: body.faxNo,
-      email: body.email,
+      representative: body.representative,
     });
   }
 }

@@ -25,7 +25,7 @@ export class BusinessRelationshipChangeService {
     address: string;
     phoneNo: string;
     faxNo: string;
-    email: string;
+    representative: string;
     memo: string;
   }) {
     this.prisma.$transaction(async (tx) => {
@@ -96,8 +96,7 @@ export class BusinessRelationshipChangeService {
             address: params.address,
             phoneNo: params.phoneNo,
             faxNo: params.faxNo,
-            email: params.email,
-            representative: '',
+            representative: params.representative,
             managedById: params.srcCompanyId,
           },
         });
