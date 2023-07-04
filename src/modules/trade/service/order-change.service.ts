@@ -2312,6 +2312,96 @@ export class OrderChangeService {
     });
   }
 
+  async updateOrderDepositAssign(params: {
+    companyId: number;
+    orderId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      const order = await this.getOrderCreateResponseTx(tx, params.orderId);
+      if (
+        !order ||
+        (order.srcCompany.id !== params.companyId &&
+          order.dstCompany.id === params.companyId)
+      ) {
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      }
+      if (!Util.inc(order.status, 'OFFER_PREPARING', 'ORDER_PREPARING')) {
+        throw new ConflictException(`원지를 수정할 수 없는 주문상태 입니다.`);
+      }
+
+      // 매입작성중에 판매자가 원지수정하려고 하는경우 OR
+      // 매출작성중에 구매자가 원지 수정하려고 하는 경우
+      if (
+        (order.status === 'OFFER_PREPARING' &&
+          order.srcCompany.id === params.companyId) ||
+        (order.status === 'ORDER_PREPARING' &&
+          order.dstCompany.id === params.companyId)
+      ) {
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      }
+
+      await tx.orderDeposit.update({
+        where: {
+          id: order.orderDeposit.id,
+        },
+        data: {
+          packaging: {
+            connect: {
+              id: params.packagingId,
+            },
+          },
+          product: {
+            connect: {
+              id: params.productId,
+            },
+          },
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroup: params.paperColorGroupId
+            ? {
+                connect: {
+                  id: params.paperColorGroupId,
+                },
+              }
+            : undefined,
+          paperColor: params.paperColorId
+            ? {
+                connect: {
+                  id: params.paperColorId,
+                },
+              }
+            : undefined,
+          paperPattern: params.paperPatternId
+            ? {
+                connect: {
+                  id: params.paperPatternId,
+                },
+              }
+            : undefined,
+          paperCert: params.paperCertId
+            ? {
+                connect: {
+                  id: params.paperCertId,
+                },
+              }
+            : undefined,
+          quantity: params.quantity,
+        },
+      });
+    });
+  }
+
   async updateOrderDeposit(
     companyId: number,
     orderId: number,

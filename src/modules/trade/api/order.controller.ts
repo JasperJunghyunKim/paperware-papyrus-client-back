@@ -21,8 +21,9 @@ import { OrderRetriveService } from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   IdDto,
   OrderDepositAssignDepositCreateDto,
-  OrderDepositAssignDepositUpdateDto,
+  OrderDepositAssignDepositQuantityUpdateDto,
   OrderDepositCreateDto,
+  OrderDepositUpdateAssignDto,
   OrderEtcCreateDto,
   OrderEtcUpdateDto,
   OrderIdDto,
@@ -210,7 +211,7 @@ export class OrderController {
       packagingId: body.packagingId,
       grammage: body.grammage,
       sizeX: body.sizeX,
-      sizeY: body.sizeY,
+      sizeY: body.sizeY || 0,
       paperColorGroupId: body.paperColorGroupId,
       paperColorId: body.paperColorId,
       paperPatternId: body.paperPatternId,
@@ -469,12 +470,35 @@ export class OrderController {
     );
   }
 
+  @Put('/deposit/:id/assign')
+  @UseGuards(AuthGuard)
+  async updateOrderDepositAssign(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() dto: OrderDepositUpdateAssignDto,
+  ) {
+    await this.change.updateOrderDepositAssign({
+      companyId: req.user.companyId,
+      orderId: idDto.id,
+      productId: dto.productId,
+      packagingId: dto.packagingId,
+      grammage: dto.grammage,
+      sizeX: dto.sizeX,
+      sizeY: dto.sizeY || 0,
+      paperColorGroupId: dto.paperColorGroupId,
+      paperColorId: dto.paperColorId,
+      paperPatternId: dto.paperPatternId,
+      paperCertId: dto.paperCertId,
+      quantity: dto.quantity,
+    });
+  }
+
   @Put('/:id/deposit')
   @UseGuards(AuthGuard)
   async updateOrderDeposit(
     @Request() req: AuthType,
     @Param() idDto: IdDto,
-    @Body() dto: OrderDepositAssignDepositUpdateDto,
+    @Body() dto: OrderDepositAssignDepositQuantityUpdateDto,
   ) {
     await this.change.updateOrderDeposit(
       req.user.companyId,

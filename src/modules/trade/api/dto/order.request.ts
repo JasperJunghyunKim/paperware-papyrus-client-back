@@ -46,6 +46,7 @@ import {
   OrderProcessInfoUpdateRequest,
   OrderProcessStockUpdateRequest,
   OrderEtcUpdateRequest,
+  OrderDepositUpdateAssignRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -507,6 +508,65 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
   readonly memo: string = '';
 }
 
+/** 보관 매입/매출 원지 수정 */
+export class OrderDepositUpdateAssignDto
+  implements OrderDepositUpdateAssignRequest
+{
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
+}
+
 /** 보관량 목록 */
 export class OrderDepositListQueryDto implements OrderDepositListQuery {
   @IsOptional()
@@ -624,9 +684,11 @@ export class OrderStockAssignStockUpdateRequestDto
   @IsInt()
   @Type(() => Number)
   sizeX: number;
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
-  sizeY: number;
+  @Min(0)
+  sizeY: number = 0;
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -665,7 +727,7 @@ export class OrderDepositAssignDepositCreateDto
 }
 
 /** 보관매입/매출 수정 */
-export class OrderDepositAssignDepositUpdateDto
+export class OrderDepositAssignDepositQuantityUpdateDto
   implements OrderDepositAssignDepositUpdateRequest
 {
   @IsInt()
