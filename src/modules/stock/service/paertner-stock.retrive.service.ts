@@ -18,7 +18,6 @@ export interface PartnerStockGroupFromDB {
   partnerCompanyAddress: string;
   partnerCompanyPhoneNo: string;
   partnerCompanyFaxNo: string;
-  partnerCompanyEmail: string;
   partnerCompanyManagedById: number;
 
   packagingId: number;
@@ -115,7 +114,6 @@ export class PartnerStockRetriveService {
                   , srcCompany.address AS partnerCompanyAddress
                   , srcCompany.phoneNo AS partnerCompanyPhoneNo
                   , srcCompany.faxNo As partnerCompanyFaxNo
-                  , srcCompany.email AS partnerCompanyEmail
                   , srcCompany.managedById AS partnerCompanyManagedById
       
                   -- 수량
