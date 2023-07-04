@@ -407,7 +407,7 @@ export class OrderController {
   async createDepositOrder(
     @Request() req: AuthType,
     @Body() dto: OrderDepositCreateDto,
-  ) {
+  ): Promise<OrderCreateResponse> {
     if (
       dto.srcCompanyId !== req.user.companyId &&
       dto.dstCompanyId !== req.user.companyId
@@ -419,7 +419,7 @@ export class OrderController {
 
     const isOffer = dto.dstCompanyId === req.user.companyId;
 
-    await this.change.createDepositOrder(
+    return await this.change.createDepositOrder(
       dto.srcCompanyId,
       dto.dstCompanyId,
       isOffer,

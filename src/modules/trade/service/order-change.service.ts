@@ -2073,8 +2073,8 @@ export class OrderChangeService {
     quantity: number,
     memo: string,
     orderDate: string,
-  ) {
-    await this.prisma.$transaction(async (tx) => {
+  ): Promise<Model.Order> {
+    return await this.prisma.$transaction(async (tx) => {
       const businessRelationship = tx.businessRelationship.findUnique({
         where: {
           srcCompanyId_dstCompanyId: {
@@ -2221,6 +2221,8 @@ export class OrderChangeService {
           },
         },
       });
+
+      return this.getOrderCreateResponseTx(tx, order.id);
     });
   }
 
