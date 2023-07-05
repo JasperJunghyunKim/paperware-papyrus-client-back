@@ -1264,6 +1264,7 @@ export class OrderChangeService {
         taskQuantity: {
           create: {
             quantity,
+            memo: '',
           },
         },
       },

@@ -656,9 +656,10 @@ model TaskGuillotine {
 }
 
 model TaskQuantity {
-  taskId   Int  @id
-  task     Task @relation(fields: [taskId], references: [id])
+  taskId   Int    @id
+  task     Task   @relation(fields: [taskId], references: [id])
   quantity Int
+  memo     String
 }
 
 enum ShippingStatus {

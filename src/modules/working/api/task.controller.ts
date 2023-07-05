@@ -147,6 +147,7 @@ export class TaskController {
     const task = await this.taskChangeService.createReleaseTask({
       planId: body.planId,
       quantity: body.quantity,
+      memo: body.memo,
       parentTaskId: body.parentTaskId ?? null,
     });
 

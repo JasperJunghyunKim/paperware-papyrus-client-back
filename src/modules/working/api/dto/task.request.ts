@@ -73,6 +73,10 @@ export class TaskCreateQuantityRequestDto implements TaskCreateQuantityRequest {
   @IsInt()
   @Type(() => Number)
   readonly quantity: number;
+
+  @IsOptional()
+  @Type(() => String)
+  readonly memo: string = '';
 }
 
 export class TaskUpdateConvertingRequestDto

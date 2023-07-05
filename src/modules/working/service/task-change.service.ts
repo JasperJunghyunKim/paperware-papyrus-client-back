@@ -70,8 +70,9 @@ export class TaskChangeService {
     planId: number;
     parentTaskId: number | null;
     quantity: number;
+    memo: string;
   }) {
-    const { planId, quantity } = params;
+    const { planId, quantity, memo } = params;
     return await this.prisma.task.create({
       select: Selector.TASK,
       data: {
@@ -82,6 +83,7 @@ export class TaskChangeService {
         taskQuantity: {
           create: {
             quantity,
+            memo,
           },
         },
         parentTaskId: params.parentTaskId,
