@@ -15,6 +15,7 @@ export class PartnerRetriveService {
             companyId: true,
             partnerNickName: true,
             companyRegistrationNumber: true,
+            creditLimit: true,
             memo: true,
           },
           where: {
@@ -28,6 +29,7 @@ export class PartnerRetriveService {
               companyId: partner.companyId,
               companyRegistrationNumber: partner.companyRegistrationNumber,
               partnerNickName: partner.partnerNickName,
+              creditLimit: partner.creditLimit,
               memo: partner.memo,
             };
           });

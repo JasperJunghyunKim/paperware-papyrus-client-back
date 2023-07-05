@@ -122,6 +122,7 @@ export class BusinessRelationshipController {
       companyId: req.user.companyId,
       companyRegistrationNumber,
       partnerNickname: body.partnerNickname,
+      creditLimit: body.creditLimit,
       memo: body.memo,
     });
   }
@@ -191,6 +192,7 @@ export class BusinessRelationshipController {
       faxNo: body.faxNo,
       representative: body.representative,
       companyRegistrationNumber: body.companyRegistrationNumber,
+      creditLimit: body.creditLimit,
       memo: body.memo,
     });
   }

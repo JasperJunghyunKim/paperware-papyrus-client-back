@@ -90,6 +90,8 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @Optional()
   @IsString()
   invoiceCode = '';
+  @IsNumber()
+  creditLimit: number = 0;
   @IsString()
   address: string;
   @IsOptional()
@@ -120,6 +122,8 @@ export class UpsertPartnerRequestDto implements UpsertPartnerRequest {
   companyRegistrationNumber: string;
   @IsString()
   partnerNickname: string;
+  @IsNumber()
+  creditLimit: number = 0;
   @IsString()
   memo = '';
 }

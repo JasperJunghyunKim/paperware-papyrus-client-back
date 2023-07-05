@@ -20,6 +20,7 @@ export class BusinessRelationshipChangeService {
     type: 'PURCHASE' | 'SALES' | 'BOTH';
     companyRegistrationNumber: string;
     partnerNickname: string;
+    creditLimit: number;
     businessName: string;
     invoiceCode: string;
     address: string;
@@ -41,10 +42,12 @@ export class BusinessRelationshipChangeService {
           companyId: params.srcCompanyId,
           companyRegistrationNumber: params.companyRegistrationNumber,
           partnerNickName: params.partnerNickname,
+          creditLimit: params.creditLimit,
           memo: params.memo,
         },
         update: {
           partnerNickName: params.partnerNickname,
+          creditLimit: params.creditLimit,
           memo: params.memo,
         },
       });
@@ -124,6 +127,7 @@ export class BusinessRelationshipChangeService {
     companyId: number;
     companyRegistrationNumber: string;
     partnerNickname: string;
+    creditLimit: number;
     memo: string;
   }) {
     await this.prisma.$transaction(async (tx) => {
@@ -138,10 +142,12 @@ export class BusinessRelationshipChangeService {
           companyId: params.companyId,
           companyRegistrationNumber: params.companyRegistrationNumber,
           partnerNickName: params.partnerNickname,
+          creditLimit: params.creditLimit,
           memo: params.memo,
         },
         update: {
           partnerNickName: params.partnerNickname,
+          creditLimit: params.creditLimit,
           memo: params.memo,
         },
       });

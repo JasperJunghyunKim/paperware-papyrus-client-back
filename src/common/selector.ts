@@ -18,6 +18,7 @@ export const PARTNER = {
   companyId: true,
   companyRegistrationNumber: true,
   partnerNickName: true,
+  creditLimit: true,
   memo: true,
 } satisfies Prisma.PartnerSelect;
 
@@ -535,6 +536,7 @@ export const TASK_GUILLOTINE = {
 export const TASK_QUANTITY = {
   taskId: true,
   quantity: true,
+  memo: true,
 } satisfies Prisma.TaskQuantitySelect;
 
 export const PLAN = {
@@ -554,6 +556,10 @@ export const PLAN = {
   },
   orderStock: {
     select: {
+      dstLocation: {
+        select: LOCATION,
+      },
+      wantedDate: true,
       order: {
         select: ORDER,
       },
@@ -561,6 +567,14 @@ export const PLAN = {
   },
   orderProcess: {
     select: {
+      dstLocation: {
+        select: LOCATION,
+      },
+      dstWantedDate: true,
+      srcLocation: {
+        select: LOCATION,
+      },
+      srcWantedDate: true,
       order: {
         select: ORDER,
       },

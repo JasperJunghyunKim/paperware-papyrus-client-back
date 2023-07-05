@@ -103,6 +103,7 @@ export interface DiscountRateClient {
   companyRegistrationNumber: string;
   partnerNickName: string;
   partnerMemo: string;
+  creditLimit: number;
   discountRateConditionId: number;
   discountRateCount: number;
   total: number;
@@ -123,6 +124,7 @@ export class DiscountRateRetriveService {
                     , p.companyId AS companyId
                     , p.companyRegistrationNumber AS companyRegistrationNumber
                     , p.partnerNickName AS paertnerNickName
+                    , p.creditLimit AS creditLimit
                     , p.memo AS partnerMemo
                     , drc.id AS discountRateConditionId
                     , (IFNULL(COUNT(CASE WHEN drm.id IS NOT NULL THEN 1 END), 0) / 2) AS discountRateCount
@@ -263,6 +265,7 @@ export class DiscountRateRetriveService {
         companyId: company.id,
         companyRegistrationNumber: company.companyRegistrationNumber,
         partnerNickName: company.businessName,
+        creditLimit: 0,
         memo: '',
       });
     }
@@ -393,6 +396,7 @@ export class DiscountRateRetriveService {
         partnerNickName: partner
           ? partner.partnerNickName
           : partnerCompany.businessName,
+        creditLimit: partner.creditLimit,
         memo: partner ? partner.memo : '',
       },
       packagingType: condition.packagingType,

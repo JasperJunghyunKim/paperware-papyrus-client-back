@@ -11,6 +11,9 @@ export class PartnerResponseDto implements PartnerResponse {
   @IsString()
   readonly partnerNickName: string;
 
+  @IsNumber()
+  readonly creditLimit: number;
+
   // eslint-disable-next-line @typescript-eslint/no-inferrable-types
   @IsString()
   readonly memo: string = '';
