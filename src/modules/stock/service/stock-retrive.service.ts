@@ -423,6 +423,7 @@ export class StockRetriveService {
        WHERE s.companyId = ${companyId}
          ${planIdQuery}
          AND (initialO.id IS NULL
+                OR (initialO.id IS NOT NULL AND initialO.orderType != ${OrderType.OUTSOURCE_PROCESS})
                 OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.srcCompanyId = ${companyId})
                 OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.dstCompanyId = ${companyId} AND s.planId IS NOT NULL)
               ) 

@@ -277,6 +277,15 @@ export const STOCK_EVENT = {
 export const ORDER_STOCK = {
   id: true,
   orderId: true,
+  order: {
+    select: {
+      tradePrice: {
+        include: {
+          orderStockTradePrice: true,
+        },
+      },
+    },
+  },
   wantedDate: true,
   isDirectShipping: true,
   dstLocation: {
@@ -403,6 +412,7 @@ export const ORDER_PROCESS = {
       status: true,
       isEntrusted: true,
       memo: true,
+      tradePrice: true,
     },
   },
   plan: {
