@@ -115,6 +115,10 @@ export class TaskUpdateQuantityRequestDto implements TaskUpdateQuantityRequest {
   @IsInt()
   @Type(() => Number)
   readonly quantity: number;
+
+  @IsOptional()
+  @Type(() => String)
+  readonly memo: string = '';
 }
 
 export class TaskInsertInputStockRequestDto

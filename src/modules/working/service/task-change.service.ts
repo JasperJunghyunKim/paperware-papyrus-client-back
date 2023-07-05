@@ -139,8 +139,12 @@ export class TaskChangeService {
     });
   }
 
-  async updateQuantityTask(params: { id: number; quantity: number }) {
-    const { id, quantity } = params;
+  async updateQuantityTask(params: {
+    id: number;
+    quantity: number;
+    memo: string;
+  }) {
+    const { id, quantity, memo } = params;
     return await this.prisma.task.update({
       select: Selector.TASK,
       where: {
@@ -150,6 +154,7 @@ export class TaskChangeService {
         taskQuantity: {
           update: {
             quantity,
+            memo,
           },
         },
       },

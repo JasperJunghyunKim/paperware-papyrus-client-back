@@ -227,6 +227,7 @@ export class TaskController {
     const updatedTask = await this.taskChangeService.updateQuantityTask({
       id: task.id,
       quantity: body.quantity,
+      memo: body.memo,
     });
 
     return updatedTask;
