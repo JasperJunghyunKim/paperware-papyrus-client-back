@@ -10,6 +10,7 @@ import { TradeModule } from './trade/trade.module';
 import { ShippingModule } from './shipping/shipping.module';
 import { PartnerModule } from './partner/partner.module';
 import { AccountedModule } from './accounted/accounted.module';
+import { TaxInvoiceModule } from './tax-invoice/tax-invoice.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AccountedModule } from './accounted/accounted.module';
     ShippingModule,
     PartnerModule,
     AccountedModule,
+    TaxInvoiceModule,
   ],
 })
 export class BusinessModule {}

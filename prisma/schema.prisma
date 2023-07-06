@@ -282,6 +282,7 @@ model Company {
   orderStock                     OrderStock[]
   orderProcess                   OrderProcess[]
   order                          Order[]                       @relation("acceptedCompany")
+  TaxInvoice                     TaxInvoice[]
 }
 
 model BusinessRelationship {
@@ -713,6 +714,17 @@ model Invoice {
   planId            Int
   plan              Plan             @relation(fields: [planId], references: [id])
   invoiceStatus     InvoiceStatus    @default(WAIT_LOADING)
+}
+
+model TaxInvoice {
+  id                        Int      @id @default(autoincrement())
+  // 공급하는자
+  companyId                 Int
+  company                   Company  @relation(fields: [companyId], references: [id])
+  // 공급받는자
+  companyRegistrationNumber String
+  invoicerMgtKey            String   @unique
+  writeDate                 DateTime
 }
 
 enum AccountType {
