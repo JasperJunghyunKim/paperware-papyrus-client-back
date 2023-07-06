@@ -211,7 +211,36 @@ export const STOCK = {
   stockPrice: {
     select: STOCK_PRICE,
   },
-  initialPlan: true,
+  initialPlan: {
+    include: {
+      orderStock: {
+        select: {
+          order: {
+            select: {
+              tradePrice: {
+                include: {
+                  orderStockTradePrice: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      orderProcess: {
+        select: {
+          order: {
+            select: {
+              tradePrice: {
+                include: {
+                  orderStockTradePrice: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 } satisfies Prisma.StockSelect;
 
 export const VENDOR_STOCK = {
@@ -413,7 +442,12 @@ export const ORDER_PROCESS = {
       status: true,
       isEntrusted: true,
       memo: true,
-      tradePrice: true,
+      tradePrice: {
+        include: {
+          orderStockTradePrice: true,
+          orderDepositTradePrice: true,
+        },
+      },
     },
   },
   plan: {

@@ -1021,6 +1021,20 @@ export class StockRetriveService {
       },
     });
 
+    for (const stock of stocks) {
+      if (stock.initialPlan.orderStock) {
+        stock.initialPlan.orderStock.order.tradePrice =
+          stock.initialPlan.orderStock.order.tradePrice.filter(
+            (tp) => tp.companyId === data.companyId,
+          );
+      } else if (stock.initialPlan.orderProcess) {
+        stock.initialPlan.orderProcess.order.tradePrice =
+          stock.initialPlan.orderProcess.order.tradePrice.filter(
+            (tp) => tp.companyId === data.companyId,
+          );
+      }
+    }
+
     return stocks;
   }
 
