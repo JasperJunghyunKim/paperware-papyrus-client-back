@@ -31,7 +31,7 @@ export class BusinessRelationshipChangeService {
     representative: string;
     memo: string;
   }) {
-    this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       // 파트너 정보 업데이트
       await tx.partner.upsert({
         where: {
