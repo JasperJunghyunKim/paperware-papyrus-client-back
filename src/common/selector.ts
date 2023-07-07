@@ -219,6 +219,12 @@ export const STOCK = {
         select: {
           order: {
             select: {
+              srcCompany: {
+                select: COMPANY,
+              },
+              dstCompany: {
+                select: COMPANY,
+              },
               tradePrice: {
                 include: {
                   orderStockTradePrice: true,
@@ -232,6 +238,12 @@ export const STOCK = {
         select: {
           order: {
             select: {
+              srcCompany: {
+                select: COMPANY,
+              },
+              dstCompany: {
+                select: COMPANY,
+              },
               tradePrice: {
                 include: {
                   orderStockTradePrice: true,
@@ -311,6 +323,12 @@ export const ORDER_STOCK = {
   orderId: true,
   order: {
     select: {
+      srcCompany: {
+        select: COMPANY,
+      },
+      dstCompany: {
+        select: COMPANY,
+      },
       tradePrice: {
         include: {
           orderStockTradePrice: true,
@@ -444,6 +462,12 @@ export const ORDER_PROCESS = {
       status: true,
       isEntrusted: true,
       memo: true,
+      srcCompany: {
+        select: COMPANY,
+      },
+      dstCompany: {
+        select: COMPANY,
+      },
       tradePrice: {
         include: {
           orderStockTradePrice: true,
