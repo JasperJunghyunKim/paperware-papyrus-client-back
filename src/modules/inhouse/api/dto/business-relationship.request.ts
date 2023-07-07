@@ -90,6 +90,12 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @Optional()
   @IsString()
   invoiceCode = '';
+  @IsOptional()
+  @IsString()
+  bizType = '';
+  @IsOptional()
+  @IsString()
+  bizItem = '';
   @IsNumber()
   creditLimit: number = 0;
   @IsString()

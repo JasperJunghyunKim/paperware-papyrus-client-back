@@ -128,6 +128,8 @@ interface StockGroupFromDB {
   partnerCompanyBusinessName: string;
   partnerCompanyCompanyRegistrationNumber: string;
   partnerCompanyInvoiceCode: string;
+  partnerCompanyBizType: string;
+  partnerCompanyBizItem: string;
   partnerCompanyRepresentative: string;
   partnerCompanyAddress: string;
   partnerCompanyPhoneNo: string;
@@ -370,6 +372,8 @@ export class StockRetriveService {
             , partnerCompany.businessName As partnerCompanyBusinessName
             , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
             , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
+            , partnerCompany.bizType AS partnerCompanyBizType
+            , partnerCompany.bizItem AS partnerCompanyBizItem
             , partnerCompany.representative AS partnerCompanyRepresentative
             , partnerCompany.address AS partnerCompanyAddress
             , partnerCompany.phoneNo AS partnerCompanyPhoneNo
@@ -614,6 +618,8 @@ export class StockRetriveService {
                           companyRegistrationNumber:
                             sg.partnerCompanyCompanyRegistrationNumber,
                           invoiceCode: sg.partnerCompanyInvoiceCode,
+                          bizType: sg.partnerCompanyBizType,
+                          bizItem: sg.partnerCompanyBizItem,
                           representative: sg.partnerCompanyRepresentative,
                           address: sg.partnerCompanyAddress,
                           phoneNo: sg.partnerCompanyPhoneNo,
@@ -655,6 +661,8 @@ export class StockRetriveService {
                           companyRegistrationNumber:
                             sg.partnerCompanyCompanyRegistrationNumber,
                           invoiceCode: sg.partnerCompanyInvoiceCode,
+                          bizType: sg.partnerCompanyBizType,
+                          bizItem: sg.partnerCompanyBizItem,
                           representative: sg.partnerCompanyRepresentative,
                           address: sg.partnerCompanyAddress,
                           phoneNo: sg.partnerCompanyPhoneNo,

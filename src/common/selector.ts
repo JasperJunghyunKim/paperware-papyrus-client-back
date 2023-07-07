@@ -31,6 +31,8 @@ export const COMPANY = {
   address: true,
   phoneNo: true,
   faxNo: true,
+  bizType: true,
+  bizItem: true,
   managedById: true,
 } satisfies Prisma.CompanySelect;
 
