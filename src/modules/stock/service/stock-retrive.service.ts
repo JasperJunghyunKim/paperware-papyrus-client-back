@@ -296,7 +296,6 @@ export class StockRetriveService {
       ? Prisma.sql`AND (s.sizeY >= ${sizeY} OR s.sizeY = 0)`
       : Prisma.empty;
 
-    console.log(1111111, sizeX, sizeY);
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
             , w.name AS warehouseName
@@ -709,7 +708,7 @@ export class StockRetriveService {
           totalArrivalQuantity: Number(sg.totalArrivalQuantity),
           storingQuantity: Number(sg.storingQuantity),
           nonStoringQuantity: Number(sg.nonStoringQuantity),
-          lossRate: Number(sg.lossRate), // TODO: 계산
+          lossRate: sg.lossRate === null ? null : Number(sg.lossRate),
         };
       }),
       total,
