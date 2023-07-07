@@ -51,6 +51,7 @@ export interface PartnerStockGroupFromDB {
 
   totalQuantity: number;
   availableQuantity: number;
+  lossRate: number | null;
   total: bigint;
 }
 
@@ -63,6 +64,13 @@ export class PartnerStockRetriveService {
     skip: number,
     take: number,
     partnerCompanyId: number | null,
+    packagingIds: number[],
+    paperTypeIds: number[],
+    manufacturerIds: number[],
+    minGrammage: number | null,
+    maxGrammage: number | null,
+    sizeX: number | null,
+    sizeY: number | null,
   ): Promise<{
     items: StockGroup[];
     total: number;
@@ -70,6 +78,37 @@ export class PartnerStockRetriveService {
     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
     const companyConditionQuery = partnerCompanyId
       ? Prisma.sql`AND br.srcCompanyId = ${partnerCompanyId}`
+      : Prisma.empty;
+
+    const packagingQuery =
+      packagingIds.length > 0
+        ? Prisma.sql`AND s.packagingId IN (${Prisma.join(packagingIds)})`
+        : Prisma.empty;
+
+    const paperTypeQuery =
+      paperTypeIds.length > 0
+        ? Prisma.sql`AND product.paperTypeId IN (${Prisma.join(paperTypeIds)})`
+        : Prisma.empty;
+
+    const manufacturerQuery =
+      manufacturerIds.length > 0
+        ? Prisma.sql`AND product.manufacturerId IN (${Prisma.join(
+            manufacturerIds,
+          )})`
+        : Prisma.empty;
+
+    const minGrammageQuery = minGrammage
+      ? Prisma.sql`AND s.grammage >= ${minGrammage}`
+      : Prisma.empty;
+    const maxGrammageQuery = maxGrammage
+      ? Prisma.sql`AND s.grammage <= ${maxGrammage}`
+      : Prisma.empty;
+
+    const sizeXQuery = sizeX
+      ? Prisma.sql`AND s.sizeX >= ${sizeX}`
+      : Prisma.empty;
+    const sizeYQuery = sizeY
+      ? Prisma.sql`AND (s.sizeY >= ${sizeY} OR s.sizeY = 0)`
       : Prisma.empty;
 
     const stockGroups: PartnerStockGroupFromDB[] = await this.prisma.$queryRaw`
@@ -119,6 +158,30 @@ export class PartnerStockRetriveService {
                   -- 수량
                   , IFNULL(SUM(s.cachedQuantityAvailable), 0) AS availableQuantity
                   , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
+
+                  -- 손실율
+                  , (CASE 
+                    WHEN ${sizeX} IS NOT NULL AND ${sizeY} IS NOT NULL 
+                    THEN (
+                      CASE 
+                        WHEN s.sizeY = 0 THEN (s.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+                        ELSE (((s.sizeX * s.sizeY) / ((${sizeX} * FLOOR(s.sizeX/${sizeX})) * (${sizeY} * FLOOR(s.sizeY/${sizeY})))) - 1) * 100
+                      END
+                    )
+
+                    WHEN ${sizeX} IS NOT NULL
+                    THEN (s.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+
+                    WHEN ${sizeY} IS NOT NULL 
+                    THEN (
+                      CASE 
+                        WHEN s.sizeY = 0 THEN NULL
+                        ELSE (s.sizeY % ${sizeY}) * (1/${sizeY}) * 100
+                      END
+                    )
+
+                    ELSE NULL
+                  END) AS lossRate
       
                   -- total
                   , COUNT(1) OVER() AS total
@@ -147,6 +210,13 @@ export class PartnerStockRetriveService {
                AND w.isPublic = ${true}
                AND s.planId IS NULL
                ${companyConditionQuery}
+               ${packagingQuery}
+               ${paperTypeQuery}
+               ${manufacturerQuery}
+               ${minGrammageQuery}
+               ${maxGrammageQuery}
+               ${sizeXQuery}
+               ${sizeYQuery}
       
              GROUP BY srcCompany.id
                       , s.packagingId
@@ -235,7 +305,7 @@ export class PartnerStockRetriveService {
           totalArrivalQuantity: 0,
           storingQuantity: 0,
           nonStoringQuantity: 0,
-          lossRate: null, // TODO: 손실율 계산
+          lossRate: sg.lossRate === null ? null : Number(sg.lossRate),
         };
       }),
       total,

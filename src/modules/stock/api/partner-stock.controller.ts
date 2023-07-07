@@ -4,6 +4,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { GetPartnerStockGroupListDto } from './dto/partner-stock.request';
 import { PartnerStockRetriveService } from '../service/paertner-stock.retrive.service';
+import { Util } from 'src/common';
 
 @Controller('/partner/stock')
 export class PartnerStockController {
@@ -22,6 +23,13 @@ export class PartnerStockController {
       dto.skip,
       dto.take,
       dto.companyId,
+      Util.searchKeywordsToIntArray(dto.packagingIds),
+      Util.searchKeywordsToIntArray(dto.paperTypeIds),
+      Util.searchKeywordsToIntArray(dto.manufacturerIds),
+      dto.minGrammage,
+      dto.maxGrammage,
+      dto.sizeX,
+      dto.sizeY,
     );
 
     return result;

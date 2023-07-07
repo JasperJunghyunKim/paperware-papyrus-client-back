@@ -142,6 +142,8 @@ interface StockGroupFromDB {
   storingQuantity: number;
   nonStoringQuantity: number;
 
+  lossRate: number | null;
+
   total: bigint;
 }
 
@@ -293,7 +295,7 @@ export class StockRetriveService {
       ? Prisma.sql`AND s.sizeX >= ${sizeX}`
       : Prisma.empty;
     const sizeYQuery = sizeY
-      ? Prisma.sql`AND s.sizeY >= ${sizeY}`
+      ? Prisma.sql`AND (s.sizeY >= ${sizeY} OR s.sizeY = 0)`
       : Prisma.empty;
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
@@ -421,6 +423,30 @@ export class StockRetriveService {
             , IFNULL(SUM(arrivalStockEvent.totalArrivalQuantity), 0) AS totalArrivalQuantity
             , IFNULL(SUM(arrivalStockEvent.storingQuantity), 0) AS storingQuantity
             , ABS(IFNULL(SUM(arrivalStockEvent.nonStoringQuantity), 0)) AS nonStoringQuantity
+
+            -- 손실율
+            , (CASE 
+              WHEN ${sizeX} IS NOT NULL AND ${sizeY} IS NOT NULL 
+              THEN (
+                CASE 
+                  WHEN s.sizeY = 0 THEN (s.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+                  ELSE (((s.sizeX * s.sizeY) / ((${sizeX} * FLOOR(s.sizeX/${sizeX})) * (${sizeY} * FLOOR(s.sizeY/${sizeY})))) - 1) * 100
+                END
+              )
+
+              WHEN ${sizeX} IS NOT NULL
+              THEN (s.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+
+              WHEN ${sizeY} IS NOT NULL 
+              THEN (
+                CASE 
+                  WHEN s.sizeY = 0 THEN NULL
+                  ELSE (s.sizeY % ${sizeY}) * (1/${sizeY}) * 100
+                END
+              )
+
+              ELSE NULL
+            END) AS lossRate
 
             -- total
             , COUNT(1) OVER() AS total
@@ -690,7 +716,7 @@ export class StockRetriveService {
           totalArrivalQuantity: Number(sg.totalArrivalQuantity),
           storingQuantity: Number(sg.storingQuantity),
           nonStoringQuantity: Number(sg.nonStoringQuantity),
-          lossRate: null, // TODO: 계산
+          lossRate: sg.lossRate === null ? null : Number(sg.lossRate),
         };
       }),
       total,
