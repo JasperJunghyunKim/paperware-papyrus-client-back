@@ -18,6 +18,7 @@ import {
 import { DepositRetriveService } from '../service/deposit-retrive.service';
 import { DepositChangeService } from '../service/deposit-change.service';
 import { DepositHistoryResponse } from 'src/@shared/api';
+import { Util } from 'src/common';
 
 @Controller('/deposit')
 export class DepositController {
@@ -36,6 +37,9 @@ export class DepositController {
     const result = await this.retrive.getDepositList({
       companyId: req.user.companyId,
       ...dto,
+      packagingIds: Util.searchKeywordsToIntArray(dto.packagingIds),
+      paperTypeIds: Util.searchKeywordsToIntArray(dto.paperTypeIds),
+      manufacturerIds: Util.searchKeywordsToIntArray(dto.manufacturerIds),
     });
 
     return result;

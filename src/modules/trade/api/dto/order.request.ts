@@ -589,6 +589,43 @@ export class OrderDepositListQueryDto implements OrderDepositListQuery {
   @IsString()
   @Length(10, 10)
   readonly companyRegistrationNumber: string | null = null;
+
+  // 검색 필드
+  @IsOptional()
+  @IsString()
+  readonly packagingIds: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly paperTypeIds: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly manufacturerIds: string = '';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly minGrammage: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly maxGrammage: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = null;
 }
 
 /** 보관량 증감*/

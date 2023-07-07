@@ -40,6 +40,7 @@ export interface DepositFromDB {
   paperCertId: number | null;
   paperCertName: string | null;
   quantity: number;
+  lossRate: number | null;
   total: number;
 }
 
@@ -54,6 +55,13 @@ export class DepositRetriveService {
     take: number;
     type: DepositType;
     companyRegistrationNumber: string | null;
+    packagingIds: number[];
+    paperTypeIds: number[];
+    manufacturerIds: number[];
+    minGrammage: number | null;
+    maxGrammage: number | null;
+    sizeX: number | null;
+    sizeY: number | null;
   }): Promise<{
     items: Model.Deposit[];
     total: number;
@@ -64,10 +72,48 @@ export class DepositRetriveService {
       take,
       type,
       companyRegistrationNumber,
+      packagingIds,
+      paperTypeIds,
+      manufacturerIds,
+      minGrammage,
+      maxGrammage,
+      sizeX,
+      sizeY,
     } = params;
 
     const companySearch = companyRegistrationNumber
       ? Prisma.sql`AND p.companyRegistrationNumber = ${companyRegistrationNumber}`
+      : Prisma.empty;
+
+    const packagingQuery =
+      packagingIds.length > 0
+        ? Prisma.sql`AND d.packagingId IN (${Prisma.join(packagingIds)})`
+        : Prisma.empty;
+
+    const paperTypeQuery =
+      paperTypeIds.length > 0
+        ? Prisma.sql`AND product.paperTypeId IN (${Prisma.join(paperTypeIds)})`
+        : Prisma.empty;
+
+    const manufacturerQuery =
+      manufacturerIds.length > 0
+        ? Prisma.sql`AND product.manufacturerId IN (${Prisma.join(
+            manufacturerIds,
+          )})`
+        : Prisma.empty;
+
+    const minGrammageQuery = minGrammage
+      ? Prisma.sql`AND d.grammage >= ${minGrammage}`
+      : Prisma.empty;
+    const maxGrammageQuery = maxGrammage
+      ? Prisma.sql`AND d.grammage <= ${maxGrammage}`
+      : Prisma.empty;
+
+    const sizeXQuery = sizeX
+      ? Prisma.sql`AND d.sizeX >= ${sizeX}`
+      : Prisma.empty;
+    const sizeYQuery = sizeY
+      ? Prisma.sql`AND (d.sizeY >= ${sizeY} OR d.sizeY = 0)`
       : Prisma.empty;
 
     const result: DepositFromDB[] = await this.prisma.$queryRaw`
@@ -106,6 +152,30 @@ export class DepositRetriveService {
             -- 보관량
             , IFNULL(SUM(CASE WHEN de.status = ${DepositEventStatus.NORMAL} THEN de.change END), 0) AS quantity
 
+            -- 손실율
+            , (CASE 
+              WHEN ${sizeX} IS NOT NULL AND ${sizeY} IS NOT NULL 
+              THEN (
+                CASE 
+                  WHEN d.sizeY = 0 THEN (d.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+                  ELSE (((d.sizeX * d.sizeY) / ((${sizeX} * FLOOR(d.sizeX/${sizeX})) * (${sizeY} * FLOOR(d.sizeY/${sizeY})))) - 1) * 100
+                END
+              )
+
+              WHEN ${sizeX} IS NOT NULL
+              THEN (d.sizeX % ${sizeX}) * (1/${sizeX}) * 100
+
+              WHEN ${sizeY} IS NOT NULL 
+              THEN (
+                CASE 
+                  WHEN d.sizeY = 0 THEN NULL
+                  ELSE (d.sizeY % ${sizeY}) * (1/${sizeY}) * 100
+                END
+              )
+
+              ELSE NULL
+            END) AS lossRate
+
             -- total
             , COUNT(1) OVER() AS total
 
@@ -127,6 +197,13 @@ export class DepositRetriveService {
        WHERE d.companyId = ${companyId}
          AND d.depositType = ${type}
          ${companySearch}
+         ${packagingQuery}
+         ${paperTypeQuery}
+         ${manufacturerQuery}
+         ${minGrammageQuery}
+         ${maxGrammageQuery}
+         ${sizeXQuery}
+         ${sizeYQuery}
 
        GROUP BY d.id, p.id
 
@@ -218,6 +295,7 @@ export class DepositRetriveService {
             }
           : null,
         quantity: Number(deposit.quantity),
+        lossRate: deposit.lossRate === null ? null : Number(deposit.lossRate),
       })),
       total,
     };
