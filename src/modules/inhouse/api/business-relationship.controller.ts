@@ -184,6 +184,8 @@ export class BusinessRelationshipController {
       srcCompanyId: req.user.companyId,
       create: body.create,
       invoiceCode: body.invoiceCode,
+      bizType: body.bizType,
+      bizItem: body.bizItem,
       partnerNickname: body.partnerNickname,
       businessName: body.businessName,
       type: body.type,

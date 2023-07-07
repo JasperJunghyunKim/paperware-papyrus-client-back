@@ -23,6 +23,8 @@ export class BusinessRelationshipChangeService {
     creditLimit: number;
     businessName: string;
     invoiceCode: string;
+    bizType: string;
+    bizItem: string;
     address: string;
     phoneNo: string;
     faxNo: string;
@@ -96,6 +98,8 @@ export class BusinessRelationshipChangeService {
             companyRegistrationNumber: params.companyRegistrationNumber,
             businessName: params.businessName,
             invoiceCode: params.invoiceCode,
+            bizType: params.bizType,
+            bizItem: params.bizItem,
             address: params.address,
             phoneNo: params.phoneNo,
             faxNo: params.faxNo,

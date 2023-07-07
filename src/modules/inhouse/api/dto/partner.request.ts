@@ -27,6 +27,10 @@ export class VirtualCompanyCreateRequestDto
   @MaxLength(6)
   invoiceCode: string;
   @IsString()
+  bizType: string;
+  @IsString()
+  bizItem: string;
+  @IsString()
   @MaxLength(30)
   representative: string;
   @IsString()
@@ -55,6 +59,10 @@ export class VirtualCompanyUpdateRequestDto
   @IsString()
   @MaxLength(6)
   invoiceCode: string;
+  @IsString()
+  bizType: string;
+  @IsString()
+  bizItem: string;
   @IsString()
   @MaxLength(30)
   representative: string;

@@ -19,6 +19,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { VirtualCompanyChangeService } from 'src/modules/inhouse/service/virtual-company-change.service';
 import { VirtualCompanyRetriveService } from 'src/modules/inhouse/service/virtual-company-retrive.service';
 import {
+  VirtualCompanyCreateRequestDto,
   VirtualCompanyListQueryDto,
   VirtualCompanyUpdateRequestDto,
 } from './dto/virtual-company.request';
@@ -71,12 +72,14 @@ export class VirtualCompanyController {
   @UseGuards(AuthGuard)
   async create(
     @Request() req: AuthType,
-    @Body() body: VirtualCompanyCreateRequest,
+    @Body() body: VirtualCompanyCreateRequestDto,
   ) {
     await this.virtualCompanyChangeService.create({
       businessName: body.businessName,
       companyRegistrationNumber: body.companyRegistrationNumber,
       invoiceCode: body.invoiceCode,
+      bizType: body.bizType,
+      bizItem: body.bizItem,
       representative: body.representative,
       address: body.address,
       phoneNo: body.phoneNo,
@@ -104,6 +107,8 @@ export class VirtualCompanyController {
     }
 
     await this.virtualCompanyChangeService.update(id, {
+      bizType: body.bizType,
+      bizItem: body.bizItem,
       businessName: body.businessName,
       phoneNo: body.phoneNo,
       faxNo: body.faxNo,
