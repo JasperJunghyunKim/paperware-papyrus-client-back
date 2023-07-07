@@ -738,20 +738,24 @@ export class StockRetriveService {
     paperPatternId: number | null;
     paperCertId: number | null;
   }) {
-    const stocks = await this.getStockList({
-      companyId: params.companyId,
-      warehouseId: params.warehouseId,
-      productId: params.productId,
-      packagingId: params.packagingId,
-      grammage: params.grammage,
-      sizeX: params.sizeX,
-      sizeY: params.sizeY,
-      paperColorGroupId: params.paperColorGroupId,
-      paperColorId: params.paperColorId,
-      paperPatternId: params.paperPatternId,
-      paperCertId: params.paperCertId,
-      planId: null,
-    });
+    const stocks = await this.getStockList(
+      {
+        companyId: params.companyId,
+        warehouseId: params.warehouseId,
+        productId: params.productId,
+        packagingId: params.packagingId,
+        grammage: params.grammage,
+        sizeX: params.sizeX,
+        sizeY: params.sizeY,
+        paperColorGroupId: params.paperColorGroupId,
+        paperColorId: params.paperColorId,
+        paperPatternId: params.paperPatternId,
+        paperCertId: params.paperCertId,
+        planId: null,
+        initialPlan: undefined,
+      },
+      false,
+    );
 
     const stockInfo = await this.prisma.stock.findFirst({
       select: STOCK,
@@ -1063,7 +1067,10 @@ export class StockRetriveService {
     };
   }
 
-  async getStockList(data: Prisma.StockWhereInput) {
+  async getStockList(
+    data: Prisma.StockWhereInput,
+    isZeroQuantityIncluded: boolean,
+  ) {
     const paperColorGroupId = data.paperColorGroupId
       ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}`
       : Prisma.sql`s.paperColorGroupId IS NULL`;
@@ -1079,6 +1086,12 @@ export class StockRetriveService {
     const planId = data.planId
       ? Prisma.sql`s.planId = ${data.planId}`
       : Prisma.sql`s.planId IS NULL`;
+    const initialPlanQuery = data.initialPlanId
+      ? Prisma.sql`AND s.initialPlanId = ${data.initialPlanId}`
+      : Prisma.empty;
+    const zeroQuantityQuery = isZeroQuantityIncluded
+      ? Prisma.empty
+      : Prisma.sql`AND (s.cachedQuantity != 0 OR cachedQuantityAvailable != 0)`;
 
     const stockIds: { id: number }[] = await this.prisma.$queryRaw`
       SELECT s.id
@@ -1102,7 +1115,9 @@ export class StockRetriveService {
          AND ${paperCertId}
          AND ${planId}
          AND s.isDeleted = ${false}
-         AND (s.cachedQuantity != 0 OR cachedQuantityAvailable != 0)
+         
+         ${initialPlanQuery}
+         ${zeroQuantityQuery}
     `;
 
     const stocks = await this.prisma.stock.findMany({

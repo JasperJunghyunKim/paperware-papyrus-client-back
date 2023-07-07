@@ -209,7 +209,7 @@ export class StockListRequestDto implements StockListQuery {
   @IsInt()
   @Type(() => Number)
   @Min(0)
-  readonly sizeY: number;
+  readonly sizeY: number = 0;
 
   @IsOptional()
   @IsInt()
@@ -240,6 +240,16 @@ export class StockListRequestDto implements StockListQuery {
   @Type(() => Number)
   @IsPositive()
   readonly planId: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(1)
+  readonly initialPlanId: number = null;
+
+  @IsOptional()
+  @IsBooleanString()
+  readonly isZeroQuantityIncluded: 'true' | 'false' = 'false';
 }
 
 /** 재고 상세조회 */

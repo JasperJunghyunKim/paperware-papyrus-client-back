@@ -83,20 +83,24 @@ export class StockController {
     @Request() req: AuthType,
     @Query() dto: StockListRequestDto,
   ): Promise<StockListResponse> {
-    const stocks = await this.stockRetriveService.getStockList({
-      companyId: req.user.companyId,
-      warehouseId: dto.warehouseId,
-      productId: dto.productId,
-      packagingId: dto.packagingId,
-      grammage: dto.grammage,
-      sizeX: dto.sizeX,
-      sizeY: dto.sizeY,
-      paperColorGroupId: dto.paperColorGroupId,
-      paperColorId: dto.paperColorId,
-      paperPatternId: dto.paperPatternId,
-      paperCertId: dto.paperCertId,
-      planId: dto.planId,
-    });
+    const stocks = await this.stockRetriveService.getStockList(
+      {
+        companyId: req.user.companyId,
+        warehouseId: dto.warehouseId,
+        productId: dto.productId,
+        packagingId: dto.packagingId,
+        grammage: dto.grammage,
+        sizeX: dto.sizeX,
+        sizeY: dto.sizeY,
+        paperColorGroupId: dto.paperColorGroupId,
+        paperColorId: dto.paperColorId,
+        paperPatternId: dto.paperPatternId,
+        paperCertId: dto.paperCertId,
+        planId: dto.planId,
+        initialPlanId: dto.initialPlanId || undefined,
+      },
+      dto.isZeroQuantityIncluded === 'true',
+    );
 
     return {
       items: stocks.map(Util.serialize),
