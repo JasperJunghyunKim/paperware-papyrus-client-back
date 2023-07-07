@@ -110,13 +110,19 @@ export class StockController {
     @Request() req: AuthType,
     @Query() dto: StockGroupListRequestDto,
   ): Promise<StockGroupListResponse> {
-    const result = await this.stockRetriveService.getStockGroupList(
-      req.user.companyId,
-      dto.skip,
-      dto.take,
-      dto.planId,
-      dto.isDirectShippingIncluded === 'true',
-    );
+    const result = await this.stockRetriveService.getStockGroupList({
+      companyId: req.user.companyId,
+      ...dto,
+      isDirectShippingIncluded: dto.isDirectShippingIncluded === 'true',
+      isZeroQuantityIncluded: dto.isZeroQuantityIncluded === 'true',
+      planId: dto.planId || null,
+      initialPlanId: dto.initialPlanId || null,
+      // 검색 필드
+      warehouseIds: Util.searchKeywordsToIntArray(dto.warehouseIds),
+      packagingIds: Util.searchKeywordsToIntArray(dto.packagingIds),
+      paperTypeIds: Util.searchKeywordsToIntArray(dto.paperTypeIds),
+      manufacturerIds: Util.searchKeywordsToIntArray(dto.manufacturerIds),
+    });
 
     return result;
   }
