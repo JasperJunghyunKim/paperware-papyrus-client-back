@@ -1071,6 +1071,9 @@ export class StockRetriveService {
     data: Prisma.StockWhereInput,
     isZeroQuantityIncluded: boolean,
   ) {
+    const warehouseId = data.initialPlanId
+      ? Prisma.sql`AND s.planId IS NULL`
+      : Prisma.sql`AND s.warehouseId = ${data.warehouseId} AND s.planId IS NULL`;
     const paperColorGroupId = data.paperColorGroupId
       ? Prisma.sql`s.paperColorGroupId = ${data.paperColorGroupId}`
       : Prisma.sql`s.paperColorGroupId IS NULL`;
@@ -1103,7 +1106,7 @@ export class StockRetriveService {
         ) AS outputSe ON outputSe.stockId = s.id
 
        WHERE s.companyId = ${data.companyId}
-         AND s.warehouseId = ${data.warehouseId}
+         ${warehouseId}
          AND s.productId = ${data.productId}
          AND s.packagingId = ${data.packagingId}
          AND s.grammage = ${data.grammage}
