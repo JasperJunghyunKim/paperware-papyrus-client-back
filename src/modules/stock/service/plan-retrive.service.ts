@@ -29,9 +29,7 @@ export class PlanRetrive {
     const list = await this.prisma.stockEvent.findMany({
       where: {
         assignPlan: {
-          every: {
-            id: dstPlan.id,
-          },
+          id: dstPlan.id,
         },
       },
       skip: params.skip,

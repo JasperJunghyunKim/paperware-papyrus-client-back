@@ -223,8 +223,9 @@ model StockEvent {
   change            Int
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
-  plan              Plan[]           @relation("TargetStockEvent")
-  assignPlan        Plan[]           @relation("AssignStockEvent")
+  planId            Int
+  plan              Plan             @relation("TargetStockEvent", fields: [planId], references: [id])
+  assignPlan        Plan?            @relation("AssignStockEvent")
   orderProcessId    Int?
   orderProcess      OrderProcess?    @relation(fields: [orderProcessId], references: [id])
   createdAt         DateTime         @default(now())
@@ -606,7 +607,7 @@ model Plan {
   task               Task[]
   invoice            Invoice[]
   isDeleted          Boolean       @default(false)
-  assignStockEventId Int?
+  assignStockEventId Int?          @unique
   assignStockEvent   StockEvent?   @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
   targetStockEvent   StockEvent[]  @relation("TargetStockEvent")
   stock              Stock[]
@@ -997,27 +998,39 @@ enum Subject {
 /// 파트너
 model Partner {
   // id
-  id                        Int         @id @default(autoincrement())
+  id                        Int                 @id @default(autoincrement())
   /// 회사 식별자
   companyId                 Int
   /// 회사
-  company                   Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  company                   Company             @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 거래처 사업자 등록번호
   companyRegistrationNumber String
   /// 파트너 닉네임(회사 닉네임)
-  partnerNickName           String      @db.VarChar(100)
+  partnerNickName           String              @db.VarChar(100)
   /// 여신한도
-  creditLimit               Int         @default(0)
+  creditLimit               Int                 @default(0)
   /// 매입 고시가적용 구분
   /// 매출 고시가적용 구분
   /// 메모
-  memo                      String      @db.VarChar(500)
+  memo                      String              @db.VarChar(500)
   /// 삭제 여부
-  isDeleted                 Boolean     @default(false)
+  isDeleted                 Boolean             @default(false)
   /// 회계 목록
   accountedList             Accounted[]
+  /// 세금계산서 담당자
+  partnerTaxManager         PartnerTaxManager[]
 
   @@unique([companyId, companyRegistrationNumber])
+}
+
+model PartnerTaxManager {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id])
+  name      String
+  phoneNo   String
+  email     String
+  isDeleted Boolean @default(false)
 }
 
 /// 회계

@@ -421,7 +421,11 @@ export class TaskChangeService {
           id: true,
         },
         data: {
-          stockId: stockId,
+          stock: {
+            connect: {
+              id: stockId,
+            },
+          },
           change: -quantity,
           status: 'NORMAL',
           plan: {

@@ -316,6 +316,32 @@ export const STOCK_EVENT = {
   change: true,
   status: true,
   createdAt: true,
+  plan: {
+    select: {
+      planNo: true,
+      type: true,
+      orderStock: {
+        select: {
+          order: {
+            select: {
+              srcCompany: true,
+              dstCompany: true,
+            },
+          },
+        },
+      },
+      orderProcess: {
+        select: {
+          order: {
+            select: {
+              srcCompany: true,
+              dstCompany: true,
+            },
+          },
+        },
+      },
+    },
+  },
 } satisfies Prisma.StockEventSelect;
 
 export const ORDER_STOCK = {
