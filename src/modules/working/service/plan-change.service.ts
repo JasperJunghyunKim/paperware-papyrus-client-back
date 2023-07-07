@@ -191,6 +191,7 @@ export class PlanChangeService {
   }
 
   async registerInputStock(params: {
+    companyId: number;
     planId: number;
     stockId: number;
     quantity: number;
@@ -198,29 +199,45 @@ export class PlanChangeService {
     const { planId, stockId, quantity } = params;
 
     await this.prisma.$transaction(async (tx) => {
-      const stock = await tx.stock.findUnique({
-        where: {
-          id: stockId,
-        },
-      });
-
-      if (stock.cachedQuantityAvailable < quantity) {
-        throw new BadRequestException('재고의 실물 수량을 초과할 수 없습니다.');
-      }
-
       const plan = await tx.plan.findUnique({
         where: {
           id: planId,
         },
         select: {
           status: true,
+          type: true,
         },
       });
+
+      if (plan.type === 'TRADE_OUTSOURCE_PROCESS_SELLER') {
+        throw new BadRequestException(
+          `외주공정 매출은 실투입 재고를 등록할 수 없습니다.`,
+        );
+      }
 
       if (plan.status !== 'PROGRESSING') {
         throw new BadRequestException(
           '실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.',
         );
+      }
+
+      const stock = await tx.stock.findUnique({
+        where: {
+          id: stockId,
+        },
+      });
+
+      if (!stock || stock.companyId !== params.companyId) {
+        throw new BadRequestException(`존재하지 않는 재고입니다.`);
+      }
+
+      if (stock.planId !== null) {
+        throw new BadRequestException(
+          `도착예정재고는 실투입 등록할 수 없습니다.`,
+        );
+      }
+      if (stock.cachedQuantity < quantity) {
+        throw new BadRequestException('재고의 실물 수량을 초과할 수 없습니다.');
       }
 
       const se = await tx.stockEvent.create({

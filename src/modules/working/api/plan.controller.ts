@@ -150,6 +150,7 @@ export class PlanController {
     }
 
     const updatedPlan = await this.planChangeService.registerInputStock({
+      companyId: req.user.companyId,
       planId: id,
       stockId: body.stockId,
       quantity: body.quantity,
