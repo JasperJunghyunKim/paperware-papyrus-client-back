@@ -190,16 +190,45 @@ interface StockGroupDetailFromDB {
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getStockGroupList(
-    companyId: number,
-    skip: number,
-    take: number,
-    planId: 'any' | number,
-    isDirectShippingIncluded: boolean,
-  ): Promise<{
+  async getStockGroupList(params: {
+    companyId: number;
+    skip: number;
+    take: number;
+    planId: 'any' | number;
+    isDirectShippingIncluded: boolean;
+    isZeroQuantityIncluded: boolean;
+    initialPlanId: number | null;
+    warehouseIds: number[];
+    packagingIds: number[];
+    paperTypeIds: number[];
+    manufacturerIds: number[];
+    minGrammage: number | null;
+    maxGrammage: number | null;
+    sizeX: number | null;
+    sizeY: number | null;
+  }): Promise<{
     items: StockGroup[];
     total: number;
   }> {
+    const {
+      companyId,
+      skip,
+      take,
+      planId,
+      isDirectShippingIncluded,
+      isZeroQuantityIncluded,
+      initialPlanId,
+      warehouseIds,
+      packagingIds,
+      paperTypeIds,
+      manufacturerIds,
+      minGrammage,
+      maxGrammage,
+      sizeX,
+      sizeY,
+    } = params;
+
+    /** Query Condition */
     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
     let planIdQuery = Prisma.empty;
     if (planId) {
@@ -221,6 +250,49 @@ export class StockRetriveService {
           (initialOp.id IS NOT NULL AND initialO.srcCompanyId = ${companyId} AND initialOp.isSrcDirectShipping = ${false}) OR
           (initialOp.id IS NOT NULL AND initialO.dstCompanyId = ${companyId} AND initialOp.isDstDirectShipping = ${false})
         )`;
+    const zeroQuantityQuery = isZeroQuantityIncluded
+      ? Prisma.empty
+      : Prisma.sql`HAVING availableQuantity != 0 OR totalQuantity != 0`;
+
+    const initialPlanQuery = initialPlanId
+      ? Prisma.sql`AND s.initialPlanId = ${initialPlanId}`
+      : Prisma.empty;
+
+    const warehouseQuery =
+      warehouseIds.length > 0
+        ? Prisma.sql`AND s.warehouseId IN (${Prisma.join(warehouseIds)})`
+        : Prisma.empty;
+
+    const packagingQuery =
+      packagingIds.length > 0
+        ? Prisma.sql`AND s.packagingId IN (${Prisma.join(packagingIds)})`
+        : Prisma.empty;
+
+    const paperTypeQuery =
+      paperTypeIds.length > 0
+        ? Prisma.sql`AND product.paperTypeId IN (${Prisma.join(paperTypeIds)})`
+        : Prisma.empty;
+
+    const manufacturerQuery =
+      manufacturerIds.length > 0
+        ? Prisma.sql`AND product.manufacturerId IN (${Prisma.join(
+            manufacturerIds,
+          )})`
+        : Prisma.empty;
+
+    const minGrammageQuery = minGrammage
+      ? Prisma.sql`AND s.grammage >= ${minGrammage}`
+      : Prisma.empty;
+    const maxGrammageQuery = maxGrammage
+      ? Prisma.sql`AND s.grammage <= ${maxGrammage}`
+      : Prisma.empty;
+
+    const sizeXQuery = sizeX
+      ? Prisma.sql`AND s.sizeX >= ${sizeX}`
+      : Prisma.empty;
+    const sizeYQuery = sizeY
+      ? Prisma.sql`AND s.sizeY >= ${sizeY}`
+      : Prisma.empty;
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
       SELECT w.id AS warehouseId
@@ -428,6 +500,15 @@ export class StockRetriveService {
                 OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.dstCompanyId = ${companyId} AND s.planId IS NOT NULL)
               ) 
          ${directShippingQuery}
+         ${initialPlanQuery}
+         ${warehouseQuery}
+         ${packagingQuery}
+         ${paperTypeQuery}
+         ${manufacturerQuery}
+         ${minGrammageQuery}
+         ${maxGrammageQuery}
+         ${sizeXQuery}
+         ${sizeYQuery}
 
        GROUP BY s.packagingId
                 , s.productId
@@ -446,6 +527,7 @@ export class StockRetriveService {
                 , o.id
                 , os.id
                 , p.id
+        ${zeroQuantityQuery}
 
       ${limit}
     `;
@@ -600,6 +682,7 @@ export class StockRetriveService {
           totalArrivalQuantity: Number(sg.totalArrivalQuantity),
           storingQuantity: Number(sg.storingQuantity),
           nonStoringQuantity: Number(sg.nonStoringQuantity),
+          lossRate: null, // TODO: 계산
         };
       }),
       total,
@@ -942,6 +1025,7 @@ export class StockRetriveService {
       totalArrivalQuantity: Number(stockGroup.totalArrivalQuantity),
       storingQuantity: Number(stockGroup.storingQuantity),
       nonStoringQuantity: Number(stockGroup.nonStoringQuantity),
+      lossRate: null,
     };
   }
 

@@ -259,6 +259,7 @@ export class OrderController {
           totalArrivalQuantity: 0,
           storingQuantity: 0,
           nonStoringQuantity: 0,
+          lossRate: null,
         });
       }),
       total,

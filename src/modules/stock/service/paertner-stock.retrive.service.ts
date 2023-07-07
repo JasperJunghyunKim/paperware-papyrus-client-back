@@ -235,6 +235,7 @@ export class PartnerStockRetriveService {
           totalArrivalQuantity: 0,
           storingQuantity: 0,
           nonStoringQuantity: 0,
+          lossRate: null, // TODO: 손실율 계산
         };
       }),
       total,

@@ -52,6 +52,57 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
   @IsOptional()
   @IsBooleanString()
   readonly isDirectShippingIncluded: 'true' | 'false' = 'false';
+
+  @IsOptional()
+  @IsBooleanString()
+  readonly isZeroQuantityIncluded: 'true' | 'false' = 'false';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(1)
+  readonly initialPlanId: number = null;
+
+  // 검색 필드
+  @IsOptional()
+  @IsString()
+  readonly warehouseIds: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly packagingIds: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly paperTypeIds: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly manufacturerIds: string = '';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly minGrammage: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly maxGrammage: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number = null;
 }
 
 /** 자사 재고 히스토리 조회 */

@@ -73,3 +73,13 @@ export const serialP = (invoiceCode: string) =>
 
 export const serialI = (invoiceCode: string) =>
   `I${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
+
+export const searchKeywordsToIntArray = (keywords: string): number[] => {
+  if (!keywords) return [];
+  return keywords.split('|').map((keyword) => parseInt(keyword, 10));
+};
+
+export const searchKeywordsToStringArray = (keywords: string): string[] => {
+  if (!keywords) return [];
+  return keywords.split('|').map((keyword) => keyword);
+};
