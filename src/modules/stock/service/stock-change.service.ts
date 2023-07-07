@@ -124,7 +124,11 @@ export class StockChangeService {
 
       const stockEvent = await tx.stockEvent.create({
         data: {
-          stockId: stock.id,
+          stock: {
+            connect: {
+              id: stock.id,
+            },
+          },
           status: 'NORMAL',
           change: params.quantity,
           plan: {
@@ -231,7 +235,11 @@ export class StockChangeService {
 
       const stockEvent = await tx.stockEvent.create({
         data: {
-          stockId: stock.id,
+          stock: {
+            connect: {
+              id: stock.id,
+            },
+          },
           status: 'PENDING',
           change: params.quantity,
           plan: {

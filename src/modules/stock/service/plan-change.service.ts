@@ -58,10 +58,8 @@ export class PlanChangeService {
       },
       where: {
         plan: {
-          every: {
-            id: {
-              equals: params.planId,
-            },
+          id: {
+            equals: params.planId,
           },
         },
         stock: {
@@ -198,6 +196,11 @@ export class PlanChangeService {
           },
           change: params.quantity,
           status: 'PENDING',
+          plan: {
+            connect: {
+              id: plan.id,
+            },
+          },
           assignPlan: {
             connect: {
               id: plan.id,
@@ -356,6 +359,7 @@ export class PlanChangeService {
           });
           await tx.stockEvent.create({
             data: {
+              planId: plan.id,
               stockId: stock.id,
               change: result.quantity,
               status: 'PENDING',
@@ -372,10 +376,8 @@ export class PlanChangeService {
           },
           where: {
             assignPlan: {
-              every: {
-                id: {
-                  equals: params.planId,
-                },
+              id: {
+                equals: params.planId,
               },
             },
             status: 'PENDING',

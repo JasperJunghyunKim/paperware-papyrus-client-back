@@ -177,6 +177,11 @@ export class OrderChangeService {
             id: dstPlan.id,
           },
         },
+        plan: {
+          connect: {
+            id: dstPlan.id,
+          },
+        },
       },
       select: {
         id: true,
@@ -270,6 +275,11 @@ export class OrderChangeService {
         change: -orderProcess.quantity,
         status: 'PENDING',
         assignPlan: {
+          connect: {
+            id: srcPlan.id,
+          },
+        },
+        plan: {
           connect: {
             id: srcPlan.id,
           },
@@ -1706,10 +1716,8 @@ export class OrderChangeService {
       },
       where: {
         plan: {
-          every: {
-            id: {
-              equals: plan.id,
-            },
+          id: {
+            equals: plan.id,
           },
         },
         stock: {

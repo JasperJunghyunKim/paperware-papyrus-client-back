@@ -223,8 +223,9 @@ model StockEvent {
   change            Int
   status            StockEventStatus
   orderStockArrival OrderStock[] // 입고 예정 재고의 정상 매입
-  plan              Plan[]           @relation("TargetStockEvent")
-  assignPlan        Plan[]           @relation("AssignStockEvent")
+  planId            Int
+  plan              Plan             @relation("TargetStockEvent", fields: [planId], references: [id])
+  assignPlan        Plan?            @relation("AssignStockEvent")
   orderProcessId    Int?
   orderProcess      OrderProcess?    @relation(fields: [orderProcessId], references: [id])
   createdAt         DateTime         @default(now())
@@ -606,7 +607,7 @@ model Plan {
   task               Task[]
   invoice            Invoice[]
   isDeleted          Boolean       @default(false)
-  assignStockEventId Int?
+  assignStockEventId Int?          @unique
   assignStockEvent   StockEvent?   @relation("AssignStockEvent", fields: [assignStockEventId], references: [id]) // 배정
   targetStockEvent   StockEvent[]  @relation("TargetStockEvent")
   stock              Stock[]

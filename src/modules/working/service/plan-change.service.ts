@@ -131,6 +131,7 @@ export class PlanChangeService {
               stockId: stock.id,
               change: result.quantity,
               status: 'PENDING',
+              planId: plan.id,
             },
           });
         }
@@ -243,7 +244,11 @@ export class PlanChangeService {
       const se = await tx.stockEvent.create({
         data: {
           change: -quantity,
-          stockId,
+          stock: {
+            connect: {
+              id: stockId,
+            },
+          },
           status: 'NORMAL',
           plan: {
             connect: {

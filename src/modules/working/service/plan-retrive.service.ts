@@ -64,9 +64,7 @@ export class PlanRetriveService {
       select: Selector.STOCK_EVENT,
       where: {
         plan: {
-          some: {
-            id: planId,
-          },
+          id: planId,
         },
       },
       skip,
@@ -85,9 +83,7 @@ export class PlanRetriveService {
     const count = await this.prisma.stockEvent.count({
       where: {
         plan: {
-          some: {
-            id: planId,
-          },
+          id: planId,
         },
       },
     });

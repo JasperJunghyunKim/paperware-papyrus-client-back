@@ -99,6 +99,7 @@ export class InhouseProcessChangeService {
           cachedQuantityAvailable: -quantity,
           stockEvent: {
             create: {
+              planId: plan.id,
               change: -quantity,
               status: 'PENDING',
               assignPlan: {
