@@ -675,6 +675,7 @@ export const INVOICE = {
 
 export const INITIAL_PLAN = {
   type: true,
+  planNo: true,
   orderStock: {
     select: ORDER_STOCK,
   },
