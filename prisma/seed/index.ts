@@ -12,6 +12,9 @@ async function main() {
       faxNo: values[3],
       representative: values[4],
       invoiceCode: values[5],
+      bizType: values[6],
+      bizItem: values[7],
+      address: `[[00000]] [[${values[8]}::]] [[]] [[]]`,
     })),
   });
 

@@ -251,6 +251,8 @@ model Company {
   faxNo                          String                        @default("")
   representative                 String                        @default("")
   invoiceCode                    String
+  bizType                        String                        @default("")
+  bizItem                        String                        @default("")
   address                        String                        @default("") @db.VarChar(500)
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
