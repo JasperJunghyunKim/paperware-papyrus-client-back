@@ -62,7 +62,6 @@ export class LocationController {
     @Request() req: AuthType,
     @Query() query: LocationForSalesListQueryDto,
   ): Promise<LocationListResponse> {
-    console.log(query);
     const items = await this.locationRetriveService.getListForSales({
       skip: query.skip,
       take: query.take,

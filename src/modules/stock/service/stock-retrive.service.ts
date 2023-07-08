@@ -256,7 +256,7 @@ export class StockRetriveService {
         )`;
     const zeroQuantityQuery = isZeroQuantityIncluded
       ? Prisma.empty
-      : Prisma.sql`HAVING availableQuantity != 0 OR totalQuantity != 0`;
+      : Prisma.sql`AND availableQuantity != 0 OR totalQuantity != 0`;
 
     const initialPlanQuery = initialPlanId
       ? Prisma.sql`AND s.initialPlanId = ${initialPlanId}`
@@ -415,6 +415,9 @@ export class StockRetriveService {
             , \`as\`.sizeY AS asSizeY
             , ase.change AS asQuantity
 
+            -- group by용
+            , initialP.type AS initialPlanType
+
             -- 수량
             , IFNULL(SUM(s.cachedQuantityAvailable), 0) AS availableQuantity
             , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
@@ -557,11 +560,15 @@ export class StockRetriveService {
                 , o.id
                 , os.id
                 , p.id
+                , initialP.type
+
+        HAVING (initialPlanType != ${PlanType.TRADE_OUTSOURCE_PROCESS_BUYER} OR (availableQuantity >= 0))
         ${zeroQuantityQuery}
 
       ${limit}
     `;
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
+    console.log(111, stockGroups);
 
     return {
       items: stockGroups.map((sg) => {
