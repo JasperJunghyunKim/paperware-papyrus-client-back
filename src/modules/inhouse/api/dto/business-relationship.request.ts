@@ -1,13 +1,19 @@
-import { Optional } from '@nestjs/common';
+import { BadRequestException, Optional } from '@nestjs/common';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
+  IsEmail,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
+  Length,
   Max,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import {
   BusinessRelationshipCompactListQuery,
@@ -18,6 +24,7 @@ import {
   SearchPartnerRequest,
   UpsertPartnerRequest,
 } from 'src/@shared/api';
+import { IsOnlyNumber } from 'src/validator/is-only-number';
 
 export class BusinessRelationshipListQueryDto
   implements BusinessRelationshipListQuery
@@ -75,6 +82,25 @@ export class SearchPartnerRequestDto implements SearchPartnerRequest {
   companyRegistrationNumber: string;
 }
 
+class PartnerTaxManagerDto {
+  @IsString()
+  @Length(1, 20)
+  readonly name: string;
+
+  @IsString()
+  @IsOnlyNumber()
+  @Length(1, 20)
+  readonly phoneNo: string;
+
+  @IsString()
+  @IsEmail()
+  @Length(1, 20)
+  readonly email: string;
+
+  @IsBoolean()
+  readonly isDefault: boolean;
+}
+
 export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @IsString()
   companyRegistrationNumber: string;
@@ -112,6 +138,23 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @IsOptional()
   @IsString()
   memo = '';
+  @IsArray()
+  @ArrayMaxSize(4)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => PartnerTaxManagerDto)
+  readonly partnerTaxManager: PartnerTaxManagerDto[];
+
+  validate() {
+    const defaultManagers = this.partnerTaxManager.filter(
+      (manager) => manager.isDefault,
+    );
+    if (defaultManagers.length > 1) {
+      throw new BadRequestException(
+        `대표세금계산서 담당자는 한명만 지정 가능합니다.`,
+      );
+    }
+  }
 }
 
 export class BusinessRelationshipReqeustRequestDto

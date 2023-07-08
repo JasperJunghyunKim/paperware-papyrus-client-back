@@ -1030,6 +1030,7 @@ model PartnerTaxManager {
   name      String
   phoneNo   String
   email     String
+  isDefault Boolean @default(false)
   isDeleted Boolean @default(false)
 }
 

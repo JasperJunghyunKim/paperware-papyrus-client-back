@@ -180,6 +180,7 @@ export class BusinessRelationshipController {
     @Request() req: AuthType,
     @Body() body: RegisterPartnerRequestDto,
   ) {
+    body.validate();
     await this.changeService.register({
       srcCompanyId: req.user.companyId,
       create: body.create,
@@ -196,6 +197,7 @@ export class BusinessRelationshipController {
       companyRegistrationNumber: body.companyRegistrationNumber,
       creditLimit: body.creditLimit,
       memo: body.memo,
+      partnerTaxManager: body.partnerTaxManager,
     });
   }
 

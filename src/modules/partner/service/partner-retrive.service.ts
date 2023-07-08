@@ -17,6 +17,7 @@ export class PartnerRetriveService {
             companyRegistrationNumber: true,
             creditLimit: true,
             memo: true,
+            partnerTaxManager: true,
           },
           where: {
             companyId,
@@ -31,6 +32,7 @@ export class PartnerRetriveService {
               partnerNickName: partner.partnerNickName,
               creditLimit: partner.creditLimit,
               memo: partner.memo,
+              partnerTaxManager: partner.partnerTaxManager,
             };
           });
         }),

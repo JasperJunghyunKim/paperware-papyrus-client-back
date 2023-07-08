@@ -30,6 +30,12 @@ export class BusinessRelationshipChangeService {
     faxNo: string;
     representative: string;
     memo: string;
+    partnerTaxManager: {
+      name: string;
+      phoneNo: string;
+      email: string;
+      isDefault: boolean;
+    }[];
   }) {
     await this.prisma.$transaction(async (tx) => {
       // 파트너 정보 업데이트
@@ -46,6 +52,11 @@ export class BusinessRelationshipChangeService {
           partnerNickName: params.partnerNickname,
           creditLimit: params.creditLimit,
           memo: params.memo,
+          partnerTaxManager: {
+            createMany: {
+              data: params.partnerTaxManager.map((manager) => manager),
+            },
+          },
         },
         update: {
           partnerNickName: params.partnerNickname,

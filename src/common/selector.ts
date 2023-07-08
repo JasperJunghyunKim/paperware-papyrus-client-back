@@ -20,6 +20,11 @@ export const PARTNER = {
   partnerNickName: true,
   creditLimit: true,
   memo: true,
+  partnerTaxManager: {
+    where: {
+      isDeleted: false,
+    },
+  },
 } satisfies Prisma.PartnerSelect;
 
 export const COMPANY = {
