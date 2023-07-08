@@ -79,9 +79,15 @@ export class StockChangeService {
     price: StockCreateStockPriceRequest;
   }) {
     return await this.prisma.$transaction(async (tx) => {
+      const company = await tx.company.findUnique({
+        where: {
+          id: params.companyId,
+        },
+      });
+
       const plan = await tx.plan.create({
         data: {
-          planNo: ulid(),
+          planNo: Util.serialW(company.invoiceCode),
           type: 'INHOUSE_CREATE',
           companyId: params.companyId,
         },
@@ -180,9 +186,15 @@ export class StockChangeService {
       throw new BadRequestException(`자사도착지를 선택하셔야 합니다.`);
 
     return await this.prisma.$transaction(async (tx) => {
+      const company = await tx.company.findUnique({
+        where: {
+          id: params.companyId,
+        },
+      });
+
       const plan = await tx.plan.create({
         data: {
-          planNo: ulid(),
+          planNo: Util.serialW(company.invoiceCode),
           type: 'INHOUSE_CREATE',
           companyId: params.companyId,
           planShipping: {

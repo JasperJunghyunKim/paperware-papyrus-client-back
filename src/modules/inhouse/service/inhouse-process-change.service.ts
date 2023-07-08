@@ -69,7 +69,7 @@ export class InhouseProcessChangeService {
 
       const plan = await tx.plan.create({
         data: {
-          planNo: ulid(),
+          planNo: Util.serialW(company.invoiceCode),
           type: 'INHOUSE_PROCESS',
           company: {
             connect: {
