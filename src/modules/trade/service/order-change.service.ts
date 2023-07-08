@@ -3153,6 +3153,17 @@ export class OrderChangeService {
 
       // TODO: 거래처 확인
 
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: dstCompanyId,
+        },
+      });
+
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
       const order = await tx.order.create({
         include: {
           srcCompany: true,
@@ -3161,7 +3172,7 @@ export class OrderChangeService {
         },
         data: {
           orderType: 'ETC',
-          orderNo: ulid(),
+          orderNo: Util.serialT(invoiceCode),
           orderDate: params.orderDate,
           srcCompany: {
             connect: {
