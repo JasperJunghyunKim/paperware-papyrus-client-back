@@ -1818,6 +1818,8 @@ export class OrderChangeService {
             tx,
             orderId,
             companyId,
+            params.suppliedPrice,
+            params.vatPrice,
             params.orderStockTradePrice,
           );
           break;
@@ -1826,10 +1828,20 @@ export class OrderChangeService {
             tx,
             orderId,
             companyId,
+            params.suppliedPrice,
+            params.vatPrice,
             params.orderDepositTradePrice,
           );
           break;
-        // TODO... 외주배송, 기타매입/매출 등
+        default:
+          await this.updateTradePriceTx(
+            tx,
+            orderId,
+            companyId,
+            params.suppliedPrice,
+            params.vatPrice,
+          );
+          break;
       }
     });
   }
@@ -1838,6 +1850,8 @@ export class OrderChangeService {
     tx: PrismaTransaction,
     orderId: number,
     companyId: number,
+    suppliedPrice: number,
+    vatPrice: number,
     orderStockTradePrice: OrderStockTradePrice,
   ) {
     const order = await tx.order.findUnique({
@@ -1926,6 +1940,8 @@ export class OrderChangeService {
             id: companyId,
           },
         },
+        suppliedPrice,
+        vatPrice,
         orderStockTradePrice: {
           create: {
             officialPriceType: orderStockTradePrice.officialPriceType,
@@ -1960,6 +1976,8 @@ export class OrderChangeService {
     tx: PrismaTransaction,
     orderId: number,
     companyId: number,
+    suppliedPrice: number,
+    vatPrice: number,
     orderDepositTradePrice: OrderDepositTradePrice,
   ) {
     const order = await tx.order.findUnique({
@@ -2033,6 +2051,8 @@ export class OrderChangeService {
             id: companyId,
           },
         },
+        suppliedPrice,
+        vatPrice,
         orderDepositTradePrice: {
           create: {
             officialPriceType: orderDepositTradePrice.officialPriceType,
@@ -2061,6 +2081,40 @@ export class OrderChangeService {
                 : undefined,
           },
         },
+      },
+    });
+  }
+
+  async updateTradePriceTx(
+    tx: PrismaTransaction,
+    orderId: number,
+    companyId: number,
+    suppliedPrice: number,
+    vatPrice: number,
+  ) {
+    const order = await tx.order.findUnique({
+      include: {
+        tradePrice: true,
+      },
+      where: {
+        id: orderId,
+      },
+    });
+
+    const tradePrice = order.tradePrice.find(
+      (tp) => tp.companyId === companyId,
+    );
+
+    await tx.tradePrice.update({
+      where: {
+        orderId_companyId: {
+          orderId,
+          companyId,
+        },
+      },
+      data: {
+        suppliedPrice,
+        vatPrice,
       },
     });
   }
