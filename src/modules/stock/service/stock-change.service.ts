@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  NotImplementedException,
 } from '@nestjs/common';
 import {
   DiscountType,
@@ -27,6 +28,25 @@ export class StockChangeService {
     private readonly planChangeService: PlanChangeService,
     private readonly locationRetriveService: LocationRetriveService,
   ) {}
+
+  async createDefaultStockPriceTx(tx: PrismaTransaction, stockId: number) {
+    return await tx.stockPrice.create({
+      data: {
+        stock: {
+          connect: {
+            id: stockId,
+          },
+        },
+        officialPriceType: 'NONE',
+        officialPrice: 0,
+        officialPriceUnit: 'WON_PER_TON',
+        discountType: 'NONE',
+        discountPrice: 0,
+        unitPrice: 0,
+        unitPriceUnit: 'WON_PER_TON',
+      },
+    });
+  }
 
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
@@ -478,6 +498,158 @@ export class StockChangeService {
           },
         });
       }
+    });
+  }
+
+  async updateArrivalStockSpec(params: {
+    companyId: number;
+    planId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    spec: {
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+    };
+  }) {
+    // throw new NotImplementedException();
+    await this.prisma.$transaction(async (tx) => {
+      const stocks = await tx.stock.findMany({
+        include: {
+          packaging: true,
+          initialPlan: {
+            include: {
+              orderStock: {
+                include: {
+                  plan: {
+                    include: {
+                      assignStockEvent: {
+                        include: {
+                          stock: true,
+                        },
+                      },
+                    },
+                  },
+                  order: {
+                    include: {
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: {
+                            include: {
+                              orderStockTradeAltBundle: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              orderProcess: {
+                include: {
+                  plan: {
+                    include: {
+                      assignStockEvent: {
+                        include: {
+                          stock: true,
+                        },
+                      },
+                    },
+                  },
+                  order: {
+                    include: {
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: {
+                            include: {
+                              orderStockTradeAltBundle: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          stockPrice: true,
+        },
+        where: {
+          companyId: params.companyId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          stockEvent: {
+            some: {
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
+        },
+        orderBy: {
+          id: 'asc',
+        },
+      });
+      if (stocks.length === 0)
+        throw new BadRequestException(`존재하지 않는 도착예정재고 입니다.`);
+      else if (stocks.length > 1)
+        throw new BadRequestException(
+          `다른 작업에 배정된 도착예정재고는 수정이 불가능 합니다.`,
+        );
+
+      const stock = stocks[0];
+
+      // 재고금액 초기화
+      if (stock.stockPrice) {
+        await tx.stockPrice.delete({
+          where: {
+            stockId: stock.id,
+          },
+        });
+      }
+      await this.createDefaultStockPriceTx(tx, stock.id);
+
+      await tx.stock.update({
+        where: {
+          id: stock.id,
+        },
+        data: {
+          isSyncPrice: false,
+          packagingId: params.spec.packagingId,
+          productId: params.spec.productId,
+          grammage: params.spec.grammage,
+          sizeX: params.spec.sizeX,
+          sizeY: params.spec.sizeY,
+          paperColorGroupId: params.spec.paperColorGroupId,
+          paperColorId: params.spec.paperColorId,
+          paperPatternId: params.spec.paperPatternId,
+          paperCertId: params.spec.paperCertId,
+        },
+      });
+
+      console.log(111, stock);
     });
   }
 }

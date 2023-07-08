@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -15,6 +17,7 @@ import { StockChangeService } from '../service/stock-change.service';
 import {
   ArrivalStockCreateRequestDto,
   ArrivalStockPriceUpdateDto,
+  ArrivalStockSpecUpdateDto,
   GetStockBySerialDto,
   GetStockDto,
   IdDto,
@@ -246,5 +249,30 @@ export class StockController {
       ...dto,
       sizeY: dto.sizeY || 0,
     });
+  }
+
+  /** 도착예정재고 스펙 수정 */
+  @Put('/arrival')
+  @UseGuards(AuthGuard)
+  async updateArrivalStockSpec(
+    @Request() req: AuthType,
+    @Body() dto: ArrivalStockSpecUpdateDto,
+  ) {
+    return await this.stockChangeService.updateArrivalStockSpec({
+      companyId: req.user.companyId,
+      ...dto,
+      sizeY: dto.sizeY || 0,
+      spec: {
+        ...dto.spec,
+        sizeY: dto.spec.sizeY || 0,
+      },
+    });
+  }
+
+  /** 도착예정재고 삭제 */
+  @Delete()
+  @UseGuards(AuthGuard)
+  async deleteArrivalStock(@Request() req: AuthType) {
+    throw new NotImplementedException();
   }
 }

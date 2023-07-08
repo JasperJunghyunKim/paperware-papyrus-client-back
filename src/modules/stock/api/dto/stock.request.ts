@@ -21,6 +21,7 @@ import {
 import {
   ArrivalStockCreateRequest,
   ArrivalStockPriceUpdateRequest,
+  ArrivalStockSpecUpdateRequest,
   StockCreateRequest,
   StockCreateStockPriceRequest,
   StockGroupDetailQuery,
@@ -640,4 +641,101 @@ export class ArrivalStockPriceUpdateDto
       this.stockPrice = null;
     }
   }
+}
+
+/** 도착예정재고 스펙 수정 */
+export class StockSpec {
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
+}
+
+export class ArrivalStockSpecUpdateDto
+  implements ArrivalStockSpecUpdateRequest
+{
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
+
+  @IsObject()
+  @ValidateNested()
+  readonly spec: StockSpec;
 }
