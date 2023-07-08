@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
@@ -19,6 +20,7 @@ import {
 } from 'class-validator';
 import {
   ArrivalStockCreateRequest,
+  ArrivalStockPriceUpdateRequest,
   StockCreateRequest,
   StockCreateStockPriceRequest,
   StockGroupDetailQuery,
@@ -542,4 +544,100 @@ export class IdDto {
   @Type(() => Number)
   @IsPositive()
   readonly id: number;
+}
+
+/** 도착예정재고 금액 수정 */
+export class ArrivalStockPriceUpdateStockPriceDto {
+  @IsEnum(OfficialPriceType)
+  readonly officialPriceType: OfficialPriceType;
+
+  @IsNumber()
+  @Min(0)
+  readonly officialPrice: number;
+
+  @IsEnum(PriceUnit)
+  readonly officialPriceUnit: PriceUnit;
+
+  @IsEnum(DiscountType)
+  readonly discountType: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  readonly discountPrice: number = null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  readonly unitPrice: number = null;
+
+  @IsEnum(PriceUnit)
+  readonly unitPriceUnit: PriceUnit;
+}
+
+export class ArrivalStockPriceUpdateDto
+  implements ArrivalStockPriceUpdateRequest
+{
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
+
+  @IsBoolean()
+  readonly isSyncPrice: boolean;
+
+  @IsOptional()
+  @IsObject()
+  @ValidateNested()
+  @Type(() => ArrivalStockPriceUpdateStockPriceDto)
+  stockPrice: ArrivalStockPriceUpdateStockPriceDto = null;
+
+  validate() {
+    if (!this.isSyncPrice && !this.stockPrice) {
+      throw new BadRequestException(`매입동기화 OFF시 금액입력이 필요합니다.`);
+    } else if (this.isSyncPrice) {
+      this.stockPrice = null;
+    }
+  }
 }

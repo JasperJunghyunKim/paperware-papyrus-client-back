@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -13,6 +14,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
   ArrivalStockCreateRequestDto,
+  ArrivalStockPriceUpdateDto,
   GetStockBySerialDto,
   GetStockDto,
   IdDto,
@@ -229,5 +231,20 @@ export class StockController {
       items: stockGroups.map((sg) => Util.serialize(sg)),
       total: stockGroups.length,
     };
+  }
+
+  /** 도착예정재고 금액 수정 */
+  @Put('/arrival/price')
+  @UseGuards(AuthGuard)
+  async updateArrivalStockPrice(
+    @Request() req: AuthType,
+    @Body() dto: ArrivalStockPriceUpdateDto,
+  ) {
+    dto.validate();
+    return await this.stockChangeService.updateArrivalStockPrice({
+      companyId: req.user.companyId,
+      ...dto,
+      sizeY: dto.sizeY || 0,
+    });
   }
 }

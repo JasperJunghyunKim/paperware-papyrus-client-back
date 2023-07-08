@@ -4,7 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  DiscountType,
+  OfficialPriceType,
+  PriceUnit,
+  Prisma,
+} from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockValidator } from './stock.validator';
 import { PrismaTransaction } from 'src/common/types';
@@ -327,6 +332,152 @@ export class StockChangeService {
       await this.cacheStockQuantityTx(tx, {
         id: stock.id,
       });
+    });
+  }
+
+  async updateArrivalStockPrice(params: {
+    companyId: number;
+    planId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    isSyncPrice: boolean;
+    stockPrice: {
+      officialPriceType: OfficialPriceType;
+      officialPrice: number;
+      officialPriceUnit: PriceUnit;
+      discountType: DiscountType;
+      discountPrice: number;
+      unitPrice: number;
+      unitPriceUnit: PriceUnit;
+    } | null;
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      const stock = await tx.stock.findFirst({
+        include: {
+          packaging: true,
+          initialPlan: {
+            include: {
+              orderStock: {
+                include: {
+                  plan: {
+                    include: {
+                      assignStockEvent: {
+                        include: {
+                          stock: true,
+                        },
+                      },
+                    },
+                  },
+                  order: {
+                    include: {
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: {
+                            include: {
+                              orderStockTradeAltBundle: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          stockPrice: true,
+        },
+        where: {
+          companyId: params.companyId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          stockEvent: {
+            some: {
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
+        },
+      });
+      if (!stock)
+        throw new BadRequestException(`존재하지 않는 도착예정재고 입니다.`);
+
+      // 재고금액 체크
+      this.stockValidator.validateStockPrice(
+        stock.packaging.type,
+        params.stockPrice,
+      );
+
+      const assignStock =
+        stock.initialPlan.orderStock?.plan?.find(
+          (plan) => plan.type === 'TRADE_NORMAL_SELLER',
+        )?.assignStockEvent?.stock || null;
+
+      const tradePrice =
+        stock.initialPlan.orderStock?.order?.tradePrice.find(
+          (tp) => tp.companyId === params.companyId,
+        ) || null;
+
+      // 매입금액 동기화 체크
+      this.stockValidator.validateIsSyncPrice(
+        params.isSyncPrice,
+        stock.initialPlan.type,
+        stock,
+        assignStock,
+        tradePrice,
+      );
+
+      await tx.stock.update({
+        data: {
+          isSyncPrice: params.isSyncPrice,
+        },
+        where: {
+          id: stock.id,
+        },
+      });
+
+      if (stock.stockPrice) {
+        await tx.stockPrice.delete({
+          where: {
+            stockId: stock.id,
+          },
+        });
+      }
+
+      if (!params.isSyncPrice) {
+        await tx.stockPrice.create({
+          data: {
+            stock: {
+              connect: {
+                id: stock.id,
+              },
+            },
+            officialPriceType: params.stockPrice.officialPriceType,
+            officialPrice: params.stockPrice.officialPrice,
+            officialPriceUnit: params.stockPrice.officialPriceUnit,
+            discountType: params.stockPrice.discountType,
+            discountPrice: params.stockPrice.discountPrice,
+            unitPrice: params.stockPrice.unitPrice,
+            unitPriceUnit: params.stockPrice.unitPriceUnit,
+          },
+        });
+      }
     });
   }
 }
