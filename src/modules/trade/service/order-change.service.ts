@@ -2105,14 +2105,28 @@ export class OrderChangeService {
       (tp) => tp.companyId === companyId,
     );
 
-    await tx.tradePrice.update({
+    await tx.tradePrice.upsert({
       where: {
         orderId_companyId: {
           orderId,
           companyId,
         },
       },
-      data: {
+      update: {
+        suppliedPrice,
+        vatPrice,
+      },
+      create: {
+        order: {
+          connect: {
+            id: orderId,
+          },
+        },
+        company: {
+          connect: {
+            id: companyId,
+          },
+        },
         suppliedPrice,
         vatPrice,
       },
