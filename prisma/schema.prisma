@@ -1390,3 +1390,9 @@ model OrderDepositTradeAltBundle {
 
   @@id([orderId, companyId])
 }
+
+model TempInvoiceCode {
+  invoiceCode String @unique
+  number      Int
+  maxPercent  Float
+}

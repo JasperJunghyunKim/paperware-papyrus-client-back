@@ -143,7 +143,7 @@ export class RegisterPartnerRequestDto implements RegisterPartnerRequest {
   @IsObject({ each: true })
   @ValidateNested({ each: true })
   @Type(() => PartnerTaxManagerDto)
-  readonly partnerTaxManager: PartnerTaxManagerDto[];
+  readonly partnerTaxManager: PartnerTaxManagerDto[] = [];
 
   validate() {
     const defaultManagers = this.partnerTaxManager.filter(

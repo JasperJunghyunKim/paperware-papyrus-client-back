@@ -68,11 +68,21 @@ export function serialize<T extends object>(obj: T): Serialized<T> {
   return newObj;
 }
 
+/** 종이재고 */
 export const serialP = (invoiceCode: string) =>
   `P${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
 
+/** 송장 */
 export const serialI = (invoiceCode: string) =>
   `I${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
+
+/** 거래 */
+export const serialT = (invoiceCode: string) =>
+  `T${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
+
+/** 내부작업 */
+export const serialW = (invoiceCode: string) =>
+  `W${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
 
 export const searchKeywordsToIntArray = (keywords: string): number[] => {
   if (!keywords) return [];

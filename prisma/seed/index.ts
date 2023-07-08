@@ -4,6 +4,13 @@ import * as Data from './data';
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.tempInvoiceCode.create({
+    data: {
+      invoiceCode: 'PWR',
+      number: 1,
+      maxPercent: 50,
+    },
+  });
   await prisma.company.createMany({
     data: Data.COMPANY.map<Prisma.CompanyCreateManyInput>((values) => ({
       businessName: values[0],

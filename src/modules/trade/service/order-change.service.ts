@@ -32,6 +32,7 @@ import { Plan } from 'src/@shared/models';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
+import { OrderRetriveService } from './order-retrive.service';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -76,6 +77,7 @@ interface UpdateTradePriceParams {
 export class OrderChangeService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly orderRetriveService: OrderRetriveService,
     private readonly tradePriceValidator: TradePriceValidator,
     private readonly depositChangeService: DepositChangeService,
     private readonly stockChangeService: StockChangeService,
@@ -434,10 +436,15 @@ export class OrderChangeService {
         });
       }
 
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
       // 주문 생성
       const order = await tx.order.create({
         data: {
-          orderNo: ulid(),
+          orderNo: Util.serialT(invoiceCode),
           orderType: 'NORMAL',
           srcCompany: {
             connect: {
@@ -2185,13 +2192,24 @@ export class OrderChangeService {
           })
         ).managedById;
 
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: dstCompanyId,
+        },
+      });
+
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
       // 보관등록 주문 생성
       const order = await tx.order.create({
         select: {
           id: true,
         },
         data: {
-          orderNo: ulid(),
+          orderNo: Util.serialT(invoiceCode),
           orderType: 'DEPOSIT',
           srcCompany: {
             connect: {
@@ -2776,6 +2794,17 @@ export class OrderChangeService {
         });
       }
 
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: dstCompanyId,
+        },
+      });
+
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
       const order = await tx.order.create({
         select: {
           id: true,
@@ -2789,7 +2818,7 @@ export class OrderChangeService {
         },
         data: {
           orderType: 'OUTSOURCE_PROCESS',
-          orderNo: ulid(),
+          orderNo: Util.serialT(invoiceCode),
           srcCompany: {
             connect: {
               id: srcCompanyId,

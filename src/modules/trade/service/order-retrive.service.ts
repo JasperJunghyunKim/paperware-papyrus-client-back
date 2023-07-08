@@ -378,4 +378,9 @@ export class OrderRetriveService {
 
     return item;
   }
+
+  async getNotUsingInvoiceCode(): Promise<string> {
+    const invoice = await this.prisma.tempInvoiceCode.findFirst();
+    return invoice.invoiceCode + String(invoice.number);
+  }
 }
