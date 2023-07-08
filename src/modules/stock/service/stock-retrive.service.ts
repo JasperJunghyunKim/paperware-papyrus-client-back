@@ -190,6 +190,95 @@ interface StockGroupDetailFromDB {
   nonStoringQuantity: number;
 }
 
+export interface PlanStockGroupFromDB {
+  warehouseId: number;
+  warehouseName: string;
+  warehouseIsPublic: boolean;
+  warehouseAddress: string;
+
+  // 메타데이터
+  packagingId: number;
+  packagingName: string;
+  packagingType: PackagingType;
+  packagingPackA: number;
+  packagingPackB: number;
+
+  productId: number;
+  paperDomainId: number;
+  paperDomainName: string;
+  paperGroupId: number;
+  paperGroupName: string;
+  manufacturerId: number;
+  manufacturerName: string;
+  paperTypeId: number;
+  paperTypeName: string;
+
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+
+  paperColorGroupId: number;
+  paperColorGroupName: string;
+  paperColorId: number;
+  paperColorName: string;
+  paperPatternId: number;
+  paperPatternName: string;
+  paperCertId: number;
+  paperCertName: string;
+
+  // 도착예정 정보
+  planId: number;
+  planNo: string;
+  planStatus: PlanStatus;
+  planType: PlanType;
+  palnCreatedAt: string;
+
+  orderId: number;
+  orderNo: string;
+  orderType: OrderType;
+
+  orderStockId: number;
+  osDstLocationId: number;
+  osDstLocationName: string;
+  osDstLocationIsPublic: boolean;
+  osDstLocationAddress: string;
+  osWantedDate: string;
+
+  orderProcessId: number;
+  opDstLocationId: number;
+  opDstLocationName: string;
+  opDstLocationIsPublic: boolean;
+  opDstLocationAddress: string;
+  opDstWantedDate: string;
+  opSrcLocationId: number;
+  opSrcLocationName: string;
+  opSrcLocationIsPublic: boolean;
+  opSrcLocationAddress: string;
+  opSrcWtantedDate: string;
+
+  psLocationId: number;
+  psLocationName: string;
+  psLocationIsPublic: boolean;
+  psLocationAddress: string;
+  psWantedDate: string;
+
+  // 거래처 정보
+  partnerCompanyId: number;
+  partnerCompanyBusinessName: string;
+  partnerCompanyCompanyRegistrationNumber: string;
+  partnerCompanyInvoiceCode: string;
+  partnerCompanyBizType: string;
+  partnerCompanyBizItem: string;
+  partnerCompanyRepresentative: string;
+  partnerCompanyAddress: string;
+  partnerCompanyPhoneNo: string;
+  partnerCompanyFaxNo: string;
+  partnerCompanyManagedById: number;
+
+  // 수량정보
+  quantity: number;
+}
+
 @Injectable()
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) {}
@@ -415,9 +504,6 @@ export class StockRetriveService {
             , \`as\`.sizeY AS asSizeY
             , ase.change AS asQuantity
 
-            -- group by용
-            , initialP.type AS initialPlanType
-
             -- 수량
             , IFNULL(SUM(s.cachedQuantityAvailable), 0) AS availableQuantity
             , IFNULL(SUM(s.cachedQuantity), 0) AS totalQuantity
@@ -560,9 +646,8 @@ export class StockRetriveService {
                 , o.id
                 , os.id
                 , p.id
-                , initialP.type
 
-        HAVING (initialPlanType != ${PlanType.TRADE_OUTSOURCE_PROCESS_BUYER} OR (availableQuantity >= 0))
+        HAVING (availableQuantity >= 0)
         ${zeroQuantityQuery}
 
       ${limit}
@@ -1291,5 +1376,301 @@ export class StockRetriveService {
       throw new NotFoundException(`존재하지 않는 재고입니다.`);
 
     return stock;
+  }
+
+  async getPlanStockGroups(
+    companyId: number,
+    planId: number,
+  ): Promise<Model.PlanStockGroup[]> {
+    const stockGroups: PlanStockGroupFromDB[] = await this.prisma.$queryRaw`
+      SELECT w.id AS warehouseId
+            , w.name AS warehouseName
+            , w.isPublic AS warehouseIsPublic
+            , w.address AS warehouseAddress
+
+            -- 메타데이터
+            , packaging.id AS packagingId
+            , packaging.name AS packagingName
+            , packaging.type AS packagingType
+            , packaging.packA AS packagingPackA
+            , packaging.packB AS packagingPackB
+            , product.id AS productId
+            , paperDomain.id AS paperDomainId
+            , paperDomain.name AS paperDomainName
+            , manufacturer.id AS manufacturerId
+            , manufacturer.name AS manufacturerName
+            , paperGroup.id AS paperGroupId
+            , paperGroup.name AS paperGroupName
+            , paperType.id AS paperTypeId
+            , paperType.name AS paperTypeName
+            , s.grammage AS grammage
+            , s.sizeX AS sizeX
+            , s.sizeY AS sizeY
+            , paperColorGroup.id AS paperColorGroupId
+            , paperColorGroup.name AS paperColorGroupName
+            , paperColor.id AS paperColorId
+            , paperColor.name AS paperColorName
+            , paperPattern.id AS paperPatternId
+            , paperPattern.name AS paperPatternName
+            , paperCert.id AS paperCertId
+            , paperCert.name AS paperCertName
+
+            -- 도착예정 정보
+            , p.id AS planId
+            , p.planNo AS planNo
+            , p.status As planStatus
+            , p.type As planType
+            , p.createdAt As planCreatedAt
+            , ps.wantedDate AS psWantedDate
+
+            , os.id AS orderStockId
+            , o.id AS orderId
+            , o.orderNo AS orderNo
+            , o.orderType AS orderType
+
+            , osDstLocation.id AS osDstLocationId
+            , osDstLocation.name AS osDstLocationName
+            , osDstLocation.isPublic AS osDstLocationIsPublic
+            , osDstLocation.address AS osDstLocationAddress
+            , os.wantedDate AS osWantedDate
+
+            , op.id AS orderProcessId
+            , opDstLocation.id AS opDstLocationId
+            , opDstLocation.name AS opDstLocationName
+            , opDstLocation.isPublic AS opDstLocationIsPublic
+            , opDstLocation.address AS opDstLocationAddress
+            , op.dstWantedDate AS opDstWantedDate
+            
+            , opSrcLocation.id AS opSrcLocationId
+            , opSrcLocation.name AS opSrcLocationName
+            , opSrcLocation.isPublic AS opSrcLocationIsPublic
+            , opSrcLocation.address AS opSrcLocationAddress
+            , op.srcWantedDate AS opSrcWtantedDate
+
+            , psLocation.id AS psLocationId
+            , psLocation.name AS psLocationName
+            , psLocation.isPublic AS psLocationIsPublic
+            , psLocation.address AS psLocationAddress
+
+            -- 수량
+            , firstStockEvent.change AS quantity
+      
+            , ROW_NUMBER() OVER(PARTITION BY 
+                            s.packagingId
+                            , s.productId
+                            , s.grammage
+                            , s.sizeX
+                            , s.sizeY
+                            , s.paperColorGroupId
+                            , s.paperColorId
+                            , s.paperPatternId
+                            , s.paperCertId) AS num
+
+        -- 재고정보
+        FROM Stock          AS s
+        JOIN (
+          SELECT *, ROW_NUMBER() OVER(PARTITION BY stockId ORDER BY id ASC) AS eventNum
+            FROM StockEvent
+           WHERE status != ${StockEventStatus.CANCELLED}
+        ) AS firstStockEvent ON firstStockEvent.stockId = s.id
+
+   LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
+   LEFT JOIN Plan               AS p                        ON p.id = s.planId
+   LEFT JOIN PlanShipping       AS ps                       ON ps.planId = p.id
+   LEFT JOIN Location           AS psLocation               ON psLocation.id = ps.dstLocationId
+
+        -- 메타데이터
+        JOIN Packaging          AS packaging                ON packaging.id = s.packagingId
+        JOIN Product            AS product                  ON product.id = s.productId
+        JOIN PaperDomain        AS paperDomain              ON paperDomain.id = product.paperDomainId
+        JOIN Manufacturer       AS manufacturer             ON manufacturer.id = product.manufacturerId
+        JOIN PaperGroup         AS paperGroup               ON paperGroup.id = product.paperGroupId
+        JOIN PaperType          AS paperType                ON paperType.id = product.paperTypeId
+   LEFT JOIN PaperColorGroup    AS paperColorGroup          ON paperColorGroup.id = s.paperColorGroupId
+   LEFT JOIN PaperColor         AS paperColor               ON paperColor.id = s.paperColorId
+   LEFT JOIN PaperPattern       AS paperPattern             ON paperPattern.id = s.paperPatternId
+   LEFT JOIN PaperCert          AS paperCert                ON paperCert.id = s.paperCertId
+
+      -- initialPlan
+   LEFT JOIN Plan               AS initialP                 ON initialP.id = s.initialPlanId
+   LEFT JOIN OrderStock         AS initialOs                ON initialOs.id = initialP.orderStockId
+   LEFT JOIN OrderProcess       AS initialOp                ON initialOp.id = initialP.orderProcessId
+   LEFT JOIN PlanShipping       AS initialPs                ON initialPs.planId = initialP.id
+   LEFT JOIN \`Order\`          AS initialO                 ON initialO.id = (CASE 
+                                                                              WHEN initialOs.orderId IS NOT NULL THEN initialOs.orderId
+                                                                              WHEN initialOp.orderId IS NOT NULL THEN initialOp.orderId
+                                                                              ELSE 0
+                                                                             END)
+
+     -- 거래 정보 (직송여부, 거래처 정보 등)
+   LEFT JOIN OrderStock         AS os                       ON os.id = p.orderStockId
+   LEFT JOIN \`Location\`       AS osDstLocation            ON osDstLocation.id = os.dstLocationId
+
+   LEFT JOIN OrderProcess       AS op                       ON op.id = p.orderProcessId AND op.companyId = ${companyId}
+   LEFT JOIN \`Location\`       AS opSrcLocation            ON opSrcLocation.id = op.srcLocationId
+   LEFT JOIN \`Location\`       AS opDstLocation            ON opDstLocation.id = op.dstLocationId
+
+   LEFT JOIN \`Order\`          AS o                        ON o.id = (CASE 
+                                                                        WHEN os.orderId IS NOT NULL THEN os.orderId 
+                                                                        WHEN op.orderId IS NOT NULL THEN op.orderId 
+                                                                        ELSE 0
+                                                                      END)
+   LEFT JOIN Company            AS partnerCompany           ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
+
+       WHERE s.companyId = ${companyId}
+         AND s.initialPlanId = ${planId}
+         AND firstStockEvent.change >= 0
+    `;
+
+    return stockGroups.map((sg) => {
+      return {
+        warehouse: sg.warehouseId
+          ? {
+              id: sg.warehouseId,
+              name: sg.warehouseName,
+              address: sg.warehouseAddress,
+              isPublic: sg.warehouseIsPublic,
+            }
+          : null,
+        product: {
+          id: sg.productId,
+          paperDomain: {
+            id: sg.paperDomainId,
+            name: sg.paperDomainName,
+          },
+          paperGroup: {
+            id: sg.paperGroupId,
+            name: sg.paperGroupName,
+          },
+          manufacturer: {
+            id: sg.manufacturerId,
+            name: sg.manufacturerName,
+          },
+          paperType: {
+            id: sg.paperTypeId,
+            name: sg.paperTypeName,
+          },
+        },
+        packaging: {
+          id: sg.packagingId,
+          type: sg.packagingType,
+          packA: sg.packagingPackA,
+          packB: sg.packagingPackB,
+        },
+        grammage: sg.grammage,
+        sizeX: sg.sizeX,
+        sizeY: sg.sizeY,
+        paperColorGroup: sg.paperColorGroupId
+          ? {
+              id: sg.paperColorGroupId,
+              name: sg.paperColorGroupName,
+            }
+          : null,
+        paperColor: sg.paperColorId
+          ? {
+              id: sg.paperColorId,
+              name: sg.paperColorName,
+            }
+          : null,
+        paperPattern: sg.paperPatternId
+          ? {
+              id: sg.paperPatternId,
+              name: sg.paperPatternName,
+            }
+          : null,
+        paperCert: sg.paperCertId
+          ? {
+              id: sg.paperCertId,
+              name: sg.paperCertName,
+            }
+          : null,
+        plan: sg.planId
+          ? {
+              id: sg.planId,
+              planNo: sg.planNo,
+              planType: sg.planType,
+              orderStock: sg.orderStockId
+                ? {
+                    wantedDate: sg.osWantedDate,
+                    order: {
+                      id: sg.orderId,
+                      orderNo: sg.orderNo,
+                      orderType: sg.orderType,
+                      partnerCompany: {
+                        id: sg.partnerCompanyId,
+                        businessName: sg.partnerCompanyBusinessName,
+                        companyRegistrationNumber:
+                          sg.partnerCompanyCompanyRegistrationNumber,
+                        invoiceCode: sg.partnerCompanyInvoiceCode,
+                        bizType: sg.partnerCompanyBizType,
+                        bizItem: sg.partnerCompanyBizItem,
+                        representative: sg.partnerCompanyRepresentative,
+                        address: sg.partnerCompanyAddress,
+                        phoneNo: sg.partnerCompanyPhoneNo,
+                        faxNo: sg.partnerCompanyFaxNo,
+                        managedById: sg.partnerCompanyManagedById,
+                      },
+                    },
+                    dstLocation: {
+                      id: sg.osDstLocationId,
+                      name: sg.osDstLocationName,
+                      isPublic: sg.osDstLocationIsPublic,
+                      address: sg.osDstLocationAddress,
+                    },
+                  }
+                : null,
+              orderProcess: sg.orderProcessId
+                ? {
+                    srcWantedDate: sg.opSrcWtantedDate,
+                    dstWantedDate: sg.opDstWantedDate,
+                    srcLocation: {
+                      id: sg.opSrcLocationId,
+                      name: sg.opSrcLocationName,
+                      isPublic: sg.opSrcLocationIsPublic,
+                      address: sg.opSrcLocationAddress,
+                    },
+                    dstLocation: {
+                      id: sg.opDstLocationId,
+                      name: sg.opDstLocationName,
+                      isPublic: sg.opDstLocationIsPublic,
+                      address: sg.opDstLocationAddress,
+                    },
+                    order: {
+                      id: sg.orderId,
+                      orderNo: sg.orderNo,
+                      orderType: sg.orderType,
+                      partnerCompany: {
+                        id: sg.partnerCompanyId,
+                        businessName: sg.partnerCompanyBusinessName,
+                        companyRegistrationNumber:
+                          sg.partnerCompanyCompanyRegistrationNumber,
+                        invoiceCode: sg.partnerCompanyInvoiceCode,
+                        bizType: sg.partnerCompanyBizType,
+                        bizItem: sg.partnerCompanyBizItem,
+                        representative: sg.partnerCompanyRepresentative,
+                        address: sg.partnerCompanyAddress,
+                        phoneNo: sg.partnerCompanyPhoneNo,
+                        faxNo: sg.partnerCompanyFaxNo,
+                        managedById: sg.partnerCompanyManagedById,
+                      },
+                    },
+                  }
+                : null,
+              planShipping: sg.psWantedDate
+                ? {
+                    wantedDate: sg.psWantedDate,
+                    dstLocation: {
+                      id: sg.psLocationId,
+                      name: sg.psLocationName,
+                      isPublic: sg.psLocationIsPublic,
+                      address: sg.psLocationAddress,
+                    },
+                  }
+                : null,
+            }
+          : null,
+        quantity: Number(sg.quantity),
+      };
+    });
   }
 }

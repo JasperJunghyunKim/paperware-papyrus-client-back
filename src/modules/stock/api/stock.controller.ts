@@ -26,6 +26,7 @@ import {
 } from './dto/stock.request';
 import { StockRetriveService } from '../service/stock-retrive.service';
 import {
+  PlanStockGroupListResponse,
   StockDetailResponse,
   StockGroupDetailResponse,
   StockGroupHistoryResponse,
@@ -211,5 +212,22 @@ export class StockController {
       dto.serial,
     );
     return Util.serialize(stock);
+  }
+
+  /** plan의 재고그룹 */
+  @Get('/group/plan/:id')
+  @UseGuards(AuthGuard)
+  async getPlanStockGroups(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+  ): Promise<PlanStockGroupListResponse> {
+    const stockGroups = await this.stockRetriveService.getPlanStockGroups(
+      req.user.companyId,
+      idDto.id,
+    );
+    return {
+      items: stockGroups.map((sg) => Util.serialize(sg)),
+      total: stockGroups.length,
+    };
   }
 }
