@@ -1685,6 +1685,7 @@ export class StockRetriveService {
                 : null,
             }
           : null,
+        isAssigned: false, // TODO: 변경
         quantity: Number(sg.quantity),
       };
     });
