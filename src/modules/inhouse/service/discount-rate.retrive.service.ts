@@ -267,7 +267,6 @@ export class DiscountRateRetriveService {
         partnerNickName: company.businessName,
         creditLimit: 0,
         memo: '',
-        partnerTaxManager: [], // TODO: 맞는지 확인
       });
     }
     for (const partner of partners) {
@@ -402,7 +401,6 @@ export class DiscountRateRetriveService {
           : partnerCompany.businessName,
         creditLimit: partner.creditLimit,
         memo: partner ? partner.memo : '',
-        partnerTaxManager: partner.partnerTaxManager,
       },
       packagingType: condition.packagingType,
       paperDomain: condition.paperDomain,

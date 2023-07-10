@@ -40,6 +40,12 @@ export class PartnerResponseDto implements PartnerResponse {
   readonly partnerTaxManager: PartnerTaxManager[];
 }
 
+export class PartnerTaxManagerListDto {
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string;
+}
+
 export class PartnerTaxManagerCreateDto
   implements PartnerTaxManagerCreateRequest
 {

@@ -145,26 +145,9 @@ export class BusinessRelationshipRetriveService {
       GROUP BY a.c2
       `;
 
-    const partner = await this.prisma.partner.findUnique({
-      include: {
-        company: true,
-        partnerTaxManager: {
-          where: {
-            isDeleted: false,
-          },
-        },
-      },
-      where: {
-        companyId_companyRegistrationNumber: {
-          companyId: params.companyId,
-          companyRegistrationNumber: item.at(0).companyRegistrationNumber,
-        },
-      },
-    });
     return {
       ...item.at(0),
       flag: Number(item.at(0)?.flag ?? 0),
-      partner,
     };
   }
 

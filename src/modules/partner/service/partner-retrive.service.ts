@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { from, lastValueFrom, map } from 'rxjs';
 import { PrismaService } from 'src/core';
 import { PartnerResponseDto } from '../api/dto/partner.request';
@@ -38,5 +38,39 @@ export class PartnerRetriveService {
         }),
       ),
     );
+  }
+
+  async getTaxManagerList(
+    companyId: number,
+    companyRegistrationNumber: string,
+  ) {
+    const partner = await this.prisma.partner.findUnique({
+      include: {
+        company: true,
+        partnerTaxManager: {
+          where: {
+            isDeleted: false,
+          },
+        },
+      },
+      where: {
+        companyId_companyRegistrationNumber: {
+          companyId,
+          companyRegistrationNumber,
+        },
+      },
+    });
+    if (!partner) throw new NotFoundException(`존재하지 않는 거래처입니다.`);
+
+    return {
+      items: partner.partnerTaxManager.map((m) => ({
+        id: m.id,
+        name: m.name,
+        phoneNo: m.phoneNo,
+        email: m.email,
+        isDefault: m.isDefault,
+      })),
+      total: partner.partnerTaxManager.length,
+    };
   }
 }
