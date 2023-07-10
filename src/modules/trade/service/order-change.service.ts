@@ -69,6 +69,7 @@ interface OrderDepositTradePrice {
 interface UpdateTradePriceParams {
   suppliedPrice: number;
   vatPrice: number;
+  isSyncPrice: boolean;
   orderStockTradePrice: OrderStockTradePrice | null;
   orderDepositTradePrice: OrderDepositTradePrice | null;
 }
@@ -1843,6 +1844,7 @@ export class OrderChangeService {
             companyId,
             params.suppliedPrice,
             params.vatPrice,
+            params.isSyncPrice,
             params.orderStockTradePrice,
           );
           break;
@@ -1875,8 +1877,15 @@ export class OrderChangeService {
     companyId: number,
     suppliedPrice: number,
     vatPrice: number,
+    isSyncPrice: boolean,
     orderStockTradePrice: OrderStockTradePrice,
   ) {
+    if (isSyncPrice && orderStockTradePrice.orderStockTradeAltBundle) {
+      throw new BadRequestException(
+        `대체단가 적용시, 매입금액 덮어쓰기가 불가능합니다.`,
+      );
+    }
+
     const order = await tx.order.findUnique({
       include: {
         orderStock: {
@@ -1911,18 +1920,34 @@ export class OrderChangeService {
       },
     });
 
-    this.tradePriceValidator.validateOrderStockTradePrice(
-      // 판매자가 배정한 재고(원지) 기준으로 validation
-      order.orderStock.plan.find(
-        (plan) => plan.companyId === order.dstCompanyId,
-      ).assignStockEvent.stock.packaging.type,
-      orderStockTradePrice,
-    );
+    const assignedStock = order.orderStock.plan.find(
+      (plan) => plan.companyId === order.dstCompanyId,
+    ).assignStockEvent.stock;
+
+    if (orderStockTradePrice.orderStockTradeAltBundle) {
+      this.tradePriceValidator.validateOrderStockTradePrice(
+        orderStockTradePrice.orderStockTradeAltBundle.altSizeY
+          ? 'SKID'
+          : 'ROLL',
+        orderStockTradePrice,
+      );
+    } else {
+      this.tradePriceValidator.validateOrderStockTradePrice(
+        // 판매자가 배정한 재고(원지) 기준으로 validation
+        assignedStock.packaging.type,
+        orderStockTradePrice,
+      );
+    }
 
     const tradePrice =
       order.tradePrice.find(
         (tp) => tp.orderStockTradePrice.companyId === companyId,
       ) || null;
+
+    const srcPlan = order.orderStock.plan.find(
+      (p) => p.type === 'TRADE_NORMAL_BUYER',
+    );
+
     // 기존 금액 삭제
     if (tradePrice.orderStockTradePrice.orderStockTradeAltBundle) {
       await tx.orderStockTradeAltBundle.delete({
@@ -1993,6 +2018,49 @@ export class OrderChangeService {
         },
       },
     });
+
+    // 금액 덮어쓰기시, 같은 스펙 재고를 찾아서 금액 업데이트
+    if (isSyncPrice && srcPlan.companyId === companyId) {
+      const stocks = (
+        await tx.stock.findMany({
+          select: {
+            id: true,
+            stockPrice: true,
+          },
+          where: {
+            initialPlanId: srcPlan.id,
+            packagingId: assignedStock.packagingId,
+            productId: assignedStock.productId,
+            grammage: assignedStock.grammage,
+            sizeX: assignedStock.sizeX,
+            sizeY: assignedStock.sizeY,
+            paperColorGroupId: assignedStock.paperColorGroupId,
+            paperColorId: assignedStock.paperColorId,
+            paperPatternId: assignedStock.paperPatternId,
+            paperCertId: assignedStock.paperCertId,
+          },
+        })
+      ).filter((stock) => stock.stockPrice !== null);
+
+      if (stocks.length > 0) {
+        await tx.stockPrice.updateMany({
+          data: {
+            officialPriceType: orderStockTradePrice.officialPriceType,
+            officialPrice: orderStockTradePrice.officialPrice,
+            officialPriceUnit: orderStockTradePrice.officialPriceUnit,
+            discountType: orderStockTradePrice.discountType,
+            discountPrice: orderStockTradePrice.discountPrice,
+            unitPrice: orderStockTradePrice.unitPrice,
+            unitPriceUnit: orderStockTradePrice.unitPriceUnit,
+          },
+          where: {
+            stockId: {
+              in: stocks.map((stock) => stock.id),
+            },
+          },
+        });
+      }
+    }
   }
 
   async updateOrderDepositTradePriceTx(

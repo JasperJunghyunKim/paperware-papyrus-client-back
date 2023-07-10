@@ -420,6 +420,10 @@ export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   readonly vatPrice: number;
 
   @IsOptional()
+  @IsBoolean()
+  readonly isSyncPrice: boolean = false;
+
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => UpdateOrderStockTradePriceDto)
