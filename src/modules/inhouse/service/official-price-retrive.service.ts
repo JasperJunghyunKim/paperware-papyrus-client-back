@@ -141,6 +141,7 @@ export class OfficialPriceRetriveService {
       productId,
       grammage,
     );
+    // console.log(`[first filtered]`, firstFiltered);
     const secondFiltred = this.getSecondFiltering(
       firstFiltered,
       sizeX,
