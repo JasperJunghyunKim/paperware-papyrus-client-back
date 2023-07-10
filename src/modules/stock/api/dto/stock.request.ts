@@ -626,22 +626,11 @@ export class ArrivalStockPriceUpdateDto
   @Type(() => Number)
   readonly paperCertId: number | null = null;
 
-  @IsBoolean()
-  readonly isSyncPrice: boolean;
-
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => ArrivalStockPriceUpdateStockPriceDto)
   stockPrice: ArrivalStockPriceUpdateStockPriceDto = null;
-
-  validate() {
-    if (!this.isSyncPrice && !this.stockPrice) {
-      throw new BadRequestException(`매입동기화 OFF시 금액입력이 필요합니다.`);
-    } else if (this.isSyncPrice) {
-      this.stockPrice = null;
-    }
-  }
 }
 
 /** 도착예정재고 스펙 수정 */

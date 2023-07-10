@@ -124,7 +124,6 @@ export class StockArrivalChangeService {
     paperColorId: number | null;
     paperPatternId: number | null;
     paperCertId: number | null;
-    isSyncPrice: boolean;
     stockPrice?: {
       officialPriceType: OfficialPriceType;
       officialPrice: number;
@@ -147,7 +146,6 @@ export class StockArrivalChangeService {
       paperColorId,
       paperPatternId,
       paperCertId,
-      isSyncPrice,
       stockPrice,
     } = params;
     await this.prisma.$transaction(async (tx) => {
@@ -177,50 +175,18 @@ export class StockArrivalChangeService {
       const storingStock = stocks.find(
         (stock) => stock.planId === stock.initialPlanId,
       );
-      if (
-        isSyncPrice &&
-        (storingStock.initialPlan.type === 'INHOUSE_CREATE' ||
-          storingStock.initialPlan.type === 'INHOUSE_PROCESS' ||
-          storingStock.initialPlan.type === 'INHOUSE_STOCK_QUANTITY_CHANGE' ||
-          storingStock.initialPlan.type === 'INHOUSE_MODIFY' ||
-          storingStock.initialPlan.type === 'INHOUSE_RELOCATION')
-      )
-        throw new BadRequestException(
-          `금액동기화를 적용할 수 없는 도착예정재고입니다.`,
-        );
 
       // TODO: 재고유형, 금액단위 체크
 
-      // isSyncPrice
-      await tx.stock.updateMany({
+      // 금액 업데이트
+      await tx.stockPrice.update({
+        where: {
+          stockId: storingStock.id,
+        },
         data: {
-          isSyncPrice,
-        },
-        where: {
-          id: {
-            in: stocks.map((stock) => stock.id),
-          },
+          ...stockPrice,
         },
       });
-
-      // 기존금액 삭제
-      await tx.stockPrice.deleteMany({
-        where: {
-          stockId: {
-            in: stocks.map((stock) => stock.id),
-          },
-        },
-      });
-
-      // 금액동기화가 아닌경우 금액 생성
-      if (!isSyncPrice) {
-        await tx.stockPrice.createMany({
-          data: stocks.map((stock) => ({
-            stockId: stock.id,
-            ...stockPrice,
-          })),
-        });
-      }
     });
   }
 }

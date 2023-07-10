@@ -183,8 +183,8 @@ model Stock {
   stockEvent              StockEvent[]
   cachedQuantity          Int              @default(0)
   cachedQuantityAvailable Int              @default(0)
-  isDeleted               Boolean          @default(false)
   isSyncPrice             Boolean          @default(false)
+  isDeleted               Boolean          @default(false)
   initialPlanId           Int
   initialPlan             Plan             @relation("InitialPlan", fields: [initialPlanId], references: [id])
   stockPrice              StockPrice?

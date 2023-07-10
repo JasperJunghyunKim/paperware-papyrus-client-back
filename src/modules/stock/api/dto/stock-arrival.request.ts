@@ -243,20 +243,9 @@ export class StockArrivalPriceUpdateDto
   @IsPositive()
   readonly paperCertId: number | null = null;
 
-  @IsBoolean()
-  readonly isSyncPrice: boolean;
-
   @ValidateIf((obj) => !obj.isSyncPrice)
   @IsObject()
   @ValidateNested()
   @Type(() => StockArrivalPriceUpdateStockPrice)
   stockPrice: StockArrivalPriceUpdateStockPrice = null;
-
-  validate() {
-    if (!this.isSyncPrice && !this.stockPrice)
-      throw new BadRequestException(
-        `거래금액 동기화 OFF시 금액을 입력하셔야 합니다.`,
-      );
-    if (this.isSyncPrice) this.stockPrice = null;
-  }
 }

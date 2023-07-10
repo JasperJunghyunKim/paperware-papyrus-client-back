@@ -32,7 +32,6 @@ export class StockArrivalRetriveService {
     const stock = await this.prisma.stock.findFirst({
       select: {
         stockEvent: true,
-        isSyncPrice: true,
         initialPlan: {
           include: {
             orderStock: {
@@ -109,7 +108,6 @@ export class StockArrivalRetriveService {
       paperColor: stock.paperColor,
       paperPattern: stock.paperPattern,
       paperCert: stock.paperCert,
-      isSyncPrice: stock.isSyncPrice,
       stockPrice: stock.stockPrice,
       tradePrice:
         tradePrice && tradePrice.orderStockTradePrice

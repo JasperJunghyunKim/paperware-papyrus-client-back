@@ -933,7 +933,7 @@ export class OrderChangeService {
           );
           // 구매자가 사용기업일때 srcPlan에 도착예정재고 자동 추가
           if (order.srcCompany.managedById === null) {
-            await tx.stock.create({
+            const stock = await tx.stock.create({
               data: {
                 serial: Util.serialP(order.srcCompany.invoiceCode),
                 companyId: order.srcCompany.id,
@@ -947,7 +947,6 @@ export class OrderChangeService {
                 paperColorId: order.orderStock.paperColorId,
                 paperPatternId: order.orderStock.paperPatternId,
                 paperCertId: order.orderStock.paperCertId,
-                isSyncPrice: true,
                 initialPlanId: plan.id,
                 cachedQuantityAvailable: order.orderStock.quantity,
                 stockEvent: {
@@ -963,6 +962,10 @@ export class OrderChangeService {
                 },
               },
             });
+            await this.stockChangeService.createDefaultStockPriceTx(
+              tx,
+              stock.id,
+            );
           }
           break;
         case OrderType.DEPOSIT:
@@ -1350,6 +1353,9 @@ export class OrderChangeService {
         },
       },
     });
+
+    // 재고금액
+    await this.stockChangeService.createDefaultStockPriceTx(tx, targetStock.id);
 
     // 생성될 도착예정재고 이벤트
     const targetStockEvent = await tx.stockEvent.create({

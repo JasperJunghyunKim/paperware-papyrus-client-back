@@ -244,7 +244,6 @@ export class StockController {
     @Request() req: AuthType,
     @Body() dto: ArrivalStockPriceUpdateDto,
   ) {
-    dto.validate();
     return await this.stockChangeService.updateArrivalStockPrice({
       companyId: req.user.companyId,
       ...dto,

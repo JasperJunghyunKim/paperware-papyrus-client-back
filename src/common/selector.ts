@@ -212,9 +212,9 @@ export const STOCK = {
   paperCert: {
     select: PAPER_CERT,
   },
+  isSyncPrice: true,
   cachedQuantity: true,
   cachedQuantityAvailable: true,
-  isSyncPrice: true,
   stockPrice: {
     select: STOCK_PRICE,
   },

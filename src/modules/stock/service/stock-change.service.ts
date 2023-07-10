@@ -48,6 +48,23 @@ export class StockChangeService {
     });
   }
 
+  async updateDefaultStockPriceTx(tx: PrismaTransaction, stockId: number) {
+    return await tx.stockPrice.update({
+      where: {
+        stockId: stockId,
+      },
+      data: {
+        officialPriceType: 'NONE',
+        officialPrice: 0,
+        officialPriceUnit: 'WON_PER_TON',
+        discountType: 'NONE',
+        discountPrice: 0,
+        unitPrice: 0,
+        unitPriceUnit: 'WON_PER_TON',
+      },
+    });
+  }
+
   async cacheStockQuantityTx(
     tx: PrismaTransaction,
     where: Prisma.StockWhereUniqueInput,
@@ -367,7 +384,6 @@ export class StockChangeService {
     paperColorId: number | null;
     paperPatternId: number | null;
     paperCertId: number | null;
-    isSyncPrice: boolean;
     stockPrice: {
       officialPriceType: OfficialPriceType;
       officialPrice: number;
@@ -444,60 +460,26 @@ export class StockChangeService {
         params.stockPrice,
       );
 
-      const assignStock =
-        stock.initialPlan.orderStock?.plan?.find(
-          (plan) => plan.type === 'TRADE_NORMAL_SELLER',
-        )?.assignStockEvent?.stock || null;
-
-      const tradePrice =
-        stock.initialPlan.orderStock?.order?.tradePrice.find(
-          (tp) => tp.companyId === params.companyId,
-        ) || null;
-
-      // 매입금액 동기화 체크
-      this.stockValidator.validateIsSyncPrice(
-        params.isSyncPrice,
-        stock.initialPlan.type,
-        stock,
-        assignStock,
-        tradePrice,
-      );
-
-      await tx.stock.update({
-        data: {
-          isSyncPrice: params.isSyncPrice,
-        },
+      // 재고금액 업데이트
+      await tx.stockPrice.update({
         where: {
-          id: stock.id,
+          stockId: stock.id,
+        },
+        data: {
+          stock: {
+            connect: {
+              id: stock.id,
+            },
+          },
+          officialPriceType: params.stockPrice.officialPriceType,
+          officialPrice: params.stockPrice.officialPrice,
+          officialPriceUnit: params.stockPrice.officialPriceUnit,
+          discountType: params.stockPrice.discountType,
+          discountPrice: params.stockPrice.discountPrice,
+          unitPrice: params.stockPrice.unitPrice,
+          unitPriceUnit: params.stockPrice.unitPriceUnit,
         },
       });
-
-      if (stock.stockPrice) {
-        await tx.stockPrice.delete({
-          where: {
-            stockId: stock.id,
-          },
-        });
-      }
-
-      if (!params.isSyncPrice) {
-        await tx.stockPrice.create({
-          data: {
-            stock: {
-              connect: {
-                id: stock.id,
-              },
-            },
-            officialPriceType: params.stockPrice.officialPriceType,
-            officialPrice: params.stockPrice.officialPrice,
-            officialPriceUnit: params.stockPrice.officialPriceUnit,
-            discountType: params.stockPrice.discountType,
-            discountPrice: params.stockPrice.discountPrice,
-            unitPrice: params.stockPrice.unitPrice,
-            unitPriceUnit: params.stockPrice.unitPriceUnit,
-          },
-        });
-      }
     });
   }
 
@@ -621,21 +603,13 @@ export class StockChangeService {
       const stock = stocks[0];
 
       // 재고금액 초기화
-      if (stock.stockPrice) {
-        await tx.stockPrice.delete({
-          where: {
-            stockId: stock.id,
-          },
-        });
-      }
-      await this.createDefaultStockPriceTx(tx, stock.id);
+      await this.updateDefaultStockPriceTx(tx, stock.id);
 
       await tx.stock.update({
         where: {
           id: stock.id,
         },
         data: {
-          isSyncPrice: false,
           packagingId: params.spec.packagingId,
           productId: params.spec.productId,
           grammage: params.spec.grammage,

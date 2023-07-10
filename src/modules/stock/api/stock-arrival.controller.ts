@@ -74,13 +74,13 @@ export class StockArrivalController {
     });
   }
 
+  /** 내부공정에서 출고(도착예정재고) 금액 입력 */
   @Put('/price')
   @UseGuards(AuthGuard)
   async updateStockArrivalPrice(
     @Request() req: AuthType,
     @Body() dto: StockArrivalPriceUpdateDto,
   ) {
-    dto.validate();
     await this.change.updateStockArrivalPrice({
       companyId: req.user.companyId,
       ...dto,
