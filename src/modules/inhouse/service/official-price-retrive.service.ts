@@ -90,7 +90,12 @@ export class OfficialPriceRetriveService {
   async get(companyId: number, officialPriceConditionId: number) {
     const officialPrice = await this.prisma.officialPriceCondition.findFirst({
       include: {
-        officialPriceMap: true,
+        officialPriceMap: {
+          where: {
+            companyId,
+            isDeleted: false,
+          },
+        },
         product: {
           include: {
             paperDomain: true,
