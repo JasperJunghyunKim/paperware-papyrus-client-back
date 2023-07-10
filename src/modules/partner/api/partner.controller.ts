@@ -15,10 +15,12 @@ import { PartnerRetriveService } from '../service/partner-retrive.service';
 import {
   PartnerResponseDto,
   PartnerTaxManagerCreateDto,
+  PartnerTaxManagerListDto,
   PartnerTaxManagerUpdateDto,
 } from './dto/partner.request';
 import { PartnerChangeSerivce } from '../service/partner-change.service';
 import { IdDto } from 'src/common/request';
+import { PartnerTaxManagerListResponse } from 'src/@shared/api';
 
 @Controller('/partner')
 export class PartnerController {
@@ -33,6 +35,18 @@ export class PartnerController {
     @Request() req: AuthType,
   ): Promise<PartnerResponseDto[]> {
     return await this.partnerRetriveService.getPartnerList(req.user.companyId);
+  }
+
+  @Get('/:companyRegistrationNumber/tax-manager')
+  @UseGuards(AuthGuard)
+  async getTaxManagerList(
+    @Request() req: AuthType,
+    @Param() param: PartnerTaxManagerListDto,
+  ): Promise<PartnerTaxManagerListResponse> {
+    return await this.partnerRetriveService.getTaxManagerList(
+      req.user.companyId,
+      param.companyRegistrationNumber,
+    );
   }
 
   @Post('/tax-manager')
