@@ -1716,10 +1716,16 @@ export class OrderChangeService {
       isSyncPrice: boolean;
     },
   ) {
-    // 구매처 작업계획의 동일한 스펙 입고예정재고 모두 취소처리
+    // 구매처 작업계획의 동일한 스펙 체크
     const curStocks = await tx.stock.findMany({
       select: {
-        stockEvent: true,
+        stockEvent: {
+          where: {
+            status: {
+              not: 'CANCELLED',
+            },
+          },
+        },
       },
       where: {
         plan: {
@@ -1743,34 +1749,8 @@ export class OrderChangeService {
         paperCertId: stockSpec.paperCertId,
       },
     });
-    console.log(11111, curStocks);
-
-    throw new BadRequestException('test');
-
-    await tx.stockEvent.updateMany({
-      data: {
-        status: 'CANCELLED',
-      },
-      where: {
-        plan: {
-          id: {
-            equals: plan.id,
-          },
-        },
-        stock: {
-          productId: stockSpec.productId,
-          packagingId: stockSpec.packagingId,
-          grammage: stockSpec.grammage,
-          sizeX: stockSpec.sizeX,
-          sizeY: stockSpec.sizeY,
-          paperColorGroupId: stockSpec.paperColorGroupId,
-          paperColorId: stockSpec.paperColorId,
-          paperPatternId: stockSpec.paperPatternId,
-          paperCertId: stockSpec.paperCertId,
-        },
-        status: 'PENDING',
-      },
-    });
+    if (curStocks.length > 0)
+      throw new BadRequestException(`이미 존재하는 재고입니다.`);
 
     // 새 입고 예정 재고 추가
     const stock = await tx.stock.create({
