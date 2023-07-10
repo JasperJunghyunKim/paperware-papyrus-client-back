@@ -270,7 +270,7 @@ export class StockController {
   }
 
   /** 도착예정재고 삭제 */
-  @Delete()
+  @Delete('/arrival')
   @UseGuards(AuthGuard)
   async deleteArrivalStock(@Request() req: AuthType) {
     throw new NotImplementedException();
