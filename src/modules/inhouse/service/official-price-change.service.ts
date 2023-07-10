@@ -60,6 +60,7 @@ export class OfficialPriceChangeService {
       const officialPrices = await tx.officialPriceMap.findMany({
         where: {
           officialPriceConditionId: condition.id,
+          companyId,
         },
       });
       if (officialPrices.length > 0 && officialPrices[0].isDeleted === false)
