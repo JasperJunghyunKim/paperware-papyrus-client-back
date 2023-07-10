@@ -1,10 +1,19 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsPositive, Min } from 'class-validator';
 import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsPositive,
+  Min,
+  ValidateIf,
+} from 'class-validator';
+import {
+  DeleteInputStockRequest,
   PlanCreateRequest,
   PlanListQuery,
   PlanListQueryType,
   RegisterInputStockRequest as RegisterInputStockRequest,
+  UpdateInputStockRequest,
 } from 'src/@shared/api';
 
 export class PlanListQueryDto implements PlanListQuery {
@@ -67,14 +76,43 @@ export class PlanCreateRequestDto implements PlanCreateRequest {
   readonly memo: string = '';
 }
 
+/** 실투입재고 등록 */
 export class RegisterInputStockRequestDto implements RegisterInputStockRequest {
   @IsInt()
   @IsPositive()
   readonly stockId: number;
 
+  @ValidateIf((obj) => !obj.useRemainder)
   @IsInt()
   @IsPositive()
-  readonly quantity: number;
+  readonly quantity: number = null;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly useRemainder: boolean = false;
+}
+
+/** 실투입재고 수량 변경 */
+export class UpdateInputStockRequestDto implements UpdateInputStockRequest {
+  @IsInt()
+  @IsPositive()
+  readonly stockId: number;
+
+  @ValidateIf((obj) => !obj.useRemainder)
+  @IsInt()
+  @IsPositive()
+  readonly quantity: number = null;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly useRemainder: boolean = false;
+}
+
+/** 실투입재고 취소 */
+export class DeleteInputStockRequestDto implements DeleteInputStockRequest {
+  @IsInt()
+  @IsPositive()
+  readonly stockId: number;
 }
 
 export class PlanInputListQueryDto implements PlanListQuery {

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   HttpCode,
@@ -8,6 +9,7 @@ import {
   NotImplementedException,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -20,13 +22,16 @@ import { PlanChangeService } from '../service/plan-change.service';
 import { PlanRetriveService } from '../service/plan-retrive.service';
 import { TaskRetriveService } from '../service/task-retrive.service';
 import {
+  DeleteInputStockRequestDto,
   PlanCreateRequestDto,
   PlanInputListQueryDto,
   PlanListQueryDto,
   RegisterInputStockRequestDto,
+  UpdateInputStockRequestDto,
 } from './dto/plan.request';
+import { IdDto } from 'src/common/request';
 
-@Controller('working')
+@Controller('working/plan')
 export class PlanController {
   constructor(
     private readonly planChangeService: PlanChangeService,
@@ -34,7 +39,7 @@ export class PlanController {
     private readonly taskRetriveService: TaskRetriveService,
   ) {}
 
-  @Get('plan')
+  @Get()
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async getPlanList(
@@ -58,7 +63,7 @@ export class PlanController {
     };
   }
 
-  @Get('plan/:id')
+  @Get('/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async getPlanById(@Request() req: AuthType, @Param('id') id: number) {
@@ -71,7 +76,7 @@ export class PlanController {
     return plan;
   }
 
-  @Post('plan')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createPlan(
@@ -81,7 +86,7 @@ export class PlanController {
     throw new NotImplementedException('내부 작업 등록은 아직 미구현입니다.');
   }
 
-  @Get('plan/:id/task')
+  @Get('/:id/task')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async getTaskListByPlanId(
@@ -101,7 +106,7 @@ export class PlanController {
     return tasks;
   }
 
-  @Post('plan/:id/start')
+  @Post('/:id/start')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async forwardPlan(@Request() req: AuthType, @Param('id') id: number) {
@@ -118,7 +123,7 @@ export class PlanController {
     return updatedPlan;
   }
 
-  @Post('plan/:id/complete')
+  @Post('/:id/complete')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async completePlan(@Request() req: AuthType, @Param('id') id: number) {
@@ -135,7 +140,7 @@ export class PlanController {
     return updatedPlan;
   }
 
-  @Post('plan/:id/register-stock')
+  @Post('/:id/register-stock')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async registerStock(
@@ -159,7 +164,27 @@ export class PlanController {
     return updatedPlan;
   }
 
-  @Get('plan/:id/input-stock')
+  @Put('/:id/input-stock')
+  @UseGuards(AuthGuard)
+  async updateInputStock(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: UpdateInputStockRequestDto,
+  ) {
+    throw new NotImplementedException();
+  }
+
+  @Delete('/:id/input-stock')
+  @UseGuards(AuthGuard)
+  async deleteInputStock(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: DeleteInputStockRequestDto,
+  ) {
+    throw new NotImplementedException();
+  }
+
+  @Get('/:id/input-stock')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async getInputStockListByPlanId(
