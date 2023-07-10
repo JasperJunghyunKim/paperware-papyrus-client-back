@@ -20,6 +20,7 @@ import {
 } from 'class-validator';
 import {
   ArrivalStockCreateRequest,
+  ArrivalStockDeleteQuery,
   ArrivalStockPriceUpdateRequest,
   ArrivalStockSpecUpdateRequest,
   StockCreateRequest,
@@ -738,4 +739,52 @@ export class ArrivalStockSpecUpdateDto
   @IsObject()
   @ValidateNested()
   readonly spec: StockSpec;
+}
+
+/** 도착예정재고 스펙 삭제 */
+export class ArrivalStockDeleteDto implements ArrivalStockDeleteQuery {
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
 }

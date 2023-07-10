@@ -1520,6 +1520,7 @@ export class StockRetriveService {
        WHERE s.companyId = ${companyId}
          AND s.initialPlanId = ${planId}
          AND firstStockEvent.change >= 0
+         AND firstStockEvent.status != ${StockEventStatus.CANCELLED}
     `;
 
     return stockGroups.map((sg) => {

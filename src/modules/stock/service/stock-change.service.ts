@@ -525,7 +525,6 @@ export class StockChangeService {
       paperCertId: number | null;
     };
   }) {
-    // throw new NotImplementedException();
     await this.prisma.$transaction(async (tx) => {
       const stocks = await tx.stock.findMany({
         include: {
@@ -648,8 +647,137 @@ export class StockChangeService {
           paperCertId: params.spec.paperCertId,
         },
       });
+    });
+  }
 
-      console.log(111, stock);
+  async deleteArrivalStock(params: {
+    companyId: number;
+    planId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      const stocks = await tx.stock.findMany({
+        include: {
+          packaging: true,
+          initialPlan: {
+            include: {
+              orderStock: {
+                include: {
+                  plan: {
+                    include: {
+                      assignStockEvent: {
+                        include: {
+                          stock: true,
+                        },
+                      },
+                    },
+                  },
+                  order: {
+                    include: {
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: {
+                            include: {
+                              orderStockTradeAltBundle: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              orderProcess: {
+                include: {
+                  plan: {
+                    include: {
+                      assignStockEvent: {
+                        include: {
+                          stock: true,
+                        },
+                      },
+                    },
+                  },
+                  order: {
+                    include: {
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: {
+                            include: {
+                              orderStockTradeAltBundle: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          stockPrice: true,
+        },
+        where: {
+          companyId: params.companyId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          stockEvent: {
+            some: {
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
+        },
+        orderBy: {
+          id: 'asc',
+        },
+      });
+      if (stocks.length === 0)
+        throw new BadRequestException(`존재하지 않는 도착예정재고 입니다.`);
+      else if (stocks.length > 1)
+        throw new BadRequestException(
+          `다른 작업에 배정된 도착예정재고는 삭제가 불가능 합니다.`,
+        );
+
+      await tx.stockEvent.updateMany({
+        data: {
+          status: 'CANCELLED',
+        },
+        where: {
+          plan: {
+            id: params.planId,
+          },
+          stock: {
+            productId: params.productId,
+            packagingId: params.packagingId,
+            grammage: params.grammage,
+            sizeX: params.sizeX,
+            sizeY: params.sizeY,
+            paperColorGroupId: params.paperColorGroupId,
+            paperColorId: params.paperColorId,
+            paperPatternId: params.paperPatternId,
+            paperCertId: params.paperCertId,
+          },
+          status: 'PENDING',
+        },
+      });
     });
   }
 }

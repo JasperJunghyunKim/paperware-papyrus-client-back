@@ -16,6 +16,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { StockChangeService } from '../service/stock-change.service';
 import {
   ArrivalStockCreateRequestDto,
+  ArrivalStockDeleteDto,
   ArrivalStockPriceUpdateDto,
   ArrivalStockSpecUpdateDto,
   GetStockBySerialDto,
@@ -272,7 +273,14 @@ export class StockController {
   /** 도착예정재고 삭제 */
   @Delete('/arrival')
   @UseGuards(AuthGuard)
-  async deleteArrivalStock(@Request() req: AuthType) {
-    throw new NotImplementedException();
+  async deleteArrivalStock(
+    @Request() req: AuthType,
+    @Query() dto: ArrivalStockDeleteDto,
+  ) {
+    return await this.stockChangeService.deleteArrivalStock({
+      companyId: req.user.companyId,
+      ...dto,
+      sizeY: dto.sizeY || 0,
+    });
   }
 }
