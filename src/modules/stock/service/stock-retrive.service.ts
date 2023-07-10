@@ -243,6 +243,7 @@ export interface PlanStockGroupFromDB {
   osDstLocationIsPublic: boolean;
   osDstLocationAddress: string;
   osWantedDate: string;
+  osIsDirectShipping: number;
 
   orderProcessId: number;
   opDstLocationId: number;
@@ -255,12 +256,15 @@ export interface PlanStockGroupFromDB {
   opSrcLocationIsPublic: boolean;
   opSrcLocationAddress: string;
   opSrcWtantedDate: string;
+  opIsSrcDirectShipping: number;
+  opIsDstDirectShipping: number;
 
   psLocationId: number;
   psLocationName: string;
   psLocationIsPublic: boolean;
   psLocationAddress: string;
   psWantedDate: string;
+  psIsDirectShipping: number;
 
   // 거래처 정보
   partnerCompanyId: number;
@@ -437,6 +441,7 @@ export class StockRetriveService {
             , osDstLocation.name AS osDstLocationName
             , osDstLocation.isPublic AS osDstLocationIsPublic
             , osDstLocation.address AS osDstLocationAddress
+            , os.isDirectShipping AS osIsDirectShipping
             , os.wantedDate AS osWantedDate
 
             , op.id AS orderProcessId
@@ -445,6 +450,8 @@ export class StockRetriveService {
             , opDstLocation.isPublic AS opDstLocationIsPublic
             , opDstLocation.address AS opDstLocationAddress
             , op.dstWantedDate AS opDstWantedDate
+            , op.isSrcDirectShipping As opIsSrcDirectShipping
+            , op.isDstDirectShipping As opIsDstDirectShipping
             
             , opSrcLocation.id AS opSrcLocationId
             , opSrcLocation.name AS opSrcLocationName
@@ -456,7 +463,7 @@ export class StockRetriveService {
             , psLocation.name AS psLocationName
             , psLocation.isPublic AS psLocationIsPublic
             , psLocation.address AS psLocationAddress
-            
+            , ps.isDirectShipping AS psIsDirectShipping
 
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
@@ -1433,6 +1440,7 @@ export class StockRetriveService {
             , osDstLocation.isPublic AS osDstLocationIsPublic
             , osDstLocation.address AS osDstLocationAddress
             , os.wantedDate AS osWantedDate
+            , os.isDirectShipping AS osIsDirectShipping
 
             , op.id AS orderProcessId
             , opDstLocation.id AS opDstLocationId
@@ -1440,6 +1448,8 @@ export class StockRetriveService {
             , opDstLocation.isPublic AS opDstLocationIsPublic
             , opDstLocation.address AS opDstLocationAddress
             , op.dstWantedDate AS opDstWantedDate
+            , op.isSrcDirectShipping AS opIsSrcDirectShipping
+            , op.isDstDirectShipping AS opIsDstDirectShipping
             
             , opSrcLocation.id AS opSrcLocationId
             , opSrcLocation.name AS opSrcLocationName
@@ -1451,6 +1461,7 @@ export class StockRetriveService {
             , psLocation.name AS psLocationName
             , psLocation.isPublic AS psLocationIsPublic
             , psLocation.address AS psLocationAddress
+            , ps.isDirectShipping AS psIsDirectShipping
 
             -- 수량
             , firstStockEvent.change AS quantity
@@ -1593,6 +1604,7 @@ export class StockRetriveService {
               orderStock: sg.orderStockId
                 ? {
                     wantedDate: sg.osWantedDate,
+                    isDirectShipping: sg.osIsDirectShipping === 1,
                     order: {
                       id: sg.orderId,
                       orderNo: sg.orderNo,
@@ -1624,6 +1636,8 @@ export class StockRetriveService {
                 ? {
                     srcWantedDate: sg.opSrcWtantedDate,
                     dstWantedDate: sg.opDstWantedDate,
+                    isSrcDirectShipping: sg.opIsSrcDirectShipping === 1,
+                    isDstDriectShipping: sg.opIsDstDirectShipping === 1,
                     srcLocation: {
                       id: sg.opSrcLocationId,
                       name: sg.opSrcLocationName,
@@ -1660,6 +1674,7 @@ export class StockRetriveService {
               planShipping: sg.psWantedDate
                 ? {
                     wantedDate: sg.psWantedDate,
+                    isDirectShipping: sg.psIsDirectShipping === 1,
                     dstLocation: {
                       id: sg.psLocationId,
                       name: sg.psLocationName,
