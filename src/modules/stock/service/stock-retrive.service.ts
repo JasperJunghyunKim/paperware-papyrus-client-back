@@ -279,6 +279,9 @@ export interface PlanStockGroupFromDB {
   partnerCompanyFaxNo: string;
   partnerCompanyManagedById: number;
 
+  // 배정정보
+  isAssigned: number;
+
   // 수량정보
   quantity: number;
 }
@@ -1463,6 +1466,29 @@ export class StockRetriveService {
             , psLocation.address AS psLocationAddress
             , ps.isDirectShipping AS psIsDirectShipping
 
+            -- 배정
+            , (CASE
+                WHEN s.planId IS NOT NULL THEN IF((
+                  SELECT COUNT(1) 
+                    FROM Stock AS s2
+                    JOIN (
+                      SELECT *, ROW_NUMBER() OVER(PARTITION BY stockId ORDER BY id ASC) AS firstStockEventNum
+                        FROM StockEvent
+                      WHERE status != ${StockEventStatus.CANCELLED}
+                    ) AS firstStockEvent ON firstStockEvent.stockId = s2.id
+                   WHERE s2.planId = s.planId
+                     AND s2.packagingId = s.packagingId
+                     AND s2.productId = s.productId
+                     AND s2.sizeX = s.sizeX
+                     AND s2.sizeY = s.sizeY
+                     AND IF(s.paperColorGroupId IS NULL, s2.paperColorGroupId IS NULL, s2.paperColorGroupId = s.paperColorGroupId)
+                     AND IF(s.paperColorId IS NULL, s2.paperColorId IS NULL, s2.paperColorId = s.paperColorId)
+                     AND IF(s.paperPatternId IS NULL, s2.paperPatternId IS NULL, s2.paperPatternId = s.paperPatternId)
+                     AND IF(s.paperCertId IS NULL, s2.paperCertId IS NULL, s2.paperCertId = s.paperCertId)
+                ) > 1, 1, 0)
+                ELSE 1
+              END) AS isAssigned
+
             -- 수량
             , firstStockEvent.change AS quantity
       
@@ -1685,7 +1711,7 @@ export class StockRetriveService {
                 : null,
             }
           : null,
-        isAssigned: false, // TODO: 변경
+        isAssigned: Number(sg.isAssigned) === 1,
         quantity: Number(sg.quantity),
       };
     });
