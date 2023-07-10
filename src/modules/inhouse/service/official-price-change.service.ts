@@ -127,7 +127,12 @@ export class OfficialPriceChangeService {
     await this.prisma.$transaction(async (tx) => {
       const condition = await tx.officialPriceCondition.findFirst({
         include: {
-          officialPriceMap: true,
+          officialPriceMap: {
+            where: {
+              companyId,
+              isDeleted: false,
+            },
+          },
         },
         where: {
           id: officialPriceConditionId,
@@ -175,7 +180,12 @@ export class OfficialPriceChangeService {
     await this.prisma.$transaction(async (tx) => {
       const condition = await tx.officialPriceCondition.findFirst({
         include: {
-          officialPriceMap: true,
+          officialPriceMap: {
+            where: {
+              companyId,
+              isDeleted: false,
+            },
+          },
         },
         where: {
           id: officialPriceConditionId,
