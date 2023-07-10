@@ -1717,6 +1717,36 @@ export class OrderChangeService {
     },
   ) {
     // 구매처 작업계획의 동일한 스펙 입고예정재고 모두 취소처리
+    const curStocks = await tx.stock.findMany({
+      select: {
+        stockEvent: true,
+      },
+      where: {
+        plan: {
+          id: plan.id,
+        },
+        stockEvent: {
+          some: {
+            status: {
+              not: 'CANCELLED',
+            },
+          },
+        },
+        productId: stockSpec.productId,
+        packagingId: stockSpec.packagingId,
+        grammage: stockSpec.grammage,
+        sizeX: stockSpec.sizeX,
+        sizeY: stockSpec.sizeY,
+        paperColorGroupId: stockSpec.paperColorGroupId,
+        paperColorId: stockSpec.paperColorId,
+        paperPatternId: stockSpec.paperPatternId,
+        paperCertId: stockSpec.paperCertId,
+      },
+    });
+    console.log(11111, curStocks);
+
+    throw new BadRequestException('test');
+
     await tx.stockEvent.updateMany({
       data: {
         status: 'CANCELLED',

@@ -42,7 +42,12 @@ export class OfficialPriceRetriveService {
     const [officialPrices, total] = await this.prisma.$transaction([
       this.prisma.officialPriceCondition.findMany({
         include: {
-          officialPriceMap: true,
+          officialPriceMap: {
+            where: {
+              companyId,
+              isDeleted: false,
+            },
+          },
           product: {
             include: {
               paperDomain: true,
