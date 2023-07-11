@@ -275,6 +275,159 @@ export class PlanChangeService {
     });
   }
 
+  /** 실투입 재고 수량 변경 */
+  async updateInputStockQuantity(params: {
+    companyId: number;
+    planId: number;
+    stockId: number;
+    quantity: number | null;
+    useRemainder: boolean | null;
+  }) {
+    const { planId, stockId, quantity } = params;
+
+    await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.findUnique({
+        where: {
+          id: planId,
+        },
+        select: {
+          status: true,
+          type: true,
+          targetStockEvent: {
+            where: {
+              stockId,
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
+        },
+      });
+
+      if (plan.type === 'TRADE_OUTSOURCE_PROCESS_SELLER') {
+        throw new BadRequestException(
+          `외주공정 매출은 실투입 재고를 등록/수정할 수 없습니다.`,
+        );
+      }
+
+      if (plan.status !== 'PROGRESSING') {
+        throw new BadRequestException(
+          '실투입 재고 수량을 수정할 수 없는 상태의 작업 계획입니다.',
+        );
+      }
+
+      if (plan.targetStockEvent.length === 0)
+        throw new BadRequestException(`실투입 되지 않은 재고입니다.`);
+
+      // 현재 투입된 재고 취소
+      const curSe = await tx.stockEvent.update({
+        where: {
+          id: plan.targetStockEvent[0].id,
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: curSe.stockId,
+      });
+
+      // 새로 투입
+      const checkStock =
+        await this.stockQuantityChecker.checkStockRealQuantityTx(
+          tx,
+          params.companyId,
+          params.stockId,
+          params.useRemainder ? 0 : params.quantity,
+        );
+
+      if (checkStock.planId !== null) {
+        throw new BadRequestException(
+          `도착예정재고는 실투입 등록할 수 없습니다.`,
+        );
+      }
+
+      const se = await tx.stockEvent.create({
+        data: {
+          change: params.useRemainder ? -checkStock.cachedQuantity : -quantity,
+          stock: {
+            connect: {
+              id: stockId,
+            },
+          },
+          status: 'NORMAL',
+          plan: {
+            connect: {
+              id: planId,
+            },
+          },
+          useRemainder: params.useRemainder,
+        },
+      });
+
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: se.stockId,
+      });
+    });
+  }
+
+  /** 실투입 재고 취소 */
+  async deleteInputStock(params: {
+    companyId: number;
+    planId: number;
+    stockId: number;
+  }) {
+    const { planId, stockId } = params;
+
+    await this.prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.findUnique({
+        where: {
+          id: planId,
+        },
+        select: {
+          status: true,
+          type: true,
+          targetStockEvent: {
+            where: {
+              stockId,
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
+        },
+      });
+
+      if (plan.type === 'TRADE_OUTSOURCE_PROCESS_SELLER') {
+        throw new BadRequestException(
+          `외주공정 매출은 실투입 재고를 취소할 수 없습니다.`,
+        );
+      }
+
+      if (plan.status !== 'PROGRESSING') {
+        throw new BadRequestException(
+          '실투입 재고를 취소할 수 없는 상태의 작업 계획입니다.',
+        );
+      }
+
+      if (plan.targetStockEvent.length === 0)
+        throw new BadRequestException(`실투입 되지 않은 재고입니다.`);
+
+      // 현재 투입된 재고 취소
+      const curSe = await tx.stockEvent.update({
+        where: {
+          id: plan.targetStockEvent[0].id,
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+      await this.stockChangeService.cacheStockQuantityTx(tx, {
+        id: curSe.stockId,
+      });
+    });
+  }
+
   /** 플랜 생성 */
   private async createPlanTx(
     tx: PrismaTransaction,

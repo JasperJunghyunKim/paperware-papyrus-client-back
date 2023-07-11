@@ -173,7 +173,15 @@ export class PlanController {
     @Param() param: IdDto,
     @Body() dto: UpdateInputStockRequestDto,
   ) {
-    throw new NotImplementedException();
+    const updatedPlan = await this.planChangeService.updateInputStockQuantity({
+      companyId: req.user.companyId,
+      planId: param.id,
+      stockId: dto.stockId,
+      quantity: dto.quantity,
+      useRemainder: dto.useRemainder,
+    });
+
+    return updatedPlan;
   }
 
   @Delete('/:id/input-stock')
@@ -183,7 +191,13 @@ export class PlanController {
     @Param() param: IdDto,
     @Body() dto: DeleteInputStockRequestDto,
   ) {
-    throw new NotImplementedException();
+    const updatedPlan = await this.planChangeService.deleteInputStock({
+      companyId: req.user.companyId,
+      planId: param.id,
+      stockId: dto.stockId,
+    });
+
+    return updatedPlan;
   }
 
   @Get('/:id/input-stock')
