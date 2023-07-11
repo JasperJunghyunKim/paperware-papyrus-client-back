@@ -15,7 +15,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { PlanInputListResponse } from 'src/@shared/api';
+import { InputStockResponse, PlanInputListResponse } from 'src/@shared/api';
 import { TaskListResponse } from 'src/@shared/api/working/task.response';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
@@ -24,6 +24,7 @@ import { PlanRetriveService } from '../service/plan-retrive.service';
 import { TaskRetriveService } from '../service/task-retrive.service';
 import {
   DeleteInputStockRequestDto,
+  GetInputStockDto,
   PlanCreateRequestDto,
   PlanInputListQueryDto,
   PlanListQueryDto,
@@ -228,5 +229,18 @@ export class PlanController {
       items,
       total,
     };
+  }
+
+  @Get('/:id/input-stock/:stockId')
+  @UseGuards(AuthGuard)
+  async getInputStock(
+    @Request() req: AuthType,
+    @Param() dto: GetInputStockDto,
+  ): Promise<InputStockResponse> {
+    return await this.planRetriveService.getInputStock(
+      req.user.companyId,
+      dto.id,
+      dto.stockId,
+    );
   }
 }

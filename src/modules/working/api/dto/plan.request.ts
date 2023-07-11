@@ -115,6 +115,19 @@ export class DeleteInputStockRequestDto implements DeleteInputStockRequest {
   readonly stockId: number;
 }
 
+/** 실투입재고 상세 */
+export class GetInputStockDto {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly id: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly stockId: number;
+}
+
 export class PlanInputListQueryDto implements PlanListQuery {
   @IsOptional()
   @IsInt()

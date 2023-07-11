@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { StockEvent } from 'src/@shared/models';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
@@ -91,5 +91,38 @@ export class PlanRetriveService {
     });
 
     return count;
+  }
+
+  async getInputStock(companyId: number, planId: number, stockId: number) {
+    const plan = await this.prisma.plan.findUnique({
+      where: {
+        id: planId,
+      },
+      select: {
+        status: true,
+        type: true,
+        companyId: true,
+        targetStockEvent: {
+          where: {
+            stockId,
+            status: 'NORMAL',
+          },
+          select: {
+            stockId: true,
+            change: true,
+            useRemainder: true,
+          },
+        },
+      },
+    });
+
+    if (plan.companyId !== companyId || plan.targetStockEvent.length === 0)
+      throw new NotFoundException(`실투입 재고가 존재하지 않습니다.`);
+
+    return {
+      stockId: plan.targetStockEvent[0].stockId,
+      quantity: Math.abs(plan.targetStockEvent[0].change),
+      useRemainder: plan.targetStockEvent[0].useRemainder,
+    };
   }
 }
