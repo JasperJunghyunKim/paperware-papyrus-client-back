@@ -1,9 +1,15 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import * as Data from './data';
+// import * as Data from './data';
+import * as fs from 'fs';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  const data = JSON.parse(
+    fs.readFileSync(__dirname + '/metadata.json', 'utf8'),
+  );
+
+  // 미사용기업 송장
   await prisma.tempInvoiceCode.create({
     data: {
       invoiceCode: 'PWR',
@@ -11,130 +17,126 @@ async function main() {
       maxPercent: 50,
     },
   });
-  await prisma.company.createMany({
-    data: Data.COMPANY.map<Prisma.CompanyCreateManyInput>((values) => ({
-      businessName: values[0],
-      companyRegistrationNumber: values[1],
-      phoneNo: values[2],
-      faxNo: values[3],
-      representative: values[4],
-      invoiceCode: values[5],
-      bizType: values[6],
-      bizItem: values[7],
-      address: `[[00000]] [[${values[8]}::]] [[]] [[]]`,
-    })),
-  });
 
-  await prisma.user.createMany({
-    data: Data.USER.map<Prisma.UserCreateManyInput>((values) => ({
-      companyId: values[0],
-      name: values[1],
-      username: values[2],
-      password: '$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi',
-      email: values[3],
-    })),
+  // 메타데이터
+  await prisma.packaging.createMany({
+    data: data.packagings.map((item) => item),
   });
-
   await prisma.paperDomain.createMany({
-    data: Data.PAPER_DOMAIN.map((name) => ({ name })),
-  });
-  await prisma.manufacturer.createMany({
-    data: Data.MANUFACTURER.map((name) => ({ name })),
+    data: data.paperDomains.map((item) => item),
   });
   await prisma.paperGroup.createMany({
-    data: Data.PAPER_GROUP.map((name) => ({ name })),
+    data: data.paperGroups.map((item) => item),
   });
   await prisma.paperType.createMany({
-    data: Data.PAPER_TYPE.map((name) => ({ name })),
+    data: data.paperTypes.map((item) => item),
   });
-
-  Data.PRODUCT.forEach((product, i) => {
-    const data = {
-      paperDomainId:
-        Data.PAPER_DOMAIN.findIndex((name) => name === product[0]) + 1,
-      paperGroupId:
-        Data.PAPER_GROUP.findIndex((name) => name === product[1]) + 1,
-      paperTypeId: Data.PAPER_TYPE.findIndex((name) => name === product[2]) + 1,
-      manufacturerId:
-        Data.MANUFACTURER.findIndex((name) => name === product[3]) + 1,
-    };
-
-    console.log(i, data);
+  await prisma.manufacturer.createMany({
+    data: data.manufacturers.map((item) => item),
   });
-
   await prisma.product.createMany({
-    data: Data.PRODUCT.map((product) => ({
-      paperDomainId:
-        Data.PAPER_DOMAIN.findIndex((name) => name === product[0]) + 1,
-      paperGroupId:
-        Data.PAPER_GROUP.findIndex((name) => name === product[1]) + 1,
-      paperTypeId: Data.PAPER_TYPE.findIndex((name) => name === product[2]) + 1,
-      manufacturerId:
-        Data.MANUFACTURER.findIndex((name) => name === product[3]) + 1,
-    })),
+    data: data.products.map((item) => item),
   });
   await prisma.paperColorGroup.createMany({
-    data: Data.PAPER_COLOR_GROUP.map((name) => ({ name })),
+    data: data.paperColorGroups.map((item) => item),
   });
   await prisma.paperColor.createMany({
-    data: Data.PAPER_COLOR.map((name) => ({ name })),
+    data: data.paperColors.map((item) => item),
   });
   await prisma.paperPattern.createMany({
-    data: Data.PAPER_PATTERN.map((name) => ({ name })),
+    data: data.paperPatterns.map((item) => item),
   });
   await prisma.paperCert.createMany({
-    data: Data.PAPER_CERT.map((name) => ({ name })),
+    data: data.paperCerts.map((item) => item),
   });
-  await prisma.packaging.createMany({
-    data: [
-      {
-        name: 'SKID',
-        type: 'SKID',
-        packA: 0,
-        packB: 0,
-      },
-      ...Data.DIEMETER.map<Prisma.PackagingCreateInput>(([packA, packB]) => ({
-        name: `ROLL ${packA} ${packB === 0 ? 'inch' : 'mm'}`,
-        type: 'ROLL',
-        packA,
-        packB,
-      })),
-      ...Data.PER_PACKAGE.map<Prisma.PackagingCreateInput>(
-        ([packA, packB]) => ({
-          name: `BOX ${packA}×${packB}`,
-          type: 'BOX',
-          packA,
-          packB,
-        }),
-      ),
-      ...Data.PER_REAM.map<Prisma.PackagingCreateInput>(([packA, packB]) => ({
-        name: `REAM ${packA}`,
-        type: 'REAM',
-        packA,
-        packB,
-      })),
-    ],
+
+  // 회사
+  await prisma.company.createMany({
+    data: data.companies.map((c) => ({
+      id: c.id,
+      businessName: c.name,
+      companyRegistrationNumber: c.regiNo,
+      phoneNo: c.phoneNo,
+      faxNo: c.faxNo,
+      representative: c.rep,
+      invoiceCode: c.invoice,
+      bizType: c.bizType,
+      bizItem: c.bizItem,
+    })),
   });
+  await prisma.company.createMany({
+    data: data.notUsingPartners.map((c) => ({
+      id: c.id,
+      businessName: c.name,
+      companyRegistrationNumber: c.regiNo,
+      phoneNo: c.phoneNo,
+      faxNo: c.faxNo,
+      representative: c.rep,
+      invoiceCode: '',
+      bizType: '',
+      bizItem: '',
+      managedById: c.managedBy,
+    })),
+  });
+  await prisma.businessRelationship.createMany({
+    data: data.businessRelationShips.map((br) => br),
+  });
+
+  // 유저
+  await prisma.user.createMany({
+    data: data.users.map((u) => ({
+      id: u.id,
+      username: u.userId,
+      password: u.password,
+      name: u.name,
+      email: u.email,
+      companyId: u.companyId,
+    })),
+  });
+
+  // 창고 & 도착지
   await prisma.warehouse.createMany({
-    data: Data.WAREHOUSE.map<Prisma.WarehouseCreateManyInput>(
-      ([companyId, name, address, isPublic]) => ({
-        name,
-        address,
-        isPublic,
-        companyId,
-      }),
-    ),
+    data: data.warehouses.map((w) => ({
+      id: w.id,
+      name: w.name,
+      companyId: w.companyId,
+      address: `[[12345]] [[${w.addr}::]] [[::]] [[]]`,
+      isPublic: w.public,
+    })),
   });
   await prisma.location.createMany({
-    data: Data.LOCATION.map<Prisma.LocationCreateManyInput>(
-      ([companyId, name, address, isPublic]) => ({
-        name,
-        address,
-        isPublic,
-        companyId,
-      }),
-    ),
+    data: data.locations.map((w) => ({
+      id: w.id,
+      name: w.name,
+      companyId: w.companyId,
+      address: `[[12345]] [[${w.addr}::]] [[::]] [[]]`,
+      isPublic: w.public,
+    })),
   });
+
+  // 고시가
+  await prisma.officialPriceCondition.createMany({
+    data: data.officialPrices.map((item) => ({
+      id: item.id,
+      productId: item.productId,
+      grammage: item.grammage,
+      sizeX: item.sizeX,
+      sizeY: item.sizeY,
+      paperColorGroupId: item.paperColorGroupId || undefined,
+      paperColorId: item.paperColorId || undefined,
+      paperPatternId: item.paperPatternId || undefined,
+      paperCertId: item.paperCertId || undefined,
+    })),
+  });
+
+  for (const company of data.companies) {
+    await prisma.officialPriceMap.createMany({
+      data: data.officialPriceWholesAndRetails.map((item) => ({
+        companyId: company.id,
+        ...item,
+      })),
+    });
+  }
 }
 
 main()
