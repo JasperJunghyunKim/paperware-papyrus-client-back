@@ -152,9 +152,15 @@ export class BusinessRelationshipChangeService {
     partnerNickname: string;
     creditLimit: number;
     memo: string;
+    partnerTaxManager: {
+      name: string;
+      phoneNo: string;
+      email: string;
+      isDefault: boolean;
+    }[];
   }) {
     await this.prisma.$transaction(async (tx) => {
-      await tx.partner.upsert({
+      const partner = await tx.partner.upsert({
         where: {
           companyId_companyRegistrationNumber: {
             companyId: params.companyId,
@@ -173,6 +179,25 @@ export class BusinessRelationshipChangeService {
           creditLimit: params.creditLimit,
           memo: params.memo,
         },
+      });
+
+      // 세금계산서 담당자 수정
+      await tx.partnerTaxManager.deleteMany({
+        where: {
+          partnerId: partner.id,
+        },
+      });
+
+      await tx.partnerTaxManager.createMany({
+        data: params.partnerTaxManager.map((manager, i) => ({
+          id: Util.taxManagerId(
+            params.companyId,
+            params.companyRegistrationNumber,
+            i + 1,
+          ),
+          partnerId: partner.id,
+          ...manager,
+        })),
       });
     });
   }

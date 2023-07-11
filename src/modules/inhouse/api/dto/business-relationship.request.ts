@@ -175,4 +175,21 @@ export class UpsertPartnerRequestDto implements UpsertPartnerRequest {
   creditLimit: number = 0;
   @IsString()
   memo = '';
+  @IsArray()
+  @ArrayMaxSize(4)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => PartnerTaxManagerDto)
+  readonly partnerTaxManager: PartnerTaxManagerDto[] = [];
+
+  validate() {
+    const defaultManagers = this.partnerTaxManager.filter(
+      (manager) => manager.isDefault,
+    );
+    if (defaultManagers.length > 1) {
+      throw new BadRequestException(
+        `대표세금계산서 담당자는 한명만 지정 가능합니다.`,
+      );
+    }
+  }
 }
