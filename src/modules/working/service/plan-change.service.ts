@@ -211,6 +211,14 @@ export class PlanChangeService {
         select: {
           status: true,
           type: true,
+          targetStockEvent: {
+            where: {
+              stockId,
+              status: {
+                not: 'CANCELLED',
+              },
+            },
+          },
         },
       });
 
@@ -225,6 +233,9 @@ export class PlanChangeService {
           '실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.',
         );
       }
+
+      if (plan.targetStockEvent.length > 0)
+        throw new BadRequestException(`이미 실투입된 재고입니다.`);
 
       const checkStock =
         await this.stockQuantityChecker.checkStockRealQuantityTx(
