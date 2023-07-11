@@ -296,9 +296,7 @@ export class PlanChangeService {
           targetStockEvent: {
             where: {
               stockId,
-              status: {
-                not: 'CANCELLED',
-              },
+              status: 'NORMAL',
             },
           },
         },
@@ -390,9 +388,7 @@ export class PlanChangeService {
           targetStockEvent: {
             where: {
               stockId,
-              status: {
-                not: 'CANCELLED',
-              },
+              status: 'NORMAL',
             },
           },
         },

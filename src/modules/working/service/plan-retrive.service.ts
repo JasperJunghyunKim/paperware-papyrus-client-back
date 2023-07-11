@@ -66,6 +66,7 @@ export class PlanRetriveService {
         plan: {
           id: planId,
         },
+        status: 'NORMAL',
       },
       skip,
       take,
@@ -85,6 +86,7 @@ export class PlanRetriveService {
         plan: {
           id: planId,
         },
+        status: 'NORMAL',
       },
     });
 

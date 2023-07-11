@@ -315,6 +315,7 @@ export const VENDOR_STOCK = {
 
 export const STOCK_EVENT = {
   id: true,
+  useRemainder: true,
   stock: {
     select: STOCK,
   },
