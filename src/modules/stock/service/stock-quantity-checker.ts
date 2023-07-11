@@ -4,13 +4,27 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { PackagingType, Prisma } from '@prisma/client';
 import { TON_TO_GRAM } from 'src/common/const';
 import { PrismaTransaction } from 'src/common/types';
+
+export interface CheckStockQuantity {
+  id: number;
+  planId: number;
+  cachedQuantity: number;
+  packagingType: PackagingType;
+}
 
 @Injectable()
 export class StockQuantityChecker {
   private readonly logger = new Logger(StockQuantityChecker.name);
+
+  private DBQuantityToRealQuantity(
+    packagingType: PackagingType,
+    quantity: number,
+  ): number {
+    return packagingType === 'ROLL' ? quantity / TON_TO_GRAM : quantity;
+  }
 
   async checkStockGroupAvailableQuantityTx(
     tx: PrismaTransaction,
@@ -187,5 +201,50 @@ export class StockQuantityChecker {
             : availableQuantity
         })`,
       );
+  }
+
+  async checkStockRealQuantityTx(
+    tx: PrismaTransaction,
+    companyId: number,
+    stockId: number,
+    quantity: number,
+  ): Promise<CheckStockQuantity> {
+    const result: CheckStockQuantity[] = await tx.$queryRaw`
+      SELECT s.id, s.planId, s.cachedQuantity, p.type AS packagingType
+        FROM Stock          AS s
+        JOIN Packaging      AS p  ON p.id = s.packagingId
+       WHERE s.id = ${stockId}
+         AND s.companyId = ${companyId}
+         FOR UPDATE
+    `;
+    if (result.length === 0 || result[0].cachedQuantity === 0)
+      throw new NotFoundException(`존재하지 않는 재고입니다.`);
+
+    const stock = result[0];
+    this.logger.log(`
+[재고 실수량 조회]
+id: ${stockId}
+palnId: ${stock.planId}
+포장: ${stock.packagingType}
+재고실수량: ${this.DBQuantityToRealQuantity(
+      stock.packagingType,
+      stock.cachedQuantity,
+    )}
+사용예정수량: ${this.DBQuantityToRealQuantity(stock.packagingType, quantity)}
+    `);
+
+    if (stock.cachedQuantity < quantity) {
+      throw new ConflictException(
+        `재고 실수량이 부족합니다. (재고실수량: ${this.DBQuantityToRealQuantity(
+          stock.packagingType,
+          stock.cachedQuantity,
+        )}, 사용수량: ${this.DBQuantityToRealQuantity(
+          stock.packagingType,
+          quantity,
+        )})`,
+      );
+    }
+
+    return result[0];
   }
 }

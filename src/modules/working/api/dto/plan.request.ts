@@ -85,11 +85,11 @@ export class RegisterInputStockRequestDto implements RegisterInputStockRequest {
   @ValidateIf((obj) => !obj.useRemainder)
   @IsInt()
   @IsPositive()
-  readonly quantity: number = null;
+  readonly quantity: number | null = null;
 
   @IsOptional()
   @IsBoolean()
-  readonly useRemainder: boolean = false;
+  readonly useRemainder: boolean | null = false;
 }
 
 /** 실투입재고 수량 변경 */

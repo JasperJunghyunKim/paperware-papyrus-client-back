@@ -229,6 +229,7 @@ model StockEvent {
   orderProcessId    Int?
   orderProcess      OrderProcess?    @relation(fields: [orderProcessId], references: [id])
   createdAt         DateTime         @default(now())
+  useRemainder      Boolean          @default(false)
 }
 
 // User

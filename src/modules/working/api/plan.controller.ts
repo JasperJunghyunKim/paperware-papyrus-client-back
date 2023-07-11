@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -159,6 +160,7 @@ export class PlanController {
       planId: id,
       stockId: body.stockId,
       quantity: body.quantity,
+      useRemainder: body.useRemainder,
     });
 
     return updatedPlan;

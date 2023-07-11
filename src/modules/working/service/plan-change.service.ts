@@ -5,6 +5,7 @@ import { Util } from 'src/common';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
+import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
 import { ulid } from 'ulid';
 
 @Injectable()
@@ -12,7 +13,9 @@ export class PlanChangeService {
   constructor(
     private prisma: PrismaService,
     private stockChangeService: StockChangeService,
+    private stockQuantityChecker: StockQuantityChecker,
   ) {}
+
   async startPlan(params: { planId: number }) {
     const { planId } = params;
 
@@ -195,7 +198,8 @@ export class PlanChangeService {
     companyId: number;
     planId: number;
     stockId: number;
-    quantity: number;
+    quantity: number | null;
+    useRemainder: boolean | null;
   }) {
     const { planId, stockId, quantity } = params;
 
@@ -222,28 +226,23 @@ export class PlanChangeService {
         );
       }
 
-      const stock = await tx.stock.findUnique({
-        where: {
-          id: stockId,
-        },
-      });
+      const checkStock =
+        await this.stockQuantityChecker.checkStockRealQuantityTx(
+          tx,
+          params.companyId,
+          params.stockId,
+          params.useRemainder ? 0 : params.quantity,
+        );
 
-      if (!stock || stock.companyId !== params.companyId) {
-        throw new BadRequestException(`존재하지 않는 재고입니다.`);
-      }
-
-      if (stock.planId !== null) {
+      if (checkStock.planId !== null) {
         throw new BadRequestException(
           `도착예정재고는 실투입 등록할 수 없습니다.`,
         );
       }
-      if (stock.cachedQuantity < quantity) {
-        throw new BadRequestException('재고의 실물 수량을 초과할 수 없습니다.');
-      }
 
       const se = await tx.stockEvent.create({
         data: {
-          change: -quantity,
+          change: params.useRemainder ? -checkStock.cachedQuantity : -quantity,
           stock: {
             connect: {
               id: stockId,
@@ -255,6 +254,7 @@ export class PlanChangeService {
               id: planId,
             },
           },
+          useRemainder: params.useRemainder,
         },
       });
 
