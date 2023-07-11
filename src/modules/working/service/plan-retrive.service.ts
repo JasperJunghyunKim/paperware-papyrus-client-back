@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StockEvent } from 'src/@shared/models';
 import { Selector, Util } from 'src/common';
+import { STOCK } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -111,6 +112,9 @@ export class PlanRetriveService {
             stockId: true,
             change: true,
             useRemainder: true,
+            stock: {
+              select: STOCK,
+            },
           },
         },
       },
@@ -123,6 +127,7 @@ export class PlanRetriveService {
       stockId: plan.targetStockEvent[0].stockId,
       quantity: Math.abs(plan.targetStockEvent[0].change),
       useRemainder: plan.targetStockEvent[0].useRemainder,
+      stock: plan.targetStockEvent[0].stock,
     };
   }
 }
