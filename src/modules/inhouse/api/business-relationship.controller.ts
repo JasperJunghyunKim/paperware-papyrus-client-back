@@ -118,14 +118,12 @@ export class BusinessRelationshipController {
     @Param('companyRegistrationNumber') companyRegistrationNumber: string,
     @Body() body: UpsertPartnerRequestDto,
   ) {
-    body.validate();
     await this.changeService.upsertPartner({
       companyId: req.user.companyId,
       companyRegistrationNumber,
       partnerNickname: body.partnerNickname,
       creditLimit: body.creditLimit,
       memo: body.memo,
-      partnerTaxManager: body.partnerTaxManager,
     });
   }
 
