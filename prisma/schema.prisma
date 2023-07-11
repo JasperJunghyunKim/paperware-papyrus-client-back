@@ -1025,7 +1025,7 @@ model Partner {
 }
 
 model PartnerTaxManager {
-  id        Int     @id @default(autoincrement())
+  id        String  @id
   partnerId Int
   partner   Partner @relation(fields: [partnerId], references: [id])
   name      String
