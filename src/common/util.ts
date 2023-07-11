@@ -93,10 +93,3 @@ export const searchKeywordsToStringArray = (keywords: string): string[] => {
   if (!keywords) return [];
   return keywords.split('|').map((keyword) => keyword);
 };
-
-/** 세금계산서 담당자 아이디 */
-export const taxManagerId = (
-  srcCompanyId: number,
-  companyRegistrationNumber: string,
-  index: number,
-): string => `${srcCompanyId}-${companyRegistrationNumber}-${index}`;

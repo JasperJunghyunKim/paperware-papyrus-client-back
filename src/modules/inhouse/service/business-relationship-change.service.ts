@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -55,14 +54,7 @@ export class BusinessRelationshipChangeService {
           memo: params.memo,
           partnerTaxManager: {
             createMany: {
-              data: params.partnerTaxManager.map((manager, i) => ({
-                id: Util.taxManagerId(
-                  params.srcCompanyId,
-                  params.companyRegistrationNumber,
-                  i + 1,
-                ),
-                ...manager,
-              })),
+              data: params.partnerTaxManager.map((manager) => manager),
             },
           },
         },
