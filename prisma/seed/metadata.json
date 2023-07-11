@@ -2533,6 +2533,17 @@
       "faxNo": "0311231234",
       "rep": "정두성",
       "managedBy": 7
+    },
+    {
+      "id": 29,
+      "name": "테스트거래처",
+      "regiNo": "1234512345",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "",
+      "phoneNo": "0212341234",
+      "faxNo": "0212341234",
+      "rep": "\b홍길동",
+      "managedBy": 10
     }
   ],
   "partners": [
@@ -2647,6 +2658,13 @@
       "partnerNickName": "두성종이(주)",
       "memo": "",
       "creditLimit": 0
+    },
+    {
+      "companyId": 10,
+      "companyRegistrationNumber": "1234512345",
+      "partnerNickName": "테스트거래처",
+      "memo": "",
+      "creditLimit": 0
     }
   ],
   "businessRelationShips": [
@@ -2681,7 +2699,9 @@
     { "srcCompanyId": 7, "dstCompanyId": 27, "isActivated": true },
     { "srcCompanyId": 27, "dstCompanyId": 7, "isActivated": true },
     { "srcCompanyId": 7, "dstCompanyId": 28, "isActivated": true },
-    { "srcCompanyId": 28, "dstCompanyId": 7, "isActivated": true }
+    { "srcCompanyId": 28, "dstCompanyId": 7, "isActivated": true },
+    { "srcCompanyId": 10, "dstCompanyId": 29, "isActivated": true },
+    { "srcCompanyId": 29, "dstCompanyId": 10, "isActivated": true }
   ],
   "users": [
     {
@@ -2957,6 +2977,30 @@
       "addr": "서울특별시 성동구 성수일로55",
       "addr2": "123호",
       "public": false
+    },
+    {
+      "id": 19,
+      "companyId": 10,
+      "name": "공개창고1",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "123호",
+      "public": true
+    },
+    {
+      "id": 20,
+      "companyId": 10,
+      "name": "공개창고2",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "123호",
+      "public": true
+    },
+    {
+      "id": 21,
+      "companyId": 10,
+      "name": "비공개창고",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "123호",
+      "public": false
     }
   ],
   "locations": [
@@ -3001,7 +3045,23 @@
       "public": false
     },
     {
-      "id": 10,
+      "id": 8,
+      "companyId": 10,
+      "name": "자사도착지1",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "",
+      "public": false
+    },
+    {
+      "id": 9,
+      "companyId": 10,
+      "name": "자사도착지2",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "",
+      "public": false
+    },
+    {
+      "id": 12,
       "companyId": 2,
       "name": "대한문화인쇄",
       "addr": "부산광역시 사상구 하신번영로 445",
@@ -3009,7 +3069,7 @@
       "public": true
     },
     {
-      "id": 11,
+      "id": 13,
       "companyId": 2,
       "name": "경림프린팅",
       "addr": "경기도 시흥시 매화산단로 48",
@@ -3017,7 +3077,7 @@
       "public": true
     },
     {
-      "id": 12,
+      "id": 14,
       "companyId": 2,
       "name": "국일문화사",
       "addr": "서울특별시 성동구 상원길 36",
@@ -3025,7 +3085,7 @@
       "public": true
     },
     {
-      "id": 13,
+      "id": 15,
       "companyId": 2,
       "name": "부산일보",
       "addr": "서울특별시 마포구 상암동 상암산로 34",
@@ -3033,7 +3093,7 @@
       "public": true
     },
     {
-      "id": 14,
+      "id": 16,
       "companyId": 2,
       "name": "국제인쇄",
       "addr": "대구광역시 서구 달서천로 346",
@@ -3041,7 +3101,7 @@
       "public": true
     },
     {
-      "id": 15,
+      "id": 17,
       "companyId": 3,
       "name": "호연지기",
       "addr": "대구광역시 서구 달서천로 346",
@@ -3049,10 +3109,26 @@
       "public": true
     },
     {
-      "id": 16,
+      "id": 18,
       "companyId": 3,
       "name": "지피지기",
       "addr": "경상남도 밀양시 산외면 남기동길 159",
+      "addr2": "",
+      "public": true
+    },
+    {
+      "id": 19,
+      "companyId": 10,
+      "name": "기타도착지1",
+      "addr": "서울특별시 성동구 성수일로55",
+      "addr2": "",
+      "public": true
+    },
+    {
+      "id": 20,
+      "companyId": 10,
+      "name": "기타도착지2",
+      "addr": "서울특별시 성동구 성수일로55",
       "addr2": "",
       "public": true
     }
