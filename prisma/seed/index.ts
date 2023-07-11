@@ -81,6 +81,9 @@ async function main() {
   await prisma.businessRelationship.createMany({
     data: data.businessRelationShips.map((br) => br),
   });
+  await prisma.partner.createMany({
+    data: data.partners.map((item) => item),
+  });
 
   // 유저
   await prisma.user.createMany({
