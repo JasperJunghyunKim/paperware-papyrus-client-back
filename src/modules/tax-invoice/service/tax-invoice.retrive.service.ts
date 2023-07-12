@@ -1,4 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { Model } from 'src/@shared';
+import { Selector, Util } from 'src/common';
+import { DEPOSIT, ORDER_DEPOSIT } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -39,5 +42,42 @@ export class TaxInvoiceRetriveService {
     });
 
     return data;
+  }
+
+  async getOrders(
+    companyId: number,
+    taxInvoiceId: number,
+  ): Promise<Model.Order[]> {
+    const orders = await this.prismaService.order.findMany({
+      select: {
+        ...Selector.ORDER,
+        orderDeposit: {
+          select: ORDER_DEPOSIT,
+        },
+        srcDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          },
+        },
+        dstDepositEvent: {
+          include: {
+            deposit: {
+              select: DEPOSIT,
+            },
+          },
+        },
+      },
+      where: {
+        taxInvoiceId,
+        dstCompanyId: companyId,
+      },
+      orderBy: {
+        id: 'desc',
+      },
+    });
+
+    return orders.map(Util.serialize);
   }
 }
