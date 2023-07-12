@@ -732,8 +732,18 @@ enum TaxInvoiceStatus {
   SEND_FAILED // 전송 실패
 }
 
+enum TaxInvoicePurposeType {
+  RECEIPT // 영수
+  CHARGE // 청구
+}
+
 model TaxInvoice {
-  id                        Int      @id @default(autoincrement())
+  id            Int                   @id @default(autoincrement())
+  ntsconfirmNum String?               @unique // 국세청 승인번호
+  issuedDate    DateTime?
+  sendedDate    DateTime?
+  purposeType   TaxInvoicePurposeType
+
   // 공급하는자
   companyId                 Int
   company                   Company  @relation(fields: [companyId], references: [id])

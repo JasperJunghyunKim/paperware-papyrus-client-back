@@ -481,6 +481,10 @@ CREATE TABLE `Invoice` (
 -- CreateTable
 CREATE TABLE `TaxInvoice` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `ntsconfirmNum` VARCHAR(191) NULL,
+    `issuedDate` DATETIME(3) NULL,
+    `sendedDate` DATETIME(3) NULL,
+    `purposeType` ENUM('RECEIPT', 'CHARGE') NOT NULL,
     `companyId` INTEGER NOT NULL,
     `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     `invoicerMgtKey` VARCHAR(191) NOT NULL,
@@ -489,8 +493,9 @@ CREATE TABLE `TaxInvoice` (
     `srcEmail` VARCHAR(191) NOT NULL DEFAULT '',
     `srcEmail2` VARCHAR(191) NOT NULL DEFAULT '',
     `memo` VARCHAR(191) NOT NULL DEFAULT '',
-    `status` ENUM('PREPARING', 'ISSUED', 'ISSUE_FAILED', 'SENDED', 'SEND_FAILED') NOT NULL DEFAULT 'PREPARING',
+    `status` ENUM('PREPARING', 'ON_ISSUE', 'ISSUED', 'ISSUE_FAILED', 'ON_SEND', 'SENDED', 'SEND_FAILED') NOT NULL DEFAULT 'PREPARING',
 
+    UNIQUE INDEX `TaxInvoice_ntsconfirmNum_key`(`ntsconfirmNum`),
     UNIQUE INDEX `TaxInvoice_invoicerMgtKey_key`(`invoicerMgtKey`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

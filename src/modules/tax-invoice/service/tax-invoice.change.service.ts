@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { OrderStatus, Prisma, TaxInvoicePurposeType } from '@prisma/client';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
@@ -17,12 +17,14 @@ export class TaxInvoiceChangeService {
     companyId: number;
     companyRegistrationNumber: string;
     writeDate: string;
+    purposeType: TaxInvoicePurposeType;
   }) {
     const data = await this.priamsService.taxInvoice.create({
       data: {
         companyId: params.companyId,
         companyRegistrationNumber: params.companyRegistrationNumber,
         writeDate: params.writeDate,
+        purposeType: params.purposeType,
         invoicerMgtKey: ulid().substring(0, 24),
       },
       select: { id: true },
@@ -35,6 +37,7 @@ export class TaxInvoiceChangeService {
     companyId: number;
     id: number;
     writeDate: string;
+    purposeType: TaxInvoicePurposeType;
     dstEmail: string;
     srcEmail: string;
     srcEmail2: string;
@@ -57,6 +60,7 @@ export class TaxInvoiceChangeService {
         where: { id: params.id },
         data: {
           writeDate: params.writeDate,
+          purposeType: params.purposeType,
           dstEmail: params.dstEmail,
           srcEmail: params.srcEmail,
           srcEmail2: params.srcEmail2,

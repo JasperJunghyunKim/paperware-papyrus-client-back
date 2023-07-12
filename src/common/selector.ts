@@ -609,6 +609,7 @@ export const ORDER = {
       },
     },
   },
+  tradePrice: true,
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -741,3 +742,22 @@ export const INITIAL_PLAN = {
     select: ORDER_PROCESS,
   },
 } satisfies Prisma.PlanSelect;
+
+export const TAX_INVOICE = {
+  id: true,
+  companyRegistrationNumber: true,
+  invoicerMgtKey: true,
+  purposeType: true,
+  ntsconfirmNum: true,
+  status: true,
+  writeDate: true,
+  issuedDate: true,
+  sendedDate: true,
+  memo: true,
+  dstEmail: true,
+  srcEmail: true,
+  srcEmail2: true,
+  order: {
+    select: ORDER,
+  },
+} satisfies Prisma.TaxInvoiceSelect;

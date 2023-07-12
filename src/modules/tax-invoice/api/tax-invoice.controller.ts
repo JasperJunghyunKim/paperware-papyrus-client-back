@@ -78,9 +78,8 @@ export class TaxInvoiceController {
     @Body() body: CreateTaxInvoiceRequestDto,
   ): Promise<CreateTaxInvoiceResponse> {
     const id = await this.changeService.createTaxInvoice({
+      ...body,
       companyId: req.user.companyId,
-      companyRegistrationNumber: body.companyRegistrationNumber,
-      writeDate: body.writeDate,
     });
 
     return Util.serialize({ id });

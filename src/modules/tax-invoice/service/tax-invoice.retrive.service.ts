@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { DEPOSIT, ORDER_DEPOSIT } from 'src/common/selector';
+import { DEPOSIT, ORDER_DEPOSIT, TAX_INVOICE } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -12,20 +12,39 @@ export class TaxInvoiceRetriveService {
     companyId: number;
     skip: number;
     take: number;
-  }) {
+  }): Promise<Model.TaxInvoice[]> {
     const data = await this.prismaService.taxInvoice.findMany({
       where: { companyId: params.companyId },
       skip: params.skip,
       take: params.take,
-      select: {
-        id: true,
-        companyRegistrationNumber: true,
-        invoicerMgtKey: true,
-        writeDate: true,
-      },
+      select: TAX_INVOICE,
     });
 
-    return data;
+    return data.map((ti) => {
+      const suppliedPrice = ti.order.reduce((acc, cur) => {
+        const tradePrice = cur.tradePrice.find(
+          (tp) => tp.companyId === params.companyId,
+        );
+
+        return acc + tradePrice.suppliedPrice;
+      }, 0);
+      const vatPrice = ti.order.reduce((acc, cur) => {
+        const tradePrice = cur.tradePrice.find(
+          (tp) => tp.companyId === params.companyId,
+        );
+
+        return acc + tradePrice.vatPrice;
+      }, 0);
+
+      return Util.serialize({
+        ...ti,
+        // TODO: 데이터 추가
+        partner: null,
+        totalPrice: suppliedPrice + vatPrice,
+        suppliedPrice,
+        vatPrice,
+      });
+    });
   }
 
   async getTaxInvoiceCount(params: { companyId: number }) {

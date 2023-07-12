@@ -1,3 +1,4 @@
+import { TaxInvoicePurposeType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -5,6 +6,7 @@ import {
   IsArray,
   IsDateString,
   IsEmail,
+  IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
@@ -33,13 +35,19 @@ export class GetTaxInvoiceListQueryDto implements GetTaxInvoiceListQuery {
 
 export class CreateTaxInvoiceRequestDto implements CreateTaxInvoiceRequest {
   @IsString()
-  companyRegistrationNumber: string;
+  readonly companyRegistrationNumber: string;
+
+  @IsEnum(TaxInvoicePurposeType)
+  readonly purposeType: TaxInvoicePurposeType;
 
   @IsDateString()
-  writeDate: string;
+  readonly writeDate: string;
 }
 
 export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
+  @IsEnum(TaxInvoicePurposeType)
+  readonly purposeType: TaxInvoicePurposeType;
+
   @IsDateString()
   readonly writeDate: string;
 
