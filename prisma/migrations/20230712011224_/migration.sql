@@ -119,8 +119,8 @@ CREATE TABLE `Stock` (
     `paperCertId` INTEGER NULL,
     `cachedQuantity` INTEGER NOT NULL DEFAULT 0,
     `cachedQuantityAvailable` INTEGER NOT NULL DEFAULT 0,
-    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `isSyncPrice` BOOLEAN NOT NULL DEFAULT false,
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `initialPlanId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Stock_serial_key`(`serial`),
@@ -152,8 +152,10 @@ CREATE TABLE `StockEvent` (
     `stockId` INTEGER NOT NULL,
     `change` INTEGER NOT NULL,
     `status` ENUM('NORMAL', 'CANCELLED', 'PENDING') NOT NULL,
+    `planId` INTEGER NOT NULL,
     `orderProcessId` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `useRemainder` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -178,9 +180,10 @@ CREATE TABLE `Company` (
     `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     `phoneNo` VARCHAR(191) NOT NULL DEFAULT '',
     `faxNo` VARCHAR(191) NOT NULL DEFAULT '',
-    `email` VARCHAR(191) NOT NULL DEFAULT '',
     `representative` VARCHAR(191) NOT NULL DEFAULT '',
     `invoiceCode` VARCHAR(191) NOT NULL,
+    `bizType` VARCHAR(191) NOT NULL DEFAULT '',
+    `bizItem` VARCHAR(191) NOT NULL DEFAULT '',
     `address` VARCHAR(500) NOT NULL DEFAULT '',
     `managedById` INTEGER NULL,
 
@@ -263,6 +266,7 @@ CREATE TABLE `Order` (
     `isStockRejected` BOOLEAN NOT NULL DEFAULT false,
     `srcDepositEventId` INTEGER NULL,
     `dstDepositEventId` INTEGER NULL,
+    `taxInvoiceId` INTEGER NULL,
     `revision` INTEGER NOT NULL DEFAULT 0,
 
     UNIQUE INDEX `Order_orderNo_key`(`orderNo`),
@@ -384,6 +388,7 @@ CREATE TABLE `Plan` (
     `orderProcessId` INTEGER NULL,
 
     UNIQUE INDEX `Plan_planNo_key`(`planNo`),
+    UNIQUE INDEX `Plan_assignStockEventId_key`(`assignStockEventId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -434,6 +439,7 @@ CREATE TABLE `TaskGuillotine` (
 CREATE TABLE `TaskQuantity` (
     `taskId` INTEGER NOT NULL,
     `quantity` INTEGER NOT NULL,
+    `memo` VARCHAR(191) NOT NULL,
 
     PRIMARY KEY (`taskId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -469,6 +475,23 @@ CREATE TABLE `Invoice` (
     `invoiceStatus` ENUM('WAIT_LOADING', 'WAIT_SHIPPING', 'ON_SHIPPING', 'DONE_SHIPPING') NOT NULL DEFAULT 'WAIT_LOADING',
 
     UNIQUE INDEX `Invoice_invoiceNo_key`(`invoiceNo`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TaxInvoice` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `companyId` INTEGER NOT NULL,
+    `companyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `invoicerMgtKey` VARCHAR(191) NOT NULL,
+    `writeDate` DATETIME(3) NOT NULL,
+    `dstEmail` VARCHAR(191) NOT NULL DEFAULT '',
+    `srcEmail` VARCHAR(191) NOT NULL DEFAULT '',
+    `srcEmail2` VARCHAR(191) NOT NULL DEFAULT '',
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
+    `status` ENUM('WRITING', 'ISSUED', 'ISSUE_FAILED', 'SENDED', 'SEND_FAILED') NOT NULL DEFAULT 'WRITING',
+
+    UNIQUE INDEX `TaxInvoice_invoicerMgtKey_key`(`invoicerMgtKey`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -529,10 +552,24 @@ CREATE TABLE `Partner` (
     `companyId` INTEGER NOT NULL,
     `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     `partnerNickName` VARCHAR(100) NOT NULL,
+    `creditLimit` INTEGER NOT NULL DEFAULT 0,
     `memo` VARCHAR(500) NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
 
     UNIQUE INDEX `Partner_companyId_companyRegistrationNumber_key`(`companyId`, `companyRegistrationNumber`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `PartnerTaxManager` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `partnerId` INTEGER NOT NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `phoneNo` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `isDefault` BOOLEAN NOT NULL DEFAULT false,
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -749,21 +786,21 @@ CREATE TABLE `OrderDepositTradeAltBundle` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `TempInvoiceCode` (
+    `invoiceCode` VARCHAR(191) NOT NULL,
+    `number` INTEGER NOT NULL,
+    `maxPercent` DOUBLE NOT NULL,
+
+    UNIQUE INDEX `TempInvoiceCode_invoiceCode_key`(`invoiceCode`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `_OrderStockToStockEvent` (
     `A` INTEGER NOT NULL,
     `B` INTEGER NOT NULL,
 
     UNIQUE INDEX `_OrderStockToStockEvent_AB_unique`(`A`, `B`),
     INDEX `_OrderStockToStockEvent_B_index`(`B`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `_TargetStockEvent` (
-    `A` INTEGER NOT NULL,
-    `B` INTEGER NOT NULL,
-
-    UNIQUE INDEX `_TargetStockEvent_AB_unique`(`A`, `B`),
-    INDEX `_TargetStockEvent_B_index`(`B`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
@@ -816,6 +853,9 @@ ALTER TABLE `StockPrice` ADD CONSTRAINT `StockPrice_stockId_fkey` FOREIGN KEY (`
 
 -- AddForeignKey
 ALTER TABLE `StockEvent` ADD CONSTRAINT `StockEvent_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `StockEvent` ADD CONSTRAINT `StockEvent_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `StockEvent` ADD CONSTRAINT `StockEvent_orderProcessId_fkey` FOREIGN KEY (`orderProcessId`) REFERENCES `OrderProcess`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -876,6 +916,9 @@ ALTER TABLE `Order` ADD CONSTRAINT `Order_srcDepositEventId_fkey` FOREIGN KEY (`
 
 -- AddForeignKey
 ALTER TABLE `Order` ADD CONSTRAINT `Order_dstDepositEventId_fkey` FOREIGN KEY (`dstDepositEventId`) REFERENCES `DepositEvent`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Order` ADD CONSTRAINT `Order_taxInvoiceId_fkey` FOREIGN KEY (`taxInvoiceId`) REFERENCES `TaxInvoice`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1022,6 +1065,9 @@ ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_paperCertId_fkey` FOREIGN KEY (`pa
 ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `TaxInvoice` ADD CONSTRAINT `TaxInvoice_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `BankAccount` ADD CONSTRAINT `BankAccount_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
@@ -1032,6 +1078,9 @@ ALTER TABLE `Security` ADD CONSTRAINT `Security_companyId_fkey` FOREIGN KEY (`co
 
 -- AddForeignKey
 ALTER TABLE `Partner` ADD CONSTRAINT `Partner_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `PartnerTaxManager` ADD CONSTRAINT `PartnerTaxManager_partnerId_fkey` FOREIGN KEY (`partnerId`) REFERENCES `Partner`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Accounted` ADD CONSTRAINT `Accounted_partnerId_fkey` FOREIGN KEY (`partnerId`) REFERENCES `Partner`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -1161,9 +1210,3 @@ ALTER TABLE `_OrderStockToStockEvent` ADD CONSTRAINT `_OrderStockToStockEvent_A_
 
 -- AddForeignKey
 ALTER TABLE `_OrderStockToStockEvent` ADD CONSTRAINT `_OrderStockToStockEvent_B_fkey` FOREIGN KEY (`B`) REFERENCES `StockEvent`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `_TargetStockEvent` ADD CONSTRAINT `_TargetStockEvent_A_fkey` FOREIGN KEY (`A`) REFERENCES `Plan`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `_TargetStockEvent` ADD CONSTRAINT `_TargetStockEvent_B_fkey` FOREIGN KEY (`B`) REFERENCES `StockEvent`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

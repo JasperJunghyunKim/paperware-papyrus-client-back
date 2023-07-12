@@ -435,6 +435,8 @@ model Order {
   dstDepositEvent   DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
   orderProcess      OrderProcess?
   orderEtc          OrderEtc?
+  taxInvoiceId      Int?
+  taxInvoice        TaxInvoice?   @relation(fields: [taxInvoiceId], references: [id])
   revision          Int           @default(0)
 }
 
@@ -720,6 +722,14 @@ model Invoice {
   invoiceStatus     InvoiceStatus    @default(WAIT_LOADING)
 }
 
+enum TaxInvoiceStatus {
+  WRITING // 작성중
+  ISSUED // 발행
+  ISSUE_FAILED // 발행 실패
+  SENDED // 전송
+  SEND_FAILED // 전송 실패
+}
+
 model TaxInvoice {
   id                        Int      @id @default(autoincrement())
   // 공급하는자
@@ -729,6 +739,17 @@ model TaxInvoice {
   companyRegistrationNumber String
   invoicerMgtKey            String   @unique
   writeDate                 DateTime
+
+  // 이메일
+  dstEmail  String @default("")
+  srcEmail  String @default("")
+  srcEmail2 String @default("")
+  memo      String @default("")
+
+  // 포함된 매출
+  order Order[]
+
+  status TaxInvoiceStatus @default(WRITING)
 }
 
 enum AccountType {
