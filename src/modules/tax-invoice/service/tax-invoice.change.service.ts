@@ -15,22 +15,66 @@ export class TaxInvoiceChangeService {
 
   async createTaxInvoice(params: {
     companyId: number;
-    companyRegistrationNumber: string;
+    srcCompanyId: number;
     writeDate: string;
     purposeType: TaxInvoicePurposeType;
   }) {
-    const data = await this.priamsService.taxInvoice.create({
-      data: {
-        companyId: params.companyId,
-        companyRegistrationNumber: params.companyRegistrationNumber,
-        writeDate: params.writeDate,
-        purposeType: params.purposeType,
-        invoicerMgtKey: ulid().substring(0, 24),
-      },
-      select: { id: true },
-    });
+    return await this.priamsService.$transaction(async (tx) => {
+      const srcCompany = await tx.company.findUnique({
+        include: {
+          dstBusinessRelationship: {
+            where: {
+              srcCompanyId: params.companyId,
+            },
+          },
+          srcBusinessRelationship: {
+            where: {
+              dstCompanyId: params.companyId,
+            },
+          },
+        },
+        where: {
+          id: params.srcCompanyId,
+        },
+      });
+      if (
+        !srcCompany ||
+        srcCompany.dstBusinessRelationship.length === 0 ||
+        srcCompany.srcBusinessRelationship.length === 0
+      ) {
+        throw new NotFoundException(`존재하지 않는 거래처 입니다.`);
+      }
 
-    return data.id;
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: params.companyId,
+        },
+      });
+
+      const taxInvoice = await this.priamsService.taxInvoice.create({
+        data: {
+          // 공급자
+          companyId: params.companyId,
+          dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
+          dstCompanyName: dstCompany.businessName,
+          dstCompanyRepresentative: dstCompany.representative,
+          dstCompanyAddress: dstCompany.address,
+          dstCompanyBizItem: dstCompany.bizItem,
+          dstCompanyBizType: dstCompany.bizType,
+          srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          srcCompanyName: srcCompany.businessName,
+          srcCompanyRepresentative: srcCompany.representative,
+          srcCompanyAddress: srcCompany.address,
+          srcCompanyBizItem: srcCompany.bizItem,
+          srcCompanyBizType: srcCompany.bizType,
+          writeDate: params.writeDate,
+          purposeType: params.purposeType,
+          invoicerMgtKey: ulid().substring(0, 24),
+        },
+        select: { id: true },
+      });
+      return taxInvoice.id;
+    });
   }
 
   async updateTaxInvoice(params: {
@@ -174,7 +218,7 @@ export class TaxInvoiceChangeService {
           );
         if (
           order.companyRegistrationNumber !==
-          taxInvoice.companyRegistrationNumber
+          taxInvoice.srcCompanyRegistrationNumber
         ) {
           throw new BadRequestException(
             `공급받는자가 세금계산서와 다른 매출이 포함되어 있습니다.`,

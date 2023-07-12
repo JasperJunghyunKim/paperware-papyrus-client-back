@@ -80,6 +80,7 @@ export class TaxInvoiceController {
   ): Promise<CreateTaxInvoiceResponse> {
     const id = await this.changeService.createTaxInvoice({
       ...body,
+      srcCompanyId: body.companyId,
       companyId: req.user.companyId,
     });
 

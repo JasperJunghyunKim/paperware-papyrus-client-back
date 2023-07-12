@@ -738,29 +738,39 @@ enum TaxInvoicePurposeType {
 }
 
 model TaxInvoice {
-  id            Int                   @id @default(autoincrement())
-  ntsconfirmNum String?               @unique // 국세청 승인번호
-  issuedDate    DateTime?
-  sendedDate    DateTime?
-  purposeType   TaxInvoicePurposeType
+  id             Int                   @id @default(autoincrement())
+  ntsconfirmNum  String?               @unique // 국세청 승인번호
+  issuedDate     DateTime?
+  sendedDate     DateTime?
+  purposeType    TaxInvoicePurposeType
+  invoicerMgtKey String                @unique
+  writeDate      DateTime
 
   // 공급하는자
-  companyId                 Int
-  company                   Company  @relation(fields: [companyId], references: [id])
-  // 공급받는자
-  companyRegistrationNumber String
-  invoicerMgtKey            String   @unique
-  writeDate                 DateTime
+  companyId                    Int
+  company                      Company @relation(fields: [companyId], references: [id])
+  dstCompanyRegistrationNumber String
+  dstCompanyName               String
+  dstCompanyRepresentative     String
+  dstCompanyAddress            String
+  dstCompanyBizType            String
+  dstCompanyBizItem            String
+  dstEmail                     String  @default("")
 
-  // 이메일
-  dstEmail  String @default("")
-  srcEmail  String @default("")
-  srcEmail2 String @default("")
-  memo      String @default("")
+  // 공급받는자
+  srcCompanyRegistrationNumber String
+  srcCompanyName               String
+  srcCompanyRepresentative     String
+  srcCompanyAddress            String
+  srcCompanyBizType            String
+  srcCompanyBizItem            String
+  srcEmail                     String @default("")
+  srcEmail2                    String @default("")
 
   // 포함된 매출
   order Order[]
 
+  memo      String           @default("")
   status    TaxInvoiceStatus @default(PREPARING)
   isDeleted Boolean          @default(false)
 }

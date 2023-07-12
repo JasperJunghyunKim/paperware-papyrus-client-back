@@ -33,7 +33,7 @@ export class TaxInvoiceRetriveService {
             where: {
               companyId: params.companyId,
               companyRegistrationNumber: {
-                in: data.map((ti) => ti.companyRegistrationNumber),
+                in: data.map((ti) => ti.srcCompanyRegistrationNumber),
               },
             },
           })
@@ -73,7 +73,7 @@ export class TaxInvoiceRetriveService {
       return Util.serialize({
         ...ti,
         // TODO: 데이터 추가
-        partner: partnerMap.get(ti.companyRegistrationNumber) || null,
+        partner: partnerMap.get(ti.srcCompanyRegistrationNumber) || null,
         totalPrice: suppliedPrice + vatPrice,
         suppliedPrice,
         vatPrice,
@@ -105,7 +105,7 @@ export class TaxInvoiceRetriveService {
       where: {
         companyId_companyRegistrationNumber: {
           companyId: taxInvoice.companyId,
-          companyRegistrationNumber: taxInvoice.companyRegistrationNumber,
+          companyRegistrationNumber: taxInvoice.srcCompanyRegistrationNumber,
         },
       },
     });

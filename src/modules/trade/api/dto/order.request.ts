@@ -70,6 +70,11 @@ export class OrderListQueryDto implements OrderListQuery {
   @IsInt()
   @Type(() => Number)
   dstCompanyId: number = undefined;
+
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  readonly srcCompanyRegistrationNumber: string = null;
 }
 
 /** 정상거래 등록 요청 */

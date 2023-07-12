@@ -34,8 +34,10 @@ export class GetTaxInvoiceListQueryDto implements GetTaxInvoiceListQuery {
 }
 
 export class CreateTaxInvoiceRequestDto implements CreateTaxInvoiceRequest {
-  @IsString()
-  readonly companyRegistrationNumber: string;
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly companyId: number;
 
   @IsEnum(TaxInvoicePurposeType)
   readonly purposeType: TaxInvoicePurposeType;
