@@ -171,7 +171,12 @@ export class OfficialPriceRetriveService {
   ): Promise<OfficialPriceWithMap[]> {
     const conditions = await this.prisma.officialPriceCondition.findMany({
       include: {
-        officialPriceMap: true,
+        officialPriceMap: {
+          where: {
+            companyId,
+            isDeleted: false,
+          },
+        },
       },
       where: {
         productId,
