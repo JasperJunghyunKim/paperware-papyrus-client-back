@@ -1735,7 +1735,7 @@ export class OrderChangeService {
         },
       },
       where: {
-        plan: {
+        initialPlan: {
           id: plan.id,
         },
         stockEvent: {
@@ -1757,7 +1757,7 @@ export class OrderChangeService {
       },
     });
     if (curStocks.length > 0)
-      throw new BadRequestException(`이미 존재하는 재고입니다.`);
+      throw new BadRequestException(`이미 추가된 재고 스펙입니다.`);
 
     // 새 입고 예정 재고 추가
     const stock = await tx.stock.create({

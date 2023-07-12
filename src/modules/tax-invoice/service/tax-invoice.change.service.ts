@@ -110,6 +110,7 @@ export class TaxInvoiceChangeService {
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
       }
 
+      // TODO: 같은 년도/월 인 매출만 등록 가능하게 예외처리 필요
       for (const order of orders) {
         if (order.status !== 'ACCEPTED')
           throw new BadRequestException(
