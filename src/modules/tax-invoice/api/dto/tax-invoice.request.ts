@@ -13,6 +13,7 @@ import {
   IsPositive,
   IsString,
   Length,
+  Min,
 } from 'class-validator';
 import {
   AddOrderToTaxInvoiceRequest,
@@ -75,6 +76,30 @@ export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
   @IsString()
   @Length(0, 200)
   readonly memo: string = '';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly cash: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly check: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly note: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly credit: number | null = null;
 }
 
 /** 매출 추가 */

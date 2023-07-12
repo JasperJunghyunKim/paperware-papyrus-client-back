@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `TaxInvoice` ADD COLUMN `cash` INTEGER NULL,
+    ADD COLUMN `check` INTEGER NULL,
+    ADD COLUMN `credit` INTEGER NULL,
+    ADD COLUMN `note` INTEGER NULL;

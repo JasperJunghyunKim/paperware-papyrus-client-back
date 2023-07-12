@@ -86,6 +86,10 @@ export class TaxInvoiceChangeService {
     srcEmail: string;
     srcEmail2: string;
     memo: string;
+    cash: number | null;
+    check: number | null;
+    note: number | null;
+    credit: number | null;
   }) {
     return await this.priamsService.$transaction(async (tx) => {
       const taxInvoice = await tx.taxInvoice.findFirst({
@@ -123,6 +127,10 @@ export class TaxInvoiceChangeService {
           srcEmail: params.srcEmail,
           srcEmail2: params.srcEmail2,
           memo: params.memo,
+          cash: params.cash,
+          check: params.check,
+          note: params.note,
+          credit: params.credit,
         },
         select: { id: true },
       });

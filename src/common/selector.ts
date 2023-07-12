@@ -797,6 +797,10 @@ export const TAX_INVOICE = {
   srcEmail2: true,
   memo: true,
   status: true,
+  cash: true,
+  check: true,
+  note: true,
+  credit: true,
   order: {
     select: ORDER,
   },

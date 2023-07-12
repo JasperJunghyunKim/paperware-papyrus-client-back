@@ -746,6 +746,11 @@ model TaxInvoice {
   invoicerMgtKey String                @unique
   writeDate      DateTime
 
+  cash   Int? // 현금
+  check  Int? // 수표
+  note   Int? // 어음
+  credit Int? // 외상
+
   // 공급하는자
   companyId                    Int
   company                      Company @relation(fields: [companyId], references: [id])
