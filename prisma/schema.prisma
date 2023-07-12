@@ -723,7 +723,7 @@ model Invoice {
 }
 
 enum TaxInvoiceStatus {
-  WRITING // 작성중
+  PREPARING // 작성중
   ISSUED // 발행
   ISSUE_FAILED // 발행 실패
   SENDED // 전송
@@ -749,7 +749,7 @@ model TaxInvoice {
   // 포함된 매출
   order Order[]
 
-  status TaxInvoiceStatus @default(WRITING)
+  status TaxInvoiceStatus @default(PREPARING)
 }
 
 enum AccountType {
