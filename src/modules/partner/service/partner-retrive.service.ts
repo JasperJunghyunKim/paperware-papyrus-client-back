@@ -73,4 +73,32 @@ export class PartnerRetriveService {
       total: partner.partnerTaxManager.length,
     };
   }
+
+  async getTaxManager(id: number, companyId: number) {
+    const taxManager = await this.prisma.partnerTaxManager.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+      },
+    });
+    if (!taxManager)
+      throw new NotFoundException(`존재하지 않는 세금계산서담당자입니다.`);
+
+    const partner = await this.prisma.partner.findUnique({
+      where: {
+        id: taxManager.partnerId,
+      },
+    });
+
+    if (partner.companyId !== companyId)
+      throw new NotFoundException(`존재하지 않는 세금계산서담당자입니다.`);
+
+    return {
+      id: taxManager.id,
+      name: taxManager.name,
+      phoneNo: taxManager.phoneNo,
+      email: taxManager.email,
+      isDefault: taxManager.isDefault,
+    };
+  }
 }
