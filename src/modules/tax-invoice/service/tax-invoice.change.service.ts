@@ -45,6 +45,9 @@ export class TaxInvoiceChangeService {
   }) {
     return await this.priamsService.$transaction(async (tx) => {
       const taxInvoice = await tx.taxInvoice.findUnique({
+        include: {
+          order: true,
+        },
         where: {
           id: params.id,
         },
@@ -54,6 +57,15 @@ export class TaxInvoiceChangeService {
       }
       if (taxInvoice.status !== 'PREPARING') {
         throw new ConflictException(`수정할 수 없는 상태의 세금계산서 입니다.`);
+      }
+
+      if (
+        !Util.isSameDay(taxInvoice.writeDate.toISOString(), params.writeDate) &&
+        taxInvoice.order.length > 0
+      ) {
+        throw new ConflictException(
+          `매출이 등록되어 있어, 작성일을 변경할 수 없습니다.`,
+        );
       }
 
       await tx.taxInvoice.update({
@@ -91,8 +103,9 @@ export class TaxInvoiceChangeService {
         status: OrderStatus;
         taxInvoiceId: number | null;
         companyRegistrationNumber: string;
+        orderDate: string;
       }[] = await tx.$queryRaw`
-        SELECT o.id, o.srcCompanyId, o.dstCompanyId, o.status, o.taxInvoiceId, sc.companyRegistrationNumber
+        SELECT o.id, o.srcCompanyId, o.dstCompanyId, o.status, o.taxInvoiceId, sc.companyRegistrationNumber, o.orderDate
           FROM \`Order\`  AS o
           JOIN Company AS sc  ON sc.id = o.srcCompanyId
          WHERE o.dstCompanyId = ${companyId}
@@ -114,8 +127,15 @@ export class TaxInvoiceChangeService {
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
       }
 
-      // TODO: 같은 년도/월 인 매출만 등록 가능하게 예외처리 필요
       for (const order of orders) {
+        if (
+          !Util.isSameMonth(taxInvoice.writeDate.toISOString(), order.orderDate)
+        ) {
+          throw new BadRequestException(
+            `세금계산서 작성일과 다른 달의 매출이 포함되어 있습니다.`,
+          );
+        }
+
         if (order.status !== 'ACCEPTED')
           throw new BadRequestException(
             `승인되지 않은 매출이 포함되어 있습니다.`,
