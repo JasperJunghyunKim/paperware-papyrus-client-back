@@ -25,6 +25,7 @@ import {
 import {
   CreateTaxInvoiceResponse,
   GetTaxInvoiceListResponse,
+  TaxInvoiceOrderListResponse,
   UpdateTaxInvoiceResponse,
 } from 'src/@shared/api';
 import { Util } from 'src/common';
@@ -108,6 +109,23 @@ export class TaxInvoiceController {
     await this.changeService.deleteTaxInvoice({
       id,
     });
+  }
+
+  /** 매출 목록 */
+  @Get('/:id/order')
+  @UseGuards(AuthGuard)
+  async getOrders(
+    @Req() req: AuthType,
+    @Param() idDto: IdDto,
+  ): Promise<TaxInvoiceOrderListResponse> {
+    const items = await this.retriveService.getOrders(
+      req.user.companyId,
+      idDto.id,
+    );
+    return {
+      items,
+      total: items.length,
+    };
   }
 
   /** 매출 추가 */
