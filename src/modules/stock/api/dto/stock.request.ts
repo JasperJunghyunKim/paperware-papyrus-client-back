@@ -583,7 +583,7 @@ export class ArrivalStockPriceUpdateDto
 {
   @IsInt()
   @Type(() => Number)
-  readonly planId: number;
+  readonly initialPlanId: number;
 
   @IsInt()
   @Type(() => Number)

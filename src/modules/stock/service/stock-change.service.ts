@@ -374,7 +374,7 @@ export class StockChangeService {
 
   async updateArrivalStockPrice(params: {
     companyId: number;
-    planId: number;
+    initialPlanId: number;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -395,7 +395,7 @@ export class StockChangeService {
     } | null;
   }) {
     await this.prisma.$transaction(async (tx) => {
-      const stock = await tx.stock.findFirst({
+      const stocks = await tx.stock.findMany({
         include: {
           packaging: true,
           initialPlan: {
@@ -432,7 +432,7 @@ export class StockChangeService {
         },
         where: {
           companyId: params.companyId,
-          planId: params.planId,
+          initialPlanId: params.initialPlanId,
           productId: params.productId,
           packagingId: params.packagingId,
           grammage: params.grammage,
@@ -451,26 +451,23 @@ export class StockChangeService {
           },
         },
       });
-      if (!stock)
-        throw new BadRequestException(`존재하지 않는 도착예정재고 입니다.`);
+      if (stocks.length === 0)
+        throw new BadRequestException(`존재하지 않는 재고 입니다.`);
 
       // 재고금액 체크
       this.stockValidator.validateStockPrice(
-        stock.packaging.type,
+        stocks[0].packaging.type,
         params.stockPrice,
       );
 
       // 재고금액 업데이트
-      await tx.stockPrice.update({
+      await tx.stockPrice.updateMany({
         where: {
-          stockId: stock.id,
+          stockId: {
+            in: stocks.map((s) => s.id),
+          },
         },
         data: {
-          stock: {
-            connect: {
-              id: stock.id,
-            },
-          },
           officialPriceType: params.stockPrice.officialPriceType,
           officialPrice: params.stockPrice.officialPrice,
           officialPriceUnit: params.stockPrice.officialPriceUnit,

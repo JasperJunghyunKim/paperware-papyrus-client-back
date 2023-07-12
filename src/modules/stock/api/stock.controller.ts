@@ -237,7 +237,7 @@ export class StockController {
     };
   }
 
-  /** 도착예정재고 금액 수정 */
+  /** 도착예정재고 & 입고된 재고 금액 수정 */
   @Put('/arrival/price')
   @UseGuards(AuthGuard)
   async updateArrivalStockPrice(
