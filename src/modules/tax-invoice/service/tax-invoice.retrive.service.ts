@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { PartnerTaxManager } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
-import { DEPOSIT, ORDER_DEPOSIT, TAX_INVOICE } from 'src/common/selector';
+import {
+  DEPOSIT,
+  ORDER_DEPOSIT,
+  PARTNER,
+  TAX_INVOICE,
+} from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -19,6 +25,34 @@ export class TaxInvoiceRetriveService {
       take: params.take,
       select: TAX_INVOICE,
     });
+
+    const partners =
+      data.length > 0
+        ? await this.prismaService.partner.findMany({
+            select: PARTNER,
+            where: {
+              companyId: params.companyId,
+              companyRegistrationNumber: {
+                in: data.map((ti) => ti.companyRegistrationNumber),
+              },
+            },
+          })
+        : [];
+    const partnerMap = new Map<
+      string,
+      {
+        companyRegistrationNumber: string;
+        memo: string;
+        companyId: number;
+        partnerNickName: string;
+        creditLimit: number;
+        partnerTaxManager: PartnerTaxManager[];
+      }
+    >();
+
+    for (const partner of partners) {
+      partnerMap.set(partner.companyRegistrationNumber, partner);
+    }
 
     return data.map((ti) => {
       const suppliedPrice = ti.order.reduce((acc, cur) => {
@@ -39,7 +73,7 @@ export class TaxInvoiceRetriveService {
       return Util.serialize({
         ...ti,
         // TODO: 데이터 추가
-        partner: null,
+        partner: partnerMap.get(ti.companyRegistrationNumber) || null,
         totalPrice: suppliedPrice + vatPrice,
         suppliedPrice,
         vatPrice,
