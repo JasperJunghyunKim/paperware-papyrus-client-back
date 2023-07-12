@@ -140,13 +140,32 @@ export const PAPER_CERT = {
 } satisfies Prisma.PaperCertSelect;
 
 export const ORDER_STOCK_TRADE_PRICE = {
-  // orderId: true,
+  orderId: true,
   companyId: true,
   officialPriceType: true,
   officialPrice: true,
+  officialPriceUnit: true,
   discountType: true,
-  // s: true,
+  discountPrice: true,
+  unitPrice: true,
+  unitPriceUnit: true,
+  processPrice: true,
+  orderStockTradeAltBundle: true,
 } satisfies Prisma.OrderStockTradePriceSelect;
+
+export const ORDER_DEPOSIT_TRADE_PRICE = {
+  orderId: true,
+  companyId: true,
+  officialPriceType: true,
+  officialPrice: true,
+  officialPriceUnit: true,
+  discountType: true,
+  discountPrice: true,
+  unitPrice: true,
+  unitPriceUnit: true,
+  processPrice: true,
+  orderDepositTradeAltBundle: true,
+} satisfies Prisma.OrderDepositTradePriceSelect;
 
 export const INITIAL_ORDER = {
   id: true,
@@ -609,7 +628,16 @@ export const ORDER = {
       },
     },
   },
-  tradePrice: true,
+  tradePrice: {
+    include: {
+      orderStockTradePrice: {
+        select: ORDER_STOCK_TRADE_PRICE,
+      },
+      orderDepositTradePrice: {
+        select: ORDER_DEPOSIT_TRADE_PRICE,
+      },
+    },
+  },
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
