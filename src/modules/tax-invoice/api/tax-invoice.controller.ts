@@ -17,6 +17,7 @@ import { TaxInvoiceRetriveService } from '../service/tax-invoice.retrive.service
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import {
+  AddOrderToTaxInvoiceDto,
   CreateTaxInvoiceRequestDto,
   GetTaxInvoiceListQueryDto,
   UpdateTaxInvoiceRequestDto,
@@ -27,6 +28,7 @@ import {
   UpdateTaxInvoiceResponse,
 } from 'src/@shared/api';
 import { Util } from 'src/common';
+import { IdDto } from 'src/common/request';
 
 @Controller('tax-invoice')
 export class TaxInvoiceController {
@@ -106,5 +108,20 @@ export class TaxInvoiceController {
     await this.changeService.deleteTaxInvoice({
       id,
     });
+  }
+
+  /** 매출 추가 */
+  @Post('/:id/order')
+  @UseGuards(AuthGuard)
+  async addOrder(
+    @Req() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() body: AddOrderToTaxInvoiceDto,
+  ) {
+    await this.changeService.addOrder(
+      req.user.companyId,
+      idDto.id,
+      body.orderIds,
+    );
   }
 }

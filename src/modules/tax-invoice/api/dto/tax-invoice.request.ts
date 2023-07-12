@@ -1,13 +1,19 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsDateString,
   IsEmail,
   IsInt,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   Length,
 } from 'class-validator';
 import {
+  AddOrderToTaxInvoiceRequest,
   CreateTaxInvoiceRequest,
   GetTaxInvoiceListQuery,
   UpdateTaxInvoiceRequest,
@@ -58,4 +64,14 @@ export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
   @IsString()
   @Length(0, 200)
   readonly memo: string = '';
+}
+
+/** 매출 추가 */
+export class AddOrderToTaxInvoiceDto implements AddOrderToTaxInvoiceRequest {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  readonly orderIds: number[];
 }
