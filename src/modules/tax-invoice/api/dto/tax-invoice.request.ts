@@ -1,5 +1,12 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import {
   CreateTaxInvoiceRequest,
   GetTaxInvoiceListQuery,
@@ -25,4 +32,30 @@ export class CreateTaxInvoiceRequestDto implements CreateTaxInvoiceRequest {
   writeDate: string;
 }
 
-export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {}
+export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
+  @IsDateString()
+  readonly writeDate: string;
+
+  @IsOptional()
+  @IsString()
+  @IsEmail()
+  @Length(0, 100)
+  readonly dstEmail: string = '';
+
+  @IsOptional()
+  @IsString()
+  @IsEmail()
+  @Length(0, 100)
+  readonly srcEmail: string = '';
+
+  @IsOptional()
+  @IsString()
+  @IsEmail()
+  @Length(0, 100)
+  readonly srcEmail2: string = '';
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  readonly memo: string = '';
+}

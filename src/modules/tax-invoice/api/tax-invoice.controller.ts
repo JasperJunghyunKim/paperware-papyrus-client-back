@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -90,7 +91,9 @@ export class TaxInvoiceController {
     @Body() body: UpdateTaxInvoiceRequestDto,
   ): Promise<UpdateTaxInvoiceResponse> {
     const data = await this.changeService.updateTaxInvoice({
+      companyId: req.user.companyId,
       id,
+      ...body,
     });
 
     return Util.serialize({ id: data });
@@ -99,6 +102,7 @@ export class TaxInvoiceController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteTaxInvoice(@Req() req: AuthType, @Param('id') id: number) {
+    throw new NotImplementedException();
     await this.changeService.deleteTaxInvoice({
       id,
     });

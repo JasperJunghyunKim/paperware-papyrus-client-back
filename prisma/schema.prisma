@@ -725,7 +725,7 @@ model Invoice {
 enum TaxInvoiceStatus {
   PREPARING // 작성중
   ON_ISSUE // 발행중
-  ISSUED // 발행완료 
+  ISSUED // 발행완료
   ISSUE_FAILED // 발행 실패
   ON_SEND // 전송중
   SENDED // 전송완료
