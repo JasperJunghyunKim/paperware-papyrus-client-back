@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PartnerTaxManager } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
@@ -20,7 +20,7 @@ export class TaxInvoiceRetriveService {
     take: number;
   }): Promise<Model.TaxInvoice[]> {
     const data = await this.prismaService.taxInvoice.findMany({
-      where: { companyId: params.companyId },
+      where: { companyId: params.companyId, isDeleted: false },
       skip: params.skip,
       take: params.take,
       select: TAX_INVOICE,
@@ -83,18 +83,55 @@ export class TaxInvoiceRetriveService {
 
   async getTaxInvoiceCount(params: { companyId: number }) {
     const data = await this.prismaService.taxInvoice.count({
-      where: { companyId: params.companyId },
+      where: { companyId: params.companyId, isDeleted: false },
     });
 
     return data;
   }
 
-  async getTaxInvoiceItem(params: { id: number }) {
-    const data = await this.prismaService.taxInvoice.findUnique({
-      where: { id: params.id },
+  async getTaxInvoiceItem(params: {
+    companyId: number;
+    id: number;
+  }): Promise<Model.TaxInvoice> {
+    const taxInvoice = await this.prismaService.taxInvoice.findFirst({
+      select: TAX_INVOICE,
+      where: { id: params.id, isDeleted: true, companyId: params.companyId },
+    });
+    if (!taxInvoice) {
+      throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+    }
+
+    const partner = await this.prismaService.partner.findUnique({
+      where: {
+        companyId_companyRegistrationNumber: {
+          companyId: taxInvoice.companyId,
+          companyRegistrationNumber: taxInvoice.companyRegistrationNumber,
+        },
+      },
     });
 
-    return data;
+    const suppliedPrice = taxInvoice.order.reduce((acc, cur) => {
+      const tradePrice = cur.tradePrice.find(
+        (tp) => tp.companyId === params.companyId,
+      );
+
+      return acc + tradePrice.suppliedPrice;
+    }, 0);
+    const vatPrice = taxInvoice.order.reduce((acc, cur) => {
+      const tradePrice = cur.tradePrice.find(
+        (tp) => tp.companyId === params.companyId,
+      );
+
+      return acc + tradePrice.vatPrice;
+    }, 0);
+
+    return Util.serialize({
+      ...taxInvoice,
+      partner: partner || null,
+      totalPrice: suppliedPrice + vatPrice,
+      suppliedPrice,
+      vatPrice,
+    });
   }
 
   async getOrders(

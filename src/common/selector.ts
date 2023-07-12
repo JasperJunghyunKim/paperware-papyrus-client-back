@@ -745,6 +745,7 @@ export const INITIAL_PLAN = {
 
 export const TAX_INVOICE = {
   id: true,
+  companyId: true,
   companyRegistrationNumber: true,
   invoicerMgtKey: true,
   purposeType: true,

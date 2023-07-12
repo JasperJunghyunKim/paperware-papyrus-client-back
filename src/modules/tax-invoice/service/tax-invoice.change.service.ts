@@ -44,12 +44,14 @@ export class TaxInvoiceChangeService {
     memo: string;
   }) {
     return await this.priamsService.$transaction(async (tx) => {
-      const taxInvoice = await tx.taxInvoice.findUnique({
+      const taxInvoice = await tx.taxInvoice.findFirst({
         include: {
           order: true,
         },
         where: {
           id: params.id,
+          companyId: params.companyId,
+          isDeleted: false,
         },
       });
       if (!taxInvoice || taxInvoice.companyId !== params.companyId) {
@@ -85,13 +87,41 @@ export class TaxInvoiceChangeService {
     });
   }
 
-  async deleteTaxInvoice(params: { id: number }) {
-    const data = await this.priamsService.taxInvoice.delete({
-      where: { id: params.id },
-      select: { id: true },
+  async deleteTaxInvoice(params: { companyId: number; id: number }) {
+    await this.priamsService.$transaction(async (tx) => {
+      const taxInvoice = await tx.taxInvoice.findFirst({
+        include: {
+          order: true,
+        },
+        where: {
+          id: params.id,
+          isDeleted: false,
+          companyId: params.companyId,
+        },
+      });
+      if (!taxInvoice || taxInvoice.companyId !== params.companyId) {
+        throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+      }
+      if (taxInvoice.status !== 'PREPARING') {
+        throw new ConflictException(`삭제할 수 없는 상태의 세금계산서 입니다.`);
+      }
+      if (taxInvoice.order.length > 0) {
+        throw new ConflictException(
+          `매출이 등록된 세금계산서는 삭제할 수 없습니다.`,
+        );
+      }
+
+      await tx.taxInvoice.update({
+        where: {
+          id: params.id,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
     });
 
-    return data.id;
+    return params.id;
   }
 
   async addOrder(companyId: number, taxInvoiceId: number, orderIds: number[]) {
@@ -118,9 +148,11 @@ export class TaxInvoiceChangeService {
           `존재하지 않는 매출이 포함되어 있습니다.`,
         );
 
-      const taxInvoice = await tx.taxInvoice.findUnique({
+      const taxInvoice = await tx.taxInvoice.findFirst({
         where: {
           id: taxInvoiceId,
+          companyId,
+          isDeleted: false,
         },
       });
       if (!taxInvoice || taxInvoice.companyId !== companyId) {

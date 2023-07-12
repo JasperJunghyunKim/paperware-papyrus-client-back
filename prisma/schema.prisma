@@ -761,7 +761,8 @@ model TaxInvoice {
   // 포함된 매출
   order Order[]
 
-  status TaxInvoiceStatus @default(PREPARING)
+  status    TaxInvoiceStatus @default(PREPARING)
+  isDeleted Boolean          @default(false)
 }
 
 enum AccountType {

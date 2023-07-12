@@ -24,6 +24,7 @@ import {
 } from './dto/tax-invoice.request';
 import {
   CreateTaxInvoiceResponse,
+  GetTaxInvoiceItemResponse,
   GetTaxInvoiceListResponse,
   TaxInvoiceOrderListResponse,
   UpdateTaxInvoiceResponse,
@@ -59,16 +60,16 @@ export class TaxInvoiceController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  async getTaxInvoiceItem(@Req() req: AuthType, @Param('id') id: number) {
+  async getTaxInvoiceItem(
+    @Req() req: AuthType,
+    @Param('id') id: number,
+  ): Promise<GetTaxInvoiceItemResponse> {
     const item = await this.retriveService.getTaxInvoiceItem({
+      companyId: req.user.companyId,
       id,
     });
 
-    if (item.companyId !== req.user.companyId) {
-      throw new UnauthorizedException('Invalid company');
-    }
-
-    return Util.serialize(item);
+    return item;
   }
 
   @Post()
@@ -104,8 +105,8 @@ export class TaxInvoiceController {
   @Delete(':id')
   @UseGuards(AuthGuard)
   async deleteTaxInvoice(@Req() req: AuthType, @Param('id') id: number) {
-    throw new NotImplementedException();
     await this.changeService.deleteTaxInvoice({
+      companyId: req.user.companyId,
       id,
     });
   }
