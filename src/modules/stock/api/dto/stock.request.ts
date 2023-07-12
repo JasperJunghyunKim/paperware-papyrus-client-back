@@ -62,6 +62,10 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
   readonly isZeroQuantityIncluded: 'true' | 'false' = 'false';
 
   @IsOptional()
+  @IsBooleanString()
+  readonly orderProcessIncluded: 'true' | 'false' = 'false';
+
+  @IsOptional()
   @IsInt()
   @Type(() => Number)
   @Min(1)

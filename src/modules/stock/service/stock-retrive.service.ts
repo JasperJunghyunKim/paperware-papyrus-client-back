@@ -298,6 +298,7 @@ export class StockRetriveService {
     isDirectShippingIncluded: boolean;
     isZeroQuantityIncluded: boolean;
     initialPlanId: number | null;
+    orderProcessIncluded: boolean;
     warehouseIds: number[];
     packagingIds: number[];
     paperTypeIds: number[];
@@ -318,6 +319,7 @@ export class StockRetriveService {
       isDirectShippingIncluded,
       isZeroQuantityIncluded,
       initialPlanId,
+      orderProcessIncluded,
       warehouseIds,
       packagingIds,
       paperTypeIds,
@@ -356,6 +358,10 @@ export class StockRetriveService {
 
     const initialPlanQuery = initialPlanId
       ? Prisma.sql`AND s.initialPlanId = ${initialPlanId}`
+      : Prisma.empty;
+
+    const orderProcessIncludedQuery = orderProcessIncluded
+      ? Prisma.sql`OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.dstCompanyId = ${companyId} AND s.planId IS NOT NULL)`
       : Prisma.empty;
 
     const warehouseQuery =
@@ -626,7 +632,7 @@ export class StockRetriveService {
          AND (initialO.id IS NULL
                 OR (initialO.id IS NOT NULL AND initialO.orderType != ${OrderType.OUTSOURCE_PROCESS})
                 OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.srcCompanyId = ${companyId})
-                OR (initialO.id IS NOT NULL AND initialO.orderType = ${OrderType.OUTSOURCE_PROCESS} AND initialO.dstCompanyId = ${companyId} AND s.planId IS NOT NULL)
+                ${orderProcessIncludedQuery}
               ) 
          ${directShippingQuery}
          ${initialPlanQuery}
