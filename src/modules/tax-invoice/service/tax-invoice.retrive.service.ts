@@ -95,7 +95,7 @@ export class TaxInvoiceRetriveService {
   }): Promise<Model.TaxInvoice> {
     const taxInvoice = await this.prismaService.taxInvoice.findFirst({
       select: TAX_INVOICE,
-      where: { id: params.id, isDeleted: true, companyId: params.companyId },
+      where: { id: params.id, isDeleted: false, companyId: params.companyId },
     });
     if (!taxInvoice) {
       throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
