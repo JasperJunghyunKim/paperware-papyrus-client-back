@@ -15,6 +15,7 @@ import {
 import {
   AddOrderToTaxInvoiceRequest,
   CreateTaxInvoiceRequest,
+  DeleteOrderFromTaxInvoiceRequest,
   GetTaxInvoiceListQuery,
   UpdateTaxInvoiceRequest,
 } from 'src/@shared/api';
@@ -68,6 +69,18 @@ export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
 
 /** 매출 추가 */
 export class AddOrderToTaxInvoiceDto implements AddOrderToTaxInvoiceRequest {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  readonly orderIds: number[];
+}
+
+/** 매출 삭제 */
+export class DeleteOrderFromTaxInvoiceDto
+  implements DeleteOrderFromTaxInvoiceRequest
+{
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(100)

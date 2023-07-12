@@ -109,7 +109,6 @@ export class TaxInvoiceChangeService {
       if (!taxInvoice || taxInvoice.companyId !== companyId) {
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
       }
-      console.log(orders, taxInvoice);
 
       for (const order of orders) {
         if (order.status !== 'ACCEPTED')
@@ -143,6 +142,56 @@ export class TaxInvoiceChangeService {
         },
         data: {
           taxInvoiceId,
+        },
+      });
+    });
+  }
+
+  async deleteOrder(
+    companyId: number,
+    taxInvoiceId: number,
+    orderIds: number[],
+  ) {
+    await this.priamsService.$transaction(async (tx) => {
+      const taxInvoice = await tx.taxInvoice.findUnique({
+        where: {
+          id: taxInvoiceId,
+        },
+      });
+      if (!taxInvoice || taxInvoice.companyId !== companyId) {
+        throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+      }
+
+      const orders: {
+        id: number;
+        srcCompanyId: number;
+        dstCompanyId: number;
+        status: OrderStatus;
+        taxInvoiceId: number | null;
+        companyRegistrationNumber: string;
+      }[] = await tx.$queryRaw`
+        SELECT o.id, o.srcCompanyId, o.dstCompanyId, o.status, o.taxInvoiceId, sc.companyRegistrationNumber
+          FROM \`Order\`  AS o
+          JOIN Company AS sc  ON sc.id = o.srcCompanyId
+         WHERE o.dstCompanyId = ${companyId}
+           AND o.id IN (${Prisma.join(orderIds)})
+           AND o.taxInvoiceId = ${taxInvoiceId}
+         FOR UPDATE;
+      `;
+
+      if (orderIds.length !== orders.length)
+        throw new BadRequestException(
+          `해당 세금계산서에 등록되어 있지 않은 매출이 포함되어 있습니다.`,
+        );
+
+      await tx.order.updateMany({
+        where: {
+          id: {
+            in: orderIds,
+          },
+        },
+        data: {
+          taxInvoiceId: null,
         },
       });
     });

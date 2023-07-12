@@ -124,4 +124,19 @@ export class TaxInvoiceController {
       body.orderIds,
     );
   }
+
+  /** 매출 삭제 */
+  @Delete('/:id/order')
+  @UseGuards(AuthGuard)
+  async delteOrder(
+    @Req() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() body: AddOrderToTaxInvoiceDto,
+  ) {
+    await this.changeService.deleteOrder(
+      req.user.companyId,
+      idDto.id,
+      body.orderIds,
+    );
+  }
 }
