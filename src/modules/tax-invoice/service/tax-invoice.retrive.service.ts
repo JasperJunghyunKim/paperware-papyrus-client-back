@@ -122,9 +122,11 @@ export class TaxInvoiceRetriveService {
         break;
     }
 
+    console.log(order.orderStock);
+
     if (order.orderType === 'NORMAL') {
       item =
-        order.orderStock.packaging.name +
+        order.orderStock.packaging.type +
         ' ' +
         order.orderStock.product.paperType.name +
         ' ' +
@@ -136,7 +138,7 @@ export class TaxInvoiceRetriveService {
         this.getQuantity(order.orderStock.packaging, order.orderStock.quantity);
     } else if (order.orderType === 'OUTSOURCE_PROCESS') {
       item =
-        order.orderProcess.packaging.name +
+        order.orderProcess.packaging.type +
         ' ' +
         order.orderProcess.product.paperType.name +
         ' ' +
@@ -151,7 +153,7 @@ export class TaxInvoiceRetriveService {
         );
     } else if (order.orderType === 'DEPOSIT') {
       item =
-        order.orderDeposit.packaging.name +
+        order.orderDeposit.packaging.type +
         ' ' +
         order.orderDeposit.product.paperType.name +
         ' ' +
