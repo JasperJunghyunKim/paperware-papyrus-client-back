@@ -216,18 +216,18 @@ export class TaxInvoiceRetriveService {
 
     return data.map((ti) => {
       const suppliedPrice = ti.order.reduce((acc, cur) => {
-        const tradePrice = cur.tradePrice.find(
-          (tp) => tp.companyId === params.companyId,
-        );
+        const tradePrice =
+          cur.tradePrice.find((tp) => tp.companyId === params.companyId) ||
+          null;
 
-        return acc + tradePrice.suppliedPrice;
+        return acc + (tradePrice?.suppliedPrice || 0);
       }, 0);
       const vatPrice = ti.order.reduce((acc, cur) => {
-        const tradePrice = cur.tradePrice.find(
-          (tp) => tp.companyId === params.companyId,
-        );
+        const tradePrice =
+          cur.tradePrice.find((tp) => tp.companyId === params.companyId) ||
+          null;
 
-        return acc + tradePrice.vatPrice;
+        return acc + (tradePrice?.vatPrice || 0);
       }, 0);
 
       return Util.serialize({
@@ -273,18 +273,16 @@ export class TaxInvoiceRetriveService {
     });
 
     const suppliedPrice = taxInvoice.order.reduce((acc, cur) => {
-      const tradePrice = cur.tradePrice.find(
-        (tp) => tp.companyId === params.companyId,
-      );
+      const tradePrice =
+        cur.tradePrice.find((tp) => tp.companyId === params.companyId) || null;
 
-      return acc + tradePrice.suppliedPrice;
+      return acc + (tradePrice?.suppliedPrice || 0);
     }, 0);
     const vatPrice = taxInvoice.order.reduce((acc, cur) => {
-      const tradePrice = cur.tradePrice.find(
-        (tp) => tp.companyId === params.companyId,
-      );
+      const tradePrice =
+        cur.tradePrice.find((tp) => tp.companyId === params.companyId) || null;
 
-      return acc + tradePrice.vatPrice;
+      return acc + (tradePrice?.vatPrice || 0);
     }, 0);
 
     return Util.serialize({
