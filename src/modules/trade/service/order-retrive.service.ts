@@ -22,7 +22,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getList(params: {
     skip?: number;
@@ -36,6 +36,15 @@ export class OrderRetriveService {
     month: string | null;
   }): Promise<Model.Order[]> {
     const { srcCompanyId, dstCompanyId } = params;
+
+    const monthFirstDay =
+      params.year && params.month
+        ? new Date(
+            `${params.year}-${
+              params.month.length === 1 ? '0' + params.month : params.month
+            }-01`,
+          )
+        : null;
 
     const orders = await this.prisma.order.findMany({
       select: {
@@ -65,14 +74,25 @@ export class OrderRetriveService {
           in: params.status,
         },
         // 세금계산서 매출 검색 조건
-        srcCompany: params.srcCompanyRegistrationNumber ? {
-          companyRegistrationNumber: params.srcCompanyRegistrationNumber
-        } : undefined,
-        taxInvoice: params.bookClosed === null ? undefined : {
-          id: params.bookClosed ? {
-            not: null,
-          } : null,
-        },
+        srcCompany: params.srcCompanyRegistrationNumber
+          ? {
+              companyRegistrationNumber: params.srcCompanyRegistrationNumber,
+            }
+          : undefined,
+        taxInvoiceId:
+          params.bookClosed === null
+            ? undefined
+            : params.bookClosed
+            ? {
+                not: null,
+              }
+            : null,
+        orderDate: monthFirstDay
+          ? {
+              gte: monthFirstDay,
+              lt: Util.addMonth(monthFirstDay, 1),
+            }
+          : undefined,
       },
       skip: params.skip,
       take: params.take,
@@ -87,8 +107,22 @@ export class OrderRetriveService {
   async getCount(params: {
     srcCompanyId?: number;
     dstCompanyId?: number;
+    status: OrderStatus[];
+    srcCompanyRegistrationNumber: string | null;
+    bookClosed: boolean | null;
+    year: string | null;
+    month: string | null;
   }): Promise<number> {
     const { srcCompanyId, dstCompanyId } = params;
+
+    const monthFirstDay =
+      params.year && params.month
+        ? new Date(
+            `${params.year}-${
+              params.month.length === 1 ? '0' + params.month : params.month
+            }-01`,
+          )
+        : null;
 
     const count = await this.prisma.order.count({
       where: {
@@ -100,6 +134,29 @@ export class OrderRetriveService {
             dstCompanyId,
           },
         ],
+        status: {
+          in: params.status,
+        },
+        // 세금계산서 매출 검색 조건
+        srcCompany: params.srcCompanyRegistrationNumber
+          ? {
+              companyRegistrationNumber: params.srcCompanyRegistrationNumber,
+            }
+          : undefined,
+        taxInvoiceId:
+          params.bookClosed === null
+            ? undefined
+            : params.bookClosed
+            ? {
+                not: null,
+              }
+            : null,
+        orderDate: monthFirstDay
+          ? {
+              gte: monthFirstDay,
+              lt: Util.addMonth(monthFirstDay, 1),
+            }
+          : undefined,
       },
     });
 

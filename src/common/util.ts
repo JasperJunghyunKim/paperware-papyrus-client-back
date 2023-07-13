@@ -113,3 +113,28 @@ export const isSameDay = (date1: string, date2: string): boolean => {
     d1.getDate() === d2.getDate()
   );
 };
+
+export const addMonth = (date: Date, month: number): Date => {
+  // month달 후의 1일
+  let addMonthFirstDate = new Date(
+    date.getFullYear(),
+    date.getMonth() + month,
+    1,
+  );
+
+  // month달 후의 말일
+  let addMonthLastDate = new Date(
+    addMonthFirstDate.getFullYear(),
+    addMonthFirstDate.getMonth() + 1,
+    0,
+  );
+
+  let result = addMonthFirstDate;
+  if (date.getDate() > addMonthLastDate.getDate()) {
+    result.setDate(addMonthLastDate.getDate());
+  } else {
+    result.setDate(date.getDate());
+  }
+
+  return result;
+};
