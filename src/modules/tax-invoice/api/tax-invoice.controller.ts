@@ -46,8 +46,14 @@ export class TaxInvoiceController {
 
   @Get('test')
   async test() {
-    throw new ForbiddenException();
-    // return await this.popbillRetriveService.getCertUrl('', 'e');
+    return await this.popbillRetriveService.checkCertValidation('1234567890');
+  }
+
+  /** 인증서 URL */
+  @Get('/cert/url')
+  @UseGuards(AuthGuard)
+  async getCerUrl(@Req() req: AuthType) {
+    return await this.popbillRetriveService.getCertUrl(req.user.companyId);
   }
 
   /** 발행 */

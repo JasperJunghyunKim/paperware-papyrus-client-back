@@ -1,7 +1,13 @@
 import * as popbill from 'popbill';
 import * as dotenv from 'dotenv';
 import { InternalServerErrorException } from '@nestjs/common';
+import { CERT_NOT_FOUND_ERROR } from '../code/popbill.code';
 dotenv.config();
+
+interface PopbillResponse {
+  code: number;
+  message?: string;
+}
 
 const popbillConfig = {
   POPBILL_LINK_ID: process.env.POPBILL_LINK_ID,
@@ -42,6 +48,7 @@ popbill.config({
 // 세금계산서
 const taxInvoiceService = popbill.TaxinvoiceService();
 
+/** 인증서 URL */
 export const getCertUrl = async (
   CorpNum: string,
   UserID: string,
@@ -62,4 +69,22 @@ export const getCertUrl = async (
   if (url instanceof Error) throw new InternalServerErrorException();
 
   return url;
+};
+
+/** 인증서 유효성 확인 */
+export const checkCertValidation = async (CorpNum: string) => {
+  const test: PopbillResponse = await new Promise((res, rej) => {
+    taxInvoiceService.checkCertValidation(
+      'CorpNum',
+      function (result) {
+        res(result);
+      },
+      function (err) {
+        console.log(err);
+        res(err);
+      },
+    );
+  });
+
+  return test.code;
 };
