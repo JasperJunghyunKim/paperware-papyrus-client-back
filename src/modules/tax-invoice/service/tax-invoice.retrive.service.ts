@@ -90,12 +90,12 @@ export class TaxInvoiceRetriveService {
   ): string {
     switch (packaging.type) {
       case 'ROLL':
-        return `${quantity / TON_TO_GRAM} ROLL`;
+        return `${(quantity / TON_TO_GRAM).toFixed(3)}ROLL`;
       case 'REAM':
       case 'SKID':
-        return `${quantity / 500} R`;
+        return `${(quantity / 500).toFixed(3)}R`;
       case 'BOX':
-        return `${quantity} BOX`;
+        return `${quantity}BOX`;
       default:
         throw new InternalServerErrorException(`알 수 없는 재고 단위`);
     }
