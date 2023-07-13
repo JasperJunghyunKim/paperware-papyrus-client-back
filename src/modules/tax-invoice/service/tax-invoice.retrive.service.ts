@@ -134,6 +134,38 @@ export class TaxInvoiceRetriveService {
         `${order.orderStock.sizeX}X${order.orderStock.sizeY}` +
         ' ' +
         this.getQuantity(order.orderStock.packaging, order.orderStock.quantity);
+    } else if (order.orderType === 'OUTSOURCE_PROCESS') {
+      item =
+        order.orderProcess.packaging.name +
+        ' ' +
+        order.orderProcess.product.paperType.name +
+        ' ' +
+        order.orderProcess.grammage.toString() +
+        'g/m²' +
+        ' ' +
+        `${order.orderProcess.sizeX}X${order.orderProcess.sizeY}` +
+        ' ' +
+        this.getQuantity(
+          order.orderProcess.packaging,
+          order.orderProcess.quantity,
+        );
+    } else if (order.orderType === 'DEPOSIT') {
+      item =
+        order.orderDeposit.packaging.name +
+        ' ' +
+        order.orderDeposit.product.paperType.name +
+        ' ' +
+        order.orderDeposit.grammage.toString() +
+        'g/m²' +
+        ' ' +
+        `${order.orderDeposit.sizeX}X${order.orderDeposit.sizeY}` +
+        ' ' +
+        this.getQuantity(
+          order.orderDeposit.packaging,
+          order.orderDeposit.quantity,
+        );
+    } else if (order.orderType === 'ETC') {
+      item = order.orderEtc.item;
     }
 
     return (
