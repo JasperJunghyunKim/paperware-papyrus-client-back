@@ -101,6 +101,7 @@ export class TaxInvoiceController {
   ): Promise<CreateTaxInvoiceResponse> {
     const id = await this.changeService.createTaxInvoice({
       ...body,
+      userId: req.user.id,
       srcCompanyId: body.companyId,
       companyId: req.user.companyId,
     });

@@ -63,6 +63,7 @@ async function main() {
       invoiceCode: c.invoice,
       bizType: c.bizType,
       bizItem: c.bizItem,
+      popbillId: c.popbillId,
     })),
   });
   await prisma.company.createMany({

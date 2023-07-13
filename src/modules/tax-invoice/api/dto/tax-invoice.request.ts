@@ -14,6 +14,7 @@ import {
   IsString,
   Length,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import {
   AddOrderToTaxInvoiceRequest,
@@ -54,18 +55,21 @@ export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
   @IsDateString()
   readonly writeDate: string;
 
+  @ValidateIf((obj, val) => val !== '')
   @IsOptional()
   @IsString()
   @IsEmail()
   @Length(0, 100)
   readonly dstEmail: string = '';
 
+  @ValidateIf((obj, val) => val !== '')
   @IsOptional()
   @IsString()
   @IsEmail()
   @Length(0, 100)
   readonly srcEmail: string = '';
 
+  @ValidateIf((obj, val) => val !== '')
   @IsOptional()
   @IsString()
   @IsEmail()

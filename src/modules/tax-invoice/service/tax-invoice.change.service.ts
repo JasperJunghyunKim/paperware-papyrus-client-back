@@ -14,6 +14,7 @@ export class TaxInvoiceChangeService {
   constructor(private priamsService: PrismaService) {}
 
   async createTaxInvoice(params: {
+    userId: number;
     companyId: number;
     srcCompanyId: number;
     writeDate: string;
@@ -51,6 +52,12 @@ export class TaxInvoiceChangeService {
         },
       });
 
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
       const taxInvoice = await this.priamsService.taxInvoice.create({
         data: {
           // 공급자
@@ -61,6 +68,7 @@ export class TaxInvoiceChangeService {
           dstCompanyAddress: dstCompany.address,
           dstCompanyBizItem: dstCompany.bizItem,
           dstCompanyBizType: dstCompany.bizType,
+          dstEmail: user.email,
           srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
           srcCompanyName: srcCompany.businessName,
           srcCompanyRepresentative: srcCompany.representative,
