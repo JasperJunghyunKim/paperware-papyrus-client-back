@@ -1,7 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PartnerTaxManager } from '@prisma/client';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  Order,
+  OrderDeposit,
+  OrderProcess,
+  OrderStock,
+  OrderType,
+  PackagingType,
+  PartnerTaxManager,
+  Product,
+} from '@prisma/client';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
+import { TON_TO_GRAM } from 'src/common/const';
 import {
   DEPOSIT,
   ORDER_DEPOSIT,
@@ -10,9 +24,123 @@ import {
 } from 'src/common/selector';
 import { PrismaService } from 'src/core';
 
+interface FindOrderItemStock {
+  packaging: {
+    type: PackagingType;
+    name: string;
+    packA: number;
+    packB: number;
+  };
+  product: {
+    paperDomain: {
+      name: string;
+    };
+    paperGroup: {
+      name: string;
+    };
+    paperType: {
+      name: string;
+    };
+    manufacturer: {
+      name: string;
+    };
+  };
+  grammage: number;
+  sizeX: number;
+  sizeY: number;
+  paperColorGroup: {
+    name: string;
+  };
+  paperColor: {
+    name: string;
+  };
+  paperPattern: {
+    name: string;
+  };
+  paperCert: {
+    name: string;
+  };
+  quantity: number;
+}
+
+interface FindOrderItem {
+  orderNo: string;
+  orderType: OrderType;
+  dstDepositEvent: {
+    id: number;
+  } | null;
+  orderStock: FindOrderItemStock | null;
+  orderProcess: FindOrderItemStock | null;
+  orderDeposit: FindOrderItemStock | null;
+  orderEtc: { item: string };
+}
+
 @Injectable()
 export class TaxInvoiceRetriveService {
   constructor(private prismaService: PrismaService) {}
+
+  private getQuantity(
+    packaging: {
+      type: PackagingType;
+      name: string;
+      packA: number;
+      packB: number;
+    },
+    quantity: number,
+  ): string {
+    switch (packaging.type) {
+      case 'ROLL':
+        return `${quantity / TON_TO_GRAM} ROLL`;
+      case 'REAM':
+      case 'SKID':
+        return `${quantity / 500} R`;
+      case 'BOX':
+        return `${quantity} BOX`;
+      default:
+        throw new InternalServerErrorException(`알 수 없는 재고 단위`);
+    }
+  }
+
+  private getOrderItem(order: FindOrderItem, count: number): string {
+    if (count === 0) return '';
+
+    let orderType = '';
+    let item = '';
+
+    switch (order.orderType) {
+      case 'NORMAL':
+        orderType = order.dstDepositEvent ? '보관출고' : '정상매출';
+        break;
+      case 'DEPOSIT':
+        orderType = '매출보관';
+        break;
+      case 'OUTSOURCE_PROCESS':
+        orderType = '외주공정매출';
+        break;
+      case 'ETC':
+        orderType = '기타매출';
+        break;
+    }
+
+    if (order.orderType === 'NORMAL') {
+      item =
+        order.orderStock.packaging.name +
+        ' ' +
+        order.orderStock.product.paperType.name +
+        ' ' +
+        order.orderStock.grammage.toString() +
+        'g/m²' +
+        ' ' +
+        `${order.orderStock.sizeX}X${order.orderStock.sizeY}` +
+        ' ' +
+        this.getQuantity(order.orderStock.packaging, order.orderStock.quantity);
+    }
+
+    return (
+      `${orderType} ${order.orderNo} ${item}` +
+      (count === 1 ? '' : ` 등 ${count}`)
+    );
+  }
 
   async getTaxInvoiceList(params: {
     companyId: number;
@@ -77,6 +205,8 @@ export class TaxInvoiceRetriveService {
         totalPrice: suppliedPrice + vatPrice,
         suppliedPrice,
         vatPrice,
+        item: this.getOrderItem(ti.order[0], ti.order.length),
+        order: undefined,
       });
     });
   }
@@ -131,6 +261,8 @@ export class TaxInvoiceRetriveService {
       totalPrice: suppliedPrice + vatPrice,
       suppliedPrice,
       vatPrice,
+      item: this.getOrderItem(taxInvoice.order[0], taxInvoice.order.length),
+      order: undefined,
     });
   }
 
