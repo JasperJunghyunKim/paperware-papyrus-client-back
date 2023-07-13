@@ -128,7 +128,7 @@ export class StockController {
       isZeroQuantityIncluded: dto.isZeroQuantityIncluded === 'true',
       planId: dto.planId || null,
       initialPlanId: dto.initialPlanId || null,
-      orderProcessIncluded: dto.orderProcessIncluded === 'true',
+      orderProcessIncluded: true, //dto.orderProcessIncluded === 'true',
       // 검색 필드
       warehouseIds: Util.searchKeywordsToIntArray(dto.warehouseIds),
       packagingIds: Util.searchKeywordsToIntArray(dto.packagingIds),

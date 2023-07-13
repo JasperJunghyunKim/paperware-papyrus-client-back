@@ -604,7 +604,7 @@ export class StockRetriveService {
    LEFT JOIN OrderStock         AS os                       ON os.id = p.orderStockId
    LEFT JOIN \`Location\`       AS osDstLocation            ON osDstLocation.id = os.dstLocationId
 
-   LEFT JOIN OrderProcess       AS op                       ON op.id = p.orderProcessId AND op.companyId = ${companyId}
+   LEFT JOIN OrderProcess       AS op                       ON op.id = p.orderProcessId
    LEFT JOIN \`Location\`       AS opSrcLocation            ON opSrcLocation.id = op.srcLocationId
    LEFT JOIN \`Location\`       AS opDstLocation            ON opDstLocation.id = op.dstLocationId
 
