@@ -122,8 +122,6 @@ export class TaxInvoiceRetriveService {
         break;
     }
 
-    console.log(order.orderStock);
-
     if (order.orderType === 'NORMAL') {
       item =
         order.orderStock.packaging.type +
