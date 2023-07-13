@@ -22,7 +22,7 @@ import { PrismaService } from 'src/core';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getList(params: {
     skip?: number;
@@ -30,6 +30,10 @@ export class OrderRetriveService {
     srcCompanyId?: number;
     dstCompanyId?: number;
     status: OrderStatus[];
+    srcCompanyRegistrationNumber: string | null;
+    bookClosed: boolean | null;
+    year: string | null;
+    month: string | null;
   }): Promise<Model.Order[]> {
     const { srcCompanyId, dstCompanyId } = params;
 
@@ -59,6 +63,15 @@ export class OrderRetriveService {
         dstCompanyId: dstCompanyId,
         status: {
           in: params.status,
+        },
+        // 세금계산서 매출 검색 조건
+        srcCompany: params.srcCompanyRegistrationNumber ? {
+          companyRegistrationNumber: params.srcCompanyRegistrationNumber
+        } : undefined,
+        taxInvoice: params.bookClosed === null ? undefined : {
+          id: params.bookClosed ? {
+            not: null,
+          } : null,
         },
       },
       skip: params.skip,
