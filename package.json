@@ -48,6 +48,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "nest-winston": "^1.8.0",
+    "popbill": "^1.59.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "socket.io": "^4.5.4",

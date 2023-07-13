@@ -256,6 +256,7 @@ model Company {
   bizType                        String                        @default("")
   bizItem                        String                        @default("")
   address                        String                        @default("") @db.VarChar(500)
+  popbillId                      String?
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")

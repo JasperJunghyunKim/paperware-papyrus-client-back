@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotImplementedException,
   Param,
@@ -31,13 +32,33 @@ import {
 } from 'src/@shared/api';
 import { Util } from 'src/common';
 import { IdDto } from 'src/common/request';
+import { PopbillRetriveService } from 'src/modules/popbill/service/popbill.retrive.service';
+import { PopbillChangeService } from 'src/modules/popbill/service/popbill.change.service';
 
 @Controller('tax-invoice')
 export class TaxInvoiceController {
   constructor(
     private changeService: TaxInvoiceChangeService,
     private retriveService: TaxInvoiceRetriveService,
+    private readonly popbillRetriveService: PopbillRetriveService,
+    private readonly popbillChangeService: PopbillChangeService,
   ) {}
+
+  @Get('test')
+  async test() {
+    throw new ForbiddenException();
+    // return await this.popbillRetriveService.getCertUrl('', 'e');
+  }
+
+  /** 발행 */
+  @Post('/:id/issue')
+  @UseGuards(AuthGuard)
+  async issueTaxInvoice(@Req() req: AuthType, @Param() param: IdDto) {
+    return await this.popbillChangeService.issueTaxInvoice(
+      req.user.companyId,
+      param.id,
+    );
+  }
 
   @Get()
   @UseGuards(AuthGuard)
