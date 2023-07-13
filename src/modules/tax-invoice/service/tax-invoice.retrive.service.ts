@@ -90,7 +90,7 @@ export class TaxInvoiceRetriveService {
   ): string {
     switch (packaging.type) {
       case 'ROLL':
-        return `${(quantity / TON_TO_GRAM).toFixed(3)}ROLL`;
+        return `${(quantity / TON_TO_GRAM).toFixed(3)}T`;
       case 'REAM':
       case 'SKID':
         return `${(quantity / 500).toFixed(3)}R`;
