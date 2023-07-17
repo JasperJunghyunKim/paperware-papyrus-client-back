@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DepositType, PackagingType, Prisma } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PackagingType, Prisma } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
@@ -11,8 +15,8 @@ export class DepositChangeService {
   /** 보관량 증감 */
   async createDeposit(params: {
     companyId: number;
-    type: DepositType;
-    partnerCompanyRegistrationNumber: string;
+    srcCompanyRegistrationNumber: string;
+    dstCompanyRegistrationNumber: string;
     productId: number;
     packagingId: number;
     grammage: number;
@@ -27,8 +31,8 @@ export class DepositChangeService {
   }) {
     const {
       companyId,
-      type,
-      partnerCompanyRegistrationNumber,
+      srcCompanyRegistrationNumber,
+      dstCompanyRegistrationNumber,
       productId,
       packagingId,
       grammage,
@@ -42,13 +46,26 @@ export class DepositChangeService {
       memo,
     } = params;
 
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    if (
+      company.companyRegistrationNumber !== srcCompanyRegistrationNumber &&
+      company.companyRegistrationNumber !== dstCompanyRegistrationNumber
+    ) {
+      throw new BadRequestException(
+        `srcCompany 또는 dstCompany가 자신의 회사로 지정되어야 합니다.`,
+      );
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const deposit =
         (await tx.deposit.findFirst({
           where: {
-            companyId,
-            partnerCompanyRegistrationNumber,
-            depositType: type,
+            srcCompanyRegistrationNumber,
+            dstCompanyRegistrationNumber,
             packagingId: packagingId,
             productId: productId,
             grammage: grammage,
@@ -62,13 +79,8 @@ export class DepositChangeService {
         })) ||
         (await tx.deposit.create({
           data: {
-            company: {
-              connect: {
-                id: companyId,
-              },
-            },
-            partnerCompanyRegistrationNumber,
-            depositType: type,
+            srcCompanyRegistrationNumber,
+            dstCompanyRegistrationNumber,
             packaging: {
               connect: {
                 id: packagingId,

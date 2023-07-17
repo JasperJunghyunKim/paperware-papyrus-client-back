@@ -1,10 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import {
-  DepositType,
-  DiscountType,
-  OfficialPriceType,
-  PriceUnit,
-} from '@prisma/client';
+import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -596,8 +591,13 @@ export class OrderDepositListQueryDto implements OrderDepositListQuery {
   @Max(100)
   readonly take: number = 30;
 
-  @IsEnum(DepositType)
-  readonly type: DepositType;
+  @IsOptional()
+  @IsString()
+  readonly srcCompanyRegistrationNumber: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly dstCompanyRegistrationNumber: string | null = null;
 
   @IsOptional()
   @IsString()
@@ -644,12 +644,13 @@ export class OrderDepositListQueryDto implements OrderDepositListQuery {
 
 /** 보관량 증감*/
 export class DepositCreateDto implements DepositCreateRequest {
-  @IsEnum(DepositType)
-  readonly type: DepositType;
+  @IsString()
+  @Length(10, 10)
+  readonly srcCompanyRegistrationNumber: string;
 
   @IsString()
   @Length(10, 10)
-  readonly partnerCompanyRegistrationNumber: string;
+  readonly dstCompanyRegistrationNumber: string;
 
   @IsInt()
   @Type(() => Number)

@@ -1,7 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   DepositEventStatus,
-  DepositType,
   PackagingType,
   Partner,
   Prisma,
@@ -53,8 +56,8 @@ export class DepositRetriveService {
     companyId: number;
     skip: number;
     take: number;
-    type: DepositType;
-    companyRegistrationNumber: string | null;
+    srcCompanyRegistrationNumber: string | null;
+    dstCompanyRegistrationNumber: string | null;
     packagingIds: number[];
     paperTypeIds: number[];
     manufacturerIds: number[];
@@ -67,11 +70,11 @@ export class DepositRetriveService {
     total: number;
   }> {
     const {
-      companyId = 1,
+      companyId,
       skip,
       take,
-      type,
-      companyRegistrationNumber,
+      srcCompanyRegistrationNumber,
+      dstCompanyRegistrationNumber,
       packagingIds,
       paperTypeIds,
       manufacturerIds,
@@ -81,8 +84,26 @@ export class DepositRetriveService {
       sizeY,
     } = params;
 
-    const companySearch = companyRegistrationNumber
-      ? Prisma.sql`AND p.companyRegistrationNumber = ${companyRegistrationNumber}`
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    if (
+      company.companyRegistrationNumber !== srcCompanyRegistrationNumber &&
+      company.companyRegistrationNumber !== dstCompanyRegistrationNumber
+    ) {
+      throw new BadRequestException(
+        `srcCompany 또는 dstCompany가 자신의 회사로 지정되어야 합니다.`,
+      );
+    }
+
+    const srcCompanyQuery = srcCompanyRegistrationNumber
+      ? Prisma.sql`AND p.srcCompanyRegistrationNumber = ${srcCompanyRegistrationNumber}`
+      : Prisma.empty;
+
+    const dstCompanyQuery = dstCompanyRegistrationNumber
+      ? Prisma.sql`AND p.dstCompanyRegistrationNumber = ${dstCompanyRegistrationNumber}`
       : Prisma.empty;
 
     const packagingQuery =
@@ -194,9 +215,9 @@ export class DepositRetriveService {
    LEFT JOIN PaperPattern       AS paperPattern     ON paperPattern.id = d.paperPatternId
    LEFT JOIN PaperCert          AS paperCert        ON paperCert.id = d.paperCertId
 
-       WHERE d.companyId = ${companyId}
-         AND d.depositType = ${type}
-         ${companySearch}
+       WHERE 1 = 1
+         ${srcCompanyQuery}
+         ${dstCompanyQuery}
          ${packagingQuery}
          ${paperTypeQuery}
          ${manufacturerQuery}
@@ -306,6 +327,11 @@ export class DepositRetriveService {
     id: number,
     companyId: number,
   ): Promise<Model.DepositEvent[]> {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
     const deposit = await this.prisma.deposit.findUnique({
       include: {
         depositEvents: {
@@ -353,7 +379,13 @@ export class DepositRetriveService {
       },
     });
 
-    if (!deposit || deposit.companyId !== companyId)
+    if (
+      !deposit ||
+      (deposit.srcCompanyRegistrationNumber !==
+        company.companyRegistrationNumber &&
+        deposit.dstCompanyRegistrationNumber !==
+          company.companyRegistrationNumber)
+    )
       throw new NotFoundException(`등록되지 않은 보관입니다.`);
 
     return deposit.depositEvents.map((e) => ({

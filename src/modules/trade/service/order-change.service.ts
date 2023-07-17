@@ -10,7 +10,6 @@ import {
 import {
   Company,
   DepositEventStatus,
-  DepositType,
   DiscountType,
   OfficialPriceType,
   OrderDeposit,
@@ -1054,10 +1053,8 @@ export class OrderChangeService {
       const deposit =
         (await tx.deposit.findFirst({
           where: {
-            companyId: srcCompany.id,
-            partnerCompanyRegistrationNumber:
-              dstCompany.companyRegistrationNumber,
-            depositType: DepositType.PURCHASE,
+            srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+            dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
             packagingId: orderDeposit.packagingId,
             productId: orderDeposit.productId,
             grammage: orderDeposit.grammage,
@@ -1071,113 +1068,8 @@ export class OrderChangeService {
         })) ||
         (await tx.deposit.create({
           data: {
-            company: {
-              connect: {
-                id: srcCompany.id,
-              },
-            },
-            partnerCompanyRegistrationNumber:
-              dstCompany.companyRegistrationNumber,
-            depositType: DepositType.PURCHASE,
-            packaging: {
-              connect: {
-                id: orderDeposit.packagingId,
-              },
-            },
-            product: {
-              connect: {
-                id: orderDeposit.productId,
-              },
-            },
-            grammage: orderDeposit.grammage,
-            sizeX: orderDeposit.sizeX,
-            sizeY: orderDeposit.sizeY,
-            paperColorGroup: orderDeposit.paperColorGroupId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperColorGroupId,
-                  },
-                }
-              : undefined,
-            paperColor: orderDeposit.paperColorId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperColorId,
-                  },
-                }
-              : undefined,
-            paperPattern: orderDeposit.paperPatternId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperPatternId,
-                  },
-                }
-              : undefined,
-            paperCert: orderDeposit.paperCertId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperCertId,
-                  },
-                }
-              : undefined,
-          },
-        }));
-      // event 생성
-      await tx.depositEvent.create({
-        data: {
-          deposit: {
-            connect: {
-              id: deposit.id,
-            },
-          },
-          change: orderDeposit.quantity,
-          orderDeposit: {
-            connect: {
-              id: orderDeposit.id,
-            },
-          },
-        },
-      });
-    }
-
-    // dstCompany
-    if (!dstCompany.managedById) {
-      const partner = await tx.partner.findUnique({
-        where: {
-          companyId_companyRegistrationNumber: {
-            companyId: dstCompany.id,
-            companyRegistrationNumber: srcCompany.companyRegistrationNumber,
-          },
-        },
-      });
-      const deposit =
-        (await tx.deposit.findFirst({
-          where: {
-            companyId: dstCompany.id,
-            partnerCompanyRegistrationNumber:
-              srcCompany.companyRegistrationNumber,
-            depositType: DepositType.SALES,
-            packagingId: orderDeposit.packagingId,
-            productId: orderDeposit.productId,
-            grammage: orderDeposit.grammage,
-            sizeX: orderDeposit.sizeX,
-            sizeY: orderDeposit.sizeY,
-            paperColorGroupId: orderDeposit.paperColorGroupId,
-            paperColorId: orderDeposit.paperColorId,
-            paperPatternId: orderDeposit.paperPatternId,
-            paperCertId: orderDeposit.paperCertId,
-          },
-        })) ||
-        (await tx.deposit.create({
-          data: {
-            company: {
-              connect: {
-                id: dstCompany.id,
-              },
-            },
-            partnerCompanyRegistrationNumber:
-              srcCompany.companyRegistrationNumber,
-            depositType: DepositType.SALES,
+            srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+            dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
             packaging: {
               connect: {
                 id: orderDeposit.packagingId,
@@ -2412,6 +2304,11 @@ export class OrderChangeService {
     depositId: number,
     quantity: number,
   ) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
     await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         include: {
@@ -2454,13 +2351,10 @@ export class OrderChangeService {
       });
       if (
         !deposit ||
-        deposit.companyId !== companyId ||
-        (isSrcCompany && deposit.depositType !== DepositType.PURCHASE) ||
-        (!isSrcCompany && deposit.depositType !== DepositType.SALES) ||
-        deposit.partnerCompanyRegistrationNumber !==
-          (isSrcCompany
-            ? order.dstCompany.companyRegistrationNumber
-            : order.srcCompany.companyRegistrationNumber)
+        (deposit.dstCompanyRegistrationNumber !==
+          company.companyRegistrationNumber &&
+          deposit.srcCompanyRegistrationNumber !==
+            company.companyRegistrationNumber)
       ) {
         throw new NotFoundException(`존재하지 않는 보관입니다.`);
       }
@@ -2591,6 +2485,11 @@ export class OrderChangeService {
     depositId: number,
     quantity: number,
   ) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
     await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         include: {
@@ -2627,13 +2526,10 @@ export class OrderChangeService {
       });
       if (
         !deposit ||
-        deposit.companyId !== companyId ||
-        (isSrcCompany && deposit.depositType !== DepositType.PURCHASE) ||
-        (!isSrcCompany && deposit.depositType !== DepositType.SALES) ||
-        deposit.partnerCompanyRegistrationNumber !==
-          (isSrcCompany
-            ? order.dstCompany.companyRegistrationNumber
-            : order.srcCompany.companyRegistrationNumber)
+        (deposit.dstCompanyRegistrationNumber !==
+          company.companyRegistrationNumber &&
+          deposit.srcCompanyRegistrationNumber !==
+            company.companyRegistrationNumber)
       ) {
         throw new NotFoundException(`존재하지 않는 보관입니다.`);
       }
