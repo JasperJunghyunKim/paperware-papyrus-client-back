@@ -259,7 +259,8 @@ export class DepositRetriveService {
     return {
       items: result.map((deposit) => ({
         id: deposit.id,
-        companyRegistrationNumber: deposit.companyRegistrationNumber,
+        srcCompanyRegistrationNumber: '', // TODO: 추가
+        dstCompanyRegistrationNumber: '', // TODO: 추가
         partnerNickName:
           deposit.partnerNickName ||
           companyNameMap.get(deposit.companyRegistrationNumber),
