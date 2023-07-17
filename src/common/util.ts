@@ -84,6 +84,23 @@ export const serialT = (invoiceCode: string) =>
 export const serialW = (invoiceCode: string) =>
   `W${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
 
+/** 세금계산서 키 */
+export const invoicerMgtKey = (
+  companyRegistrationNumber: string,
+  issuedDate: string,
+) => {
+  if (companyRegistrationNumber.length !== 10)
+    throw new Error(
+      `사업자등록번호는 10자리로 구성되어야 합니다. (${companyRegistrationNumber})`,
+    );
+  if (issuedDate.length !== 6)
+    throw new Error(`발행일은 6자리로 구성되어야 합니다. (${issuedDate})`);
+
+  return `${companyRegistrationNumber}${issuedDate}${Math.random()
+    .toString()
+    .substring(2, 10)}`;
+};
+
 export const searchKeywordsToIntArray = (keywords: string): number[] => {
   if (!keywords) return [];
   return keywords.split('|').map((keyword) => parseInt(keyword, 10));

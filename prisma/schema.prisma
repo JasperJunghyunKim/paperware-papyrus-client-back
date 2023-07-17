@@ -781,6 +781,7 @@ model TaxInvoice {
   memo      String           @default("")
   status    TaxInvoiceStatus @default(PREPARING)
   isDeleted Boolean          @default(false)
+  createdAt DateTime         @default(now())
 }
 
 enum AccountType {

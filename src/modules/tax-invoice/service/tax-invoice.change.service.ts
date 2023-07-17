@@ -161,7 +161,10 @@ export class TaxInvoiceChangeService {
           srcCompanyBizType: srcCompany.bizType,
           writeDate: params.writeDate,
           purposeType: params.purposeType,
-          invoicerMgtKey: ulid().substring(0, 24),
+          invoicerMgtKey: Util.invoicerMgtKey(
+            dstCompany.companyRegistrationNumber,
+            dayjs(new Date()).format('YYMMDD'),
+          ),
           srcEmail: defaultTaxManager ? defaultTaxManager.email : '',
           srcEmailName: defaultTaxManager ? defaultTaxManager.name : '',
         },
@@ -515,6 +518,7 @@ export class TaxInvoiceChangeService {
             data: {
               status: 'ISSUED',
               ntsconfirmNum: response.ntsConfirmNum,
+              issuedDate: new Date(),
             },
           });
           break;
@@ -540,8 +544,62 @@ export class TaxInvoiceChangeService {
   }
 
   async sendTaxInvoice(companyId: number, taxInvoiceId: number) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    const check = await this.popbillRetriveService.checkCertValidation(
+      company.companyRegistrationNumber,
+    );
+    if (check !== SUCCESS) {
+      const certUrl = await this.popbillRetriveService.getCertUrl(companyId);
+      return {
+        certUrl,
+      };
+    }
+
     await this.prisma.$transaction(async (tx) => {
-      throw new NotImplementedException();
+      const [taxInvoice]: {
+        id: number;
+        status: TaxInvoiceStatus;
+        invoicerMgtKey: string;
+      }[] = await tx.$queryRaw`
+        SELECT id, status, invoicerMgtKey
+          FROM TaxInvoice
+         WHERE id = ${taxInvoiceId}
+           AND companyId = ${companyId}
+           AND isDeleted = ${false}
+        FOR UPDATE
+      `;
+      if (!taxInvoice)
+        throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+      if (taxInvoice.status !== 'ISSUED')
+        throw new ConflictException(
+          `발행완료 상태의 세금계산서만 전송 가능합니다.`,
+        );
+
+      const result = await this.popbillChangeService.sendTaxInvoice(
+        company.companyRegistrationNumber,
+        taxInvoice.invoicerMgtKey,
+      );
+      switch (result.code) {
+        // 성공
+        case SUCCESS:
+          await tx.taxInvoice.update({
+            where: {
+              id: taxInvoice.id,
+            },
+            data: {
+              status: 'ON_SEND',
+            },
+          });
+          break;
+
+        // 기타 에러
+        default:
+          throw new InternalServerErrorException();
+      }
     });
   }
 }

@@ -244,3 +244,23 @@ export const registIssue = async (
 
   return result;
 };
+
+/** 세금계산서 전송(국세청) */
+export const sendToNTS = async (CorpNum: string, mgtKey: string) => {
+  const result: PopbillResponse = await new Promise((res, rej) => {
+    taxInvoiceService.sendToNTS(
+      CorpNum,
+      'SELL',
+      mgtKey,
+      function (result) {
+        res(result);
+      },
+      function (err) {
+        console.log(err);
+        rej(err);
+      },
+    );
+  });
+
+  return result;
+};
