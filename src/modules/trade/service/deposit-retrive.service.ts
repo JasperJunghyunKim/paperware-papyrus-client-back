@@ -99,11 +99,11 @@ export class DepositRetriveService {
     }
 
     const srcCompanyQuery = srcCompanyRegistrationNumber
-      ? Prisma.sql`AND p.srcCompanyRegistrationNumber = ${srcCompanyRegistrationNumber}`
+      ? Prisma.sql`AND d.srcCompanyRegistrationNumber = ${srcCompanyRegistrationNumber}`
       : Prisma.empty;
 
     const dstCompanyQuery = dstCompanyRegistrationNumber
-      ? Prisma.sql`AND p.dstCompanyRegistrationNumber = ${dstCompanyRegistrationNumber}`
+      ? Prisma.sql`AND d.dstCompanyRegistrationNumber = ${dstCompanyRegistrationNumber}`
       : Prisma.empty;
 
     const packagingQuery =
@@ -139,7 +139,7 @@ export class DepositRetriveService {
 
     const result: DepositFromDB[] = await this.prisma.$queryRaw`
       SELECT d.id
-            , d.partnerCompanyRegistrationNumber AS companyRegistrationNumber
+            , p.companyRegistrationNumber AS companyRegistrationNumber
             , p.id AS partnerId
             , p.partnerNickName AS partnerNickName
 
@@ -202,7 +202,7 @@ export class DepositRetriveService {
 
         FROM Deposit            AS d
         JOIN DepositEvent       AS de               ON de.depositId = d.id
-   LEFT JOIN Partner            AS p                ON p.companyId = ${companyId} AND p.companyRegistrationNumber = d.partnerCompanyRegistrationNumber
+   LEFT JOIN Partner            AS p                ON p.companyId = ${companyId} AND p.companyRegistrationNumber = IF(d.srcCompanyRegistrationNumber = ${company.companyRegistrationNumber}, d.dstCompanyRegistrationNumber, d.srcCompanyRegistrationNumber)
 
         JOIN Packaging          AS packaging        ON packaging.id = d.packagingId
         JOIN Product            AS product          ON product.id = d.productId
