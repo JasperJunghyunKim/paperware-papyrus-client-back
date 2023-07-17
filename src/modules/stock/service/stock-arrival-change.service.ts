@@ -89,13 +89,6 @@ export class StockArrivalChangeService {
         throw new NotFoundException(`존재하지 않는 도착예정재고입니다.`);
 
       const arrivalStock = arrivalStocks[0];
-      // if (
-      //   arrivalStock.initialPlan.orderProcess &&
-      //   arrivalStock.initialPlan.orderProcess.order.dstCompanyId ===
-      //     arrivalStock.companyId
-      // ) {
-      //   throw new BadRequestException(`외주재단매출 재고는 입고 불가능합니다.`);
-      // }
 
       if (
         (arrivalStock.initialPlan.orderStock &&

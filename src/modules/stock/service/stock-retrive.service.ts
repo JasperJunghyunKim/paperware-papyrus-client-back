@@ -346,11 +346,13 @@ export class StockRetriveService {
     const directShippingQuery = isDirectShippingIncluded
       ? Prisma.empty
       : Prisma.sql`AND (
-          (initialOs.id IS NULL AND initialOp.id IS NULL AND initialPs.planId IS NULL) OR
-          (initialOs.id IS NOT NULL AND initialOs.isDirectShipping = ${false}) OR
-          (initialPs.planId IS NOT NULL AND initialPs.isDirectShipping = ${false}) OR
-          (initialOp.id IS NOT NULL AND initialO.srcCompanyId = ${companyId} AND initialOp.isSrcDirectShipping = ${false}) OR
-          (initialOp.id IS NOT NULL AND initialO.dstCompanyId = ${companyId} AND initialOp.isDstDirectShipping = ${false})
+          (
+            (initialOs.id IS NULL AND initialOp.id IS NULL AND initialPs.planId IS NULL) OR
+            (initialOs.id IS NOT NULL AND initialOs.isDirectShipping = ${false}) OR
+            (initialPs.planId IS NOT NULL AND initialPs.isDirectShipping = ${false}) OR
+            (initialOp.id IS NOT NULL AND initialO.srcCompanyId = ${companyId} AND initialOp.isSrcDirectShipping = ${false}) OR
+            (initialOp.id IS NOT NULL AND initialO.dstCompanyId = ${companyId} AND initialOp.isDstDirectShipping = ${false})
+          ) AND s.cachedQuantityAvailable != 0
         )`;
     const zeroQuantityQuery = isZeroQuantityIncluded
       ? Prisma.empty
@@ -669,7 +671,6 @@ export class StockRetriveService {
       ${limit}
     `;
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
-    console.log(111, stockGroups);
 
     return {
       items: stockGroups.map((sg) => {

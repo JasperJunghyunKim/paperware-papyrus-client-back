@@ -49,7 +49,7 @@ export class BusinessRelationshipRequestChangeService {
         },
       });
 
-      console.log(':::', request);
+      // console.log(':::', request);
 
       await tx.businessRelationship.upsert({
         where: {
