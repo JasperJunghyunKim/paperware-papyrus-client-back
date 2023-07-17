@@ -138,3 +138,45 @@ export const addMonth = (date: Date, month: number): Date => {
 
   return result;
 };
+
+export interface Address {
+  roadAddress: string;
+  roadAddressEnglish: string;
+  jibunAddress: string;
+  jibunAddressEnglish: string;
+  zonecode: string;
+  detail: string;
+}
+
+export function decodeAddress(address: string | null | undefined): Address {
+  try {
+    if (address === null || address === undefined || address === '') {
+      throw new Error();
+    }
+
+    const [zonecode, roadAddress, jibunAddress, detail] = address
+      .split(']]')
+      .map((p) => p.trim().replace('[[', ''));
+
+    const [roadAddressKorean, roadAddressEnglish] = roadAddress.split('::');
+    const [jibunAddressKorean, jibunAddressEnglish] = jibunAddress.split('::');
+
+    return {
+      zonecode,
+      roadAddress: roadAddressKorean,
+      roadAddressEnglish,
+      jibunAddress: jibunAddressKorean,
+      jibunAddressEnglish,
+      detail,
+    };
+  } catch {
+    return {
+      zonecode: '',
+      roadAddress: '',
+      roadAddressEnglish: '',
+      jibunAddress: '',
+      jibunAddressEnglish: '',
+      detail: '',
+    };
+  }
+}

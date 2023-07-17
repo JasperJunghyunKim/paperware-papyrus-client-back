@@ -2,6 +2,9 @@ import * as popbill from 'popbill';
 import * as dotenv from 'dotenv';
 import { InternalServerErrorException } from '@nestjs/common';
 import { PopbillTaxInvoice } from './popbill.interface';
+import { TaxInvoicePurposeType } from 'src/@shared/models/enum';
+import { Company } from '@prisma/client';
+import { Util } from 'src/common';
 dotenv.config();
 
 interface PopbillResponse {
@@ -87,6 +90,78 @@ export const checkCertValidation = async (CorpNum: string) => {
   });
 
   return test.code;
+};
+
+export const createPopbillTaxInvoice = (params: {
+  writeDate: string;
+  invoicerMgtKey: string;
+  purposeType: TaxInvoicePurposeType;
+  dstCompanyRegistrationNumber: string;
+  dstCompanyName: string;
+  dstCompanyRepresentative: string;
+  dstCompanyAddress: string;
+  dstCompanyBizType: string;
+  dstCompanyBizItme: string;
+  dstEmail: string;
+  srcCompanyRegistrationNumber: string;
+  srcCompanyName: string;
+  srcCompanyRepresentative: string;
+  srcCompanyAddress: string;
+  srcCompanyBizType: string;
+  srcCompanyBizItem: string;
+  srcEmail: string;
+  srcEmail2: string;
+  cash: number | null;
+  check: number | null;
+  note: number | null;
+  credit: number | null;
+  orders: {
+    item: string;
+    suppliedPrice: number;
+    vatPrice: number;
+  }[];
+}): PopbillTaxInvoice => {
+  const dstAddress = Util.decodeAddress(params.dstCompanyAddress);
+  const srcAddress = Util.decodeAddress(params.srcCompanyAddress);
+  return null;
+  // return {
+  //   writeDate: params.writeDate,
+  //   chargeDirection: '정과금',
+  //   issueType: '정발행',
+  //   purposeType: params.purposeType === 'CHARGE' ? '영수' : '청구',
+  //   taxType: '과세', // TODO: 확인필요
+  //   // 공급자 정보
+  //   invoicerCorpNum: params.dstCompanyRegistrationNumber,
+  //   invoicerMgtKey: params.invoicerMgtKey,
+  //   invoicerTaxRegID: '', // TODO: 필요한지 확인 필요
+  //   invoicerCorpName: params.dstCompanyName,
+  //   invoicerCEOName: params.dstCompanyRepresentative,
+  //   invoicerAddr:
+  //     dstAddress.roadAddress +
+  //     (dstAddress.detail ? ` ${dstAddress.detail}` : ''),
+  //   invoicerBizClass: params.dstCompanyBizType,
+  //   invoicerBizType: params.dstCompanyBizItme,
+  //   invoicerContactName: params.dstCompanyRepresentative, // TODO: 대표자명이 들어가는건지?
+  //   invoicerTEL: '', // TODO: 필수인지 확인
+  //   invoicerHP: '', // TODO: 필수인지 확인
+  //   invoicerEmail: params.dstEmail,
+  //   invoicerSMSSendYN: false, // TODO: 발행 안내 문자 보내는지 확인
+  //   // 공급받는자 정보
+  //   invoiceeType: '사업자',
+  //   invoiceeCorpNum: params.srcCompanyRegistrationNumber,
+  //   invoiceeTaxRegID: '', // TODO: 필요한지 확인 필요
+  //   invoiceeCorpName: params.srcCompanyName,
+  //   invoiceeCEOName: params.srcCompanyRepresentative,
+  //   invoiceeAddr:
+  //     srcAddress.roadAddress +
+  //     (srcAddress.detail ? ` ${srcAddress.detail}` : ''),
+  //   invoiceeBizClass: params.srcCompanyBizType,
+  //   invoiceeBizType: params.srcCompanyBizItem,
+  //   invoiceeContactName1: params.srcCompanyRepresentative, // TODO: 대표자명이 들어가는건지?
+  //   invoiceeTEL1: '', // TODO: 필수인지 확인
+  //   invoiceeHP1: '', // TODO: 필수인지 확인
+  //   invoiceeEmail1: params.srcEmail,
+  // };
 };
 
 /** 세금계산서 발행(팝빌) */

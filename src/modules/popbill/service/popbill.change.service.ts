@@ -5,15 +5,43 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { OrderType, PackagingType, TaxInvoiceStatus } from '@prisma/client';
+import {
+  OrderType,
+  PackagingType,
+  TaxInvoicePurposeType,
+  TaxInvoiceStatus,
+} from '@prisma/client';
 import { TON_TO_GRAM } from 'src/common/const';
 import { PrismaService } from 'src/core';
 import { PopbillRetriveService } from './popbill.retrive.service';
 import { SUCCESS } from '../code/popbill.code';
+import { createPopbillTaxInvoice } from './popbill.service';
 
 interface TaxInvoiceForIssue {
   id: number;
+  invoicerMgtKey: string;
+  writeDate: string;
+  purposeType: TaxInvoicePurposeType;
+  dstCompanyRegistrationNumber: string;
+  dstCompanyName: string;
+  dstCompanyRepresentative: string;
+  dstCompanyAddress: string;
+  dstCompanyBizType: string;
+  dstCompanyBizItme: string;
+  dstEmail: string;
+  srcCompanyRegistrationNumber: string;
+  srcCompanyName: string;
+  srcCompanyRepresentative: string;
+  srcCompanyAddress: string;
+  srcCompanyBizType: string;
+  srcCompanyBizItem: string;
+  srcEmail: string;
+  srcEmail2: string;
   status: TaxInvoiceStatus;
+  cash: number | null;
+  check: number | null;
+  note: number | null;
+  credit: number | null;
   orderCount: BigInt;
 }
 
@@ -44,7 +72,6 @@ export class PopbillChangeService {
   ) {}
 
   async issueTaxInvoice(companyId: number, taxInvoiceId: number) {
-    throw new NotImplementedException();
     const company = await this.prisma.company.findUnique({
       where: {
         id: companyId,
@@ -62,7 +89,29 @@ export class PopbillChangeService {
 
     await this.prisma.$transaction(async (tx) => {
       const [taxInvoice]: TaxInvoiceForIssue[] = await tx.$queryRaw`
-        SELECT ti.id, ti.status, COUNT(CASE WHEN o.id IS NOT NULL THEN 1 END) AS orderCount
+        SELECT ti.id
+              , ti.invoicerMgtKey AS invoicerMgtKey
+              , ti.dstCompanyRegistrationNumber AS dstCompanyRegistrationNumber
+              , ti.dstCompanyName AS dstCompanyName
+              , ti.dstCompanyRepresentative AS dstCompanyRepresentative
+              , ti.dstCompanyAddress AS dstCompanyAddress
+              , ti.dstCompanyBizType AS dstCompanyBizType
+              , ti.dstCompanyBizItme AS dstCompanyBizItme
+              , ti.dstEmail AS dstEmail
+              , ti.srcCompanyRegistrationNumber AS srcCompanyRegistrationNumber
+              , ti.srcCompanyName AS srcCompanyName
+              , ti.srcCompanyRepresentative AS srcCompanyRepresentative
+              , ti.srcCompanyAddress AS srcCompanyAddress
+              , ti.srcCompanyBizType AS srcCompanyBizType
+              , ti.srcCompanyBizItem AS srcCompanyBizItem
+              , ti.srcEmail AS srcEmail
+              , ti.srcEmail2 AS srcEmail2
+              , ti.status
+              , ti.cash AS cash
+              , ti.check AS check
+              , ti.note AS note
+              , ti.credit AS credit
+              , COUNT(CASE WHEN o.id IS NOT NULL THEN 1 END) AS orderCount
           FROM TaxInvoice  AS ti
      LEFT JOIN \`Order\`   AS o   ON o.taxInvoiceId = ti.id
          WHERE ti.id = ${taxInvoiceId}
@@ -149,6 +198,11 @@ export class PopbillChangeService {
            FOR UPDATE
       `;
       console.log(orders);
+
+      const PopbillTaxInvoice = createPopbillTaxInvoice({
+        ...taxInvoice,
+        orders: [],
+      });
 
       return {
         certUrl: null,
