@@ -679,6 +679,11 @@ export class StockSpec {
   @IsInt()
   @Type(() => Number)
   readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly quantity: number;
 }
 
 export class ArrivalStockSpecUpdateDto

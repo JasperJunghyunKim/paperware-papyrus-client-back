@@ -502,6 +502,7 @@ export class StockChangeService {
       paperColorId: number | null;
       paperPatternId: number | null;
       paperCertId: number | null;
+      quantity: number;
     };
   }) {
     await this.prisma.$transaction(async (tx) => {
@@ -598,26 +599,58 @@ export class StockChangeService {
         );
 
       const stock = stocks[0];
-
-      // 재고금액 초기화
-      await this.updateDefaultStockPriceTx(tx, stock.id);
-
-      await tx.stock.update({
+      const company = await tx.company.findUnique({
         where: {
-          id: stock.id,
-        },
-        data: {
-          packagingId: params.spec.packagingId,
-          productId: params.spec.productId,
-          grammage: params.spec.grammage,
-          sizeX: params.spec.sizeX,
-          sizeY: params.spec.sizeY,
-          paperColorGroupId: params.spec.paperColorGroupId,
-          paperColorId: params.spec.paperColorId,
-          paperPatternId: params.spec.paperPatternId,
-          paperCertId: params.spec.paperCertId,
+          id: params.companyId,
         },
       });
+
+      // 재고 삭제
+      await tx.stockEvent.updateMany({
+        where: {
+          stockId: stock.id,
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+
+      // 재고생성
+      const newStock = await tx.stock.create({
+        data: {
+          serial: Util.serialP(company.invoiceCode),
+          companyId: params.companyId,
+          initialPlanId: params.planId,
+          planId: params.planId,
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY || 0,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          cachedQuantityAvailable: params.spec.quantity,
+          stockEvent: {
+            create: {
+              status: 'PENDING',
+              change: params.spec.quantity,
+              plan: {
+                connect: {
+                  id: params.planId,
+                },
+              },
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      // 금액 생성
+      await this.createDefaultStockPriceTx(tx, newStock.id);
     });
   }
 
