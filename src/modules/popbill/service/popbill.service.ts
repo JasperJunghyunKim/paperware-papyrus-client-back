@@ -228,7 +228,7 @@ export const registIssue = async (
   CorpNum: string,
   Taxinvoice: PopbillTaxInvoice,
 ) => {
-  const result: PopbillIssueResponse | Error = await new Promise((res, rej) => {
+  const result: PopbillResponse = await new Promise((res, rej) => {
     taxInvoiceService.registIssue(
       CorpNum,
       Taxinvoice,

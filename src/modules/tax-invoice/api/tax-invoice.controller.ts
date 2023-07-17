@@ -64,8 +64,17 @@ export class TaxInvoiceController {
     @Req() req: AuthType,
     @Param() param: IdDto,
   ): Promise<TaxInvoiceIssueResponse> {
-    // throw new NotImplementedException();
     return await this.changeService.issueTaxInvoice(
+      req.user.companyId,
+      param.id,
+    );
+  }
+
+  /** 전송 */
+  @Post('/:id/send')
+  @UseGuards(AuthGuard)
+  async sendTaxInvoice(@Req() req: AuthType, @Param() param: IdDto) {
+    return await this.changeService.sendTaxInvoice(
       req.user.companyId,
       param.id,
     );

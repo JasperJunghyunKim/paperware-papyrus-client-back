@@ -2,8 +2,10 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
+  NotImplementedException,
 } from '@nestjs/common';
 import {
   OrderStatus,
@@ -15,9 +17,16 @@ import {
 } from '@prisma/client';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
-import { SUCCESS } from 'src/modules/popbill/code/popbill.code';
+import {
+  CERT_NOT_FOUND_ERROR,
+  CERT_NOT_VALID_ERROR,
+  SUCCESS,
+} from 'src/modules/popbill/code/popbill.code';
 import { PopbillRetriveService } from 'src/modules/popbill/service/popbill.retrive.service';
-import { createPopbillTaxInvoice } from 'src/modules/popbill/service/popbill.service';
+import {
+  PopbillIssueResponse,
+  createPopbillTaxInvoice,
+} from 'src/modules/popbill/service/popbill.service';
 import { ulid } from 'ulid';
 import { TaxInvoiceRetriveService } from './tax-invoice.retrive.service';
 import { TAX_INVOICE } from 'src/common/selector';
@@ -495,23 +504,44 @@ export class TaxInvoiceChangeService {
         popbillTaxInvoice,
       );
 
-      if (result instanceof Error) {
-        // TODO: 에러처리
-      } else if (result.code === SUCCESS) {
-        await tx.taxInvoice.update({
-          where: {
-            id: taxInvoice.id,
-          },
-          data: {
-            status: 'ISSUED',
-            ntsconfirmNum: result.ntsConfirmNum,
-          },
-        });
+      switch (result.code) {
+        // 성공
+        case SUCCESS:
+          const response = result as PopbillIssueResponse;
+          await tx.taxInvoice.update({
+            where: {
+              id: taxInvoice.id,
+            },
+            data: {
+              status: 'ISSUED',
+              ntsconfirmNum: response.ntsConfirmNum,
+            },
+          });
+          break;
+        // 인증서관련 에러 => 인증서 등록 URL
+        case CERT_NOT_FOUND_ERROR:
+        case CERT_NOT_VALID_ERROR:
+          const certUrl = await this.popbillRetriveService.getCertUrl(
+            companyId,
+          );
+          return {
+            certUrl,
+          };
+        // 기타 에러
+        default:
+          this.logger.log(`[세금계산서 발행 오류]`, result);
+          throw new InternalServerErrorException();
       }
 
       return {
         certUrl: null,
       };
+    });
+  }
+
+  async sendTaxInvoice(companyId: number, taxInvoiceId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      throw new NotImplementedException();
     });
   }
 }
