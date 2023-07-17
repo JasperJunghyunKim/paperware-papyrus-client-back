@@ -109,8 +109,6 @@ export const createPopbillTaxInvoice = (params: {
   srcCompanyAddress: string;
   srcCompanyBizType: string;
   srcCompanyBizItem: string;
-  srcEmail: string;
-  srcEmail2: string;
   cash: number | null;
   check: number | null;
   note: number | null;
@@ -168,7 +166,7 @@ export const createPopbillTaxInvoice = (params: {
     invoiceeContactName1: '',
     invoiceeTEL1: '',
     invoiceeHP1: '',
-    invoiceeEmail1: params.srcEmail,
+    invoiceeEmail1: '',
     // 세금계산서 기재정보
     supplyCostTotal: supplyCostTotal.toString(),
     taxTotal: taxTotal.toString(),

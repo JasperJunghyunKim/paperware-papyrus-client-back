@@ -39,8 +39,6 @@ interface TaxInvoiceForIssue {
   srcCompanyAddress: string;
   srcCompanyBizType: string;
   srcCompanyBizItem: string;
-  srcEmail: string;
-  srcEmail2: string;
   status: TaxInvoiceStatus;
   cash: number | null;
   check: number | null;
@@ -102,6 +100,23 @@ export class TaxInvoiceChangeService {
         },
       });
 
+      const partner = await tx.partner.findUnique({
+        include: {
+          partnerTaxManager: {
+            where: {
+              isDefault: true,
+            },
+          },
+        },
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId: params.companyId,
+            companyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          },
+        },
+      });
+      const defaultTaxManager = partner.partnerTaxManager[0] || null;
+
       const taxInvoice = await this.prisma.taxInvoice.create({
         data: {
           // 공급자
@@ -122,6 +137,13 @@ export class TaxInvoiceChangeService {
           writeDate: params.writeDate,
           purposeType: params.purposeType,
           invoicerMgtKey: ulid().substring(0, 24),
+          srcTaxManagers: defaultTaxManager
+            ? {
+                connect: {
+                  id: defaultTaxManager.id,
+                },
+              }
+            : undefined,
         },
         select: { id: true },
       });
@@ -176,8 +198,6 @@ export class TaxInvoiceChangeService {
           writeDate: params.writeDate,
           purposeType: params.purposeType,
           dstEmail: params.dstEmail,
-          srcEmail: params.srcEmail,
-          srcEmail2: params.srcEmail2,
           memo: params.memo,
           cash: params.cash,
           check: params.check,

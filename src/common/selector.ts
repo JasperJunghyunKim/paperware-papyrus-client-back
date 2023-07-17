@@ -793,8 +793,15 @@ export const TAX_INVOICE = {
   srcCompanyAddress: true,
   srcCompanyBizType: true,
   srcCompanyBizItem: true,
-  srcEmail: true,
-  srcEmail2: true,
+  srcTaxManagers: {
+    select: {
+      id: true,
+      name: true,
+      phoneNo: true,
+      email: true,
+      isDefault: true,
+    },
+  },
   memo: true,
   status: true,
   cash: true,

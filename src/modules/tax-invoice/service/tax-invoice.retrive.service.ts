@@ -180,7 +180,6 @@ export class TaxInvoiceRetriveService {
       take: params.take,
       select: TAX_INVOICE,
     });
-    console.log(111, data);
 
     const partners =
       data.length > 0
