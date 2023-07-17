@@ -15,7 +15,7 @@ import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
 import { StockGroup } from 'src/@shared/models';
 import { Model } from 'src/@shared';
-import { STOCK, STOCK_EVENT } from 'src/common/selector';
+import { STOCK, STOCK_EVENT, STOCK_PRICE } from 'src/common/selector';
 import { StockGroupHistoryResponse } from 'src/@shared/api';
 
 interface StockGroupFromDB {
@@ -1721,5 +1721,51 @@ export class StockRetriveService {
         quantity: Number(sg.quantity),
       };
     });
+  }
+
+  async getArrivalStockPrice(params: {
+    companyId: number;
+    planId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number | null;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+  }): Promise<Model.StockPrice> {
+    const stocks = await this.prisma.stock.findMany({
+      select: {
+        stockPrice: {
+          select: STOCK_PRICE,
+        },
+      },
+      where: {
+        companyId: params.companyId,
+        planId: params.planId,
+        productId: params.productId,
+        packagingId: params.packagingId,
+        grammage: params.grammage,
+        sizeX: params.sizeX,
+        sizeY: params.sizeY,
+        paperColorGroupId: params.paperColorGroupId,
+        paperColorId: params.paperColorId,
+        paperPatternId: params.paperPatternId,
+        paperCertId: params.paperCertId,
+        stockEvent: {
+          some: {
+            status: {
+              not: 'CANCELLED',
+            },
+          },
+        },
+      },
+    });
+    if (stocks.length === 0)
+      throw new NotFoundException(`존재하지 않는 도착예정재고 입니다.`);
+
+    return stocks[0].stockPrice;
   }
 }

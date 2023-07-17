@@ -17,6 +17,7 @@ import { StockChangeService } from '../service/stock-change.service';
 import {
   ArrivalStockCreateRequestDto,
   ArrivalStockDeleteDto,
+  ArrivalStockPriceGetDto,
   ArrivalStockPriceUpdateDto,
   ArrivalStockSpecUpdateDto,
   GetStockBySerialDto,
@@ -32,6 +33,7 @@ import {
 } from './dto/stock.request';
 import { StockRetriveService } from '../service/stock-retrive.service';
 import {
+  ArrivalStockPriceResponse,
   PlanStockGroupListResponse,
   StockDetailResponse,
   StockGroupDetailResponse,
@@ -236,6 +238,19 @@ export class StockController {
       items: stockGroups.map((sg) => Util.serialize(sg)),
       total: stockGroups.length,
     };
+  }
+
+  /** 도착예정재고 금액 */
+  @Get('/arrival/price')
+  @UseGuards(AuthGuard)
+  async getArrivalStockPrice(
+    @Request() req: AuthType,
+    @Query() query: ArrivalStockPriceGetDto,
+  ): Promise<ArrivalStockPriceResponse> {
+    return await this.stockRetriveService.getArrivalStockPrice({
+      companyId: req.user.companyId,
+      ...query,
+    });
   }
 
   /** 도착예정재고 & 입고된 재고 금액 수정 */

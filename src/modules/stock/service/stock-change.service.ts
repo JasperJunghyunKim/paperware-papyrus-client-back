@@ -215,7 +215,7 @@ export class StockChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
-    stockPrice: StockCreateStockPriceRequest;
+    stockPrice: StockCreateStockPriceRequest | null;
     dstLocationId: number;
     wantedDate: string;
   }) {
@@ -276,16 +276,22 @@ export class StockChangeService {
           paperPatternId: params.paperPatternId,
           paperCertId: params.paperCertId,
           cachedQuantity: params.quantity,
-          stockPrice: {
-            create: {
-              ...params.stockPrice,
-            },
-          },
         },
         select: {
           id: true,
         },
       });
+
+      if (params.stockPrice) {
+        await tx.stockPrice.create({
+          data: {
+            stockId: stock.id,
+            ...params.stockPrice,
+          },
+        });
+      } else {
+        await this.createDefaultStockPriceTx(tx, stock.id);
+      }
 
       const stockEvent = await tx.stockEvent.create({
         data: {

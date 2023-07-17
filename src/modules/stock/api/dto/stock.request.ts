@@ -16,11 +16,13 @@ import {
   Max,
   Min,
   NotEquals,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import {
   ArrivalStockCreateRequest,
   ArrivalStockDeleteQuery,
+  ArrivalStockPriceQuery,
   ArrivalStockPriceUpdateRequest,
   ArrivalStockSpecUpdateRequest,
   StockCreateRequest,
@@ -407,10 +409,12 @@ export class ArrivalStockCreateRequestDto implements ArrivalStockCreateRequest {
   @IsPositive()
   readonly quantity: number;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => StockCreateStockPriceDto)
-  readonly stockPrice: StockCreateStockPriceDto;
+  readonly stockPrice: StockCreateStockPriceDto = null;
 
   @IsOptional()
   @IsInt()
@@ -550,6 +554,54 @@ export class IdDto {
   @Type(() => Number)
   @IsPositive()
   readonly id: number;
+}
+
+/** 도착예정재고 금액 */
+export class ArrivalStockPriceGetDto implements ArrivalStockPriceQuery {
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeX: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly sizeY: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorGroupId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperColorId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperPatternId: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly paperCertId: number | null = null;
 }
 
 /** 도착예정재고 금액 수정 */

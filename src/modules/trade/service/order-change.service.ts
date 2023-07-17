@@ -1560,8 +1560,7 @@ export class OrderChangeService {
     paperPatternId: number | null;
     paperCertId: number | null;
     quantity: number;
-    stockPrice: StockCreateStockPriceRequest;
-    isSyncPrice: boolean;
+    stockPrice: StockCreateStockPriceRequest | null;
   }) {
     return await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
@@ -1613,8 +1612,7 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
-      stockPrice: StockCreateStockPriceRequest;
-      isSyncPrice: boolean;
+      stockPrice: StockCreateStockPriceRequest | null;
     },
   ) {
     const orderStock = await tx.orderStock.findUnique({
@@ -1662,8 +1660,7 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
-      stockPrice: StockCreateStockPriceRequest;
-      isSyncPrice: boolean;
+      stockPrice: StockCreateStockPriceRequest | null;
     },
   ) {
     const orderProcess = await tx.orderProcess.findFirst({
@@ -1719,8 +1716,7 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
-      stockPrice: StockCreateStockPriceRequest;
-      isSyncPrice: boolean;
+      stockPrice: StockCreateStockPriceRequest | null;
     },
   ) {
     // 구매처 작업계획의 동일한 스펙 체크
@@ -1776,18 +1772,23 @@ export class OrderChangeService {
         paperPatternId: stockSpec.paperPatternId,
         paperCertId: stockSpec.paperCertId,
         cachedQuantityAvailable: stockSpec.quantity,
-        stockPrice: stockSpec.isSyncPrice
-          ? undefined
-          : {
-              create: {
-                ...stockSpec.stockPrice,
-              },
-            },
+        isSyncPrice: false,
       },
       select: {
         id: true,
       },
     });
+
+    if (stockSpec.stockPrice) {
+      await tx.stockPrice.create({
+        data: {
+          stockId: stock.id,
+          ...stockSpec.stockPrice,
+        },
+      });
+    } else {
+      await this.stockChangeService.createDefaultStockPriceTx(tx, stock.id);
+    }
 
     const stockEvent = await tx.stockEvent.create({
       data: {

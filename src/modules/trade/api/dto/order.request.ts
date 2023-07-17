@@ -22,6 +22,7 @@ import {
   MaxLength,
   Min,
   NotEquals,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { isLength } from 'lodash';
@@ -266,25 +267,12 @@ export class OrderStockArrivalCreateRequestDto
   @Type(() => Number)
   quantity: number;
 
-  @IsOptional()
-  @IsBoolean()
-  isSyncPrice = false;
-
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsObject()
   @ValidateNested()
   @Type(() => StockCreateStockPriceDto)
   stockPrice: StockCreateStockPriceDto = null;
-
-  validate() {
-    if (!this.isSyncPrice) this.isSyncPrice = false;
-    if (!this.isSyncPrice && !this.stockPrice) {
-      throw new BadRequestException(
-        `매입금액 동기화 미사용시 재고금액을 입력해야합니다.`,
-      );
-    }
-    if (this.isSyncPrice) this.stockPrice = null;
-  }
 }
 
 export class OrderIdDto {
