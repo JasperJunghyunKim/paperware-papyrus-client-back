@@ -7,7 +7,7 @@ import { Company } from '@prisma/client';
 import { Util } from 'src/common';
 dotenv.config();
 
-interface PopbillResponse {
+export interface PopbillResponse {
   code: number;
   message?: string;
 }
