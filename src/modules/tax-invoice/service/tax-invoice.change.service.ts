@@ -153,7 +153,9 @@ export class TaxInvoiceChangeService {
     purposeType: TaxInvoicePurposeType;
     dstEmail: string;
     srcEmail: string;
+    srcEmailName: string;
     srcEmail2: string;
+    srcEmailName2: string;
     memo: string;
     cash: number | null;
     check: number | null;
@@ -198,6 +200,10 @@ export class TaxInvoiceChangeService {
           check: params.check,
           note: params.note,
           credit: params.credit,
+          srcEmail: params.srcEmail,
+          srcEmail2: params.srcEmail2,
+          srcEmailName: params.srcEmailName,
+          srcEmailName2: params.srcEmailName2,
         },
         select: { id: true },
       });
