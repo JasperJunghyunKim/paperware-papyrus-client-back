@@ -45,10 +45,11 @@ export class TaxInvoiceController {
     private readonly popbillChangeService: PopbillChangeService,
   ) {}
 
-  @Get('test')
-  async test() {
-    return await this.popbillRetriveService.checkCertValidation('1234567890');
-  }
+  /** 전송중 => 전송 확인 (테스트용) */
+  // @Post('/test/check')
+  // async checkOnSendTaxInvoice() {
+  //   await this.changeService.checkOnSendTaxInvoice();
+  // }
 
   /** 인증서 URL */
   @Get('/cert/url')

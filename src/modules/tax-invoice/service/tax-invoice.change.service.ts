@@ -20,6 +20,7 @@ import { PrismaService } from 'src/core';
 import {
   CERT_NOT_FOUND_ERROR,
   CERT_NOT_VALID_ERROR,
+  PopbillStateCode,
   SUCCESS,
 } from 'src/modules/popbill/code/popbill.code';
 import { PopbillRetriveService } from 'src/modules/popbill/service/popbill.retrive.service';
@@ -34,6 +35,7 @@ import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { PopbillChangeService } from 'src/modules/popbill/service/popbill.change.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -574,9 +576,9 @@ export class TaxInvoiceChangeService {
       `;
       if (!taxInvoice)
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
-      if (taxInvoice.status !== 'ISSUED')
+      if (taxInvoice.status !== 'ISSUED' && taxInvoice.status !== 'SEND_FAILED')
         throw new ConflictException(
-          `발행완료 상태의 세금계산서만 전송 가능합니다.`,
+          `발행완료 또는 전송실패 상태의 세금계산서만 전송 가능합니다.`,
         );
 
       const result = await this.popbillChangeService.sendTaxInvoice(
@@ -601,5 +603,78 @@ export class TaxInvoiceChangeService {
           throw new InternalServerErrorException();
       }
     });
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async checkOnSendTaxInvoice() {
+    this.logger.log(`[세금계산서 전송중 => 전송 상태확인]`);
+    const companies = await this.prisma.company.findMany({
+      where: {
+        managedById: null,
+      },
+    });
+    for (const company of companies) {
+      await this.prisma.$transaction(async (tx) => {
+        const taxInvoices: {
+          id: number;
+          status: TaxInvoiceStatus;
+          invoicerMgtKey: string;
+        }[] = await tx.$queryRaw`
+          SELECT id, status, invoicerMgtKey
+            FROM TaxInvoice
+           WHERE companyId = ${company.id}
+             AND status = ${TaxInvoiceStatus.ON_SEND}
+            LIMIT 1000
+  
+          FOR UPDATE
+        `;
+
+        if (taxInvoices.length > 0) {
+          const mgtKeys = taxInvoices.map((ti) => ti.invoicerMgtKey);
+          const result = await this.popbillRetriveService.getTaxInvoiceInfos(
+            company.companyRegistrationNumber,
+            mgtKeys,
+          );
+          if (result instanceof Error) {
+            this.logger.log(
+              `[세금계산서 전송중 => 전송 상태확인 에러]\n${result}`,
+            );
+          } else {
+            const successKeys = result
+              .filter((data) => data.stateCode === PopbillStateCode.SENDED)
+              .map((data) => data.invoicerMgtKey);
+            const failedKeys = result
+              .filter((data) => data.stateCode === PopbillStateCode.SEND_FAILED)
+              .map((data) => data.invoicerMgtKey);
+
+            if (successKeys.length > 0) {
+              await tx.taxInvoice.updateMany({
+                where: {
+                  invoicerMgtKey: {
+                    in: successKeys,
+                  },
+                },
+                data: {
+                  status: 'SENDED',
+                  sendedDate: new Date(),
+                },
+              });
+            }
+            if (failedKeys.length > 0) {
+              await tx.taxInvoice.updateMany({
+                where: {
+                  invoicerMgtKey: {
+                    in: successKeys,
+                  },
+                },
+                data: {
+                  status: 'SEND_FAILED',
+                },
+              });
+            }
+          }
+        }
+      });
+    }
   }
 }

@@ -5,7 +5,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/core';
-import { checkCertValidation, getCertUrl } from './popbill.service';
+import {
+  checkCertValidation,
+  getCertUrl,
+  getTaxInvoiceInfos,
+} from './popbill.service';
 import { CERT_NOT_FOUND_ERROR, SUCCESS } from '../code/popbill.code';
 
 @Injectable()
@@ -39,5 +43,9 @@ export class PopbillRetriveService {
       default:
         throw new InternalServerErrorException();
     }
+  }
+
+  async getTaxInvoiceInfos(CorpNum: string, mgtKeyList: string[]) {
+    return await getTaxInvoiceInfos(CorpNum, mgtKeyList);
   }
 }

@@ -784,12 +784,12 @@
     socket.io "4.6.1"
     tslib "2.5.0"
 
-"@nestjs/schedule@^2.2.2":
-  version "2.2.2"
-  resolved "https://registry.npmjs.org/@nestjs/schedule/-/schedule-2.2.2.tgz"
-  integrity sha512-e9z1bbFwi4QsPkR2ix72OABhBlfRQcl4ZjF8LShlefOskR4ySN4rUzJilH+1rk8vORYDyGDurVdeduPyyfSQRg==
+"@nestjs/schedule@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@nestjs/schedule/-/schedule-3.0.1.tgz#a736e982bf935ca12e07aebe2a3aaafd611639da"
+  integrity sha512-4CAFu4rE/QPYnz/icRg3GiuLmY1bXopG8bWTJ9d7bXzaHBaPKIjGvZ20wsK8P+MncrVCkmK0iYhQrNj0cwX9+A==
   dependencies:
-    cron "2.3.0"
+    cron "2.3.1"
     uuid "9.0.0"
 
 "@nestjs/schematics@^9.0.0", "@nestjs/schematics@^9.0.4":
@@ -984,7 +984,7 @@
 
 "@types/cron@^2.0.1":
   version "2.0.1"
-  resolved "https://registry.npmjs.org/@types/cron/-/cron-2.0.1.tgz"
+  resolved "https://registry.yarnpkg.com/@types/cron/-/cron-2.0.1.tgz#d8bf7a24475f64197c7ac868c362b41be596e5f8"
   integrity sha512-WHa/1rtNtD2Q/H0+YTTZoty+/5rcE66iAFX2IY+JuUoOACsevYyFkSYu/2vdw+G5LrmO7Lxowrqm0av4k3qWNQ==
   dependencies:
     "@types/luxon" "*"
@@ -2131,10 +2131,10 @@ create-require@^1.1.0:
   resolved "https://registry.npmjs.org/create-require/-/create-require-1.1.1.tgz"
   integrity sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==
 
-cron@2.3.0:
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/cron/-/cron-2.3.0.tgz"
-  integrity sha512-ZN5HP8zDY41sJolMsbc+GksRATcbvkPKF5wR/qc8FrV4NBVi9ORQa1HmYa5GydaysUB80X9XpRlRkooa5uEtTA==
+cron@2.3.1:
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.3.1.tgz#71caa566ffef60ada9183b8677df4afa9a214ad7"
+  integrity sha512-1eRRlIT0UfIqauwbG9pkg3J6CX9A6My2ytJWqAXoK0T9oJnUZTzGBNPxao0zjodIbPgf8UQWjE62BMb9eVllSQ==
   dependencies:
     luxon "^3.2.1"
 

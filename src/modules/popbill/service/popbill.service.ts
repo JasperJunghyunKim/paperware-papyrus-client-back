@@ -5,6 +5,7 @@ import { PopbillTaxInvoice } from './popbill.interface';
 import { TaxInvoicePurposeType } from 'src/@shared/models/enum';
 import { Company } from '@prisma/client';
 import { Util } from 'src/common';
+import { PopbillStateCode } from '../code/popbill.code';
 dotenv.config();
 
 export interface PopbillResponse {
@@ -14,6 +15,21 @@ export interface PopbillResponse {
 
 export interface PopbillIssueResponse extends PopbillResponse {
   ntsConfirmNum: string;
+}
+
+export interface PopbillTaxInvoiceInfo {
+  itemKey: string;
+  taxType: string;
+  writeDate: string;
+  regDT: string;
+  issueType: '정발행' | '역발행' | '위수탁';
+  supplyCostTotal: string;
+  taxTotal: string;
+  purposeType: '영수' | '청구' | '없음';
+  issueDT: string;
+  lateIssueYN: 'true' | 'false';
+  stateCode: PopbillStateCode;
+  invoicerMgtKey: string;
 }
 
 const popbillConfig = {
@@ -261,6 +277,29 @@ export const sendToNTS = async (CorpNum: string, mgtKey: string) => {
       },
     );
   });
+
+  return result;
+};
+
+export const getTaxInvoiceInfos = async (
+  CorpNum: string,
+  mgtKeyList: string[],
+) => {
+  const result: PopbillTaxInvoiceInfo[] | Error = await new Promise(
+    (res, rej) => {
+      taxInvoiceService.getInfos(
+        CorpNum,
+        'SELL',
+        mgtKeyList,
+        function (result) {
+          res(result);
+        },
+        function (err) {
+          rej(err);
+        },
+      );
+    },
+  );
 
   return result;
 };
