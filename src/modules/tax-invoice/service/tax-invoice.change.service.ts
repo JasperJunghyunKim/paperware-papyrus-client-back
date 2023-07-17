@@ -137,13 +137,8 @@ export class TaxInvoiceChangeService {
           writeDate: params.writeDate,
           purposeType: params.purposeType,
           invoicerMgtKey: ulid().substring(0, 24),
-          srcTaxManagers: defaultTaxManager
-            ? {
-                connect: {
-                  id: defaultTaxManager.id,
-                },
-              }
-            : undefined,
+          srcEmail: defaultTaxManager ? defaultTaxManager.email : '',
+          srcEmailName: defaultTaxManager ? defaultTaxManager.name : '',
         },
         select: { id: true },
       });

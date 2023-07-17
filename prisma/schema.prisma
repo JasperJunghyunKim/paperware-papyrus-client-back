@@ -770,7 +770,10 @@ model TaxInvoice {
   srcCompanyAddress            String
   srcCompanyBizType            String
   srcCompanyBizItem            String
-  srcTaxManagers               PartnerTaxManager[]
+  srcEmailName                 String @default("")
+  srcEmail                     String @default("")
+  srcEmailName2                String @default("")
+  srcEmail2                    String @default("")
 
   // 포함된 매출
   order Order[]
@@ -1074,15 +1077,14 @@ model Partner {
 }
 
 model PartnerTaxManager {
-  id          Int          @id @default(autoincrement())
-  partnerId   Int
-  partner     Partner      @relation(fields: [partnerId], references: [id])
-  name        String
-  phoneNo     String
-  email       String
-  isDefault   Boolean      @default(false)
-  isDeleted   Boolean      @default(false)
-  taxInvoices TaxInvoice[]
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id])
+  name      String
+  phoneNo   String
+  email     String
+  isDefault Boolean @default(false)
+  isDeleted Boolean @default(false)
 }
 
 /// 회계
