@@ -180,6 +180,7 @@ export class TaxInvoiceRetriveService {
       take: params.take,
       select: TAX_INVOICE,
     });
+    console.log(111, data);
 
     const partners =
       data.length > 0
@@ -233,8 +234,10 @@ export class TaxInvoiceRetriveService {
         suppliedPrice,
         vatPrice,
         item:
-          this.getOrderItem(ti.order[0]) +
-          (ti.order.length > 1 ? ` 등 ${ti.order.length}` : ''),
+          ti.order.length > 0
+            ? this.getOrderItem(ti.order[0]) +
+              (ti.order.length > 1 ? ` 등 ${ti.order.length}` : '')
+            : '',
         order: undefined,
       });
     });
@@ -289,8 +292,12 @@ export class TaxInvoiceRetriveService {
       suppliedPrice,
       vatPrice,
       item:
-        this.getOrderItem(taxInvoice.order[0]) +
-        (taxInvoice.order.length > 1 ? ` 등 ${taxInvoice.order.length}` : ''),
+        taxInvoice.order.length > 0
+          ? this.getOrderItem(taxInvoice.order[0]) +
+            (taxInvoice.order.length > 1
+              ? ` 등 ${taxInvoice.order.length}`
+              : '')
+          : '',
       order: undefined,
     });
   }

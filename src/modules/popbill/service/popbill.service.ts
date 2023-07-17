@@ -140,7 +140,7 @@ export const createPopbillTaxInvoice = (params: {
     // 공급자 정보
     invoicerCorpNum: params.dstCompanyRegistrationNumber,
     invoicerMgtKey: params.invoicerMgtKey,
-    invoicerTaxRegID: '', // TODO: 필요한지 확인 필요
+    invoicerTaxRegID: '',
     invoicerCorpName: params.dstCompanyName,
     invoicerCEOName: params.dstCompanyRepresentative,
     invoicerAddr:
@@ -156,7 +156,7 @@ export const createPopbillTaxInvoice = (params: {
     // 공급받는자 정보
     invoiceeType: '사업자',
     invoiceeCorpNum: params.srcCompanyRegistrationNumber,
-    invoiceeTaxRegID: '', // TODO: 필요한지 확인 필요
+    invoiceeTaxRegID: '',
     invoiceeCorpName: params.srcCompanyName,
     invoiceeCEOName: params.srcCompanyRepresentative,
     invoiceeAddr:
