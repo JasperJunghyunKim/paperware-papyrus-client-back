@@ -434,6 +434,7 @@ export class TaxInvoiceChangeService {
         ...taxInvoice,
         orders: taxInvoiceEntity.order.map((order) => ({
           item: this.taxInvoiceRetriveService.getOrderItem(order),
+          orderDate: order.orderDate.toISOString(), // TODO: yyyyMMdd 형식으로 수정
           suppliedPrice:
             order.tradePrice.find((tp) => tp.companyId === companyId)
               ?.suppliedPrice || 0,

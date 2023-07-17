@@ -117,6 +117,7 @@ export const createPopbillTaxInvoice = (params: {
   credit: number | null;
   orders: {
     item: string;
+    orderDate: string;
     suppliedPrice: number;
     vatPrice: number;
   }[];
@@ -148,11 +149,11 @@ export const createPopbillTaxInvoice = (params: {
       (dstAddress.detail ? ` ${dstAddress.detail}` : ''),
     invoicerBizClass: params.dstCompanyBizType,
     invoicerBizType: params.dstCompanyBizItme,
-    invoicerContactName: params.dstCompanyRepresentative, // TODO: 대표자명이 들어가는건지?
-    invoicerTEL: '', // TODO: 필수인지 확인
-    invoicerHP: '', // TODO: 필수인지 확인
+    invoicerContactName: '',
+    invoicerTEL: '',
+    invoicerHP: '',
     invoicerEmail: params.dstEmail,
-    invoicerSMSSendYN: false, // TODO: 발행 안내 문자 보내는지 확인
+    invoicerSMSSendYN: false,
     // 공급받는자 정보
     invoiceeType: '사업자',
     invoiceeCorpNum: params.srcCompanyRegistrationNumber,
@@ -164,15 +165,15 @@ export const createPopbillTaxInvoice = (params: {
       (srcAddress.detail ? ` ${srcAddress.detail}` : ''),
     invoiceeBizClass: params.srcCompanyBizType,
     invoiceeBizType: params.srcCompanyBizItem,
-    invoiceeContactName1: params.srcCompanyRepresentative, // TODO: 대표자명이 들어가는건지?
-    invoiceeTEL1: '', // TODO: 필수인지 확인
-    invoiceeHP1: '', // TODO: 필수인지 확인
+    invoiceeContactName1: '',
+    invoiceeTEL1: '',
+    invoiceeHP1: '',
     invoiceeEmail1: params.srcEmail,
     // 세금계산서 기재정보
     supplyCostTotal: supplyCostTotal.toString(),
     taxTotal: taxTotal.toString(),
     totalAmount: (supplyCostTotal + taxTotal).toString(),
-    serialNum: '', // TODO: 필수인지 확인
+    serialNum: '',
     cash: params.cash === null ? '' : params.cash.toString(),
     chkBill: params.check === null ? '' : params.check.toString(),
     note: params.note === null ? '' : params.note.toString(),
@@ -184,7 +185,17 @@ export const createPopbillTaxInvoice = (params: {
     ho: '',
     businessLicenseYN: false,
     bankBookYN: false,
-    detailList: [], // TODO: 작업
+    detailList: params.orders.map((order, i) => ({
+      serialNum: i + 1,
+      purchaseDT: order.orderDate,
+      itemName: order.item,
+      supplyCost: order.suppliedPrice.toString(),
+      tax: order.vatPrice.toString(),
+      qty: '',
+      spec: '',
+      unitCost: '',
+      remark: '',
+    })), // TODO: 작업
     addContactList: [], // TODO: 작업
   };
 };

@@ -770,7 +770,9 @@ model TaxInvoice {
   srcCompanyAddress            String
   srcCompanyBizType            String
   srcCompanyBizItem            String
+  srcEmailName                 String @default("")
   srcEmail                     String @default("")
+  srcEmailName2                String @default("")
   srcEmail2                    String @default("")
 
   // 포함된 매출

@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `TaxInvoice` ADD COLUMN `srcEmailName` VARCHAR(191) NOT NULL DEFAULT '',
+    ADD COLUMN `srcEmailName2` VARCHAR(191) NOT NULL DEFAULT '';
