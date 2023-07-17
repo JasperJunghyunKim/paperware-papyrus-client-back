@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,13 @@ import { createPopbillTaxInvoice } from 'src/modules/popbill/service/popbill.ser
 import { ulid } from 'ulid';
 import { TaxInvoiceRetriveService } from './tax-invoice.retrive.service';
 import { TAX_INVOICE } from 'src/common/selector';
+import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
+import { PopbillChangeService } from 'src/modules/popbill/service/popbill.change.service';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface TaxInvoiceForIssue {
   id: number;
@@ -31,7 +39,7 @@ interface TaxInvoiceForIssue {
   dstCompanyRepresentative: string;
   dstCompanyAddress: string;
   dstCompanyBizType: string;
-  dstCompanyBizItme: string;
+  dstCompanyBizItem: string;
   dstEmail: string;
   srcCompanyRegistrationNumber: string;
   srcCompanyName: string;
@@ -39,20 +47,28 @@ interface TaxInvoiceForIssue {
   srcCompanyAddress: string;
   srcCompanyBizType: string;
   srcCompanyBizItem: string;
+  srcEmail: string;
+  srcEmailName: string;
+  srcEmail2: string;
+  srcEmailName2: string;
   status: TaxInvoiceStatus;
   cash: number | null;
   check: number | null;
   note: number | null;
   credit: number | null;
+  isDeleted: number;
   orderCount: BigInt;
 }
 
 @Injectable()
 export class TaxInvoiceChangeService {
+  private readonly logger = new Logger(TaxInvoiceChangeService.name);
+
   constructor(
     private prisma: PrismaService,
     private taxInvoiceRetriveService: TaxInvoiceRetriveService,
     private popbillRetriveService: PopbillRetriveService,
+    private popbillChangeService: PopbillChangeService,
   ) {}
 
   async createTaxInvoice(params: {
@@ -398,13 +414,14 @@ export class TaxInvoiceChangeService {
     return await this.prisma.$transaction(async (tx) => {
       const [taxInvoice]: TaxInvoiceForIssue[] = await tx.$queryRaw`
         SELECT ti.id
+              , ti.writeDate AS writeDate
               , ti.invoicerMgtKey AS invoicerMgtKey
               , ti.dstCompanyRegistrationNumber AS dstCompanyRegistrationNumber
               , ti.dstCompanyName AS dstCompanyName
               , ti.dstCompanyRepresentative AS dstCompanyRepresentative
               , ti.dstCompanyAddress AS dstCompanyAddress
               , ti.dstCompanyBizType AS dstCompanyBizType
-              , ti.dstCompanyBizItme AS dstCompanyBizItme
+              , ti.dstCompanyBizItem AS dstCompanyBizItem
               , ti.dstEmail AS dstEmail
               , ti.srcCompanyRegistrationNumber AS srcCompanyRegistrationNumber
               , ti.srcCompanyName AS srcCompanyName
@@ -413,12 +430,15 @@ export class TaxInvoiceChangeService {
               , ti.srcCompanyBizType AS srcCompanyBizType
               , ti.srcCompanyBizItem AS srcCompanyBizItem
               , ti.srcEmail AS srcEmail
+              , ti.srcEmailName AS srcEmailName
               , ti.srcEmail2 AS srcEmail2
+              , ti.srcEmailName2 AS srcEmailName2
               , ti.status
               , ti.cash AS cash
-              , ti.check AS check
+              , ti.check AS \`check\`
               , ti.note AS note
               , ti.credit AS credit
+              , ti.isDeleted AS isDeleted
               , COUNT(CASE WHEN o.id IS NOT NULL THEN 1 END) AS orderCount
           FROM TaxInvoice  AS ti
      LEFT JOIN \`Order\`   AS o   ON o.taxInvoiceId = ti.id
@@ -430,7 +450,7 @@ export class TaxInvoiceChangeService {
         FOR UPDATE
       `;
 
-      if (!taxInvoice)
+      if (!taxInvoice || taxInvoice.isDeleted === 1)
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
       if (taxInvoice.status !== 'PREPARING')
         throw new ConflictException(`발행을 할 수 없는 상태입니다.`);
@@ -451,11 +471,14 @@ export class TaxInvoiceChangeService {
         },
       });
 
-      const PopbillTaxInvoice = createPopbillTaxInvoice({
+      const popbillTaxInvoice = createPopbillTaxInvoice({
         ...taxInvoice,
+        writeDate: dayjs(taxInvoice.writeDate)
+          .tz('Asia/Seoul')
+          .format('YYYYMMDD'),
         orders: taxInvoiceEntity.order.map((order) => ({
           item: this.taxInvoiceRetriveService.getOrderItem(order),
-          orderDate: order.orderDate.toISOString(), // TODO: yyyyMMdd 형식으로 수정
+          orderDate: dayjs(order.orderDate).tz('Asia/Seoul').format('YYYYMMDD'),
           suppliedPrice:
             order.tradePrice.find((tp) => tp.companyId === companyId)
               ?.suppliedPrice || 0,
@@ -464,6 +487,27 @@ export class TaxInvoiceChangeService {
               ?.vatPrice || 0,
         })),
       });
+
+      this.logger.log(`[세금계산서 발행]`, popbillTaxInvoice);
+
+      const result = await this.popbillChangeService.issueTaxInvoice(
+        taxInvoice.dstCompanyRegistrationNumber,
+        popbillTaxInvoice,
+      );
+
+      if (result instanceof Error) {
+        // TODO: 에러처리
+      } else if (result.code === SUCCESS) {
+        await tx.taxInvoice.update({
+          where: {
+            id: taxInvoice.id,
+          },
+          data: {
+            status: 'ISSUED',
+            ntsconfirmNum: result.ntsConfirmNum,
+          },
+        });
+      }
 
       return {
         certUrl: null,

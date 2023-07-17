@@ -43,6 +43,7 @@
     "class-validator": "^0.14.0",
     "compression": "^1.7.4",
     "cross-env": "^7.0.3",
+    "dayjs": "^1.11.9",
     "dotenv": "^16.0.3",
     "helmet": "^6.1.5",
     "lodash": "^4.17.21",

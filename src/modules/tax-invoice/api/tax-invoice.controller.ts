@@ -64,7 +64,7 @@ export class TaxInvoiceController {
     @Req() req: AuthType,
     @Param() param: IdDto,
   ): Promise<TaxInvoiceIssueResponse> {
-    throw new NotImplementedException();
+    // throw new NotImplementedException();
     return await this.changeService.issueTaxInvoice(
       req.user.companyId,
       param.id,

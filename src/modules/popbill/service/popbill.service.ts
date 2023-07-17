@@ -12,6 +12,10 @@ interface PopbillResponse {
   message?: string;
 }
 
+export interface PopbillIssueResponse extends PopbillResponse {
+  ntsConfirmNum: string;
+}
+
 const popbillConfig = {
   POPBILL_LINK_ID: process.env.POPBILL_LINK_ID,
   POPBILL_SECRET_KEY: process.env.POPBILL_SECRET_KEY,
@@ -101,7 +105,7 @@ export const createPopbillTaxInvoice = (params: {
   dstCompanyRepresentative: string;
   dstCompanyAddress: string;
   dstCompanyBizType: string;
-  dstCompanyBizItme: string;
+  dstCompanyBizItem: string;
   dstEmail: string;
   srcCompanyRegistrationNumber: string;
   srcCompanyName: string;
@@ -109,6 +113,10 @@ export const createPopbillTaxInvoice = (params: {
   srcCompanyAddress: string;
   srcCompanyBizType: string;
   srcCompanyBizItem: string;
+  srcEmail: string;
+  srcEmailName: string;
+  srcEmail2: string;
+  srcEmailName2: string;
   cash: number | null;
   check: number | null;
   note: number | null;
@@ -130,12 +138,29 @@ export const createPopbillTaxInvoice = (params: {
     return acc + cur.vatPrice;
   }, 0);
 
+  let addContactIndex = 1;
+  const addContactList = [];
+  if (params.srcEmail && params.srcEmailName) {
+    addContactList.push({
+      serialNum: addContactIndex++,
+      contactName: params.srcEmailName,
+      email: params.srcEmail,
+    });
+  }
+  if (params.srcEmail2 && params.srcEmailName2) {
+    addContactList.push({
+      serialNum: addContactIndex++,
+      contactName: params.srcEmailName2,
+      email: params.srcEmail2,
+    });
+  }
+
   return {
     writeDate: params.writeDate,
     chargeDirection: '정과금',
     issueType: '정발행',
     purposeType: params.purposeType === 'CHARGE' ? '영수' : '청구',
-    taxType: '과세', // TODO: 확인필요
+    taxType: '과세',
     // 공급자 정보
     invoicerCorpNum: params.dstCompanyRegistrationNumber,
     invoicerMgtKey: params.invoicerMgtKey,
@@ -146,7 +171,7 @@ export const createPopbillTaxInvoice = (params: {
       dstAddress.roadAddress +
       (dstAddress.detail ? ` ${dstAddress.detail}` : ''),
     invoicerBizClass: params.dstCompanyBizType,
-    invoicerBizType: params.dstCompanyBizItme,
+    invoicerBizType: params.dstCompanyBizItem,
     invoicerContactName: '',
     invoicerTEL: '',
     invoicerHP: '',
@@ -193,8 +218,8 @@ export const createPopbillTaxInvoice = (params: {
       spec: '',
       unitCost: '',
       remark: '',
-    })), // TODO: 작업
-    addContactList: [], // TODO: 작업
+    })),
+    addContactList,
   };
 };
 
@@ -203,7 +228,7 @@ export const registIssue = async (
   CorpNum: string,
   Taxinvoice: PopbillTaxInvoice,
 ) => {
-  const result = await new Promise((res, rej) => {
+  const result: PopbillIssueResponse | Error = await new Promise((res, rej) => {
     taxInvoiceService.registIssue(
       CorpNum,
       Taxinvoice,
@@ -216,4 +241,6 @@ export const registIssue = async (
       },
     );
   });
+
+  return result;
 };

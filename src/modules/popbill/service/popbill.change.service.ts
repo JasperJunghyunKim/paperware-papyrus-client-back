@@ -1,21 +1,8 @@
-import {
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-  NotImplementedException,
-} from '@nestjs/common';
-import {
-  OrderType,
-  PackagingType,
-  TaxInvoicePurposeType,
-  TaxInvoiceStatus,
-} from '@prisma/client';
-import { TON_TO_GRAM } from 'src/common/const';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core';
 import { PopbillRetriveService } from './popbill.retrive.service';
-import { SUCCESS } from '../code/popbill.code';
-import { createPopbillTaxInvoice } from './popbill.service';
+import { registIssue } from './popbill.service';
+import { PopbillTaxInvoice } from './popbill.interface';
 
 @Injectable()
 export class PopbillChangeService {
@@ -23,4 +10,11 @@ export class PopbillChangeService {
     private readonly prisma: PrismaService,
     private readonly popbillRetriveService: PopbillRetriveService,
   ) {}
+
+  async issueTaxInvoice(
+    companyRegistrationNumber: string,
+    taxInvoice: PopbillTaxInvoice,
+  ) {
+    return await registIssue(companyRegistrationNumber, taxInvoice);
+  }
 }
