@@ -69,12 +69,24 @@ export class UpdateTaxInvoiceRequestDto implements UpdateTaxInvoiceRequest {
   @Length(0, 100)
   readonly srcEmail: string = '';
 
+  @ValidateIf((obj) => obj.srcEmail)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly srcEmailName: string = '';
+
   @ValidateIf((obj, val) => val !== '')
   @IsOptional()
   @IsString()
   @IsEmail()
   @Length(0, 100)
   readonly srcEmail2: string = '';
+
+  @ValidateIf((obj) => obj.srcEmail2)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly srcEmailName2: string = '';
 
   @IsOptional()
   @IsString()
