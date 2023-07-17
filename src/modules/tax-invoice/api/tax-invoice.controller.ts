@@ -27,6 +27,7 @@ import {
   CreateTaxInvoiceResponse,
   GetTaxInvoiceItemResponse,
   GetTaxInvoiceListResponse,
+  TaxInvoiceIssueResponse,
   TaxInvoiceOrderListResponse,
   UpdateTaxInvoiceResponse,
 } from 'src/@shared/api';
@@ -59,7 +60,10 @@ export class TaxInvoiceController {
   /** 발행 */
   @Post('/:id/issue')
   @UseGuards(AuthGuard)
-  async issueTaxInvoice(@Req() req: AuthType, @Param() param: IdDto) {
+  async issueTaxInvoice(
+    @Req() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<TaxInvoiceIssueResponse> {
     return await this.popbillChangeService.issueTaxInvoice(
       req.user.companyId,
       param.id,

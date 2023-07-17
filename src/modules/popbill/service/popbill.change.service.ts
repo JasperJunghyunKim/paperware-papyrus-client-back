@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  Get,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,6 +8,8 @@ import {
 import { OrderType, PackagingType, TaxInvoiceStatus } from '@prisma/client';
 import { TON_TO_GRAM } from 'src/common/const';
 import { PrismaService } from 'src/core';
+import { PopbillRetriveService } from './popbill.retrive.service';
+import { SUCCESS } from '../code/popbill.code';
 
 interface TaxInvoiceForIssue {
   id: number;
@@ -37,77 +38,28 @@ interface TaxInoviceOrderForIssue {
 
 @Injectable()
 export class PopbillChangeService {
-  constructor(private readonly prisma: PrismaService) {}
-
-  private getQuantity(packagingType: PackagingType, quantity: number): string {
-    switch (packagingType) {
-      case 'ROLL':
-        return `${(quantity / TON_TO_GRAM).toFixed(3)}T`;
-      case 'REAM':
-      case 'SKID':
-        return `${(quantity / 500).toFixed(3)}R`;
-      case 'BOX':
-        return `${quantity}BOX`;
-      default:
-        throw new InternalServerErrorException(`알 수 없는 재고 단위`);
-    }
-  }
-
-  private getOrderItem(params: {
-    orderType: OrderType;
-    orderNo: string;
-    dstDepositEventId: number | null;
-    packagingType: PackagingType | null;
-    paperDomainName: string | null;
-    paperGroupName: string | null;
-    paperTypeName: string | null;
-    manufacturerName: string | null;
-    grammage: number | null;
-    sizeX: number | null;
-    sizeY: number | null;
-    quantity: number | null;
-    item: string | null;
-    count: number;
-  }): string {
-    if (params.count === 0) throw new InternalServerErrorException();
-
-    let orderType = '';
-    switch (params.orderType) {
-      case 'NORMAL':
-        orderType = params.dstDepositEventId ? '보관출고' : '정상매출';
-        break;
-      case 'DEPOSIT':
-        orderType = '매출보관';
-        break;
-      case 'OUTSOURCE_PROCESS':
-        orderType = '외주공정매출';
-        break;
-      case 'ETC':
-        orderType = '기타매출';
-        break;
-    }
-
-    const item =
-      params.orderType === 'ETC'
-        ? params.item
-        : params.packagingType +
-          ' ' +
-          params.paperTypeName +
-          ' ' +
-          params.grammage.toString() +
-          'g/m²' +
-          ' ' +
-          `${params.sizeX}X${params.sizeY}` +
-          ' ' +
-          this.getQuantity(params.packagingType, params.quantity);
-
-    return (
-      `${orderType} ${params.orderNo} ${item}` +
-      (params.count === 1 ? '' : ` 등 ${params.count}`)
-    );
-  }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly popbillRetriveService: PopbillRetriveService,
+  ) {}
 
   async issueTaxInvoice(companyId: number, taxInvoiceId: number) {
+    throw new NotImplementedException();
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    const check = await this.popbillRetriveService.checkCertValidation(
+      company.companyRegistrationNumber,
+    );
+    if (check !== SUCCESS) {
+      const certUrl = await this.popbillRetriveService.getCertUrl(companyId);
+      return {
+        certUrl,
+      };
+    }
+
     await this.prisma.$transaction(async (tx) => {
       const [taxInvoice]: TaxInvoiceForIssue[] = await tx.$queryRaw`
         SELECT ti.id, ti.status, COUNT(CASE WHEN o.id IS NOT NULL THEN 1 END) AS orderCount
@@ -198,7 +150,9 @@ export class PopbillChangeService {
       `;
       console.log(orders);
 
-      throw new NotImplementedException();
+      return {
+        certUrl: null,
+      };
     });
   }
 }

@@ -1,4 +1,9 @@
-import { Get, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Get,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/core';
 import { checkCertValidation, getCertUrl } from './popbill.service';
 import { CERT_NOT_FOUND_ERROR, SUCCESS } from '../code/popbill.code';
@@ -22,16 +27,14 @@ export class PopbillRetriveService {
     );
   }
 
-  async checkCertValidation(CorpNum: string) {
+  async checkCertValidation(CorpNum: string): Promise<number> {
     const result = await checkCertValidation(CorpNum);
-
     switch (result) {
       // 인증서 유효함
       case SUCCESS:
-        break;
       // 인증서 재등록 필요
       case CERT_NOT_FOUND_ERROR:
-        break;
+        return result;
       // 알 수 없는 에러
       default:
         throw new InternalServerErrorException();

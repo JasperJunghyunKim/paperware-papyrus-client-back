@@ -101,9 +101,7 @@ export class TaxInvoiceRetriveService {
     }
   }
 
-  private getOrderItem(order: FindOrderItem, count: number): string {
-    if (count === 0) return '';
-
+  private getOrderItem(order: FindOrderItem): string {
     let orderType = '';
     let item = '';
 
@@ -168,10 +166,7 @@ export class TaxInvoiceRetriveService {
       item = order.orderEtc.item;
     }
 
-    return (
-      `${orderType} ${order.orderNo} ${item}` +
-      (count === 1 ? '' : ` 등 ${count}`)
-    );
+    return `${orderType} ${order.orderNo} ${item}`;
   }
 
   async getTaxInvoiceList(params: {
@@ -237,7 +232,9 @@ export class TaxInvoiceRetriveService {
         totalPrice: suppliedPrice + vatPrice,
         suppliedPrice,
         vatPrice,
-        item: this.getOrderItem(ti.order[0], ti.order.length),
+        item:
+          this.getOrderItem(ti.order[0]) +
+          (ti.order.length > 1 ? ` 등 ${ti.order.length}` : ''),
         order: undefined,
       });
     });
@@ -291,7 +288,9 @@ export class TaxInvoiceRetriveService {
       totalPrice: suppliedPrice + vatPrice,
       suppliedPrice,
       vatPrice,
-      item: this.getOrderItem(taxInvoice.order[0], taxInvoice.order.length),
+      item:
+        this.getOrderItem(taxInvoice.order[0]) +
+        (taxInvoice.order.length > 1 ? ` 등 ${taxInvoice.order.length}` : ''),
       order: undefined,
     });
   }
