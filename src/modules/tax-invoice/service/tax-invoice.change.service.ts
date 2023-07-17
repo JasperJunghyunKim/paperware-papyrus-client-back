@@ -4,14 +4,58 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderStatus, Prisma, TaxInvoicePurposeType } from '@prisma/client';
+import {
+  OrderStatus,
+  OrderType,
+  PackagingType,
+  Prisma,
+  TaxInvoicePurposeType,
+  TaxInvoiceStatus,
+} from '@prisma/client';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
+import { SUCCESS } from 'src/modules/popbill/code/popbill.code';
+import { PopbillRetriveService } from 'src/modules/popbill/service/popbill.retrive.service';
+import { createPopbillTaxInvoice } from 'src/modules/popbill/service/popbill.service';
 import { ulid } from 'ulid';
+import { TaxInvoiceRetriveService } from './tax-invoice.retrive.service';
+import { TAX_INVOICE } from 'src/common/selector';
+
+interface TaxInvoiceForIssue {
+  id: number;
+  invoicerMgtKey: string;
+  writeDate: string;
+  purposeType: TaxInvoicePurposeType;
+  dstCompanyRegistrationNumber: string;
+  dstCompanyName: string;
+  dstCompanyRepresentative: string;
+  dstCompanyAddress: string;
+  dstCompanyBizType: string;
+  dstCompanyBizItme: string;
+  dstEmail: string;
+  srcCompanyRegistrationNumber: string;
+  srcCompanyName: string;
+  srcCompanyRepresentative: string;
+  srcCompanyAddress: string;
+  srcCompanyBizType: string;
+  srcCompanyBizItem: string;
+  srcEmail: string;
+  srcEmail2: string;
+  status: TaxInvoiceStatus;
+  cash: number | null;
+  check: number | null;
+  note: number | null;
+  credit: number | null;
+  orderCount: BigInt;
+}
 
 @Injectable()
 export class TaxInvoiceChangeService {
-  constructor(private priamsService: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private taxInvoiceRetriveService: TaxInvoiceRetriveService,
+    private popbillRetriveService: PopbillRetriveService,
+  ) {}
 
   async createTaxInvoice(params: {
     userId: number;
@@ -20,7 +64,7 @@ export class TaxInvoiceChangeService {
     writeDate: string;
     purposeType: TaxInvoicePurposeType;
   }) {
-    return await this.priamsService.$transaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       const srcCompany = await tx.company.findUnique({
         include: {
           dstBusinessRelationship: {
@@ -58,7 +102,7 @@ export class TaxInvoiceChangeService {
         },
       });
 
-      const taxInvoice = await this.priamsService.taxInvoice.create({
+      const taxInvoice = await this.prisma.taxInvoice.create({
         data: {
           // 공급자
           companyId: params.companyId,
@@ -99,7 +143,7 @@ export class TaxInvoiceChangeService {
     note: number | null;
     credit: number | null;
   }) {
-    return await this.priamsService.$transaction(async (tx) => {
+    return await this.prisma.$transaction(async (tx) => {
       const taxInvoice = await tx.taxInvoice.findFirst({
         include: {
           order: true,
@@ -148,7 +192,7 @@ export class TaxInvoiceChangeService {
   }
 
   async deleteTaxInvoice(params: { companyId: number; id: number }) {
-    await this.priamsService.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const taxInvoice = await tx.taxInvoice.findFirst({
         include: {
           order: true,
@@ -185,7 +229,7 @@ export class TaxInvoiceChangeService {
   }
 
   async addOrder(companyId: number, taxInvoiceId: number, orderIds: number[]) {
-    await this.priamsService.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const orders: {
         id: number;
         srcCompanyId: number;
@@ -269,7 +313,7 @@ export class TaxInvoiceChangeService {
     taxInvoiceId: number,
     orderIds: number[],
   ) {
-    await this.priamsService.$transaction(async (tx) => {
+    await this.prisma.$transaction(async (tx) => {
       const taxInvoice = await tx.taxInvoice.findUnique({
         where: {
           id: taxInvoiceId,
@@ -311,6 +355,97 @@ export class TaxInvoiceChangeService {
           taxInvoiceId: null,
         },
       });
+    });
+  }
+
+  async issueTaxInvoice(companyId: number, taxInvoiceId: number) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    const check = await this.popbillRetriveService.checkCertValidation(
+      company.companyRegistrationNumber,
+    );
+    if (check !== SUCCESS) {
+      const certUrl = await this.popbillRetriveService.getCertUrl(companyId);
+      return {
+        certUrl,
+      };
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      const [taxInvoice]: TaxInvoiceForIssue[] = await tx.$queryRaw`
+        SELECT ti.id
+              , ti.invoicerMgtKey AS invoicerMgtKey
+              , ti.dstCompanyRegistrationNumber AS dstCompanyRegistrationNumber
+              , ti.dstCompanyName AS dstCompanyName
+              , ti.dstCompanyRepresentative AS dstCompanyRepresentative
+              , ti.dstCompanyAddress AS dstCompanyAddress
+              , ti.dstCompanyBizType AS dstCompanyBizType
+              , ti.dstCompanyBizItme AS dstCompanyBizItme
+              , ti.dstEmail AS dstEmail
+              , ti.srcCompanyRegistrationNumber AS srcCompanyRegistrationNumber
+              , ti.srcCompanyName AS srcCompanyName
+              , ti.srcCompanyRepresentative AS srcCompanyRepresentative
+              , ti.srcCompanyAddress AS srcCompanyAddress
+              , ti.srcCompanyBizType AS srcCompanyBizType
+              , ti.srcCompanyBizItem AS srcCompanyBizItem
+              , ti.srcEmail AS srcEmail
+              , ti.srcEmail2 AS srcEmail2
+              , ti.status
+              , ti.cash AS cash
+              , ti.check AS check
+              , ti.note AS note
+              , ti.credit AS credit
+              , COUNT(CASE WHEN o.id IS NOT NULL THEN 1 END) AS orderCount
+          FROM TaxInvoice  AS ti
+     LEFT JOIN \`Order\`   AS o   ON o.taxInvoiceId = ti.id
+         WHERE ti.id = ${taxInvoiceId}
+           AND ti.companyId = ${companyId}
+
+        GROUP BY ti.id
+
+        FOR UPDATE
+      `;
+
+      if (!taxInvoice)
+        throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+      if (taxInvoice.status !== 'PREPARING')
+        throw new ConflictException(`발행을 할 수 없는 상태입니다.`);
+      if (Number(taxInvoice.orderCount) === 0)
+        throw new ConflictException(`매출이 등록되지 않은 세금계산서 입니다.`);
+
+      const orders = await tx.$queryRaw`
+        SELECT *
+          FROM \`Order\`
+         WHERE taxInvoiceId = ${taxInvoiceId}
+           FOR UPDATE
+      `;
+
+      const taxInvoiceEntity = await tx.taxInvoice.findUnique({
+        select: TAX_INVOICE,
+        where: {
+          id: taxInvoiceId,
+        },
+      });
+
+      const PopbillTaxInvoice = createPopbillTaxInvoice({
+        ...taxInvoice,
+        orders: taxInvoiceEntity.order.map((order) => ({
+          item: this.taxInvoiceRetriveService.getOrderItem(order),
+          suppliedPrice:
+            order.tradePrice.find((tp) => tp.companyId === companyId)
+              ?.suppliedPrice || 0,
+          vatPrice:
+            order.tradePrice.find((tp) => tp.companyId === companyId)
+              ?.vatPrice || 0,
+        })),
+      });
+
+      return {
+        certUrl: null,
+      };
     });
   }
 }

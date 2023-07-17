@@ -64,7 +64,8 @@ export class TaxInvoiceController {
     @Req() req: AuthType,
     @Param() param: IdDto,
   ): Promise<TaxInvoiceIssueResponse> {
-    return await this.popbillChangeService.issueTaxInvoice(
+    throw new NotImplementedException();
+    return await this.changeService.issueTaxInvoice(
       req.user.companyId,
       param.id,
     );

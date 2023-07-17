@@ -101,7 +101,7 @@ export class TaxInvoiceRetriveService {
     }
   }
 
-  private getOrderItem(order: FindOrderItem): string {
+  getOrderItem(order: FindOrderItem): string {
     let orderType = '';
     let item = '';
 
