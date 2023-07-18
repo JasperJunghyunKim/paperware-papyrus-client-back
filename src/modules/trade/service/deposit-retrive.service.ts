@@ -324,10 +324,7 @@ export class DepositRetriveService {
   }
 
   /** 보관량 상세조회 */
-  async getDepositHistory(
-    id: number,
-    companyId: number,
-  ): Promise<Model.DepositEvent[]> {
+  async getDepositHistory(id: number, companyId: number) {
     const company = await this.prisma.company.findUnique({
       where: {
         id: companyId,

@@ -19,6 +19,7 @@ import { DepositRetriveService } from '../service/deposit-retrive.service';
 import { DepositChangeService } from '../service/deposit-change.service';
 import { DepositHistoryResponse } from 'src/@shared/api';
 import { Util } from 'src/common';
+import { IdDto } from 'src/common/request';
 
 @Controller('/deposit')
 export class DepositController {
@@ -45,14 +46,17 @@ export class DepositController {
     return result;
   }
 
-  /** 매입/매출 보관량 상세조회 */
+  /** 매입/매출 보관량 상세조회(히스토리) */
   @Get('/:id')
   @UseGuards(AuthGuard)
   async getDepositHistory(
     @Request() req: AuthType,
-    @Param('id') id: number,
+    @Param() idDto: IdDto,
   ): Promise<DepositHistoryResponse> {
-    const result = await this.retrive.getDepositHistory(id, req.user.companyId);
+    const result = await this.retrive.getDepositHistory(
+      idDto.id,
+      req.user.companyId,
+    );
     return result;
   }
 
