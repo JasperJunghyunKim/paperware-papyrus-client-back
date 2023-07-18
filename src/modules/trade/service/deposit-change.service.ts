@@ -132,6 +132,7 @@ export class DepositChangeService {
               id: deposit.id,
             },
           },
+          companyRegistrationNumber: company.companyRegistrationNumber,
           change: quantity,
           memo: memo || '',
         },

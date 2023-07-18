@@ -460,6 +460,11 @@ export class OrderChangeService {
           isEntrusted,
           memo: params.memo,
           orderDate: params.orderDate,
+          createdComapny: {
+            connect: {
+              id: params.isOffer ? params.dstCompanyId : params.srcCompanyId,
+            },
+          },
           orderStock: {
             create: {
               isDirectShipping: params.isOffer
@@ -1048,6 +1053,19 @@ export class OrderChangeService {
     dstCompany: Company,
     orderDeposit: OrderDeposit,
   ) {
+    const orderDepositEntity = await tx.orderDeposit.findUnique({
+      include: {
+        order: {
+          select: {
+            createdComapny: true,
+          },
+        },
+      },
+      where: {
+        id: orderDeposit.id,
+      },
+    });
+
     // srcCompany
     if (!srcCompany.managedById) {
       const deposit =
@@ -1127,6 +1145,8 @@ export class OrderChangeService {
               id: orderDeposit.id,
             },
           },
+          companyRegistrationNumber:
+            orderDepositEntity.order.createdComapny.companyRegistrationNumber,
         },
       });
     }
@@ -2202,6 +2222,11 @@ export class OrderChangeService {
           isEntrusted,
           memo,
           orderDate,
+          createdComapny: {
+            connect: {
+              id: isOffer ? dstCompanyId : srcCompanyId,
+            },
+          },
           orderDeposit: {
             create: {
               packaging: {
@@ -2314,6 +2339,7 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
+          createdComapny: true,
           depositEvent: {
             include: {
               deposit: true,
@@ -2340,7 +2366,6 @@ export class OrderChangeService {
       )
         throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
-      const isSrcCompany = order.srcCompanyId === companyId;
       if (order.depositEvent)
         throw new ConflictException(`보관품이 이미 등록되어 있습니다.`);
 
@@ -2367,6 +2392,8 @@ export class OrderChangeService {
             },
           },
           change: -quantity,
+          companyRegistrationNumber:
+            order.createdComapny.companyRegistrationNumber,
           targetOrder: {
             connect: {
               id: orderId,
@@ -2486,6 +2513,7 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
+          createdComapny: true,
           depositEvent: true,
           orderDeposit: {
             include: {
@@ -2508,7 +2536,6 @@ export class OrderChangeService {
       )
         throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
-      const isSrcCompany = order.srcCompanyId === companyId;
       const deposit = await tx.deposit.findUnique({
         where: {
           id: depositId,
@@ -2546,6 +2573,8 @@ export class OrderChangeService {
             },
           },
           change: -quantity,
+          companyRegistrationNumber:
+            order.createdComapny.companyRegistrationNumber,
           targetOrder: {
             connect: {
               id: orderId,
@@ -2732,6 +2761,11 @@ export class OrderChangeService {
           dstCompany: {
             connect: {
               id: dstCompanyId,
+            },
+          },
+          createdComapny: {
+            connect: {
+              id: companyId,
             },
           },
           status:
@@ -3087,6 +3121,11 @@ export class OrderChangeService {
           dstCompany: {
             connect: {
               id: dstCompanyId,
+            },
+          },
+          createdComapny: {
+            connect: {
+              id: companyId,
             },
           },
           status:
