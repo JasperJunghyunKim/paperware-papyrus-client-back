@@ -3,7 +3,7 @@ import { PartnerStockGroupListResponse } from 'src/@shared/api';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { GetPartnerStockGroupListDto } from './dto/partner-stock.request';
-import { PartnerStockRetriveService } from '../service/paertner-stock.retrive.service';
+import { PartnerStockRetriveService } from '../service/partner-stock.retrive.service';
 import { Util } from 'src/common';
 
 @Controller('/partner/stock')
