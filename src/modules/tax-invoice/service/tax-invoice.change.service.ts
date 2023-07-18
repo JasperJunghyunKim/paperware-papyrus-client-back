@@ -729,7 +729,7 @@ export class TaxInvoiceChangeService {
           SELECT id, status, invoicerMgtKey
             FROM TaxInvoice
            WHERE companyId = ${company.id}
-             AND status = ${TaxInvoiceStatus.ON_SEND}
+             AND status IN (${TaxInvoiceStatus.ON_SEND}, ${TaxInvoiceStatus.ISSUED})
             LIMIT 1000
   
           FOR UPDATE
