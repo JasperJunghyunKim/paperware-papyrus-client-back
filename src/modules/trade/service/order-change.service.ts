@@ -2314,8 +2314,11 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
-          srcDepositEvent: true,
-          dstDepositEvent: true,
+          depositEvent: {
+            include: {
+              deposit: true,
+            },
+          },
           orderDeposit: {
             include: {
               depositEvent: {
@@ -2338,11 +2341,8 @@ export class OrderChangeService {
         throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
       const isSrcCompany = order.srcCompanyId === companyId;
-      if (
-        (isSrcCompany && order.srcDepositEvent) ||
-        (!isSrcCompany && order.dstDepositEvent)
-      )
-        throw new ConflictException(`이미 차감할 보관이 등록되어 있습니다.`);
+      if (order.depositEvent)
+        throw new ConflictException(`보관품이 이미 등록되어 있습니다.`);
 
       const deposit = await tx.deposit.findUnique({
         where: {
@@ -2351,10 +2351,10 @@ export class OrderChangeService {
       });
       if (
         !deposit ||
-        (deposit.dstCompanyRegistrationNumber !==
-          company.companyRegistrationNumber &&
-          deposit.srcCompanyRegistrationNumber !==
-            company.companyRegistrationNumber)
+        deposit.srcCompanyRegistrationNumber !==
+          order.srcCompany.companyRegistrationNumber ||
+        deposit.dstCompanyRegistrationNumber !==
+          order.dstCompany.companyRegistrationNumber
       ) {
         throw new NotFoundException(`존재하지 않는 보관입니다.`);
       }
@@ -2367,20 +2367,11 @@ export class OrderChangeService {
             },
           },
           change: -quantity,
-          srcOrder: isSrcCompany
-            ? {
-                connect: {
-                  id: orderId,
-                },
-              }
-            : undefined,
-          dstOrder: !isSrcCompany
-            ? {
-                connect: {
-                  id: orderId,
-                },
-              }
-            : undefined,
+          targetOrder: {
+            connect: {
+              id: orderId,
+            },
+          },
         },
       });
     });

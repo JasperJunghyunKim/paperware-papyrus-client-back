@@ -429,15 +429,13 @@ model Order {
   orderStock        OrderStock?
   tradePrice        TradePrice[]
   orderDeposit      OrderDeposit?
-  srcDepositEventId Int?
-  srcDepositEvent   DepositEvent? @relation("srcDepositEvent", fields: [srcDepositEventId], references: [id])
-  dstDepositEventId Int?
-  dstDepositEvent   DepositEvent? @relation("dstDepositEvent", fields: [dstDepositEventId], references: [id])
   orderProcess      OrderProcess?
   orderEtc          OrderEtc?
   taxInvoiceId      Int?
   taxInvoice        TaxInvoice?   @relation(fields: [taxInvoiceId], references: [id])
   revision          Int           @default(0)
+  depositEventId    Int?
+  depositEvent      DepositEvent?
 }
 
 model OrderStock {
@@ -1400,8 +1398,8 @@ model DepositEvent {
   createdAt      DateTime           @default(now())
   orderDepositId Int?
   orderDeposit   OrderDeposit?      @relation(fields: [orderDepositId], references: [id])
-  srcOrder       Order[]            @relation("srcDepositEvent")
-  dstOrder       Order[]            @relation("dstDepositEvent")
+  targetOrderId  Int?               @unique
+  targetOrder    Order?             @relation(fields: [targetOrderId], references: [id])
 }
 
 model OrderDepositTradePrice {
