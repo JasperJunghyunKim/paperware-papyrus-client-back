@@ -663,7 +663,279 @@ export const PLAN = {
   },
   createdAt: true,
   assignStockEvent: {
-    select: STOCK_EVENT,
+    select: {
+      id: true,
+      useRemainder: true,
+      stock: {
+        select: {
+          id: true,
+          serial: true,
+          company: {
+            select: COMPANY,
+          },
+          warehouse: {
+            select: WAREHOUSE,
+          },
+          planId: true,
+          plan: {
+            select: {
+              id: true,
+              planNo: true,
+              type: true,
+              status: true,
+              company: {
+                select: COMPANY,
+              },
+              createdAt: true,
+              assignStockEvent: {
+                select: {
+                  id: true,
+                  useRemainder: true,
+                  stock: {
+                    select: {
+                      id: true,
+                      serial: true,
+                      company: {
+                        select: COMPANY,
+                      },
+                      warehouse: {
+                        select: WAREHOUSE,
+                      },
+                      planId: true,
+                      product: {
+                        select: PRODUCT,
+                      },
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                      isSyncPrice: true,
+                      cachedQuantity: true,
+                      cachedQuantityAvailable: true,
+                      stockPrice: {
+                        select: STOCK_PRICE,
+                      },
+                      initialPlan: {
+                        include: {
+                          orderStock: {
+                            select: {
+                              order: {
+                                select: {
+                                  srcCompany: {
+                                    select: COMPANY,
+                                  },
+                                  dstCompany: {
+                                    select: COMPANY,
+                                  },
+                                  tradePrice: {
+                                    include: {
+                                      orderStockTradePrice: true,
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                          orderProcess: {
+                            select: {
+                              order: {
+                                select: {
+                                  srcCompany: {
+                                    select: COMPANY,
+                                  },
+                                  dstCompany: {
+                                    select: COMPANY,
+                                  },
+                                  tradePrice: {
+                                    include: {
+                                      orderStockTradePrice: true,
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                  change: true,
+                  status: true,
+                  createdAt: true,
+                  plan: {
+                    select: {
+                      planNo: true,
+                      type: true,
+                      orderStock: {
+                        select: {
+                          order: {
+                            select: {
+                              srcCompany: true,
+                              dstCompany: true,
+                            },
+                          },
+                        },
+                      },
+                      orderProcess: {
+                        select: {
+                          order: {
+                            select: {
+                              srcCompany: true,
+                              dstCompany: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              targetStockEvent: {
+                select: STOCK_EVENT,
+              },
+              orderStock: {
+                select: {
+                  dstLocation: {
+                    select: LOCATION,
+                  },
+                  wantedDate: true,
+                  order: {
+                    select: ORDER,
+                  },
+                },
+              },
+              orderProcess: {
+                select: {
+                  dstLocation: {
+                    select: LOCATION,
+                  },
+                  dstWantedDate: true,
+                  srcLocation: {
+                    select: LOCATION,
+                  },
+                  srcWantedDate: true,
+                  order: {
+                    select: ORDER,
+                  },
+                },
+              },
+            },
+          },
+          product: {
+            select: PRODUCT,
+          },
+          packaging: {
+            select: PACKAGING,
+          },
+          grammage: true,
+          sizeX: true,
+          sizeY: true,
+          paperColorGroup: {
+            select: PAPER_COLOR_GROUP,
+          },
+          paperColor: {
+            select: PAPER_COLOR,
+          },
+          paperPattern: {
+            select: PAPER_PATTERN,
+          },
+          paperCert: {
+            select: PAPER_CERT,
+          },
+          isSyncPrice: true,
+          cachedQuantity: true,
+          cachedQuantityAvailable: true,
+          stockPrice: {
+            select: STOCK_PRICE,
+          },
+          initialPlan: {
+            include: {
+              orderStock: {
+                select: {
+                  order: {
+                    select: {
+                      srcCompany: {
+                        select: COMPANY,
+                      },
+                      dstCompany: {
+                        select: COMPANY,
+                      },
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              orderProcess: {
+                select: {
+                  order: {
+                    select: {
+                      srcCompany: {
+                        select: COMPANY,
+                      },
+                      dstCompany: {
+                        select: COMPANY,
+                      },
+                      tradePrice: {
+                        include: {
+                          orderStockTradePrice: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      change: true,
+      status: true,
+      createdAt: true,
+      plan: {
+        select: {
+          planNo: true,
+          type: true,
+          orderStock: {
+            select: {
+              order: {
+                select: {
+                  srcCompany: true,
+                  dstCompany: true,
+                },
+              },
+            },
+          },
+          orderProcess: {
+            select: {
+              order: {
+                select: {
+                  srcCompany: true,
+                  dstCompany: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   targetStockEvent: {
     select: STOCK_EVENT,
