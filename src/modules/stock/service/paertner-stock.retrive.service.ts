@@ -72,7 +72,7 @@ export class PartnerStockRetriveService {
     sizeX: number | null,
     sizeY: number | null,
   ): Promise<{
-    items: StockGroup[];
+    items: (StockGroup & { partnerCompanyRegistrationNumber: string })[];
     total: number;
   }> {
     const limit = take ? Prisma.sql`LIMIT ${skip}, ${take}` : Prisma.empty;
@@ -147,7 +147,7 @@ export class PartnerStockRetriveService {
                   -- 거래처 정보
                   , srcCompany.id AS partnerCompanyId
                   , srcCompany.businessName As partnerCompanyBusinessName
-                  , srcCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+                  , srcCompany.companyRegistrationNumber As partnerCompanyRegistrationNumber
                   , srcCompany.invoiceCode AS partnerCompanyInvoiceCode
                   , srcCompany.representative AS partnerCompanyRepresentative
                   , srcCompany.address AS partnerCompanyAddress
@@ -306,6 +306,7 @@ export class PartnerStockRetriveService {
           storingQuantity: 0,
           nonStoringQuantity: 0,
           lossRate: sg.lossRate === null ? null : Number(sg.lossRate),
+          partnerCompanyRegistrationNumber: sg.partnerCompanyRegistrationNumber,
         };
       }),
       total,
