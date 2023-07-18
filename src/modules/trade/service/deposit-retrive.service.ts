@@ -14,6 +14,8 @@ import { PrismaService } from 'src/core';
 
 export interface DepositFromDB {
   id: number;
+  srcCompanyRegistrationNumber: string;
+  dstCompanyRegistrationNumber: string;
   companyRegistrationNumber: string;
   partnerId: number;
   partnerNickName: string;
@@ -139,6 +141,8 @@ export class DepositRetriveService {
 
     const result: DepositFromDB[] = await this.prisma.$queryRaw`
       SELECT d.id
+            , d.srcCompanyRegistrationNumber AS srcCompanyRegistrationNumber
+            , d.dstCompanyRegistrationNumber AS dstCompanyRegistrationNumber
             , p.companyRegistrationNumber AS companyRegistrationNumber
             , p.id AS partnerId
             , p.partnerNickName AS partnerNickName
@@ -259,8 +263,8 @@ export class DepositRetriveService {
     return {
       items: result.map((deposit) => ({
         id: deposit.id,
-        srcCompanyRegistrationNumber: '', // TODO: 추가
-        dstCompanyRegistrationNumber: '', // TODO: 추가
+        srcCompanyRegistrationNumber: deposit.srcCompanyRegistrationNumber,
+        dstCompanyRegistrationNumber: deposit.dstCompanyRegistrationNumber,
         partnerNickName:
           deposit.partnerNickName ||
           companyNameMap.get(deposit.companyRegistrationNumber),
