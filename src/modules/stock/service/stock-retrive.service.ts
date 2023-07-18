@@ -606,6 +606,10 @@ export class StockRetriveService {
             , COUNT(1) OVER() AS total
 
         FROM Stock              AS s
+        JOIN (
+          SELECT *, COUNT(1) OVER(PARTITION BY stockId ORDER BY stockId)
+            FROM StockEvent
+        ) AS firstStockEvent ON firstStockEvent.stockId = s.id AND firstStockEvent.status != ${StockEventStatus.CANCELLED}
    LEFT JOIN (
           SELECT stockId
                 , IFNULL(SUM(\`change\`), 0) AS storingQuantity
@@ -616,6 +620,7 @@ export class StockRetriveService {
 
            GROUP BY stockId
         ) AS arrivalStockEvent ON arrivalStockEvent.stockId = s.id
+   
    LEFT JOIN Warehouse          AS w                        ON w.id = s.warehouseId
    LEFT JOIN Plan               AS p                        ON p.id = s.planId
    LEFT JOIN PlanShipping       AS ps                       ON ps.planId = p.id
