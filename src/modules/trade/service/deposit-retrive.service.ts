@@ -393,6 +393,7 @@ export class DepositRetriveService {
     return deposit.depositEvents.map((e) => ({
       id: e.id,
       change: e.change,
+      companyRegistrationNumber: e.companyRegistrationNumber,
       createdAt: e.createdAt.toISOString(),
       memo: e.memo,
       orderDeposit: e.orderDeposit,
