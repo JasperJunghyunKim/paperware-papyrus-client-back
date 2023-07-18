@@ -288,6 +288,8 @@ model Company {
   order                          Order[]                       @relation("acceptedCompany")
   createdOrder                   Order[]                       @relation("createdCompany")
   TaxInvoice                     TaxInvoice[]
+  srcOrderRequest                OrderRequest[]                @relation("srcOrderRequestCompany")
+  dstOrderRequest                OrderRequest[]                @relation("dstOrderRequestCompany")
 }
 
 model BusinessRelationship {
@@ -331,6 +333,7 @@ model Location {
   PlanShipping    PlanShipping[]
   dstOrderProcess OrderProcess[] @relation("dstLocation")
   srcOrderProcess OrderProcess[] @relation("srcLocation")
+  OrderRequest    OrderRequest[]
 }
 
 // Prices
@@ -1436,6 +1439,42 @@ model OrderDepositTradeAltBundle {
   orderDepositTradePrice OrderDepositTradePrice @relation(fields: [orderId, companyId], references: [orderId, companyId])
 
   @@id([orderId, companyId])
+}
+
+enum OrderRequestItemStatus {
+  REQUESTED // 주문접수
+  ON_CHECKING // 확인중
+  DONE // 종료
+  CANCELLED // 취소
+}
+
+model OrderRequest {
+  id                Int                @id @default(autoincrement())
+  // 거래처
+  srcCompanyId      Int
+  srcCompany        Company            @relation("srcOrderRequestCompany", fields: [srcCompanyId], references: [id])
+  dstCompanyId      Int
+  dstCompany        Company            @relation("dstOrderRequestCompany", fields: [dstCompanyId], references: [id])
+  // 발주자 정보
+  ordererName       String
+  ordererPhoneNo    String
+  // 도착지 + 도착희망일
+  locationId        Int?
+  location          Location?          @relation(fields: [locationId], references: [id])
+  wantedDate        DateTime?
+  memo              String             @default("")
+  orderRequestItems OrderRequestItem[]
+}
+
+model OrderRequestItem {
+  id             Int                    @id @default(autoincrement())
+  serial         String                 @unique
+  item           String
+  quantity       String                 @default("")
+  memo           String                 @default("")
+  status         OrderRequestItemStatus @default(REQUESTED)
+  orderRequestId Int
+  orderRequest   OrderRequest           @relation(fields: [orderRequestId], references: [id])
 }
 
 model TempInvoiceCode {
