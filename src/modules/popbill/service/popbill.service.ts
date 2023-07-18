@@ -281,6 +281,27 @@ export const sendToNTS = async (CorpNum: string, mgtKey: string) => {
   return result;
 };
 
+export const getTaxInvoiceInfo = async (CorpNum: string, mgtKey: string) => {
+  const result: PopbillTaxInvoiceInfo | Error = await new Promise(
+    (res, rej) => {
+      taxInvoiceService.getInfo(
+        CorpNum,
+        'SELL',
+        mgtKey,
+        function (result) {
+          res(result);
+        },
+        function (err) {
+          console.log(err);
+          rej(err);
+        },
+      );
+    },
+  );
+
+  return result;
+};
+
 export const getTaxInvoiceInfos = async (
   CorpNum: string,
   mgtKeyList: string[],
@@ -300,6 +321,45 @@ export const getTaxInvoiceInfos = async (
       );
     },
   );
+
+  return result;
+};
+
+export const cancelIssue = async (CorpNum: string, mgtKey: string) => {
+  const result: PopbillResponse = await new Promise((res, rej) => {
+    taxInvoiceService.cancelIssue(
+      CorpNum,
+      'SELL',
+      mgtKey,
+      '',
+      function (result) {
+        res(result);
+      },
+      function (err) {
+        console.log(err);
+        rej(err);
+      },
+    );
+  });
+
+  return result;
+};
+
+export const deleteTaxInvoice = async (CorpNum: string, mgtKey: string) => {
+  const result: PopbillResponse = await new Promise((res, rej) => {
+    taxInvoiceService.delete(
+      CorpNum,
+      'SELL',
+      mgtKey,
+      function (result) {
+        res(result);
+      },
+      function (err) {
+        console.log(err);
+        rej(err);
+      },
+    );
+  });
 
   return result;
 };

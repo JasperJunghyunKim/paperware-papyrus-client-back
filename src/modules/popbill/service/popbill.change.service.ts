@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core';
 import { PopbillRetriveService } from './popbill.retrive.service';
-import { PopbillResponse, registIssue, sendToNTS } from './popbill.service';
+import {
+  PopbillResponse,
+  cancelIssue,
+  deleteTaxInvoice,
+  registIssue,
+  sendToNTS,
+} from './popbill.service';
 import { PopbillTaxInvoice } from './popbill.interface';
 
 @Injectable()
@@ -23,5 +29,16 @@ export class PopbillChangeService {
     mgtKey: string,
   ): Promise<PopbillResponse> {
     return await sendToNTS(companyRegistrationNumber, mgtKey);
+  }
+
+  async cancelIssue(
+    companyRegistrationNumber: string,
+    mgtKey: string,
+  ): Promise<PopbillResponse> {
+    return await cancelIssue(companyRegistrationNumber, mgtKey);
+  }
+
+  async deleteTaxInvoice(companyRegistrationNumber: string, mgtKey: string) {
+    return await deleteTaxInvoice(companyRegistrationNumber, mgtKey);
   }
 }

@@ -8,6 +8,7 @@ import { PrismaService } from 'src/core';
 import {
   checkCertValidation,
   getCertUrl,
+  getTaxInvoiceInfo,
   getTaxInvoiceInfos,
 } from './popbill.service';
 import { CERT_NOT_FOUND_ERROR, SUCCESS } from '../code/popbill.code';
@@ -43,6 +44,10 @@ export class PopbillRetriveService {
       default:
         throw new InternalServerErrorException();
     }
+  }
+
+  async getTaxInvoiceInfo(CorpNum: string, mgtKey: string) {
+    return await getTaxInvoiceInfo(CorpNum, mgtKey);
   }
 
   async getTaxInvoiceInfos(CorpNum: string, mgtKeyList: string[]) {

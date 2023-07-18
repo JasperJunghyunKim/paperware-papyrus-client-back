@@ -26,6 +26,7 @@ import {
 import { PopbillRetriveService } from 'src/modules/popbill/service/popbill.retrive.service';
 import {
   PopbillIssueResponse,
+  PopbillTaxInvoiceInfo,
   createPopbillTaxInvoice,
 } from 'src/modules/popbill/service/popbill.service';
 import { ulid } from 'ulid';
@@ -537,6 +538,102 @@ export class TaxInvoiceChangeService {
         default:
           this.logger.log(`[세금계산서 발행 오류]`, result);
           throw new InternalServerErrorException();
+      }
+
+      return {
+        certUrl: null,
+      };
+    });
+  }
+
+  async cancelIssue(companyId: number, taxInvoiceId: number) {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+      },
+    });
+    const check = await this.popbillRetriveService.checkCertValidation(
+      company.companyRegistrationNumber,
+    );
+    if (check !== SUCCESS) {
+      const certUrl = await this.popbillRetriveService.getCertUrl(companyId);
+      return {
+        certUrl,
+      };
+    }
+
+    return await this.prisma.$transaction(async (tx) => {
+      const [taxInvoice]: {
+        id: number;
+        status: TaxInvoiceStatus;
+        invoicerMgtKey: string;
+      }[] = await tx.$queryRaw`
+        SELECT id, status, invoicerMgtKey
+          FROM TaxInvoice
+         WHERE id = ${taxInvoiceId}
+           AND companyId = ${companyId}
+           AND isDeleted = ${false}
+        
+        FOR UPDATE
+      `;
+      if (!taxInvoice)
+        throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+
+      const checkStatus = await this.popbillRetriveService.getTaxInvoiceInfo(
+        company.companyRegistrationNumber,
+        taxInvoice.invoicerMgtKey,
+      );
+      if (checkStatus instanceof Error) {
+        throw new InternalServerErrorException();
+      }
+
+      const popbillTaxInvoice = checkStatus as PopbillTaxInvoiceInfo;
+      // console.log(1111, popbillTaxInvoice);
+      switch (popbillTaxInvoice.stateCode) {
+        case PopbillStateCode.ISSUED:
+        case PopbillStateCode.SEND_FAILED:
+          const result = await this.popbillChangeService.cancelIssue(
+            company.companyRegistrationNumber,
+            taxInvoice.invoicerMgtKey,
+          );
+          switch (result.code) {
+            // 성공
+            case SUCCESS:
+              await tx.taxInvoice.update({
+                where: {
+                  id: taxInvoiceId,
+                },
+                data: {
+                  status: 'PREPARING',
+                },
+              });
+              await this.popbillChangeService.deleteTaxInvoice(
+                company.companyRegistrationNumber,
+                taxInvoice.invoicerMgtKey,
+              );
+              break;
+            case CERT_NOT_FOUND_ERROR:
+            case CERT_NOT_VALID_ERROR:
+              const certUrl = await this.popbillRetriveService.getCertUrl(
+                companyId,
+              );
+              return {
+                certUrl,
+              };
+            default:
+              throw new InternalServerErrorException();
+          }
+          break;
+        case PopbillStateCode.BEFORE_SEND:
+        case PopbillStateCode.WAIT_SEND:
+        case PopbillStateCode.ON_SEND:
+          throw new BadRequestException(`전송중인 세금계산서 입니다.`);
+        case PopbillStateCode.SENDED:
+          throw new BadRequestException(
+            `이미 전송이 완료된 세금계산서 입니다.`,
+          );
+        case PopbillStateCode.ISSUE_CANCELLED:
+          throw new BadRequestException(`이미 발행이 취소된 세금계산서입니다.`);
       }
 
       return {

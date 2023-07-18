@@ -71,6 +71,16 @@ export class TaxInvoiceController {
     );
   }
 
+  /** 발행 */
+  @Post('/:id/issue/cancel')
+  @UseGuards(AuthGuard)
+  async cancelIssue(
+    @Req() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<TaxInvoiceIssueResponse> {
+    return await this.changeService.cancelIssue(req.user.companyId, param.id);
+  }
+
   /** 전송 */
   @Post('/:id/send')
   @UseGuards(AuthGuard)

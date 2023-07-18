@@ -15,6 +15,8 @@ export const CORP_NUM_NOT_FOUND_ERROR = -99003008;
 /// status code
 export enum PopbillStateCode {
   ISSUED = 300,
+  BEFORE_SEND = 301,
+  WAIT_SEND = 302,
   ON_SEND = 303,
   SENDED = 304,
   SEND_FAILED = 305,
