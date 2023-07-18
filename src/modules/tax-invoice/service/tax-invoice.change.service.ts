@@ -578,6 +578,14 @@ export class TaxInvoiceChangeService {
       `;
       if (!taxInvoice)
         throw new NotFoundException(`존재하지 않는 세금계산서 입니다.`);
+      if (
+        taxInvoice.status !== 'ISSUED' &&
+        taxInvoice.status !== 'ISSUE_FAILED'
+      ) {
+        throw new BadRequestException(
+          `발행완료 또는 전송실패 상태의 세금계산서만 발행취소 가능합니다.`,
+        );
+      }
 
       const checkStatus = await this.popbillRetriveService.getTaxInvoiceInfo(
         company.companyRegistrationNumber,
