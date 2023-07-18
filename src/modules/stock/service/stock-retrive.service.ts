@@ -307,6 +307,10 @@ export class StockRetriveService {
     maxGrammage: number | null;
     sizeX: number | null;
     sizeY: number | null;
+    partnerCompanyRegistrationNumbers: string[];
+    locationIds: number[];
+    minWantedDate: string | null;
+    maxWantedDate: string | null;
   }): Promise<{
     items: StockGroup[];
     total: number;
@@ -328,6 +332,10 @@ export class StockRetriveService {
       maxGrammage,
       sizeX,
       sizeY,
+      partnerCompanyRegistrationNumbers,
+      locationIds,
+      minWantedDate,
+      maxWantedDate,
     } = params;
 
     /** Query Condition */
@@ -400,6 +408,45 @@ export class StockRetriveService {
       : Prisma.empty;
     const sizeYQuery = sizeY
       ? Prisma.sql`AND (s.sizeY >= ${sizeY} OR s.sizeY = 0)`
+      : Prisma.empty;
+
+    const partnerCompanyQuery =
+      partnerCompanyRegistrationNumbers.length > 0
+        ? Prisma.sql`AND partnerCompany.companyRegistrationNumber IN (${Prisma.join(
+            partnerCompanyRegistrationNumbers,
+          )})`
+        : Prisma.empty;
+    const locationQuery =
+      locationIds.length > 0
+        ? Prisma.sql`AND (CASE
+          WHEN os.id IS NOT NULL THEN os.dstLocationId IN (${Prisma.join(
+            locationIds,
+          )})
+          WHEN op.id IS NOT NULL THEN (op.srcLocationId IN (${Prisma.join(
+            locationIds,
+          )}) OR op.dstLocationId IN (${Prisma.join(locationIds)}))
+          WHEN ps.planId IS NOT NULL THEN ps.dstLocationId IN (${Prisma.join(
+            locationIds,
+          )})
+        ELSE 1 = 0
+      END)`
+        : Prisma.empty;
+
+    const minWantedDateQuery = minWantedDate
+      ? Prisma.sql`AND (CASE
+      WHEN os.id IS NOT NULL THEN os.wantedDate >= ${minWantedDate}
+      WHEN ps.planId IS NOT NULL THEN ps.wantedDate >= ${minWantedDate}
+      WHEN op.id IS NOT NULL THEN (op.srcWantedDate >= ${minWantedDate} OR op.dstWantedDate >= ${minWantedDate})
+      ELSE 1 = 0
+    END)`
+      : Prisma.empty;
+    const maxWantedDateQuery = maxWantedDate
+      ? Prisma.sql`AND (CASE
+      WHEN os.id IS NOT NULL THEN os.wantedDate <= ${maxWantedDate}
+      WHEN ps.planId IS NOT NULL THEN ps.wantedDate <= ${maxWantedDate}
+      WHEN op.id IS NOT NULL THEN (op.srcWantedDate <= ${maxWantedDate} OR op.dstWantedDate <= ${maxWantedDate})
+      ELSE 1 = 0
+    END)`
       : Prisma.empty;
 
     const stockGroups: StockGroupFromDB[] = await this.prisma.$queryRaw`
@@ -479,7 +526,7 @@ export class StockRetriveService {
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
             , partnerCompany.businessName As partnerCompanyBusinessName
-            , partnerCompany.companyRegistrationNumber As partnerCompanyCompanyRegistrationNumber
+            , partnerCompany.companyRegistrationNumber As partnerCompanyRegistrationNumbers
             , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
             , partnerCompany.bizType AS partnerCompanyBizType
             , partnerCompany.bizItem AS partnerCompanyBizItem
@@ -646,6 +693,10 @@ export class StockRetriveService {
          ${maxGrammageQuery}
          ${sizeXQuery}
          ${sizeYQuery}
+         ${partnerCompanyQuery}
+         ${locationQuery}
+         ${minWantedDateQuery}
+         ${maxWantedDateQuery}
 
        GROUP BY s.packagingId
                 , s.productId

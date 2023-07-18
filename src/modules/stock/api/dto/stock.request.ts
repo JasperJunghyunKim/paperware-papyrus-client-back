@@ -113,6 +113,22 @@ export class StockGroupListRequestDto implements StockGroupListQuery {
   @Type(() => Number)
   @Min(0)
   readonly sizeY: number = null;
+
+  @IsOptional()
+  @IsString()
+  readonly partnerCompanyRegistrationNumbers: string = '';
+
+  @IsOptional()
+  @IsString()
+  readonly locationIds: string = '';
+
+  @IsOptional()
+  @IsDateString()
+  readonly minWantedDate: string | null = null;
+
+  @IsOptional()
+  @IsDateString()
+  readonly maxWantedDate: string | null = null;
 }
 
 /** 자사 재고 히스토리 조회 */

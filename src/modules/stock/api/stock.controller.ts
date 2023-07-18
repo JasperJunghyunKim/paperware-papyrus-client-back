@@ -136,6 +136,12 @@ export class StockController {
       packagingIds: Util.searchKeywordsToIntArray(dto.packagingIds),
       paperTypeIds: Util.searchKeywordsToIntArray(dto.paperTypeIds),
       manufacturerIds: Util.searchKeywordsToIntArray(dto.manufacturerIds),
+      partnerCompanyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        dto.partnerCompanyRegistrationNumbers,
+      ),
+      locationIds: Util.searchKeywordsToIntArray(dto.locationIds),
+      minWantedDate: dto.minWantedDate,
+      maxWantedDate: dto.maxWantedDate,
     });
 
     return result;
