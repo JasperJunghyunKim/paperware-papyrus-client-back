@@ -2486,8 +2486,7 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
-          srcDepositEvent: true,
-          dstDepositEvent: true,
+          depositEvent: true,
           orderDeposit: {
             include: {
               depositEvent: {
@@ -2517,91 +2516,43 @@ export class OrderChangeService {
       });
       if (
         !deposit ||
-        (deposit.dstCompanyRegistrationNumber !==
-          company.companyRegistrationNumber &&
-          deposit.srcCompanyRegistrationNumber !==
-            company.companyRegistrationNumber)
+        deposit.srcCompanyRegistrationNumber !==
+          order.srcCompany.companyRegistrationNumber ||
+        deposit.dstCompanyRegistrationNumber !==
+          order.dstCompany.companyRegistrationNumber
       ) {
         throw new NotFoundException(`존재하지 않는 보관입니다.`);
       }
 
-      const depositEvent = isSrcCompany
-        ? order.srcDepositEvent
-        : order.dstDepositEvent;
+      const depositEvent = order.depositEvent;
       if (depositEvent) {
         await tx.depositEvent.update({
           data: {
             status: DepositEventStatus.CANCELLED,
-            srcOrder: isSrcCompany
-              ? {
-                  disconnect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
-            dstOrder: !isSrcCompany
-              ? {
-                  disconnect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
+            targetOrder: {
+              disconnect: true,
+            },
           },
           where: {
             id: depositEvent.id,
           },
         });
-
-        await tx.depositEvent.create({
-          data: {
-            deposit: {
-              connect: {
-                id: depositId,
-              },
-            },
-            change: -quantity,
-            srcOrder: isSrcCompany
-              ? {
-                  connect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
-            dstOrder: !isSrcCompany
-              ? {
-                  connect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
-          },
-        });
-      } else {
-        await tx.depositEvent.create({
-          data: {
-            deposit: {
-              connect: {
-                id: depositId,
-              },
-            },
-            change: -quantity,
-            srcOrder: isSrcCompany
-              ? {
-                  connect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
-            dstOrder: !isSrcCompany
-              ? {
-                  connect: {
-                    id: orderId,
-                  },
-                }
-              : undefined,
-          },
-        });
       }
+      await tx.depositEvent.create({
+        data: {
+          deposit: {
+            connect: {
+              id: depositId,
+            },
+          },
+          change: -quantity,
+          targetOrder: {
+            connect: {
+              id: orderId,
+            },
+          },
+        },
+      });
 
       await this.updateOrderRevisionTx(tx, orderId);
     });
@@ -2613,8 +2564,7 @@ export class OrderChangeService {
         include: {
           srcCompany: true,
           dstCompany: true,
-          srcDepositEvent: true,
-          dstDepositEvent: true,
+          depositEvent: true,
           orderDeposit: {
             include: {
               depositEvent: {
@@ -2637,35 +2587,18 @@ export class OrderChangeService {
         throw new NotFoundException(`주문이 존재하지 않습니다.`);
 
       const isSrcCompany = order.srcCompanyId === companyId;
-      if (
-        (isSrcCompany && !order.srcDepositEvent) ||
-        (!isSrcCompany && !order.dstDepositEvent)
-      )
+      if (!order.depositEvent)
         throw new ConflictException(`보관이 등록되어 있지 않습니다.`);
 
-      const depositEvent = isSrcCompany
-        ? order.srcDepositEvent
-        : order.dstDepositEvent;
       await tx.depositEvent.update({
         data: {
           status: DepositEventStatus.CANCELLED,
-          srcOrder: isSrcCompany
-            ? {
-                disconnect: {
-                  id: orderId,
-                },
-              }
-            : undefined,
-          dstOrder: !isSrcCompany
-            ? {
-                disconnect: {
-                  id: orderId,
-                },
-              }
-            : undefined,
+          targetOrder: {
+            disconnect: true,
+          },
         },
         where: {
-          id: depositEvent.id,
+          id: order.depositEvent.id,
         },
       });
     });

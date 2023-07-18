@@ -614,14 +614,7 @@ export const ORDER = {
   orderEtc: {
     select: ORDER_ETC,
   },
-  srcDepositEvent: {
-    include: {
-      deposit: {
-        select: DEPOSIT,
-      },
-    },
-  },
-  dstDepositEvent: {
+  depositEvent: {
     include: {
       deposit: {
         select: DEPOSIT,

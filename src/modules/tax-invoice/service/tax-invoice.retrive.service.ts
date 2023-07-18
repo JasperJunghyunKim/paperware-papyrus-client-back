@@ -66,7 +66,7 @@ interface FindOrderItemStock {
 interface FindOrderItem {
   orderNo: string;
   orderType: OrderType;
-  dstDepositEvent: {
+  depositEvent: {
     id: number;
   } | null;
   orderStock: FindOrderItemStock | null;
@@ -107,7 +107,7 @@ export class TaxInvoiceRetriveService {
 
     switch (order.orderType) {
       case 'NORMAL':
-        orderType = order.dstDepositEvent ? '보관출고' : '정상매출';
+        orderType = order.depositEvent ? '보관출고' : '정상매출';
         break;
       case 'DEPOSIT':
         orderType = '매출보관';
@@ -311,14 +311,7 @@ export class TaxInvoiceRetriveService {
         orderDeposit: {
           select: ORDER_DEPOSIT,
         },
-        srcDepositEvent: {
-          include: {
-            deposit: {
-              select: DEPOSIT,
-            },
-          },
-        },
-        dstDepositEvent: {
+        depositEvent: {
           include: {
             deposit: {
               select: DEPOSIT,

@@ -52,14 +52,7 @@ export class OrderRetriveService {
         orderDeposit: {
           select: ORDER_DEPOSIT,
         },
-        srcDepositEvent: {
-          include: {
-            deposit: {
-              select: DEPOSIT,
-            },
-          },
-        },
-        dstDepositEvent: {
+        depositEvent: {
           include: {
             deposit: {
               select: DEPOSIT,
@@ -300,14 +293,7 @@ export class OrderRetriveService {
   async getOrderDeposit(companyId: number, orderId: number) {
     const order = await this.prisma.order.findUnique({
       include: {
-        srcDepositEvent: {
-          include: {
-            deposit: {
-              select: DEPOSIT,
-            },
-          },
-        },
-        dstDepositEvent: {
+        depositEvent: {
           include: {
             deposit: {
               select: DEPOSIT,
@@ -325,11 +311,7 @@ export class OrderRetriveService {
     )
       throw new NotFoundException(`존재하지 않는 주문입니다.`);
 
-    const depositEvent =
-      order.srcCompanyId === companyId
-        ? order.srcDepositEvent
-        : order.dstDepositEvent;
-    return depositEvent;
+    return order.depositEvent;
   }
 
   async getOrderProcess(
