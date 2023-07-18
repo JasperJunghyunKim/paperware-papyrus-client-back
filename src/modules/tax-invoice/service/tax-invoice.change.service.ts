@@ -613,6 +613,7 @@ export class TaxInvoiceChangeService {
                 },
                 data: {
                   status: 'PREPARING',
+                  ntsconfirmNum: null,
                 },
               });
               await this.popbillChangeService.deleteTaxInvoice(
