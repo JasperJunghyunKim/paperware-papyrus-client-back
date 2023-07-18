@@ -166,7 +166,7 @@ export class TaxInvoiceRetriveService {
       item = order.orderEtc.item;
     }
 
-    return `${orderType} ${order.orderNo} ${item}`;
+    return `${orderType} ${Util.formatSerial(order.orderNo)} ${item}`;
   }
 
   async getTaxInvoiceList(params: {

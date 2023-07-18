@@ -84,6 +84,23 @@ export const serialT = (invoiceCode: string) =>
 export const serialW = (invoiceCode: string) =>
   `W${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
 
+/** serial format */
+export function formatSerial(serial: string): string {
+  if (serial?.length !== 15) {
+    return serial;
+  }
+  const header = serial[0];
+  return header === 'P'
+    ? `P-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : header === 'T'
+    ? `T-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : header === 'I'
+    ? `I-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : header === 'W'
+    ? `W-${serial.slice(1, 5)}-${serial.slice(5, 10)}-${serial.slice(10, 15)}`
+    : `${serial}`;
+}
+
 /** 세금계산서 키 */
 export const invoicerMgtKey = (
   companyRegistrationNumber: string,
