@@ -16,11 +16,11 @@ import {
 } from 'class-validator';
 import {
   OrderRequestCreateRequest,
-  OrderRequestListQuery,
+  OrderRequestItemListQuery,
 } from 'src/@shared/api/trade/order-request.request';
 
 /** 퀵주문 목록 */
-export class OrderRequestListDto implements OrderRequestListQuery {
+export class OrderRequestItemListDto implements OrderRequestItemListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)

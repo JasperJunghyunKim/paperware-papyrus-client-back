@@ -397,7 +397,6 @@ model OfficialPriceMap {
 }
 
 // Order
-
 enum OrderStatus {
   ORDER_PREPARING
   ORDER_REQUESTED

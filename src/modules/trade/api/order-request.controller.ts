@@ -4,6 +4,7 @@ import {
   Controller,
   Get,
   NotImplementedException,
+  Param,
   Post,
   Query,
   Request,
@@ -15,9 +16,13 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import {
   OrderRequestCreateDto,
-  OrderRequestListDto,
+  OrderRequestItemListDto,
 } from './dto/order-request.request';
-import { OrderRequestListResponse } from 'src/@shared/api/trade/order-request.response';
+import {
+  OrderRequestItemListResponse,
+  OrderRequestResponse,
+} from 'src/@shared/api/trade/order-request.response';
+import { IdDto } from 'src/common/request';
 
 @Controller('/order-request')
 export class OrderRequestController {
@@ -40,8 +45,8 @@ export class OrderRequestController {
   @UseGuards(AuthGuard)
   async getList(
     @Request() req: AuthType,
-    @Query() query: OrderRequestListDto,
-  ): Promise<OrderRequestListResponse> {
+    @Query() query: OrderRequestItemListDto,
+  ): Promise<OrderRequestItemListResponse> {
     if (
       req.user.companyId !== query.srcCompanyId &&
       req.user.companyId !== query.dstCompanyId
@@ -51,5 +56,14 @@ export class OrderRequestController {
       );
 
     return await this.retrive.getList({ ...query });
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  async get(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+  ): Promise<OrderRequestResponse> {
+    return await this.retrive.get(req.user.companyId, idDto.id);
   }
 }
