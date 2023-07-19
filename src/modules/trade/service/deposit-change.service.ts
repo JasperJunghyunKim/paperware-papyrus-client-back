@@ -14,6 +14,7 @@ export class DepositChangeService {
 
   /** 보관량 증감 */
   async createDeposit(params: {
+    userId: number;
     companyId: number;
     srcCompanyRegistrationNumber: string;
     dstCompanyRegistrationNumber: string;
@@ -132,7 +133,11 @@ export class DepositChangeService {
               id: deposit.id,
             },
           },
-          companyRegistrationNumber: company.companyRegistrationNumber,
+          user: {
+            connect: {
+              id: params.userId,
+            },
+          },
           change: quantity,
           memo: memo || '',
         },

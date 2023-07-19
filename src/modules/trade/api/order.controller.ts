@@ -310,6 +310,7 @@ export class OrderController {
     }
 
     await this.change.accept({
+      userId: req.user.id,
       companyId: req.user.companyId,
       orderId: Number(id),
     });
@@ -473,6 +474,7 @@ export class OrderController {
     @Body() dto: OrderDepositAssignDepositCreateDto,
   ) {
     await this.change.createOrderDeposit(
+      req.user.id,
       req.user.companyId,
       idDto.id,
       dto.depositId,
@@ -511,6 +513,7 @@ export class OrderController {
     @Body() dto: OrderDepositAssignDepositQuantityUpdateDto,
   ) {
     await this.change.updateOrderDeposit(
+      req.user.id,
       req.user.companyId,
       idDto.id,
       dto.depositId,

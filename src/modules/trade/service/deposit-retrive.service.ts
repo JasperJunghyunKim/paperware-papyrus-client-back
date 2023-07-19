@@ -338,6 +338,12 @@ export class DepositRetriveService {
       include: {
         depositEvents: {
           include: {
+            user: {
+              select: {
+                name: true,
+                company: true,
+              },
+            },
             deposit: {
               include: {
                 packaging: true,
@@ -393,7 +399,7 @@ export class DepositRetriveService {
     return deposit.depositEvents.map((e) => ({
       id: e.id,
       change: e.change,
-      companyRegistrationNumber: e.companyRegistrationNumber,
+      user: e.user,
       createdAt: e.createdAt.toISOString(),
       memo: e.memo,
       orderDeposit: e.orderDeposit,

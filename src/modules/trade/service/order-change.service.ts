@@ -848,7 +848,7 @@ export class OrderChangeService {
     });
   }
 
-  async accept(params: { companyId: number; orderId: number }) {
+  async accept(params: { userId: number; companyId: number; orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -976,6 +976,7 @@ export class OrderChangeService {
         case OrderType.DEPOSIT:
           await this.createDeposit(
             tx,
+            params.userId,
             order.srcCompany,
             order.dstCompany,
             order.orderDeposit,
@@ -1049,6 +1050,7 @@ export class OrderChangeService {
 
   private async createDeposit(
     tx: PrismaTransaction,
+    userId: number,
     srcCompany: Company,
     dstCompany: Company,
     orderDeposit: OrderDeposit,
@@ -1145,8 +1147,11 @@ export class OrderChangeService {
               id: orderDeposit.id,
             },
           },
-          companyRegistrationNumber:
-            orderDepositEntity.order.createdComapny.companyRegistrationNumber,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
         },
       });
     }
@@ -2324,6 +2329,7 @@ export class OrderChangeService {
   }
 
   async createOrderDeposit(
+    userId: number,
     companyId: number,
     orderId: number,
     depositId: number,
@@ -2391,9 +2397,12 @@ export class OrderChangeService {
               id: depositId,
             },
           },
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
           change: -quantity,
-          companyRegistrationNumber:
-            order.createdComapny.companyRegistrationNumber,
           targetOrder: {
             connect: {
               id: orderId,
@@ -2498,6 +2507,7 @@ export class OrderChangeService {
   }
 
   async updateOrderDeposit(
+    userId: number,
     companyId: number,
     orderId: number,
     depositId: number,
@@ -2572,9 +2582,12 @@ export class OrderChangeService {
               id: depositId,
             },
           },
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
           change: -quantity,
-          companyRegistrationNumber:
-            order.createdComapny.companyRegistrationNumber,
           targetOrder: {
             connect: {
               id: orderId,

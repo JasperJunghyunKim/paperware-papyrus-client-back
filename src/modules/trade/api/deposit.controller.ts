@@ -65,6 +65,7 @@ export class DepositController {
   @UseGuards(AuthGuard)
   async createDeposit(@Request() req: AuthType, @Body() dto: DepositCreateDto) {
     await this.change.createDeposit({
+      userId: req.user.id,
       companyId: req.user.companyId,
       ...dto,
     });
