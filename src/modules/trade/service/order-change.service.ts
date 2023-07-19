@@ -1068,93 +1068,90 @@ export class OrderChangeService {
       },
     });
 
-    // srcCompany
-    if (!srcCompany.managedById) {
-      const deposit =
-        (await tx.deposit.findFirst({
-          where: {
-            srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
-            dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
-            packagingId: orderDeposit.packagingId,
-            productId: orderDeposit.productId,
-            grammage: orderDeposit.grammage,
-            sizeX: orderDeposit.sizeX,
-            sizeY: orderDeposit.sizeY,
-            paperColorGroupId: orderDeposit.paperColorGroupId,
-            paperColorId: orderDeposit.paperColorId,
-            paperPatternId: orderDeposit.paperPatternId,
-            paperCertId: orderDeposit.paperCertId,
-          },
-        })) ||
-        (await tx.deposit.create({
-          data: {
-            srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
-            dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
-            packaging: {
-              connect: {
-                id: orderDeposit.packagingId,
-              },
-            },
-            product: {
-              connect: {
-                id: orderDeposit.productId,
-              },
-            },
-            grammage: orderDeposit.grammage,
-            sizeX: orderDeposit.sizeX,
-            sizeY: orderDeposit.sizeY,
-            paperColorGroup: orderDeposit.paperColorGroupId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperColorGroupId,
-                  },
-                }
-              : undefined,
-            paperColor: orderDeposit.paperColorId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperColorId,
-                  },
-                }
-              : undefined,
-            paperPattern: orderDeposit.paperPatternId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperPatternId,
-                  },
-                }
-              : undefined,
-            paperCert: orderDeposit.paperCertId
-              ? {
-                  connect: {
-                    id: orderDeposit.paperCertId,
-                  },
-                }
-              : undefined,
-          },
-        }));
-      // event 생성
-      await tx.depositEvent.create({
+    const deposit =
+      (await tx.deposit.findFirst({
+        where: {
+          srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
+          packagingId: orderDeposit.packagingId,
+          productId: orderDeposit.productId,
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroupId: orderDeposit.paperColorGroupId,
+          paperColorId: orderDeposit.paperColorId,
+          paperPatternId: orderDeposit.paperPatternId,
+          paperCertId: orderDeposit.paperCertId,
+        },
+      })) ||
+      (await tx.deposit.create({
         data: {
-          deposit: {
+          srcCompanyRegistrationNumber: srcCompany.companyRegistrationNumber,
+          dstCompanyRegistrationNumber: dstCompany.companyRegistrationNumber,
+          packaging: {
             connect: {
-              id: deposit.id,
+              id: orderDeposit.packagingId,
             },
           },
-          change: orderDeposit.quantity,
-          orderDeposit: {
+          product: {
             connect: {
-              id: orderDeposit.id,
+              id: orderDeposit.productId,
             },
           },
-          user: {
-            connect: {
-              id: userId,
-            },
+          grammage: orderDeposit.grammage,
+          sizeX: orderDeposit.sizeX,
+          sizeY: orderDeposit.sizeY,
+          paperColorGroup: orderDeposit.paperColorGroupId
+            ? {
+                connect: {
+                  id: orderDeposit.paperColorGroupId,
+                },
+              }
+            : undefined,
+          paperColor: orderDeposit.paperColorId
+            ? {
+                connect: {
+                  id: orderDeposit.paperColorId,
+                },
+              }
+            : undefined,
+          paperPattern: orderDeposit.paperPatternId
+            ? {
+                connect: {
+                  id: orderDeposit.paperPatternId,
+                },
+              }
+            : undefined,
+          paperCert: orderDeposit.paperCertId
+            ? {
+                connect: {
+                  id: orderDeposit.paperCertId,
+                },
+              }
+            : undefined,
+        },
+      }));
+    // event 생성
+    await tx.depositEvent.create({
+      data: {
+        deposit: {
+          connect: {
+            id: deposit.id,
           },
         },
-      });
-    }
+        change: orderDeposit.quantity,
+        orderDeposit: {
+          connect: {
+            id: orderDeposit.id,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
   }
 
   async acceptOrderProcessTx(tx: PrismaTransaction, orderId: number) {
