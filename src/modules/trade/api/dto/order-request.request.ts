@@ -9,11 +9,47 @@ import {
   IsPositive,
   IsString,
   Length,
+  Max,
+  Min,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { OrderRequestCreateRequest } from 'src/@shared/api/trade/order-request.response';
+import {
+  OrderRequestCreateRequest,
+  OrderRequestListQuery,
+} from 'src/@shared/api/trade/order-request.request';
 
+/** 퀵주문 목록 */
+export class OrderRequestListDto implements OrderRequestListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = 30;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number | null = null;
+}
+
+/** 퀵주문 생성 */
 export class OrderRequestCreateItemDto {
   @IsString()
   @Length(1, 200)

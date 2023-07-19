@@ -1,8 +1,11 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Get,
   NotImplementedException,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -10,7 +13,10 @@ import { OrderRequestChangeService } from '../service/order-rerquest.change.serv
 import { OrderRequestRetriveService } from '../service/order-rerquest.retrive.service';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
-import { OrderRequestCreateDto } from './dto/order-request.request';
+import {
+  OrderRequestCreateDto,
+  OrderRequestListDto,
+} from './dto/order-request.request';
 
 @Controller('/order-request')
 export class OrderRequestController {
@@ -27,5 +33,19 @@ export class OrderRequestController {
       companyId: req.user.companyId,
       ...dto,
     });
+  }
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getList(@Request() req: AuthType, @Query() query: OrderRequestListDto) {
+    if (
+      req.user.companyId !== query.srcCompanyId &&
+      req.user.companyId !== query.dstCompanyId
+    )
+      throw new BadRequestException(
+        `srcCompany 또는 dstCompany가 자신의 회사로 지정되어야합니다.`,
+      );
+
+    return await this.retrive.getList({ ...query });
   }
 }
