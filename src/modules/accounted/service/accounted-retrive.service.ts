@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AccountedType, Method, Partner } from '@prisma/client';
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
@@ -147,7 +147,9 @@ export class AccountedRetriveService {
           case Method.ACCOUNT_TRANSFER:
             return accounted.byBankAccount.bankAccount.accountName;
           case Method.CARD_PAYMENT:
-            return accounted.byCard.card.cardName;
+            return accounted.byCard.card
+              ? accounted.byCard.card.cardName
+              : accounted.byCard.bankAccount.accountName;
           case Method.OFFSET:
             return '';
         }
