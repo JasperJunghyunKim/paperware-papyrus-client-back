@@ -2,7 +2,9 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
+import { OrderRequestItemStatus } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
@@ -139,5 +141,29 @@ export class OrderRequestChangeService {
         },
       });
     });
+  }
+
+  async check(companyId: number, orderRequestId: number) {
+    const req = await this.prisma.orderRequest.findUnique({
+      where: {
+        id: orderRequestId,
+      },
+    });
+    if (
+      !req ||
+      (req.dstCompanyId !== companyId && req.srcCompanyId !== companyId)
+    )
+      throw new NotFoundException(`존재하지 않는 퀵주문 입니다.`);
+
+    if (req.dstCompanyId === companyId) {
+      await this.prisma.$queryRaw`
+        UPDATE OrderRequest     AS r
+          JOIN OrderRequestItem AS ri ON ri.orderRequestId = r.id
+           SET ri.status = (CASE
+            WHEN ri.status = ${OrderRequestItemStatus.REQUESTED} THEN ${OrderRequestItemStatus.ON_CHECKING}
+            ELSE ri.status
+           END)
+      `;
+    }
   }
 }

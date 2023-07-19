@@ -5,6 +5,7 @@ import {
   Get,
   NotImplementedException,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -65,5 +66,12 @@ export class OrderRequestController {
     @Param() idDto: IdDto,
   ): Promise<OrderRequestResponse> {
     return await this.retrive.get(req.user.companyId, idDto.id);
+  }
+
+  /** 읽음 처리 */
+  @Patch('/:id/check')
+  @UseGuards(AuthGuard)
+  async check(@Request() req: AuthType, @Param() idDto: IdDto) {
+    return await this.change.check(req.user.companyId, idDto.id);
   }
 }
