@@ -338,6 +338,11 @@ export class DepositRetriveService {
     const deposit = await this.prisma.deposit.findUnique({
       include: {
         depositEvents: {
+          where: {
+            status: {
+              not: 'CANCELLED',
+            },
+          },
           include: {
             targetOrder: {
               select: {
