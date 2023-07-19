@@ -228,8 +228,14 @@ export class AccountedRetriveService {
           )})`;
 
     const items = await this.prisma.$queryRaw`
-      SELECT *
+      SELECT srcCompany.companyRegistrationNumber AS srcCompanyRegistrationNumber
+            , dstCompany.companyRegistrationNumber AS dstCompanyRegistrationNumber
+            , o.orderDate
+            , tp.suppliedPrice
+            , tp.vatPrice
+
         FROM \`Order\`      AS o
+        JOIN TradePrice     AS tp               ON tp.orderId = o.id AND tp.companyId = ${companyId}
         
         JOIN Company        AS srcCompany       ON srcCompany.id = o.srcCompanyId
         JOIN Company        AS dstCompany       ON dstCompany.id = o.dstCompanyId
