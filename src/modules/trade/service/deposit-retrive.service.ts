@@ -10,6 +10,7 @@ import {
   Prisma,
 } from '@prisma/client';
 import { Model } from 'src/@shared';
+import { Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 export interface DepositFromDB {
@@ -338,6 +339,17 @@ export class DepositRetriveService {
       include: {
         depositEvents: {
           include: {
+            targetOrder: {
+              select: {
+                id: true,
+                orderType: true,
+                orderNo: true,
+                orderDate: true,
+                srcCompanyId: true,
+                dstCompanyId: true,
+                status: true,
+              },
+            },
             user: {
               select: {
                 name: true,
@@ -399,6 +411,7 @@ export class DepositRetriveService {
     return deposit.depositEvents.map((e) => ({
       id: e.id,
       change: e.change,
+      targetOrder: e.targetOrder ? Util.serialize(e.targetOrder) : null,
       user: e.user,
       createdAt: e.createdAt.toISOString(),
       memo: e.memo,
