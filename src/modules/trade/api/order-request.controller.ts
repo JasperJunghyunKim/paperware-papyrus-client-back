@@ -22,7 +22,6 @@ export class OrderRequestController {
   @Post()
   @UseGuards(AuthGuard)
   async create(@Request() req: AuthType, @Body() dto: OrderRequestCreateDto) {
-    throw new NotImplementedException();
     return await this.change.create({
       userId: req.user.id,
       companyId: req.user.companyId,

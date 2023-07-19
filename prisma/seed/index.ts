@@ -97,6 +97,7 @@ async function main() {
       name: u.name,
       email: u.email,
       companyId: u.companyId,
+      phoneNo: u.phoneNo,
     })),
   });
 

@@ -1,3 +1,5 @@
+import * as dayjs from 'dayjs';
+
 export function dateToIso8601(date: Date | string | null | undefined): string {
   if (date === null || date === undefined) {
     return null;
@@ -83,6 +85,15 @@ export const serialT = (invoiceCode: string) =>
 /** 내부작업 */
 export const serialW = (invoiceCode: string) =>
   `W${invoiceCode}${Math.random().toString().substring(2, 12)}`.toUpperCase();
+
+/** 퀵주문 */
+export const serialQ = (invoiceCode: string, month: string, num: number) => {
+  if (invoiceCode.length !== 4 || month.length !== 4 || num < 1 || num > 999999)
+    throw new Error(
+      `serialQ invalid parameter: ${invoiceCode}, ${month}, ${num}`,
+    );
+  return `Q${invoiceCode}${month}${String(num).padStart(6, '0')}`.toUpperCase();
+};
 
 /** serial format */
 export function formatSerial(serial: string): string {
