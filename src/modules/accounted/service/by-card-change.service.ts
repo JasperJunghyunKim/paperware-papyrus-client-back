@@ -39,11 +39,22 @@ export class ByCardChangeService {
                 chargeAmount: byCardCreateRequest.chargeAmount ?? 0,
                 totalAmount: byCardCreateRequest.totalAmount ?? 0,
                 approvalNumber: byCardCreateRequest.approvalNumber ?? '',
-                card: {
-                  connect: {
-                    id: byCardCreateRequest.cardId,
-                  },
-                },
+                card:
+                  accountedType === 'PAID'
+                    ? {
+                        connect: {
+                          id: byCardCreateRequest.cardId,
+                        },
+                      }
+                    : undefined,
+                bankAccount:
+                  accountedType === 'COLLECTED'
+                    ? {
+                        connect: {
+                          id: byCardCreateRequest.bankAccountId,
+                        },
+                      }
+                    : undefined,
               },
             },
           },
