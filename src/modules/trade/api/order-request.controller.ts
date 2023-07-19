@@ -42,7 +42,8 @@ export class OrderRequestController {
     });
   }
 
-  @Get()
+  /** 퀵주문 상품 목록 */
+  @Get('/item')
   @UseGuards(AuthGuard)
   async getList(
     @Request() req: AuthType,
@@ -59,6 +60,7 @@ export class OrderRequestController {
     return await this.retrive.getList({ ...query });
   }
 
+  /** 퀵주문 상세 */
   @Get('/:id')
   @UseGuards(AuthGuard)
   async get(
