@@ -19,15 +19,14 @@ export class ByCashChangeService {
       from(
         this.prisma.accounted.create({
           data: {
-            partner: {
+            // TODO: company, partner 확인
+            company: {
               connect: {
-                companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber:
-                    byCashCreateRequest.companyRegistrationNumber,
-                  companyId: byCashCreateRequest.companyId,
-                },
+                id: byCashCreateRequest.companyId,
               },
             },
+            partnerCompanyRegistrationNumber:
+              byCashCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byCashCreateRequest.accountedSubject,
             accountedMethod: byCashCreateRequest.accountedMethod,

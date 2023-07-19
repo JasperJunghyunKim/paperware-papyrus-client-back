@@ -19,15 +19,14 @@ export class ByEtcChangeService {
       from(
         this.prisma.accounted.create({
           data: {
-            partner: {
+            // TODO: company, partner 확인
+            company: {
               connect: {
-                companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber:
-                    byEtcCreateRequest.companyRegistrationNumber,
-                  companyId: byEtcCreateRequest.companyId,
-                },
+                id: byEtcCreateRequest.companyId,
               },
             },
+            partnerCompanyRegistrationNumber:
+              byEtcCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byEtcCreateRequest.accountedSubject,
             accountedMethod: byEtcCreateRequest.accountedMethod,

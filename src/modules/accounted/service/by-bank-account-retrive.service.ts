@@ -15,83 +15,65 @@ export class ByBankAccountRetriveService {
     accountedType: AccountedType,
     accountedId: number,
   ): Promise<ByBankAccountItemResponseDto> {
-    return await lastValueFrom(
-      from(
-        this.prisma.accounted.findFirst({
+    const accounted = await this.prisma.accounted.findFirst({
+      select: {
+        id: true,
+        partnerCompanyRegistrationNumber: true,
+        accountedType: true,
+        accountedDate: true,
+        accountedSubject: true,
+        accountedMethod: true,
+        memo: true,
+        byBankAccount: {
           select: {
             id: true,
-            accountedType: true,
-            accountedDate: true,
-            accountedSubject: true,
-            accountedMethod: true,
-            memo: true,
-            byBankAccount: {
+            bankAccountId: true,
+            bankAccountAmount: true,
+            bankAccount: {
               select: {
-                id: true,
-                bankAccountId: true,
-                bankAccountAmount: true,
-                bankAccount: {
-                  select: {
-                    accountName: true,
-                    accountNumber: true,
-                    bankComapny: true,
-                  },
-                },
-              },
-            },
-            partner: {
-              select: {
-                id: true,
-                partnerNickName: true,
-                companyRegistrationNumber: true,
-                company: {
-                  select: {
-                    id: true,
-                    companyRegistrationNumber: true,
-                  },
-                },
+                accountName: true,
+                accountNumber: true,
+                bankComapny: true,
               },
             },
           },
-          where: {
-            partner: {
-              companyId,
-            },
-            accountedType,
-            id: accountedId,
-            isDeleted: false,
-            byBankAccount: {
-              isDeleted: false,
-            },
-          },
-        }),
-      ).pipe(
-        throwIfEmpty(
-          () =>
-            new AccountedNotFoundException(AccountedError.ACCOUNTED001, [
-              accountedId,
-            ]),
-        ),
-        map((accounted) => {
-          return {
-            companyId: accounted.partner.company.id,
-            companyRegistrationNumber:
-              accounted.partner.company.companyRegistrationNumber,
-            accountedId: accounted.id,
-            accountedType: accounted.accountedType,
-            accountedDate: accounted.accountedDate.toISOString(),
-            accountedSubject: accounted.accountedSubject,
-            accountedMethod: accounted.accountedMethod,
-            amount: accounted.byBankAccount.bankAccountAmount,
-            memo: accounted.memo,
-            partnerNickName: accounted.partner.partnerNickName,
-            bankAccountId: accounted.byBankAccount.bankAccountId,
-            accountName: accounted.byBankAccount.bankAccount.accountName,
-            accountNumber: accounted.byBankAccount.bankAccount.accountNumber,
-            bankComapny: accounted.byBankAccount.bankAccount.bankComapny,
-          };
-        }),
-      ),
-    );
+        },
+      },
+      where: {
+        companyId,
+        accountedType,
+        id: accountedId,
+        isDeleted: false,
+        byBankAccount: {
+          isDeleted: false,
+        },
+      },
+    });
+
+    const partner = await this.prisma.partner.findUnique({
+      where: {
+        companyId_companyRegistrationNumber: {
+          companyId,
+          companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
+        },
+      },
+    });
+
+    return {
+      companyId,
+      companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
+      accountedId: accounted.id,
+      accountedType: accounted.accountedType,
+      accountedDate: accounted.accountedDate.toISOString(),
+      accountedSubject: accounted.accountedSubject,
+      accountedMethod: accounted.accountedMethod,
+      amount: accounted.byBankAccount.bankAccountAmount,
+      memo: accounted.memo,
+      partnerNickName: partner.partnerNickName || '',
+      bankAccountId: accounted.byBankAccount.bankAccountId,
+      accountName: accounted.byBankAccount.bankAccount.accountName,
+      accountNumber: accounted.byBankAccount.bankAccount.accountNumber,
+      bankComapny: accounted.byBankAccount.bankAccount.bankComapny,
+    };
   }
 }

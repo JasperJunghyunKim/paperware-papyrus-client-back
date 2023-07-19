@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AccountedType, Method } from '@prisma/client';
-import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
+import { AccountedType, Method, Partner } from '@prisma/client';
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import { AccountedRequest } from '../api/dto/accounted.request';
-import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
+
 @Injectable()
 export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) {}
@@ -47,153 +45,139 @@ export class AccountedRetriveService {
       };
     }
 
-    return await lastValueFrom(
-      from(
-        this.prisma.accounted.findMany({
+    const accountedList = await this.prisma.accounted.findMany({
+      select: {
+        id: true,
+        partnerCompanyRegistrationNumber: true,
+        accountedType: true,
+        accountedSubject: true,
+        accountedMethod: true,
+        accountedDate: true,
+        memo: true,
+        byCash: true,
+        byEtc: true,
+        byBankAccount: {
           select: {
-            id: true,
-            accountedType: true,
-            accountedSubject: true,
-            accountedMethod: true,
-            accountedDate: true,
-            memo: true,
-            byCash: true,
-            byEtc: true,
-            byBankAccount: {
+            bankAccountAmount: true,
+            bankAccount: {
               select: {
-                bankAccountAmount: true,
-                bankAccount: {
-                  select: {
-                    accountName: true,
-                  },
-                },
-              },
-            },
-            byCard: {
-              select: {
-                isCharge: true,
-                cardAmount: true,
-                chargeAmount: true,
-                totalAmount: true,
-                card: {
-                  select: {
-                    cardName: true,
-                  },
-                },
-              },
-            },
-            byOffset: true,
-            bySecurity: {
-              select: {
-                security: {
-                  select: {
-                    securityAmount: true,
-                    securityStatus: true,
-                    securitySerial: true,
-                  },
-                },
-              },
-            },
-            partner: {
-              select: {
-                companyId: true,
-                companyRegistrationNumber: true,
-                partnerNickName: true,
-                id: true,
-                company: {
-                  select: {
-                    id: true,
-                  },
-                },
+                accountName: true,
               },
             },
           },
-          where: {
-            partner: {
-              companyId:
-                conditionCompanyId !== 0 ? conditionCompanyId : undefined,
-              companyRegistrationNumber:
-                companyRegistrationNumber !== ''
-                  ? companyRegistrationNumber
-                  : undefined,
-              company: {
-                id: companyId,
+        },
+        byCard: {
+          select: {
+            isCharge: true,
+            cardAmount: true,
+            chargeAmount: true,
+            totalAmount: true,
+            card: {
+              select: {
+                cardName: true,
               },
             },
-            ...param,
           },
-        }),
-      ).pipe(
-        throwIfEmpty(
-          () =>
-            new AccountedNotFoundException(AccountedError.ACCOUNTED001, [
-              paidRequest,
-            ]),
-        ),
-        map((accountedList) => {
-          const items = accountedList.map((accounted) => {
-            const getAmount = (method): number => {
-              switch (method) {
-                case Method.CASH:
-                  return accounted.byCash.cashAmount;
-                case Method.PROMISSORY_NOTE:
-                  return accounted.bySecurity.security.securityAmount;
-                case Method.ETC:
-                  return accounted.byEtc.etcAmount;
-                case Method.ACCOUNT_TRANSFER:
-                  return accounted.byBankAccount.bankAccountAmount;
-                case Method.CARD_PAYMENT:
-                  return accounted.byCard.isCharge
-                    ? accounted.byCard.totalAmount
-                    : accounted.byCard.cardAmount;
-                case Method.OFFSET:
-                  return accounted.byOffset.offsetAmount;
-              }
-            };
+        },
+        byOffset: true,
+        bySecurity: {
+          select: {
+            security: {
+              select: {
+                securityAmount: true,
+                securityStatus: true,
+                securitySerial: true,
+              },
+            },
+          },
+        },
+      },
+      where: {
+        partner: {
+          companyId: conditionCompanyId !== 0 ? conditionCompanyId : undefined,
+          companyRegistrationNumber:
+            companyRegistrationNumber !== ''
+              ? companyRegistrationNumber
+              : undefined,
+          company: {
+            id: companyId,
+          },
+        },
+        ...param,
+      },
+    });
 
-            const getGubun = (method): string => {
-              switch (method) {
-                case Method.CASH:
-                  return '';
-                case Method.PROMISSORY_NOTE:
-                  return accounted.bySecurity.security.securitySerial;
-                case Method.ETC:
-                  return '';
-                case Method.ACCOUNT_TRANSFER:
-                  return accounted.byBankAccount.bankAccount.accountName;
-                case Method.CARD_PAYMENT:
-                  return accounted.byCard.card.cardName;
-                case Method.OFFSET:
-                  return '';
-              }
-            };
+    const partners = await this.prisma.partner.findMany({
+      where: {
+        companyId,
+      },
+    });
+    const partnerMap = new Map<string, Partner>();
+    for (const partner of partners) {
+      partnerMap.set(partner.companyRegistrationNumber, partner);
+    }
 
-            return {
-              companyId: accounted.partner.companyId,
-              companyRegistrationNumber:
-                accounted.partner.companyRegistrationNumber,
-              partnerNickName: accounted.partner.partnerNickName,
-              accountedId: accounted.id,
-              accountedType: accounted.accountedType,
-              accountedDate: accounted.accountedDate.toISOString(),
-              accountedMethod: accounted.accountedMethod,
-              accountedSubject: accounted.accountedSubject,
-              amount: getAmount(accounted.accountedMethod),
-              memo: accounted.memo,
-              gubun: getGubun(accounted.accountedMethod),
-              securityStatus:
-                accounted.accountedMethod === Method.PROMISSORY_NOTE
-                  ? accounted.bySecurity.security.securityStatus
-                  : undefined,
-            };
-          });
+    const items = accountedList.map((accounted) => {
+      const getAmount = (method): number => {
+        switch (method) {
+          case Method.CASH:
+            return accounted.byCash.cashAmount;
+          case Method.PROMISSORY_NOTE:
+            return accounted.bySecurity.security.securityAmount;
+          case Method.ETC:
+            return accounted.byEtc.etcAmount;
+          case Method.ACCOUNT_TRANSFER:
+            return accounted.byBankAccount.bankAccountAmount;
+          case Method.CARD_PAYMENT:
+            return accounted.byCard.isCharge
+              ? accounted.byCard.totalAmount
+              : accounted.byCard.cardAmount;
+          case Method.OFFSET:
+            return accounted.byOffset.offsetAmount;
+        }
+      };
 
-          return {
-            items,
-            total: items.length,
-          };
-        }),
-      ),
-    );
+      const getGubun = (method): string => {
+        switch (method) {
+          case Method.CASH:
+            return '';
+          case Method.PROMISSORY_NOTE:
+            return accounted.bySecurity.security.securitySerial;
+          case Method.ETC:
+            return '';
+          case Method.ACCOUNT_TRANSFER:
+            return accounted.byBankAccount.bankAccount.accountName;
+          case Method.CARD_PAYMENT:
+            return accounted.byCard.card.cardName;
+          case Method.OFFSET:
+            return '';
+        }
+      };
+
+      return {
+        companyId,
+        companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
+        partnerNickName:
+          partnerMap.get(accounted.partnerCompanyRegistrationNumber)
+            ?.partnerNickName || '',
+        accountedId: accounted.id,
+        accountedType: accounted.accountedType,
+        accountedDate: accounted.accountedDate.toISOString(),
+        accountedMethod: accounted.accountedMethod,
+        accountedSubject: accounted.accountedSubject,
+        amount: getAmount(accounted.accountedMethod),
+        memo: accounted.memo,
+        gubun: getGubun(accounted.accountedMethod),
+        securityStatus:
+          accounted.accountedMethod === Method.PROMISSORY_NOTE
+            ? accounted.bySecurity.security.securityStatus
+            : undefined,
+      };
+    });
+
+    return {
+      items,
+      total: items.length,
+    };
   }
 }

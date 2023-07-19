@@ -15,66 +15,49 @@ export class ByCashRetriveService {
     accountedType: AccountedType,
     accountedId: number,
   ): Promise<ByEtcResponse> {
-    return await lastValueFrom(
-      from(
-        this.prisma.accounted.findFirst({
-          select: {
-            id: true,
-            accountedType: true,
-            accountedDate: true,
-            accountedSubject: true,
-            accountedMethod: true,
-            memo: true,
-            byCash: true,
-            partner: {
-              select: {
-                id: true,
-                partnerNickName: true,
-                companyRegistrationNumber: true,
-                company: {
-                  select: {
-                    id: true,
-                    companyRegistrationNumber: true,
-                  },
-                },
-              },
-            },
-          },
-          where: {
-            partner: {
-              companyId,
-            },
-            accountedType,
-            id: accountedId,
-            isDeleted: false,
-            byCash: {
-              isDeleted: false,
-            },
-          },
-        }),
-      ).pipe(
-        throwIfEmpty(
-          () =>
-            new AccountedNotFoundException(AccountedError.ACCOUNTED001, [
-              accountedId,
-            ]),
-        ),
-        map((accounted) => {
-          return {
-            companyId: accounted.partner.company.id,
-            companyRegistrationNumber:
-              accounted.partner.company.companyRegistrationNumber,
-            accountedId: accounted.id,
-            accountedType: accounted.accountedType,
-            accountedDate: accounted.accountedDate.toISOString(),
-            accountedSubject: accounted.accountedSubject,
-            accountedMethod: accounted.accountedMethod,
-            amount: accounted.byCash.cashAmount,
-            memo: accounted.memo,
-            partnerNickName: accounted.partner.partnerNickName,
-          };
-        }),
-      ),
-    );
+    const accounted = await this.prisma.accounted.findFirst({
+      select: {
+        id: true,
+        companyId: true,
+        partnerCompanyRegistrationNumber: true,
+        accountedType: true,
+        accountedDate: true,
+        accountedSubject: true,
+        accountedMethod: true,
+        memo: true,
+        byCash: true,
+      },
+      where: {
+        companyId,
+        accountedType,
+        id: accountedId,
+        isDeleted: false,
+        byCash: {
+          isDeleted: false,
+        },
+      },
+    });
+
+    const partner = await this.prisma.partner.findUnique({
+      where: {
+        companyId_companyRegistrationNumber: {
+          companyId,
+          companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
+        },
+      },
+    });
+
+    return {
+      companyId: accounted.companyId,
+      companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
+      accountedId: accounted.id,
+      accountedType: accounted.accountedType,
+      accountedDate: accounted.accountedDate.toISOString(),
+      accountedSubject: accounted.accountedSubject,
+      accountedMethod: accounted.accountedMethod,
+      amount: accounted.byCash.cashAmount,
+      memo: accounted.memo,
+      partnerNickName: partner.partnerNickName,
+    };
   }
 }

@@ -27,15 +27,14 @@ export class BySecurityChangeService {
         // 지급일때...
         await tx.accounted.create({
           data: {
-            partner: {
+            // TODO: company, partner 확인
+            company: {
               connect: {
-                companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber:
-                    bySecurityCreateRequest.companyRegistrationNumber,
-                  companyId: bySecurityCreateRequest.companyId,
-                },
+                id: bySecurityCreateRequest.companyId,
               },
             },
+            partnerCompanyRegistrationNumber:
+              bySecurityCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: bySecurityCreateRequest.accountedSubject,
             accountedMethod: bySecurityCreateRequest.accountedMethod,
@@ -63,15 +62,14 @@ export class BySecurityChangeService {
       // 수금 생성과 동시에 유가증권을 생성한다.
       await this.prisma.accounted.create({
         data: {
-          partner: {
+          // TODO: company, partner 확인
+          company: {
             connect: {
-              companyId_companyRegistrationNumber: {
-                companyRegistrationNumber:
-                  bySecurityCreateRequest.companyRegistrationNumber,
-                companyId: bySecurityCreateRequest.companyId,
-              },
+              id: bySecurityCreateRequest.companyId,
             },
           },
+          partnerCompanyRegistrationNumber:
+            bySecurityCreateRequest.companyRegistrationNumber,
           accountedType,
           accountedSubject: bySecurityCreateRequest.accountedSubject,
           accountedMethod: bySecurityCreateRequest.accountedMethod,

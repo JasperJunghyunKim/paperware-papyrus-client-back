@@ -292,6 +292,7 @@ model Company {
   TaxInvoice                     TaxInvoice[]
   srcOrderRequest                OrderRequest[]                @relation("srcOrderRequestCompany")
   dstOrderRequest                OrderRequest[]                @relation("dstOrderRequestCompany")
+  Accounted                      Accounted[]
 }
 
 model BusinessRelationship {
@@ -1073,8 +1074,6 @@ model Partner {
   memo                      String              @db.VarChar(500)
   /// 삭제 여부
   isDeleted                 Boolean             @default(false)
-  /// 회계 목록
-  accountedList             Accounted[]
   /// 세금계산서 담당자
   partnerTaxManager         PartnerTaxManager[]
 
@@ -1097,6 +1096,13 @@ model Accounted {
   /// 식별자
   id Int @id @default(autoincrement())
 
+  /// 등록 회사
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+
+  /// 거래처 사업자등록번호
+  partnerCompanyRegistrationNumber String
+
   /// 회계 타입
   accountedType    AccountedType
   /// 회계 수단
@@ -1109,10 +1115,6 @@ model Accounted {
   memo             String?       @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
-  /// 사업자번호
-  partnerId        Int
-  /// 파트너
-  partner          Partner       @relation(fields: [partnerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   /// 현금
   byCash        ByCash?

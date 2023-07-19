@@ -19,15 +19,14 @@ export class ByCardChangeService {
       from(
         this.prisma.accounted.create({
           data: {
-            partner: {
+            // TODO: company, partner 확인
+            company: {
               connect: {
-                companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber:
-                    byCardCreateRequest.companyRegistrationNumber,
-                  companyId: byCardCreateRequest.companyId,
-                },
+                id: byCardCreateRequest.companyId,
               },
             },
+            partnerCompanyRegistrationNumber:
+              byCardCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byCardCreateRequest.accountedSubject,
             accountedMethod: byCardCreateRequest.accountedMethod,

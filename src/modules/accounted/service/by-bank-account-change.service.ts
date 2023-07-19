@@ -19,15 +19,14 @@ export class ByBankAccountChangeService {
       from(
         this.prisma.accounted.create({
           data: {
-            partner: {
+            // TODO: company / partnerCompanyRegistrationNumber 데이터 확인
+            company: {
               connect: {
-                companyId_companyRegistrationNumber: {
-                  companyRegistrationNumber:
-                    byBankCreateRequest.companyRegistrationNumber,
-                  companyId: byBankCreateRequest.companyId,
-                },
+                id: byBankCreateRequest.companyId,
               },
             },
+            partnerCompanyRegistrationNumber:
+              byBankCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byBankCreateRequest.accountedSubject,
             accountedMethod: byBankCreateRequest.accountedMethod,

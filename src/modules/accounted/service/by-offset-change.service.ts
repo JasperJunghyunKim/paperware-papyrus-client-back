@@ -15,15 +15,14 @@ export class ByOffsetChangeService {
     byOffsetCreateRequest: ByOffsetCreateRequestDto,
   ): Promise<void> {
     const param: Prisma.AccountedCreateInput = {
-      partner: {
+      // TODO: company, partner 확인
+      company: {
         connect: {
-          companyId_companyRegistrationNumber: {
-            companyRegistrationNumber:
-              byOffsetCreateRequest.companyRegistrationNumber,
-            companyId: byOffsetCreateRequest.companyId,
-          },
+          id: byOffsetCreateRequest.companyId,
         },
       },
+      partnerCompanyRegistrationNumber:
+        byOffsetCreateRequest.companyRegistrationNumber,
       accountedType: 'PAID',
       accountedSubject: byOffsetCreateRequest.accountedSubject,
       accountedMethod: byOffsetCreateRequest.accountedMethod,
