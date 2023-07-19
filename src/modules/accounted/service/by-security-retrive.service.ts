@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
-import { from, lastValueFrom, map, throwIfEmpty } from 'rxjs';
 import { PrismaService } from 'src/core';
-import { AccountedError } from '../infrastructure/constants/accounted-error.enum';
-import { AccountedNotFoundException } from '../infrastructure/exception/accounted-notfound.exception';
 import { BySecurityItemResponse } from 'src/@shared/api/accounted/by-security.response';
 
 @Injectable()

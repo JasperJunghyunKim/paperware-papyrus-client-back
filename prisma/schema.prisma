@@ -872,6 +872,7 @@ model BankAccount {
 
   /// 회계 계좌
   byBankAccountList ByBankAccount[]
+  ByCard            ByCard[]
 }
 
 /// 카드사
@@ -1178,7 +1179,7 @@ model ByBankAccount {
 /// 카드
 model ByCard {
   /// 식별자
-  id             Int       @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   /// 금액
   cardAmount     Int
   /// 수수료 금액
@@ -1186,19 +1187,21 @@ model ByCard {
   /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경) 수수료가 포함 안되면 0
   totalAmount    Int
   /// 수수료 포함 여부
-  isCharge       Boolean   @default(false)
+  isCharge       Boolean      @default(false)
   /// 승인번호
   approvalNumber String
   /// 삭제 여부
-  isDeleted      Boolean   @default(false)
+  isDeleted      Boolean      @default(false)
   /// 회계 식별자
-  accountedId    Int       @unique
+  accountedId    Int          @unique
   /// 회계
-  accounted      Accounted @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  /// 계좌 식별자
-  cardId         Int
+  accounted      Accounted    @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  /// 카드
+  cardId         Int?
+  card           Card?        @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 계좌
-  card           Card      @relation(fields: [cardId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  bankAccountId  Int?
+  bankAccount    BankAccount? @relation(fields: [bankAccountId], references: [id])
 }
 
 /// 상계
