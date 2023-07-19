@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { AccountedType, Method, Partner } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { AccountedType, Method, Partner, Prisma } from '@prisma/client';
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import { AccountedRequest } from '../api/dto/accounted.request';
+import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
 
 @Injectable()
 export class AccountedRetriveService {
@@ -180,5 +181,63 @@ export class AccountedRetriveService {
       items,
       total: items.length,
     };
+  }
+
+  async getUnpaidList(params: {
+    companyId: number;
+    skip: number;
+    take: number;
+    accountedType: AccountedType;
+    companyRegistrationNumbers: string[];
+    minAmount: number | null;
+    maxAmount: number | null;
+  }) {
+    const {
+      companyId,
+      skip,
+      take,
+      accountedType,
+      companyRegistrationNumbers,
+      minAmount,
+      maxAmount,
+    } = params;
+
+    const partners = await this.prisma.partner.findMany({
+      where: {
+        companyId,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+      skip,
+      take,
+    });
+    console.log(partners);
+
+    const typeQuery =
+      accountedType === 'PAID'
+        ? Prisma.sql`o.srcCompanyId = ${companyId}`
+        : Prisma.sql`o.dstCompanyId = ${companyId}`;
+    const partnerQuery =
+      accountedType === 'PAID'
+        ? Prisma.sql`dstCompany.companyRegistrationNumber IN (${Prisma.join(
+            partners.map((p) => p.companyRegistrationNumber),
+          )})`
+        : Prisma.sql`srcCompany.companyRegistrationNumber IN (${Prisma.join(
+            partners.map((p) => p.companyRegistrationNumber),
+          )})`;
+
+    const items = await this.prisma.$queryRaw`
+      SELECT *
+        FROM \`Order\`      AS o
+        
+        JOIN Company        AS srcCompany       ON srcCompany.id = o.srcCompanyId
+        JOIN Company        AS dstCompany       ON dstCompany.id = o.dstCompanyId
+
+       WHERE ${typeQuery}
+         AND ${partnerQuery}
+    `;
+
+    return items;
   }
 }

@@ -36,7 +36,7 @@ import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
 import { PopbillChangeService } from 'src/modules/popbill/service/popbill.change.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -711,8 +711,17 @@ export class TaxInvoiceChangeService {
     });
   }
 
+  @Timeout(5000)
+  async checkOnSendTaxInvoiceOnStart() {
+    await this.checkOnSendTaxInvoice();
+  }
+
   @Cron(CronExpression.EVERY_30_MINUTES)
-  async checkOnSendTaxInvoice() {
+  async checkOnSendTaxInvoiceFor30Min() {
+    await this.checkOnSendTaxInvoice();
+  }
+
+  private async checkOnSendTaxInvoice() {
     this.logger.log(`[세금계산서 전송중 => 전송 상태확인]`);
     const companies = await this.prisma.company.findMany({
       where: {

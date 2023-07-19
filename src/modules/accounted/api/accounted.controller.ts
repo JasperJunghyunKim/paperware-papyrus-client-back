@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  NotImplementedException,
   Param,
   Query,
   Request,
@@ -11,7 +12,11 @@ import { AccountedListResponse } from 'src/@shared/api';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
-import { AccountedRequest } from './dto/accounted.request';
+import {
+  AccountedRequest,
+  AccountedUnpaidListDto,
+} from './dto/accounted.request';
+import { Util } from 'src/common';
 
 @Controller('/accounted')
 export class AccountedController {
@@ -31,5 +36,21 @@ export class AccountedController {
       accountedType,
       accountedRequest,
     );
+  }
+
+  @Get('/unpaid')
+  @UseGuards(AuthGuard)
+  async getUnpaidList(
+    @Request() req: AuthType,
+    @Query() dto: AccountedUnpaidListDto,
+  ) {
+    throw new NotImplementedException();
+    return await this.accountedRetriveService.getUnpaidList({
+      companyId: req.user.companyId,
+      ...dto,
+      companyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        dto.companyRegistrationNumbers,
+      ),
+    });
   }
 }

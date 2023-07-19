@@ -6,6 +6,7 @@ import { validate } from './core/config/confnig.validator';
 import { GlobalExceptionFilter } from './filters';
 import { HttpLoggingInterceptor } from './interceptors';
 import { BusinessModule } from './modules/business.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const configModule = (): DynamicModule => {
   return ConfigModule.forRoot({
@@ -22,6 +23,7 @@ const configModule = (): DynamicModule => {
     RouteScanModule,
     BusinessModule,
     DatabaseModule,
+    ScheduleModule.forRoot(),
   ],
   providers: [
     {
