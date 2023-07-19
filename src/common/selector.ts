@@ -1073,3 +1073,49 @@ export const TAX_INVOICE = {
     select: ORDER,
   },
 } satisfies Prisma.TaxInvoiceSelect;
+
+export const ORDER_REQUEST_ITEM = {
+  id: true,
+  serial: true,
+  item: true,
+  quantity: true,
+  memo: true,
+  dstMemo: true,
+  status: true,
+} satisfies Prisma.OrderRequestItemSelect;
+
+export const ORDER_REQUEST = {
+  id: true,
+  srcCompany: true,
+  dstCompany: true,
+  ordererName: true,
+  ordererPhoneNo: true,
+  location: true,
+  wantedDate: true,
+  memo: true,
+  orderRequestItems: {
+    select: ORDER_REQUEST_ITEM,
+  },
+} satisfies Prisma.OrderRequestSelect;
+
+export const ORDER_REQUEST_ITEM_WITH_ORDER_REQUEST = {
+  id: true,
+  serial: true,
+  item: true,
+  quantity: true,
+  memo: true,
+  dstMemo: true,
+  status: true,
+  orderRequest: {
+    select: {
+      id: true,
+      srcCompany: true,
+      dstCompany: true,
+      ordererName: true,
+      ordererPhoneNo: true,
+      location: true,
+      wantedDate: true,
+      memo: true,
+    },
+  },
+} satisfies Prisma.OrderRequestItemSelect;
