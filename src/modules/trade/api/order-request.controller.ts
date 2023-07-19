@@ -17,6 +17,7 @@ import {
   OrderRequestCreateDto,
   OrderRequestListDto,
 } from './dto/order-request.request';
+import { OrderRequestListResponse } from 'src/@shared/api/trade/order-request.response';
 
 @Controller('/order-request')
 export class OrderRequestController {
@@ -37,7 +38,10 @@ export class OrderRequestController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getList(@Request() req: AuthType, @Query() query: OrderRequestListDto) {
+  async getList(
+    @Request() req: AuthType,
+    @Query() query: OrderRequestListDto,
+  ): Promise<OrderRequestListResponse> {
     if (
       req.user.companyId !== query.srcCompanyId &&
       req.user.companyId !== query.dstCompanyId

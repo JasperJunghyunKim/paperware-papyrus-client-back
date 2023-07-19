@@ -1475,6 +1475,7 @@ model OrderRequestItem {
   item           String
   quantity       String                 @default("")
   memo           String                 @default("")
+  dstMemo        String                 @default("")
   status         OrderRequestItemStatus @default(REQUESTED)
   orderRequestId Int
   orderRequest   OrderRequest           @relation(fields: [orderRequestId], references: [id])
