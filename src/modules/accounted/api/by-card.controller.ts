@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -50,6 +51,14 @@ export class ByCardController {
     @Param('accountedType') accountedType: AccountedType,
     @Body() byCardCreateRequest: ByCardCreateRequestDto,
   ): Promise<void> {
+    if (accountedType === 'PAID' && byCardCreateRequest.cardId === null)
+      throw new BadRequestException(`카드를 선택해야 합니다.`);
+    if (
+      accountedType === 'COLLECTED' &&
+      byCardCreateRequest.bankAccountId === null
+    )
+      throw new BadRequestException(`계좌를 선택해야 합니다.`);
+
     await this.byCardChangeService.createCard(
       accountedType,
       byCardCreateRequest,

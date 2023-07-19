@@ -1,10 +1,14 @@
 import { AccountedType, Method, Subject } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
+  IsInt,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
+  ValidateIf,
 } from 'class-validator';
 import {
   ByCardCreateRequest,
@@ -30,8 +34,19 @@ export class ByCardCreateRequestDto implements ByCardCreateRequest {
   @IsString()
   readonly accountedDate: string;
 
-  @IsNumber()
-  readonly cardId: number;
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly cardId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly bankAccountId: number | null = null;
 
   @IsString()
   @IsOptional()

@@ -77,6 +77,11 @@ export class AccountedRetriveService {
                 cardName: true,
               },
             },
+            bankAccount: {
+              select: {
+                accountName: true,
+              },
+            },
           },
         },
         byOffset: true,
