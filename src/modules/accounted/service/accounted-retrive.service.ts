@@ -93,16 +93,10 @@ export class AccountedRetriveService {
         },
       },
       where: {
-        partner: {
-          companyId: conditionCompanyId !== 0 ? conditionCompanyId : undefined,
-          companyRegistrationNumber:
-            companyRegistrationNumber !== ''
-              ? companyRegistrationNumber
-              : undefined,
-          company: {
-            id: companyId,
-          },
-        },
+        companyId,
+        companyRegistrationNumber: companyRegistrationNumber
+          ? companyRegistrationNumber
+          : undefined,
         ...param,
       },
     });
