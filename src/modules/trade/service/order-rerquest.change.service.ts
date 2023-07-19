@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { OrderRequestItemStatus } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import { Util } from 'src/common';
+import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -165,5 +167,86 @@ export class OrderRequestChangeService {
            END)
       `;
     }
+  }
+
+  private async getItemForUpdateTx(
+    tx: PrismaTransaction,
+    orderRequestItemId: number,
+  ): Promise<{
+    id: number;
+    dstCompanyId: number;
+    srcCompanyId: number;
+    status: OrderRequestItemStatus;
+  } | null> {
+    const [item]: {
+      id: number;
+      dstCompanyId: number;
+      srcCompanyId: number;
+      status: OrderRequestItemStatus;
+    }[] = await tx.$queryRaw`
+      SELECT ri.id AS id
+            , r.srcCompanyId AS srcCompanyId
+            , r.dstCompanyId AS dstCompanyId
+            , status AS status
+        FROM OrderRequestItem   AS ri
+        JOIN OrderRequest       AS r    ON r.id = ri.orderRequestId
+      WHERE ri.id = ${orderRequestItemId}
+
+      FOR UPDATE;
+    `;
+
+    return item || null;
+  }
+
+  async cancel(companyId: number, orderRequestItemId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const item = await this.getItemForUpdateTx(tx, orderRequestItemId);
+      if (
+        !item ||
+        (item.srcCompanyId !== companyId && item.dstCompanyId !== companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 퀵주문 상품입니다.`);
+
+      if (item.srcCompanyId !== companyId)
+        throw new ForbiddenException(`주문취소 권한이 없습니다.`);
+      if (item.status !== 'REQUESTED')
+        throw new ConflictException(`주문취소 가능한 상태가 아닙니다.`);
+
+      await tx.orderRequestItem.update({
+        where: {
+          id: orderRequestItemId,
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
+    });
+  }
+
+  async done(companyId: number, orderRequestItemId: number, dstMemo: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const item = await this.getItemForUpdateTx(tx, orderRequestItemId);
+
+      if (
+        !item ||
+        (item.srcCompanyId !== companyId && item.dstCompanyId !== companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 퀵주문 상품입니다.`);
+
+      if (item.dstCompanyId !== companyId)
+        throw new ForbiddenException(`주문처리완료 권한이 없습니다.`);
+      if (item.status !== 'REQUESTED' && item.status !== 'ON_CHECKING')
+        throw new ConflictException(`주문처리완료 가능한 상태가 아닙니다.`);
+
+      await tx.orderRequestItem.update({
+        where: {
+          id: orderRequestItemId,
+        },
+        data: {
+          status: 'DONE',
+          dstMemo,
+        },
+      });
+    });
   }
 }

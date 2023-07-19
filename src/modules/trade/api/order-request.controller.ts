@@ -17,6 +17,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import {
   OrderRequestCreateDto,
+  OrderRequestItemDoneDto,
   OrderRequestItemListDto,
 } from './dto/order-request.request';
 import {
@@ -75,5 +76,27 @@ export class OrderRequestController {
   @UseGuards(AuthGuard)
   async check(@Request() req: AuthType, @Param() idDto: IdDto) {
     return await this.change.check(req.user.companyId, idDto.id);
+  }
+
+  /** 퀵주문상품 취소 */
+  @Patch('/item/:id/cancel')
+  @UseGuards(AuthGuard)
+  async cancel(@Request() req: AuthType, @Param() idDto: IdDto) {
+    return await this.change.cancel(req.user.companyId, idDto.id);
+  }
+
+  /** 퀵주문상품 완료처리 */
+  @Patch('/item/:id/done')
+  @UseGuards(AuthGuard)
+  async done(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+    @Body() dto: OrderRequestItemDoneDto,
+  ) {
+    return await this.change.done(
+      req.user.companyId,
+      idDto.id,
+      dto.dstMemo || '',
+    );
   }
 }

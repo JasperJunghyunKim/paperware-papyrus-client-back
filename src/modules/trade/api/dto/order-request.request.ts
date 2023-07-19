@@ -16,6 +16,7 @@ import {
 } from 'class-validator';
 import {
   OrderRequestCreateRequest,
+  OrderRequestItemDoneRequest,
   OrderRequestItemListQuery,
 } from 'src/@shared/api/trade/order-request.request';
 
@@ -98,4 +99,11 @@ export class OrderRequestCreateDto implements OrderRequestCreateRequest {
   @ValidateNested({ each: true })
   @Type(() => OrderRequestCreateItemDto)
   readonly orderRequestItems: OrderRequestCreateItemDto[];
+}
+
+export class OrderRequestItemDoneDto implements OrderRequestItemDoneRequest {
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  readonly dstMemo: string = '';
 }
