@@ -247,10 +247,19 @@ model User {
 
 // Company & Client
 
+enum CompanyType {
+  DISTRIBUTOR
+  MANUFACTURER
+  PRACTICAL
+  ETC
+}
+
 model Company {
   id                             Int                           @id @default(autoincrement())
+  companyType                    CompanyType                   @default(ETC)
   businessName                   String
   companyRegistrationNumber      String
+  corporateRegistrationNumber    String?
   phoneNo                        String                        @default("")
   faxNo                          String                        @default("")
   representative                 String                        @default("")
@@ -261,6 +270,8 @@ model Company {
   popbillId                      String?
   managedById                    Int?
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
+  startDate                      DateTime                      @default(now())
+  memo                           String                        @default("")
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")
   dstBusinessRelationship        BusinessRelationship[]        @relation("dstBusinessRelationship")
   srcOrder                       Order[]                       @relation("srcOrderCompany")
