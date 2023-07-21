@@ -16,6 +16,7 @@ datasource db {
 model PaperDomain {
   id                    Int                     @id @default(autoincrement())
   name                  String
+  isDiscontinued        Boolean                 @default(false)
   Product               Product[]
   DiscountRateCondition DiscountRateCondition[]
 }
@@ -23,6 +24,7 @@ model PaperDomain {
 model Manufacturer {
   id                    Int                     @id @default(autoincrement())
   name                  String
+  isDiscontinued        Boolean                 @default(false)
   product               Product[]
   DiscountRateCondition DiscountRateCondition[]
 }
@@ -30,6 +32,7 @@ model Manufacturer {
 model PaperGroup {
   id                    Int                     @id @default(autoincrement())
   name                  String
+  isDiscontinued        Boolean                 @default(false)
   product               Product[]
   DiscountRateCondition DiscountRateCondition[]
 }
@@ -37,6 +40,7 @@ model PaperGroup {
 model PaperType {
   id                    Int                     @id @default(autoincrement())
   name                  String
+  isDiscontinued        Boolean                 @default(false)
   product               Product[]
   DiscountRateCondition DiscountRateCondition[]
 }
@@ -44,6 +48,7 @@ model PaperType {
 model PaperColorGroup {
   id                     Int                      @id @default(autoincrement())
   name                   String
+  isDiscontinued         Boolean                  @default(false)
   Stock                  Stock[]
   Invoice                Invoice[]
   OfficialPriceCondition OfficialPriceCondition[]
@@ -57,6 +62,7 @@ model PaperColorGroup {
 model PaperColor {
   id                     Int                      @id @default(autoincrement())
   name                   String
+  isDiscontinued         Boolean                  @default(false)
   Stock                  Stock[]
   Invoice                Invoice[]
   OfficialPriceCondition OfficialPriceCondition[]
@@ -70,6 +76,7 @@ model PaperColor {
 model PaperPattern {
   id                     Int                      @id @default(autoincrement())
   name                   String
+  isDiscontinued         Boolean                  @default(false)
   Stock                  Stock[]
   Invoice                Invoice[]
   OfficialPriceCondition OfficialPriceCondition[]
@@ -83,6 +90,7 @@ model PaperPattern {
 model PaperCert {
   id                     Int                      @id @default(autoincrement())
   name                   String
+  isDiscontinued         Boolean                  @default(false)
   Stock                  Stock[]
   Invoice                Invoice[]
   OfficialPriceCondition OfficialPriceCondition[]
@@ -126,6 +134,7 @@ model Product {
   paperGroup             PaperGroup               @relation(fields: [paperGroupId], references: [id])
   paperTypeId            Int
   paperType              PaperType                @relation(fields: [paperTypeId], references: [id])
+  isDiscontinued         Boolean                  @default(false)
   stock                  Stock[]
   Invoice                Invoice[]
   OfficialPriceCondition OfficialPriceCondition[]
