@@ -44,7 +44,7 @@ export class AccountedController {
     @Request() req: AuthType,
     @Query() dto: AccountedUnpaidListDto,
   ) {
-    throw new NotImplementedException();
+    // throw new NotImplementedException();
     return await this.accountedRetriveService.getUnpaidList({
       companyId: req.user.companyId,
       ...dto,
