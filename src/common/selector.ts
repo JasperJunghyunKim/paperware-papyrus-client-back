@@ -1094,6 +1094,7 @@ export const ORDER_REQUEST = {
   location: true,
   wantedDate: true,
   memo: true,
+  createdAt: true,
   orderRequestItems: {
     select: ORDER_REQUEST_ITEM,
   },
@@ -1117,6 +1118,7 @@ export const ORDER_REQUEST_ITEM_WITH_ORDER_REQUEST = {
       location: true,
       wantedDate: true,
       memo: true,
+      createdAt: true,
     },
   },
 } satisfies Prisma.OrderRequestItemSelect;

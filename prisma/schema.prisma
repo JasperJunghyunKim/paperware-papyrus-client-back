@@ -1491,6 +1491,7 @@ model OrderRequest {
   location          Location?          @relation(fields: [locationId], references: [id])
   wantedDate        DateTime?
   memo              String             @default("")
+  createdAt         DateTime           @default(now())
   orderRequestItems OrderRequestItem[]
 }
 
