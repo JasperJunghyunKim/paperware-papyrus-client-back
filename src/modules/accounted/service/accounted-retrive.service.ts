@@ -9,6 +9,7 @@ import {
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import { AccountedRequest } from '../api/dto/accounted.request';
+import * as dayjs from 'dayjs';
 
 export interface Price {
   partnerCompanyRegistrationNumber: string;
@@ -293,10 +294,15 @@ export class AccountedRetriveService {
     const year7 = Number(now[0].year7);
     const month7 = Number(now[0].month7);
 
+    const lastDay = dayjs(year7 + '-' + month7)
+      .endOf('month')
+      .get('date');
+
     // 거래금액
     const prices: Price[] = await this.prisma.$queryRaw`
       SELECT ${partnerSelectQuery}
-            , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) AS totalPrice
+            , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) 
+              - IFNULL(paidPrice.totalPrice, 0)  AS totalPrice
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month1} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
                 AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month2} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
@@ -309,7 +315,12 @@ export class AccountedRetriveService {
                 AS price5
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month6} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
                 AS price6
-            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) <= ${`${year7}-${month7}`} THEN tp.suppliedPrice + tp.vatPrice END), 0) AS price7
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) <= LAST_DAY(${`${year7}-${month7
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-${lastDay} 23:59:59.999`}) THEN tp.suppliedPrice + tp.vatPrice END), 0) AS price7
 
         FROM \`Order\`      AS o
         JOIN TradePrice     AS tp               ON tp.orderId = o.id AND tp.companyId = ${companyId}
@@ -317,11 +328,37 @@ export class AccountedRetriveService {
         JOIN Company        AS srcCompany       ON srcCompany.id = o.srcCompanyId
         JOIN Company        AS dstCompany       ON dstCompany.id = o.dstCompanyId
 
+   LEFT JOIN (SELECT a.partnerCompanyRegistrationNumber
+                    , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
+
+                FROM Accounted      AS a
+           LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
+           LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
+           LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
+           LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
+           LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
+           LEFT JOIN Security       AS s2 ON s2.id = s.securityId
+           LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+            
+            WHERE a.companyId = ${companyId}
+              AND a.accountedType = ${accountedType}
+              AND a.partnerCompanyRegistrationNumber IN (${Prisma.join(
+                partners.map((p) => p.companyRegistrationNumber),
+              )})
+
+            GROUP BY a.partnerCompanyRegistrationNumber
+      ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = ${
+        accountedType === 'PAID'
+          ? Prisma.sql`dstCompany.companyRegistrationNumber`
+          : Prisma.sql`srcCompany.companyRegistrationNumber`
+      }
+
        WHERE ${typeQuery}
          AND ${partnerQuery}
          AND o.status = ${OrderStatus.ACCEPTED}
 
         GROUP BY ${groupByQuery}
+                , paidPrice.totalPrice
     `;
     const priceMap = new Map<string, Price>();
     for (const price of prices) {
