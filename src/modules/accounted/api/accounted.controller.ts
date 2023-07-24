@@ -8,7 +8,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
-import { AccountedListResponse } from 'src/@shared/api';
+import {
+  AccountedListResponse,
+  AccountedUnpaidListResponse,
+} from 'src/@shared/api';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
@@ -43,7 +46,7 @@ export class AccountedController {
   async getUnpaidList(
     @Request() req: AuthType,
     @Query() dto: AccountedUnpaidListDto,
-  ) {
+  ): Promise<AccountedUnpaidListResponse> {
     // throw new NotImplementedException();
     return await this.accountedRetriveService.getUnpaidList({
       companyId: req.user.companyId,

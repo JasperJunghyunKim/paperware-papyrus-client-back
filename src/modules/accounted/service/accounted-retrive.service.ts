@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   AccountedType,
   Method,
@@ -13,6 +13,8 @@ import * as dayjs from 'dayjs';
 
 export interface Price {
   partnerCompanyRegistrationNumber: string;
+  partnerNickName: string;
+  creditLimit: number;
   totalPrice: number;
   price1: number;
   price2: number;
@@ -21,6 +23,7 @@ export interface Price {
   price5: number;
   price6: number;
   price7: number;
+  total?: number;
 }
 
 @Injectable()
@@ -220,47 +223,27 @@ export class AccountedRetriveService {
       maxAmount,
     } = params;
 
-    const partners = await this.prisma.partner.findMany({
-      where: {
-        companyId,
-        companyRegistrationNumber:
-          companyRegistrationNumbers.length > 0
-            ? {
-                in: companyRegistrationNumbers,
-              }
-            : undefined,
-      },
-      orderBy: {
-        id: 'asc',
-      },
-      skip,
-      take,
-    });
-    console.log(partners);
-
-    const typeQuery =
-      accountedType === 'PAID'
-        ? Prisma.sql`o.srcCompanyId = ${companyId}`
-        : Prisma.sql`o.dstCompanyId = ${companyId}`;
-
-    const partnerSelectQuery =
-      accountedType === 'PAID'
-        ? Prisma.sql`dstCompany.companyRegistrationNumber AS partnerCompanyRegistrationNumber`
-        : Prisma.sql`srcCompany.companyRegistrationNumber AS partnerCompanyRegistrationNumber`;
-
-    const groupByQuery =
-      accountedType === 'PAID'
-        ? Prisma.sql`dstCompany.companyRegistrationNumber`
-        : Prisma.sql`srcCompany.companyRegistrationNumber`;
-
+    // footer 조건
     const partnerQuery =
-      accountedType === 'PAID'
-        ? Prisma.sql`dstCompany.companyRegistrationNumber IN (${Prisma.join(
-            partners.map((p) => p.companyRegistrationNumber),
+      companyRegistrationNumbers.length > 0
+        ? Prisma.sql`AND partner.companyRegistrationNumber IN (${Prisma.join(
+            companyRegistrationNumbers.map((p) => p),
           )})`
-        : Prisma.sql`srcCompany.companyRegistrationNumber IN (${Prisma.join(
-            partners.map((p) => p.companyRegistrationNumber),
-          )})`;
+        : Prisma.empty;
+
+    // 표 조건
+    const orderJoinQuery =
+      accountedType === 'PAID'
+        ? Prisma.sql`o.srcCompanyId = ${companyId} AND o.dstCompanyId = partnerCompany.id`
+        : Prisma.sql`o.dstCompanyId = ${companyId} AND o.srcCompanyId = partnerCompany.id`;
+
+    const minAmountQuery = minAmount
+      ? Prisma.sql`AND totalPrice >= ${minAmount}`
+      : Prisma.empty;
+
+    const maxAmountQuery = maxAmount
+      ? Prisma.sql`AND totalPrice <= ${maxAmount}`
+      : Prisma.empty;
 
     // 날짜(DB 시간 기준)
     const now: any[] = await this.prisma.$queryRaw`
@@ -298,90 +281,247 @@ export class AccountedRetriveService {
       .endOf('month')
       .get('date');
 
-    // 거래금액
-    const prices: Price[] = await this.prisma.$queryRaw`
-      SELECT ${partnerSelectQuery}
+    const totalPrices: Price[] = await this.prisma.$queryRaw`
+      SELECT partner.id AS partnerId
+            , partner.companyRegistrationNumber AS partnerCompanyRegistrationNumber
+            , partner.partnerNickName AS partnerNickName
+            , partner.creditLimit AS creditLimit
+            
+            -- 거래금액 - 지급/수금
             , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) 
-              - IFNULL(paidPrice.totalPrice, 0)  AS totalPrice
+              - IFNULL(paidPrice.totalPrice, 0) AS totalPrice
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month1} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price1
+              - IFNULL(paidPrice.price1, 0)  AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month2} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price2
+              - IFNULL(paidPrice.price2, 0)  AS price2
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month3} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price3
+              - IFNULL(paidPrice.price3, 0)  AS price3
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month4} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price4
+              - IFNULL(paidPrice.price4, 0)  AS price4
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month5} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price5
+              - IFNULL(paidPrice.price5, 0)  AS price5
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month6} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-                AS price6
-            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) <= LAST_DAY(${`${year7}-${month7
+              - IFNULL(paidPrice.price6, 0)  AS price6
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
               .toString()
               .padStart(
                 2,
                 '0',
-              )}-${lastDay} 23:59:59.999`}) THEN tp.suppliedPrice + tp.vatPrice END), 0) AS price7
+              )}-${lastDay} 23:59:59.999`} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price7, 0) AS price7
 
-        FROM \`Order\`      AS o
-        JOIN TradePrice     AS tp               ON tp.orderId = o.id AND tp.companyId = ${companyId}
-        
-        JOIN Company        AS srcCompany       ON srcCompany.id = o.srcCompanyId
-        JOIN Company        AS dstCompany       ON dstCompany.id = o.dstCompanyId
+            -- total
+            , COUNT(1) OVER() AS total
 
-   LEFT JOIN (SELECT a.partnerCompanyRegistrationNumber
-                    , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
+        FROM (
+          SELECT p.id, p.companyId, p.companyRegistrationNumber, p.partnerNickName, p.creditLimit
+            FROM Partner    AS p
+          WHERE p.companyId = ${companyId} 
 
-                FROM Accounted      AS a
-           LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
-           LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
-           LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
-           LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
-           LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
-           LEFT JOIN Security       AS s2 ON s2.id = s.securityId
-           LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+          ORDER BY p.id
+        ) AS partner
+        JOIN Company AS partnerCompany ON partnerCompany.companyRegistrationNumber = partner.companyRegistrationNumber AND (partnerCompany.managedById = ${companyId} OR partnerCompany.managedById IS NULL)
+
+        -- 거래금액
+      LEFT JOIN \`Order\`  AS o              ON ${orderJoinQuery}
+      LEFT JOIN TradePrice AS tp             ON tp.orderId = o.id AND tp.companyId = ${companyId}
+
+        -- 지급/수금
+      LEFT JOIN (
+      SELECT a.partnerCompanyRegistrationNumber
+            , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month1} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price2
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price3
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price4
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price5
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price6
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price7
+
+        FROM Accounted      AS a
+      LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
+      LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
+      LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
+      LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
+      LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
+      LEFT JOIN Security       AS s2 ON s2.id = s.securityId
+      LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+
+      WHERE a.companyId = ${companyId}
+        AND a.accountedType = ${accountedType}
+        ${partnerQuery}
+
+      GROUP BY a.partnerCompanyRegistrationNumber
+      ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = partner.companyRegistrationNumber
+
+        GROUP BY partner.companyRegistrationNumber
+                , partner.id
+
+          HAVING 1=1
+            ${minAmountQuery}
+            ${maxAmountQuery}
             
-            WHERE a.companyId = ${companyId}
-              AND a.accountedType = ${accountedType}
-              AND a.partnerCompanyRegistrationNumber IN (${Prisma.join(
-                partners.map((p) => p.companyRegistrationNumber),
-              )})
+        ORDER BY partner.id
+      `;
 
-            GROUP BY a.partnerCompanyRegistrationNumber
-      ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = ${
-        accountedType === 'PAID'
-          ? Prisma.sql`dstCompany.companyRegistrationNumber`
-          : Prisma.sql`srcCompany.companyRegistrationNumber`
-      }
-
-       WHERE ${typeQuery}
-         AND ${partnerQuery}
-         AND o.status = ${OrderStatus.ACCEPTED}
-
-        GROUP BY ${groupByQuery}
-                , paidPrice.totalPrice
-    `;
-    const priceMap = new Map<string, Price>();
-    for (const price of prices) {
-      priceMap.set(price.partnerCompanyRegistrationNumber, price);
+    const total = Number(totalPrices[0].total || 0);
+    const totalPrice = {
+      totalPrice: 0,
+      price1: 0,
+      price2: 0,
+      price3: 0,
+      price4: 0,
+      price5: 0,
+      price6: 0,
+      price7: 0,
+    };
+    for (const price of totalPrices) {
+      totalPrice.totalPrice += price.totalPrice;
+      totalPrice.price1 += price.price1;
+      totalPrice.price2 += price.price2;
+      totalPrice.price3 += price.price3;
+      totalPrice.price4 += price.price4;
+      totalPrice.price5 += price.price5;
+      totalPrice.price6 += price.price6;
+      totalPrice.price7 += price.price7;
     }
 
-    // TODO: 수금/지급건 찾아서 차감
-
-    return partners.map((p) => {
-      const price = priceMap.get(p.companyRegistrationNumber);
-      return {
-        companyRegistrationNumber: p.companyRegistrationNumber,
-        partnerNickName: p.partnerNickName,
-        creditLimit: Number(p.creditLimit),
-        totalPrice: price?.totalPrice || 0,
-        price1: price?.price1 || 0,
-        price2: price?.price2 || 0,
-        price3: price?.price3 || 0,
-        price4: price?.price4 || 0,
-        price5: price?.price5 || 0,
-        price6: price?.price6 || 0,
-        price7: price?.price7 || 0,
-      };
+    const partners = await this.prisma.partner.findMany({
+      where: {
+        companyId,
+        companyRegistrationNumber:
+          companyRegistrationNumbers.length > 0
+            ? {
+                in: companyRegistrationNumbers,
+              }
+            : undefined,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+      skip,
+      take,
     });
+    if (partners.length === 0) {
+      return {
+        items: [],
+        total,
+        totalPrice,
+      };
+    }
+
+    // 거래금액
+    const prices: Price[] = await this.prisma.$queryRaw`
+      SELECT partner.id AS partnerId
+            , partner.companyRegistrationNumber AS partnerCompanyRegistrationNumber
+            , partner.partnerNickName AS partnerNickName
+            , partner.creditLimit AS creditLimit
+            
+            -- 거래금액 - 지급/수금
+            , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) 
+              - IFNULL(paidPrice.totalPrice, 0) AS totalPrice
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month1} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price1, 0)  AS price1
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month2} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price2, 0)  AS price2
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month3} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price3, 0)  AS price3
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month4} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price4, 0)  AS price4
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month5} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price5, 0)  AS price5
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month6} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price6, 0)  AS price6
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-${lastDay} 23:59:59.999`} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price7, 0) AS price7
+
+        FROM (
+          SELECT p.id, p.companyId, p.companyRegistrationNumber, p.partnerNickName, p.creditLimit
+            FROM Partner    AS p
+           WHERE p.companyId = ${companyId} 
+             AND p.companyRegistrationNumber IN (${Prisma.join(
+               partners.map((p) => p.companyRegistrationNumber),
+             )})
+          ORDER BY p.id
+        ) AS partner
+        JOIN Company AS partnerCompany ON partnerCompany.companyRegistrationNumber = partner.companyRegistrationNumber AND (partnerCompany.managedById = ${companyId} OR partnerCompany.managedById IS NULL)
+
+        -- 거래금액
+   LEFT JOIN \`Order\`  AS o              ON ${orderJoinQuery}
+   LEFT JOIN TradePrice AS tp             ON tp.orderId = o.id AND tp.companyId = ${companyId}
+
+        -- 지급/수금
+   LEFT JOIN (
+      SELECT a.partnerCompanyRegistrationNumber
+            , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month1} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price2
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price3
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price4
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price5
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price6
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price7
+
+        FROM Accounted      AS a
+    LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
+    LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
+    LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
+    LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
+    LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
+    LEFT JOIN Security       AS s2 ON s2.id = s.securityId
+    LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+    
+    WHERE a.companyId = ${companyId}
+      AND a.accountedType = ${accountedType}
+      AND a.partnerCompanyRegistrationNumber IN (${Prisma.join(
+        partners.map((p) => p.companyRegistrationNumber),
+      )})
+
+    GROUP BY a.partnerCompanyRegistrationNumber
+   ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = partner.companyRegistrationNumber
+      
+        GROUP BY partner.companyRegistrationNumber
+                , partner.id
+          HAVING 1=1
+            ${minAmountQuery}
+            ${maxAmountQuery}
+            
+        ORDER BY partner.id
+    `;
+
+    return {
+      items: prices.map((p) => {
+        return {
+          companyRegistrationNumber: p.partnerCompanyRegistrationNumber,
+          partnerNickName: p.partnerNickName,
+          creditLimit: Number(p.creditLimit || 0),
+          totalPrice: Number(p.totalPrice || 0),
+          price1: Number(p.price1 || 0),
+          price2: Number(p.price2 || 0),
+          price3: Number(p.price3 || 0),
+          price4: Number(p.price4 || 0),
+          price5: Number(p.price5 || 0),
+          price6: Number(p.price6 || 0),
+          price7: Number(p.price7 || 0),
+        };
+      }),
+      total,
+      totalPrice,
+    };
   }
 }
