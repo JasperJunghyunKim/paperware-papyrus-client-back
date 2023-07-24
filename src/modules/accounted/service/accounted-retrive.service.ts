@@ -226,7 +226,7 @@ export class AccountedRetriveService {
     // footer 조건
     const partnerQuery =
       companyRegistrationNumbers.length > 0
-        ? Prisma.sql`AND partner.companyRegistrationNumber IN (${Prisma.join(
+        ? Prisma.sql`AND p.companyRegistrationNumber IN (${Prisma.join(
             companyRegistrationNumbers.map((p) => p),
           )})`
         : Prisma.empty;
@@ -317,6 +317,7 @@ export class AccountedRetriveService {
           SELECT p.id, p.companyId, p.companyRegistrationNumber, p.partnerNickName, p.creditLimit
             FROM Partner    AS p
           WHERE p.companyId = ${companyId} 
+          ${partnerQuery}
 
           ORDER BY p.id
         ) AS partner
@@ -354,7 +355,6 @@ export class AccountedRetriveService {
 
       WHERE a.companyId = ${companyId}
         AND a.accountedType = ${accountedType}
-        ${partnerQuery}
 
       GROUP BY a.partnerCompanyRegistrationNumber
       ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = partner.companyRegistrationNumber
@@ -369,7 +369,7 @@ export class AccountedRetriveService {
         ORDER BY partner.id
       `;
 
-    const total = Number(totalPrices[0].total || 0);
+    const total = Number(totalPrices[0]?.total || 0);
     const totalPrice = {
       totalPrice: 0,
       price1: 0,
