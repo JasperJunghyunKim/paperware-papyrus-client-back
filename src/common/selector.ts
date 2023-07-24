@@ -603,6 +603,7 @@ export const ORDER = {
   acceptedCompanyId: true,
   acceptedCompany: true,
   isStockRejected: true,
+  taxInvoice: true,
   orderStock: {
     select: ORDER_STOCK,
   },
