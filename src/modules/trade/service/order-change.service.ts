@@ -142,7 +142,7 @@ export class OrderChangeService {
         );
       }
 
-      // 비고
+      // 4. 비고
       if (params.memo !== params.curMemo) {
         throw new ForbiddenException(`비고 수정은 판매회사만 가능합니다.`);
       }
