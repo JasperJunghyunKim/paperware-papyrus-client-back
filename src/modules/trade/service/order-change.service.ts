@@ -18,6 +18,8 @@ import {
   PackagingType,
   PlanType,
   PriceUnit,
+  Stock,
+  StockEvent,
 } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { StockCreateStockPriceRequest } from 'src/@shared/api';
@@ -103,12 +105,14 @@ export class OrderChangeService {
     locationId1: number | null;
     curLocationId2: number | null;
     locationId2: number | null;
-    curIsDirectShipping1: boolean | null;
-    isDirectShipping1: boolean | null;
-    curIsDirectShipping2: boolean | null;
-    isDirectShipping2: boolean | null;
+    curIsSrcDirectShipping: boolean | null;
+    isSrcDirectShipping: boolean | null;
+    curIsDstDirectShipping: boolean | null;
+    isDstDirectShipping: boolean | null;
     curMemo: string;
     memo: string;
+    srcTargetStocks: (Stock & { stockEvent: StockEvent[] })[];
+    dstTargetStocks: (Stock & { stockEvent: StockEvent[] })[];
   }) {
     // 주문승인후 + 판매회사 아님 + 판매회사가 사용중
     if (
@@ -147,6 +151,32 @@ export class OrderChangeService {
         throw new ForbiddenException(`비고 수정은 판매회사만 가능합니다.`);
       }
     }
+
+    // 5-1. 직송 toggle (도착예정재고 상태 제외)
+    if (
+      (params.isSrcDirectShipping !== undefined ||
+        params.isSrcDirectShipping !== null) &&
+      params.isSrcDirectShipping !== params.curIsSrcDirectShipping &&
+      params.srcCompany.id !== params.companyId
+    ) {
+      throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
+    }
+    if (
+      (params.isDstDirectShipping !== undefined ||
+        params.isDstDirectShipping !== null) &&
+      params.isDstDirectShipping !== params.curIsDstDirectShipping &&
+      params.dstCompany.id !== params.companyId
+    ) {
+      throw new ForbiddenException(
+        `원지 직송여부는 판매기업만 수정 가능합니다.`,
+      );
+    }
+
+    // 5-2. 직송 (도착예정재고 상태)
+    // TODO:
+
+    // 6. 발주자
+    // TODO: 현재 주문에 발주자가 없음 => 이후 수정필요
   }
 
   private async assignStockToNormalOrder(
@@ -624,7 +654,29 @@ export class OrderChangeService {
         include: {
           dstCompany: true,
           srcCompany: true,
-          orderStock: true,
+          orderStock: {
+            include: {
+              plan: {
+                include: {
+                  targetStockEvent: {
+                    include: {
+                      stock: {
+                        include: {
+                          stockEvent: {
+                            where: {
+                              status: {
+                                not: 'CANCELLED',
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         where: {
           id: params.orderId,
@@ -640,6 +692,14 @@ export class OrderChangeService {
       if (orderCheck.orderType !== 'NORMAL')
         throw new ConflictException(`주문타입이 맞지 않습니다.`);
 
+      const srcPlan = orderCheck.orderStock.plan.find(
+        (plan) => plan.companyId === orderCheck.srcCompanyId,
+      );
+      const targetStocks = srcPlan.targetStockEvent
+        .map((se) => se.stock)
+        .filter((s) => s.stockEvent.length > 0);
+      console.log(111, targetStocks);
+
       this.validateUpdateOrder({
         companyId: params.companyId,
         orderStatus: orderCheck.status,
@@ -653,13 +713,16 @@ export class OrderChangeService {
         locationId1: params.locationId,
         curLocationId2: null,
         locationId2: null,
-        curIsDirectShipping1: orderCheck.orderStock.isDirectShipping,
-        isDirectShipping1: params.isDirectShipping,
-        curIsDirectShipping2: null,
-        isDirectShipping2: null,
+        curIsSrcDirectShipping: orderCheck.orderStock.isDirectShipping,
+        isSrcDirectShipping: params.isDirectShipping,
+        curIsDstDirectShipping: null,
+        isDstDirectShipping: null,
         curMemo: orderCheck.memo,
         memo: params.memo,
+        srcTargetStocks: targetStocks,
+        dstTargetStocks: [],
       });
+      throw new BadRequestException('test');
 
       // 주문 업데이트
       const order = await tx.order.update({
