@@ -689,10 +689,12 @@ model TaskGuillotine {
 }
 
 model TaskQuantity {
-  taskId   Int    @id
-  task     Task   @relation(fields: [taskId], references: [id])
-  quantity Int
-  memo     String
+  taskId    Int      @id
+  task      Task     @relation(fields: [taskId], references: [id])
+  quantity  Int
+  memo      String
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  invoiceId Int?
 }
 
 enum ShippingStatus {
@@ -746,6 +748,7 @@ model Invoice {
   planId            Int
   plan              Plan             @relation(fields: [planId], references: [id])
   invoiceStatus     InvoiceStatus    @default(WAIT_LOADING)
+  taskQuantity      TaskQuantity[]
 }
 
 enum TaxInvoiceStatus {

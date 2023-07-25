@@ -309,6 +309,7 @@ export class TaskChangeService {
             type: task.plan.assignStockEvent.stock.packaging.type,
           },
         });
+
         if (task.plan.orderStock) {
           const skid = await tx.packaging.findFirstOrThrow({
             where: {
@@ -322,7 +323,7 @@ export class TaskChangeService {
               : task.plan.assignStockEvent.stock.packaging;
 
           // 주문에 연결된 작업은 송장을 생성
-          await tx.invoice.create({
+          const invoice = await tx.invoice.create({
             data: {
               invoiceNo: Util.serialI(task.plan.company.invoiceCode),
               plan: {
@@ -372,6 +373,23 @@ export class TaskChangeService {
                   }
                 : undefined,
               quantity: result.quantity,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          // 운송장 출력을 위해 송장을 연결
+          await tx.taskQuantity.update({
+            where: {
+              taskId: task.id,
+            },
+            data: {
+              invoice: {
+                connect: {
+                  id: invoice.id,
+                },
+              },
             },
           });
         }

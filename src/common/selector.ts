@@ -653,6 +653,7 @@ export const TASK_QUANTITY = {
   taskId: true,
   quantity: true,
   memo: true,
+  invoiceId: true,
 } satisfies Prisma.TaskQuantitySelect;
 
 export const PLAN = {
