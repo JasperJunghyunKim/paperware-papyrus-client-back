@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  NotImplementedException,
   Param,
   Query,
   Request,

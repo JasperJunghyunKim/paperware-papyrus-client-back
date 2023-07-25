@@ -13,6 +13,7 @@ import {
   DiscountType,
   OfficialPriceType,
   OrderDeposit,
+  OrderStatus,
   OrderType,
   PackagingType,
   PlanType,
@@ -87,6 +88,65 @@ export class OrderChangeService {
 
   private async updateOrderRevisionTx(tx: PrismaTransaction, orderId: number) {
     await tx.$queryRaw`UPDATE \`Order\` SET revision = revision + 1 WHERE id = ${orderId}`;
+  }
+
+  private validateUpdateOrder(params: {
+    companyId: number;
+    orderStatus: OrderStatus;
+    srcCompany: Company;
+    dstCompany: Company;
+    curWantedDate1: string;
+    wantedDate1: string;
+    curWantedDate2: string | null;
+    wantedDate2: string | null;
+    curLocationId1: number | null;
+    locationId1: number | null;
+    curLocationId2: number | null;
+    locationId2: number | null;
+    curIsDirectShipping1: boolean | null;
+    isDirectShipping1: boolean | null;
+    curIsDirectShipping2: boolean | null;
+    isDirectShipping2: boolean | null;
+    curMemo: string;
+    memo: string;
+  }) {
+    // 주문승인후 + 판매회사 아님 + 판매회사가 사용중
+    if (
+      Util.inc(params.orderStatus, 'ACCEPTED') &&
+      params.companyId !== params.dstCompany.id &&
+      params.dstCompany.managedById === null
+    ) {
+      // 1. 거래일
+      if (
+        params.curWantedDate1 !== params.wantedDate1 ||
+        params.curWantedDate2 !== params.wantedDate2
+      ) {
+        throw new ForbiddenException(`거래일 수정은 판매회사만 가능합니다.`);
+      }
+
+      // 2. 도착지
+      if (
+        params.locationId1 !== params.curLocationId1 ||
+        params.locationId2 !== params.curLocationId2
+      ) {
+        throw new ForbiddenException(`도착지 수정은 판매회사만 가능합니다.`);
+      }
+
+      // 3. 납품요청일
+      if (
+        params.wantedDate1 !== params.curWantedDate1 ||
+        params.wantedDate2 !== params.curWantedDate2
+      ) {
+        throw new ForbiddenException(
+          `납품요청일 수정은 판매회사만 가능합니다.`,
+        );
+      }
+
+      // 비고
+      if (params.memo !== params.curMemo) {
+        throw new ForbiddenException(`비고 수정은 판매회사만 가능합니다.`);
+      }
+    }
   }
 
   private async assignStockToNormalOrder(
@@ -552,6 +612,55 @@ export class OrderChangeService {
     isDirectShipping: boolean;
   }) {
     return await this.prisma.$transaction(async (tx) => {
+      const orderForUpdate = await tx.$queryRaw`
+        SELECT *
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+
+         FOR UPDATE;
+      `;
+
+      const orderCheck = await tx.order.findUnique({
+        include: {
+          dstCompany: true,
+          srcCompany: true,
+          orderStock: true,
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+      if (
+        !orderCheck ||
+        (orderCheck.dstCompanyId !== params.companyId &&
+          orderCheck.srcCompanyId !== params.companyId)
+      ) {
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      }
+      if (orderCheck.orderType !== 'NORMAL')
+        throw new ConflictException(`주문타입이 맞지 않습니다.`);
+
+      this.validateUpdateOrder({
+        companyId: params.companyId,
+        orderStatus: orderCheck.status,
+        srcCompany: orderCheck.srcCompany,
+        dstCompany: orderCheck.dstCompany,
+        curWantedDate1: orderCheck.orderStock.wantedDate.toISOString(),
+        wantedDate1: params.wantedDate,
+        curWantedDate2: null,
+        wantedDate2: null,
+        curLocationId1: orderCheck.orderStock.dstLocationId,
+        locationId1: params.locationId,
+        curLocationId2: null,
+        locationId2: null,
+        curIsDirectShipping1: orderCheck.orderStock.isDirectShipping,
+        isDirectShipping1: params.isDirectShipping,
+        curIsDirectShipping2: null,
+        isDirectShipping2: null,
+        curMemo: orderCheck.memo,
+        memo: params.memo,
+      });
+
       // 주문 업데이트
       const order = await tx.order.update({
         where: {
