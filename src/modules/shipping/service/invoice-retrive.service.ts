@@ -47,4 +47,15 @@ export class InvoiceRetriveService {
 
     return count;
   }
+
+  async getById(id: number): Promise<Model.Invoice> {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: {
+        id: id,
+      },
+      select: Selector.INVOICE,
+    });
+
+    return Util.serialize(invoice);
+  }
 }

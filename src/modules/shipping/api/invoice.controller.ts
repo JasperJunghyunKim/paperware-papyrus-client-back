@@ -7,6 +7,7 @@ import {
   Post,
   Body,
   Param,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
@@ -17,6 +18,7 @@ import InvoiceListQueryDto, {
   UpdateInvoiceStatusDto,
 } from './dto/invoice.request';
 import { InvoiceListResponse } from 'src/@shared/api';
+import { Model } from 'src/@shared';
 
 @Controller('invoice')
 export class InvoiceController {
@@ -47,6 +49,21 @@ export class InvoiceController {
       items,
       total,
     };
+  }
+
+  @Get(':id')
+  @UseGuards(AuthGuard)
+  async getById(
+    @Request() req: AuthType,
+    @Param('id') id: number,
+  ): Promise<Model.Invoice> {
+    const invoice = await this.retrive.getById(id);
+
+    if (req.user.companyId !== invoice.plan.company.id) {
+      throw new BadRequestException('조회 권한이 없습니다.');
+    }
+
+    return invoice;
   }
 
   @Post('disconnect')
