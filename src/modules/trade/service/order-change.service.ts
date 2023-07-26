@@ -35,6 +35,7 @@ import { StockChangeService } from 'src/modules/stock/service/stock-change.servi
 import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
 import { PlanChangeService } from 'src/modules/working/service/plan-change.service';
 import { OrderRetriveService } from './order-retrive.service';
+import * as dayjs from 'dayjs';
 
 interface OrderStockTradePrice {
   officialPriceType: OfficialPriceType;
@@ -92,54 +93,96 @@ export class OrderChangeService {
     await tx.$queryRaw`UPDATE \`Order\` SET revision = revision + 1 WHERE id = ${orderId}`;
   }
 
-  private validateUpdateOrder(params: {
-    companyId: number;
-    orderStatus: OrderStatus;
-    srcCompany: Company;
-    dstCompany: Company;
-    curWantedDate1: string;
-    wantedDate1: string;
-    curWantedDate2: string | null;
-    wantedDate2: string | null;
-    curLocationId1: number | null;
-    locationId1: number | null;
-    curLocationId2: number | null;
-    locationId2: number | null;
-    curIsSrcDirectShipping: boolean | null;
-    isSrcDirectShipping: boolean | null;
-    curIsDstDirectShipping: boolean | null;
-    isDstDirectShipping: boolean | null;
-    curMemo: string;
-    memo: string;
-    srcTargetStocks: (Stock & { stockEvent: StockEvent[] })[];
-    dstTargetStocks: (Stock & { stockEvent: StockEvent[] })[];
-  }) {
+  private async validateUpdateOrder(
+    tx: PrismaTransaction,
+    params: {
+      companyId: number;
+      order: {
+        id: number;
+        orderType: OrderType;
+        status: OrderStatus;
+        orderDate: Date;
+        srcCompany: Company;
+        dstCompany: Company;
+        memo: string;
+        orderStock: {
+          wantedDate: Date;
+          dstLocationId: number;
+          isDirectShipping: boolean;
+        } | null;
+        orderProcess: {
+          srcWantedDate: Date;
+          dstWantedDate: Date;
+          srcLocationId: number;
+          dstLocationId: number;
+          isSrcDirectShipping: boolean;
+          isDstDirectShipping: boolean;
+        } | null;
+      };
+      orderDate: string;
+      srcWantedDate: string;
+      dstWantedDate: string | null;
+      srcLocationId: number;
+      dstLocationId: number | null;
+      isSrcDirectShipping: boolean | null;
+      isDstDirectShipping: boolean | null;
+      memo: string;
+    },
+  ) {
+    // 필드 찾기
+    let curSrcLocationId: number | null = null;
+    let curDstLocationId: number | null = null;
+    let curSrcWantedDate: Date | null = null;
+    let curDstWantedDate: Date | null = null;
+    let curIsSrcDirectShipping: boolean | null = null;
+    let curIsDstDirectShipping: boolean | null = null;
+
+    switch (params.order.orderType) {
+      case 'NORMAL':
+        curSrcLocationId = params.order.orderStock.dstLocationId;
+        curSrcWantedDate = params.order.orderStock.wantedDate;
+        curIsSrcDirectShipping = params.order.orderStock.isDirectShipping;
+        break;
+      case 'OUTSOURCE_PROCESS':
+        curSrcLocationId = params.order.orderProcess.srcLocationId;
+        curDstLocationId = params.order.orderProcess.dstLocationId;
+        curSrcWantedDate = params.order.orderProcess.srcWantedDate;
+        curDstWantedDate = params.order.orderProcess.dstWantedDate;
+        curIsSrcDirectShipping = params.order.orderProcess.isSrcDirectShipping;
+        curIsDstDirectShipping = params.order.orderProcess.isDstDirectShipping;
+        break;
+    }
+
     // 주문승인후 + 판매회사 아님 + 판매회사가 사용중
     if (
-      Util.inc(params.orderStatus, 'ACCEPTED') &&
-      params.companyId !== params.dstCompany.id &&
-      params.dstCompany.managedById === null
+      Util.inc(params.order.status, 'ACCEPTED') &&
+      params.companyId !== params.order.dstCompany.id &&
+      params.order.dstCompany.managedById === null
     ) {
       // 1. 거래일
       if (
-        params.curWantedDate1 !== params.wantedDate1 ||
-        params.curWantedDate2 !== params.wantedDate2
+        dayjs(params.order.orderDate).format('YYYYMMDD') !==
+        dayjs(params.orderDate).format('YYYYMMDD')
       ) {
         throw new ForbiddenException(`거래일 수정은 판매회사만 가능합니다.`);
       }
 
       // 2. 도착지
       if (
-        params.locationId1 !== params.curLocationId1 ||
-        params.locationId2 !== params.curLocationId2
+        (curSrcLocationId && curSrcLocationId !== params.srcLocationId) ||
+        (curDstLocationId && curDstLocationId !== params.dstLocationId)
       ) {
         throw new ForbiddenException(`도착지 수정은 판매회사만 가능합니다.`);
       }
 
       // 3. 납품요청일
       if (
-        params.wantedDate1 !== params.curWantedDate1 ||
-        params.wantedDate2 !== params.curWantedDate2
+        (curDstWantedDate &&
+          dayjs(curDstWantedDate).format('YYYYMMDD') !==
+            dayjs(params.dstWantedDate).format('YYYYMMDD')) ||
+        (curSrcWantedDate &&
+          dayjs(curSrcWantedDate).format('YYYYMMDD') !==
+            dayjs(params.srcWantedDate).format('YYYYMMDD'))
       ) {
         throw new ForbiddenException(
           `납품요청일 수정은 판매회사만 가능합니다.`,
@@ -147,33 +190,34 @@ export class OrderChangeService {
       }
 
       // 4. 비고
-      if (params.memo !== params.curMemo) {
+      if (params.memo !== params.order.memo) {
         throw new ForbiddenException(`비고 수정은 판매회사만 가능합니다.`);
       }
     }
 
     // 5-1. 직송 toggle (도착예정재고 상태 제외)
+    // 5-2. 직송 (도착예정재고 상태)
     if (
       (params.isSrcDirectShipping !== undefined ||
         params.isSrcDirectShipping !== null) &&
-      params.isSrcDirectShipping !== params.curIsSrcDirectShipping &&
-      params.srcCompany.id !== params.companyId
+      curIsSrcDirectShipping !== null &&
+      curIsSrcDirectShipping !== params.isSrcDirectShipping
     ) {
-      throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
+      if (params.order.srcCompany.id !== params.companyId)
+        throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
     }
+
     if (
       (params.isDstDirectShipping !== undefined ||
         params.isDstDirectShipping !== null) &&
-      params.isDstDirectShipping !== params.curIsDstDirectShipping &&
-      params.dstCompany.id !== params.companyId
+      curIsDstDirectShipping !== null &&
+      curIsDstDirectShipping !== params.isDstDirectShipping
     ) {
-      throw new ForbiddenException(
-        `원지 직송여부는 판매기업만 수정 가능합니다.`,
-      );
+      if (params.order.dstCompany.id !== params.companyId)
+        throw new ForbiddenException(
+          `원지 직송여부는 판매기업만 수정 가능합니다.`,
+        );
     }
-
-    // 5-2. 직송 (도착예정재고 상태)
-    // TODO:
 
     // 6. 발주자
     // TODO: 현재 주문에 발주자가 없음 => 이후 수정필요
@@ -654,29 +698,8 @@ export class OrderChangeService {
         include: {
           dstCompany: true,
           srcCompany: true,
-          orderStock: {
-            include: {
-              plan: {
-                include: {
-                  targetStockEvent: {
-                    include: {
-                      stock: {
-                        include: {
-                          stockEvent: {
-                            where: {
-                              status: {
-                                not: 'CANCELLED',
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
+          orderStock: true,
+          orderProcess: true,
         },
         where: {
           id: params.orderId,
@@ -692,35 +715,17 @@ export class OrderChangeService {
       if (orderCheck.orderType !== 'NORMAL')
         throw new ConflictException(`주문타입이 맞지 않습니다.`);
 
-      const srcPlan = orderCheck.orderStock.plan.find(
-        (plan) => plan.companyId === orderCheck.srcCompanyId,
-      );
-      const targetStocks = srcPlan.targetStockEvent
-        .map((se) => se.stock)
-        .filter((s) => s.stockEvent.length > 0);
-      console.log(111, targetStocks);
-
-      this.validateUpdateOrder({
+      await this.validateUpdateOrder(tx, {
         companyId: params.companyId,
-        orderStatus: orderCheck.status,
-        srcCompany: orderCheck.srcCompany,
-        dstCompany: orderCheck.dstCompany,
-        curWantedDate1: orderCheck.orderStock.wantedDate.toISOString(),
-        wantedDate1: params.wantedDate,
-        curWantedDate2: null,
-        wantedDate2: null,
-        curLocationId1: orderCheck.orderStock.dstLocationId,
-        locationId1: params.locationId,
-        curLocationId2: null,
-        locationId2: null,
-        curIsSrcDirectShipping: orderCheck.orderStock.isDirectShipping,
+        order: orderCheck,
+        orderDate: params.orderDate,
+        srcWantedDate: params.wantedDate,
+        dstWantedDate: null,
+        srcLocationId: params.locationId,
+        dstLocationId: null,
         isSrcDirectShipping: params.isDirectShipping,
-        curIsDstDirectShipping: null,
         isDstDirectShipping: null,
-        curMemo: orderCheck.memo,
         memo: params.memo,
-        srcTargetStocks: targetStocks,
-        dstTargetStocks: [],
       });
       throw new BadRequestException('test');
 
