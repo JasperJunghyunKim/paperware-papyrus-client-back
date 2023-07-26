@@ -19,6 +19,7 @@ import { StockCreateStockPriceRequest } from 'src/@shared/api';
 import { ulid } from 'ulid';
 import { Util } from 'src/common';
 import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
+import { StockQuantityChecker } from './stock-quantity-checker';
 
 @Injectable()
 export class StockChangeService {
@@ -27,6 +28,7 @@ export class StockChangeService {
     private readonly stockValidator: StockValidator,
     private readonly planChangeService: PlanChangeService,
     private readonly locationRetriveService: LocationRetriveService,
+    private readonly stockQuantityChecker: StockQuantityChecker,
   ) {}
 
   async createDefaultStockPriceTx(tx: PrismaTransaction, stockId: number) {
@@ -331,6 +333,13 @@ export class StockChangeService {
     quantity: number,
   ) {
     await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`
+        SELECT *
+          FROM Stock
+         WHERE id = ${stockId}
+
+        FOR UPDATE
+      `;
       const stock = await tx.stock.findUnique({
         where: {
           id: stockId,
@@ -346,6 +355,23 @@ export class StockChangeService {
       if (quantity < 0) {
         if (stock.cachedQuantityAvailable < Math.abs(quantity))
           throw new ConflictException(`가용수량 이하로 감소시킬 수 없습니다.`);
+
+        await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(tx, {
+          inquiryCompanyId: companyId,
+          companyId,
+          warehouseId: stock.warehouseId,
+          planId: stock.planId,
+          productId: stock.productId,
+          packagingId: stock.packagingId,
+          grammage: stock.grammage,
+          sizeX: stock.sizeX,
+          sizeY: stock.sizeY,
+          paperColorGroupId: stock.paperColorGroupId,
+          paperColorId: stock.paperColorId,
+          paperPatternId: stock.paperPatternId,
+          paperCertId: stock.paperCertId,
+          quantity: -quantity,
+        });
       }
 
       await tx.stockEvent.create({
