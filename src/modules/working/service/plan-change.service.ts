@@ -228,7 +228,7 @@ export class PlanChangeService {
         );
       }
 
-      if (plan.status !== 'PROGRESSING') {
+      if (plan.status !== 'PROGRESSING' && plan.status !== 'PROGRESSED') {
         throw new BadRequestException(
           '실투입 재고를 등록할 수 없는 상태의 작업 계획입니다.',
         );
@@ -308,7 +308,7 @@ export class PlanChangeService {
         );
       }
 
-      if (plan.status !== 'PROGRESSING') {
+      if (plan.status !== 'PROGRESSING' && plan.status !== 'PROGRESSED') {
         throw new BadRequestException(
           '실투입 재고 수량을 수정할 수 없는 상태의 작업 계획입니다.',
         );
@@ -400,7 +400,7 @@ export class PlanChangeService {
         );
       }
 
-      if (plan.status !== 'PROGRESSING') {
+      if (plan.status !== 'PROGRESSING' && plan.status !== 'PROGRESSED') {
         throw new BadRequestException(
           '실투입 재고를 취소할 수 없는 상태의 작업 계획입니다.',
         );
