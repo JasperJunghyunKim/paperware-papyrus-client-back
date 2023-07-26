@@ -29,12 +29,14 @@ export class PlanRetriveService {
       },
       where: {
         companyId: params.companyId,
+        isDeleted: false,
         status: {
           notIn:
             type === 'INHOUSE' ? ['CANCELLED'] : ['CANCELLED', 'PREPARING'],
         },
         type: {
           in: type === 'INHOUSE' ? ['INHOUSE_PROCESS'] : undefined,
+          notIn: ['INHOUSE_STOCK_QUANTITY_CHANGE'],
         },
       },
       skip,
