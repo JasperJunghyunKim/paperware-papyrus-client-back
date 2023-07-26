@@ -1752,7 +1752,7 @@ export class OrderChangeService {
           if (order.status === 'OFFER_REQUESTED') {
             // 판매자가 요청한 주문을 되돌릴시 가용수량 원복
             const dstPlan = order.orderStock.plan.find(
-              (plan) => plan.type === 'TRADE_NORMAL_SELLER',
+              (plan) => plan.type === 'TRADE_NORMAL_SELLER' && !plan.isDeleted,
             );
             await this.cancelAssignStockTx(tx, dstPlan.id, true);
           }
@@ -1761,7 +1761,9 @@ export class OrderChangeService {
           // 주문자가 요청한 주문을 되돌릴시 가용수량 원복
           if (order.status === 'ORDER_REQUESTED') {
             const srcPlan = order.orderProcess.plan.find(
-              (plan) => plan.type === 'TRADE_OUTSOURCE_PROCESS_BUYER',
+              (plan) =>
+                plan.type === 'TRADE_OUTSOURCE_PROCESS_BUYER' &&
+                !plan.isDeleted,
             );
             await this.cancelAssignStockTx(tx, srcPlan.id, true);
           }
