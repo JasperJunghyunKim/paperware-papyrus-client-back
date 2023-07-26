@@ -31,6 +31,9 @@ export class LocationCreateRequestDto implements LocationCreateRequest {
   isPublic: boolean;
   @IsString()
   address: string;
+  @IsOptional()
+  @IsString()
+  phoneNo?: string | null = null;
 }
 
 export class LocationUpdateRequestDto implements LocationUpdateRequest {
@@ -41,6 +44,9 @@ export class LocationUpdateRequestDto implements LocationUpdateRequest {
   isPublic: boolean;
   @IsString()
   address: string;
+  @IsOptional()
+  @IsString()
+  phoneNo?: string | null = null;
 }
 
 export class LocationForSalesListQueryDto implements LocationListQuery {

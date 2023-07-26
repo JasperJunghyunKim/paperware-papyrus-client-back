@@ -17,6 +17,7 @@ import { LocationCreateRequest } from 'src/@shared/api/inhouse/location.request'
 import { LocationChangeService } from 'src/modules/inhouse/service/location-change.service';
 import { LocationRetriveService } from 'src/modules/inhouse/service/location-retrive.service';
 import {
+  LocationCreateRequestDto,
   LocationForSalesListQueryDto,
   LocationListQueryDto,
   LocationUpdateRequestDto,
@@ -96,11 +97,15 @@ export class LocationController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
-  async create(@Request() req: AuthType, @Body() body: LocationCreateRequest) {
+  async create(
+    @Request() req: AuthType,
+    @Body() body: LocationCreateRequestDto,
+  ) {
     await this.locationChangeService.create({
       name: body.name,
       isPublic: body.isPublic,
       address: body.address,
+      phoneNo: body.phoneNo,
       company: {
         connect: {
           id: req.user.companyId,
@@ -127,6 +132,7 @@ export class LocationController {
       name: body.name,
       isPublic: body.isPublic,
       address: body.address,
+      phoneNo: body.phoneNo,
     });
   }
 
