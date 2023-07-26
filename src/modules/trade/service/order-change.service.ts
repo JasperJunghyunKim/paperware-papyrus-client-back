@@ -3141,8 +3141,7 @@ export class OrderChangeService {
               },
               srcWantedDate,
               dstWantedDate,
-              isDstDirectShipping:
-                companyId === dstCompanyId ? isDstDirectShipping : undefined,
+              isDstDirectShipping: false,
               isSrcDirectShipping:
                 companyId === srcCompanyId ? isSrcDirectShipping : undefined,
               // 원지 정보
@@ -3292,10 +3291,7 @@ export class OrderChangeService {
           },
           srcWantedDate: params.srcWantedDate,
           dstWantedDate: params.dstWantedDate,
-          isDstDirectShipping:
-            params.companyId === order.dstCompanyId
-              ? params.isDstDirectShipping
-              : undefined,
+          isDstDirectShipping: false,
           isSrcDirectShipping:
             params.companyId === order.srcCompanyId
               ? params.isSrcDirectShipping
