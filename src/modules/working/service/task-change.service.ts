@@ -260,6 +260,7 @@ export class TaskChangeService {
               id: true,
               type: true,
               orderStock: true,
+              orderProcess: true,
               company: {
                 select: {
                   id: true,
@@ -279,6 +280,7 @@ export class TaskChangeService {
           id,
         },
       });
+      console.log('EEEE: ', task);
       if (task.status === 'PROGRESSED') {
         throw new Error('이미 완료된 작업입니다.');
       }
@@ -310,7 +312,7 @@ export class TaskChangeService {
           },
         });
 
-        if (task.plan.orderStock) {
+        if (task.plan.orderStock || task.plan.orderProcess) {
           const skid = await tx.packaging.findFirstOrThrow({
             where: {
               type: 'SKID',
