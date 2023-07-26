@@ -158,6 +158,7 @@ export class OrderController {
     const isOffer = body.dstCompanyId === req.user.companyId;
 
     return await this.change.insertOrder({
+      userId: req.user.id,
       ...body,
       isOffer,
     });
@@ -432,6 +433,7 @@ export class OrderController {
     const isOffer = dto.dstCompanyId === req.user.companyId;
 
     return await this.change.createDepositOrder(
+      req.user.id,
       dto.srcCompanyId,
       dto.dstCompanyId,
       isOffer,
@@ -535,6 +537,7 @@ export class OrderController {
     @Body() dto: OrderProcessCreateDto,
   ) {
     const order = await this.change.createOrderProcess({
+      userId: req.user.id,
       companyId: req.user.companyId,
       ...dto,
     });
@@ -597,6 +600,7 @@ export class OrderController {
     @Body() dto: OrderEtcCreateDto,
   ): Promise<OrderCreateResponse> {
     const order = await this.change.createOrderEtc({
+      userId: req.user.id,
       companyId: req.user.companyId,
       ...dto,
     });

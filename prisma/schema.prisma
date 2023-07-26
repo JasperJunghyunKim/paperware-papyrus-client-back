@@ -450,6 +450,7 @@ model Order {
   status            OrderStatus   @default(ORDER_PREPARING)
   isEntrusted       Boolean       @default(false)
   memo              String
+  ordererName       String        @default("")
   acceptedCompanyId Int?
   acceptedCompany   Company?      @relation("acceptedCompany", fields: [acceptedCompanyId], references: [id])
   isStockRejected   Boolean       @default(false)

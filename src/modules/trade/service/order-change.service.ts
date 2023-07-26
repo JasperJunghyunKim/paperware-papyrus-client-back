@@ -623,6 +623,7 @@ export class OrderChangeService {
   }
 
   async insertOrder(params: {
+    userId: number;
     srcCompanyId: number;
     dstCompanyId: number;
     locationId: number;
@@ -699,6 +700,12 @@ export class OrderChangeService {
           ? dstCompany.invoiceCode
           : await this.orderRetriveService.getNotUsingInvoiceCode();
 
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
       // 주문 생성
       const order = await tx.order.create({
         data: {
@@ -723,6 +730,7 @@ export class OrderChangeService {
               id: params.isOffer ? params.dstCompanyId : params.srcCompanyId,
             },
           },
+          ordererName: params.isOffer ? '' : user.name,
           orderStock: {
             create: {
               isDirectShipping: params.isOffer
@@ -2441,6 +2449,7 @@ export class OrderChangeService {
 
   /** 보관 등록 */
   async createDepositOrder(
+    userId: number,
     srcCompanyId: number,
     dstCompanyId: number,
     isOffer: boolean,
@@ -2502,6 +2511,12 @@ export class OrderChangeService {
           ? dstCompany.invoiceCode
           : await this.orderRetriveService.getNotUsingInvoiceCode();
 
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
       // 보관등록 주문 생성
       const order = await tx.order.create({
         select: {
@@ -2529,6 +2544,7 @@ export class OrderChangeService {
               id: isOffer ? dstCompanyId : srcCompanyId,
             },
           },
+          ordererName: isOffer ? '' : user.name,
           orderDeposit: {
             create: {
               packaging: {
@@ -2945,6 +2961,7 @@ export class OrderChangeService {
 
   /** 외주공정 */
   async createOrderProcess(params: {
+    userId: number;
     companyId: number;
     srcCompanyId: number;
     dstCompanyId: number;
@@ -3049,6 +3066,12 @@ export class OrderChangeService {
           ? dstCompany.invoiceCode
           : await this.orderRetriveService.getNotUsingInvoiceCode();
 
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
       const order = await tx.order.create({
         select: {
           id: true,
@@ -3083,6 +3106,7 @@ export class OrderChangeService {
           isEntrusted: srcCompanyId !== companyId,
           memo,
           orderDate,
+          ordererName: srcCompanyId === companyId ? user.name : '',
           orderProcess: {
             create: {
               srcLocation: {
@@ -3409,6 +3433,7 @@ export class OrderChangeService {
 
   /** 기타거래 */
   async createOrderEtc(params: {
+    userId: number;
     companyId: number;
     srcCompanyId: number;
     dstCompanyId: number;
@@ -3433,6 +3458,12 @@ export class OrderChangeService {
         dstCompany.managedById === null
           ? dstCompany.invoiceCode
           : await this.orderRetriveService.getNotUsingInvoiceCode();
+
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
 
       const order = await tx.order.create({
         include: {
@@ -3463,6 +3494,7 @@ export class OrderChangeService {
             srcCompanyId === companyId ? 'ORDER_PREPARING' : 'OFFER_PREPARING',
           isEntrusted: srcCompanyId !== companyId,
           memo,
+          ordererName: srcCompanyId === companyId ? user.name : '',
           orderEtc: {
             create: {
               item,

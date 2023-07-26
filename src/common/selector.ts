@@ -601,6 +601,7 @@ export const ORDER = {
   status: true,
   isEntrusted: true,
   memo: true,
+  ordererName: true,
   acceptedCompanyId: true,
   acceptedCompany: true,
   isStockRejected: true,
