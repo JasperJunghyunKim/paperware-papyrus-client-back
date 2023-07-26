@@ -368,7 +368,7 @@ export class StockRetriveService {
             (initialPs.planId IS NOT NULL AND initialPs.isDirectShipping = ${false}) OR
             (initialOp.id IS NOT NULL AND initialO.srcCompanyId = ${companyId} AND initialOp.isSrcDirectShipping = ${false}) OR
             (initialOp.id IS NOT NULL AND initialO.dstCompanyId = ${companyId} AND initialOp.isDstDirectShipping = ${false})
-          ) AND s.cachedQuantityAvailable != 0
+          ) AND ((initialOs.id IS NULL AND initialOp.id IS NULL AND initialPs.planId IS NULL) OR s.cachedQuantityAvailable != 0)
         )`;
     const zeroQuantityQuery = isZeroQuantityIncluded
       ? Prisma.empty
