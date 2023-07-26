@@ -290,8 +290,13 @@ export class AccountedRetriveService {
             -- 거래금액 - 지급/수금
             , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) 
               - IFNULL(paidPrice.totalPrice, 0) AS totalPrice
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month1} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-              - IFNULL(paidPrice.price1, 0)  AS price1
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-01 00:00:00.000`} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price1, 0) AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month2} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
               - IFNULL(paidPrice.price2, 0)  AS price2
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month3} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
@@ -331,7 +336,12 @@ export class AccountedRetriveService {
       LEFT JOIN (
       SELECT a.partnerCompanyRegistrationNumber
             , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month1} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-01 00:00:00.000`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price2
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price3
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price4
@@ -425,8 +435,13 @@ export class AccountedRetriveService {
             -- 거래금액 - 지급/수금
             , IFNULL(SUM(tp.suppliedPrice + tp.vatPrice), 0) 
               - IFNULL(paidPrice.totalPrice, 0) AS totalPrice
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month1} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
-              - IFNULL(paidPrice.price1, 0)  AS price1
+              , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
+                .toString()
+                .padStart(
+                  2,
+                  '0',
+                )}-01 00:00:00.000`} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
+              - IFNULL(paidPrice.price1, 0) AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month2} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
               - IFNULL(paidPrice.price2, 0)  AS price2
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(o.orderDate, '+00:00', '+09:00')) = ${month3} THEN tp.suppliedPrice + tp.vatPrice END), 0) 
@@ -464,7 +479,12 @@ export class AccountedRetriveService {
    LEFT JOIN (
       SELECT a.partnerCompanyRegistrationNumber
             , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0)), 0) AS totalPrice
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year1} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month1} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
+              .toString()
+              .padStart(
+                2,
+                '0',
+              )}-01 00:00:00.000`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price1
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price2
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price3
             , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.totalAmount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.offsetAmount, 0) END), 0) AS price4
