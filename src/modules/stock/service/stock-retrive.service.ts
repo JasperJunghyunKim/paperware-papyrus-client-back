@@ -140,6 +140,32 @@ interface StockGroupFromDB {
   partnerCompanyFaxNo: string;
   partnerCompanyManagedById: number;
 
+  // 구매회사
+  srcCompanyId: number;
+  srcCompanyBusinessName: string;
+  srcCompanyCompanyRegistrationNumber: string;
+  srcCompanyInvoiceCode: string;
+  srcCompanyBizType: string;
+  srcCompanyBizItem: string;
+  srcCompanyRepresentative: string;
+  srcCompanyAddress: string;
+  srcCompanyPhoneNo: string;
+  srcCompanyFaxNo: string;
+  srcCompanyManagedById: number;
+
+  // 판매회사
+  dstCompanyId: number;
+  dstCompanyBusinessName: string;
+  dstCompanyCompanyRegistrationNumber: string;
+  dstCompanyInvoiceCode: string;
+  dstCompanyBizType: string;
+  dstCompanyBizItem: string;
+  dstCompanyRepresentative: string;
+  dstCompanyAddress: string;
+  dstCompanyPhoneNo: string;
+  dstCompanyFaxNo: string;
+  dstCompanyManagedById: number;
+
   totalQuantity: number;
   availableQuantity: number;
   totalArrivalQuantity: number;
@@ -544,6 +570,32 @@ export class StockRetriveService {
             , partnerCompany.faxNo As partnerCompanyFaxNo
             , partnerCompany.managedById AS partnerCompanyManagedById
 
+            -- 구매회사
+            , srcCompany.id AS srcCompanyId
+            , srcCompany.businessName As srcCompanyBusinessName
+            , srcCompany.companyRegistrationNumber As srcCompanyRegistrationNumbers
+            , srcCompany.invoiceCode AS srcCompanyInvoiceCode
+            , srcCompany.bizType AS srcCompanyBizType
+            , srcCompany.bizItem AS srcCompanyBizItem
+            , srcCompany.representative AS srcCompanyRepresentative
+            , srcCompany.address AS srcCompanyAddress
+            , srcCompany.phoneNo AS srcCompanyPhoneNo
+            , srcCompany.faxNo As srcCompanyFaxNo
+            , srcCompany.managedById AS srcCompanyManagedById
+
+            -- 판매회사
+            , dstCompany.id AS dstCompanyId
+            , dstCompany.businessName As dstCompanyBusinessName
+            , dstCompany.companyRegistrationNumber As dstCompanyRegistrationNumbers
+            , dstCompany.invoiceCode AS dstCompanyInvoiceCode
+            , dstCompany.bizType AS dstCompanyBizType
+            , dstCompany.bizItem AS dstCompanyBizItem
+            , dstCompany.representative AS dstCompanyRepresentative
+            , dstCompany.address AS dstCompanyAddress
+            , dstCompany.phoneNo AS dstCompanyPhoneNo
+            , dstCompany.faxNo As dstCompanyFaxNo
+            , dstCompany.managedById AS dstCompanyManagedById
+
             -- 원지정보
             , asw.id AS asWarehouseId
             , asw.name AS asWarehouseName
@@ -676,6 +728,8 @@ export class StockRetriveService {
                                                                         ELSE 0
                                                                       END)
    LEFT JOIN Company            AS partnerCompany           ON partnerCompany.id =  IF(o.srcCompanyId = ${companyId}, o.dstCompanyId, o.srcCompanyId)
+   LEFT JOIN Company            AS srcCompany               ON srcCompany.id =  o.srcCompanyId
+   LEFT JOIN Company            AS dstCompany               ON dstCompany.id =  o.dstCompanyId
 
       -- 메타데이터
         JOIN Packaging          AS packaging                ON packaging.id = s.packagingId
@@ -825,8 +879,34 @@ export class StockRetriveService {
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
                         },
-                        srcCompany: null, // TODO: 추가
-                        dstCompany: null, // TODO: 추가
+                        srcCompany: {
+                          id: sg.srcCompanyId,
+                          businessName: sg.srcCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.srcCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.srcCompanyInvoiceCode,
+                          bizType: sg.srcCompanyBizType,
+                          bizItem: sg.srcCompanyBizItem,
+                          representative: sg.srcCompanyRepresentative,
+                          address: sg.srcCompanyAddress,
+                          phoneNo: sg.srcCompanyPhoneNo,
+                          faxNo: sg.srcCompanyFaxNo,
+                          managedById: sg.srcCompanyManagedById,
+                        },
+                        dstCompany: {
+                          id: sg.dstCompanyId,
+                          businessName: sg.dstCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.dstCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.dstCompanyInvoiceCode,
+                          bizType: sg.dstCompanyBizType,
+                          bizItem: sg.dstCompanyBizItem,
+                          representative: sg.dstCompanyRepresentative,
+                          address: sg.dstCompanyAddress,
+                          phoneNo: sg.dstCompanyPhoneNo,
+                          faxNo: sg.dstCompanyFaxNo,
+                          managedById: sg.dstCompanyManagedById,
+                        },
                       },
                       dstLocation: {
                         id: sg.osDstLocationId,
@@ -873,8 +953,34 @@ export class StockRetriveService {
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
                         },
-                        srcCompany: null, // TODO: 추가
-                        dstCompany: null, // TODO: 추가
+                        srcCompany: {
+                          id: sg.srcCompanyId,
+                          businessName: sg.srcCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.srcCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.srcCompanyInvoiceCode,
+                          bizType: sg.srcCompanyBizType,
+                          bizItem: sg.srcCompanyBizItem,
+                          representative: sg.srcCompanyRepresentative,
+                          address: sg.srcCompanyAddress,
+                          phoneNo: sg.srcCompanyPhoneNo,
+                          faxNo: sg.srcCompanyFaxNo,
+                          managedById: sg.srcCompanyManagedById,
+                        },
+                        dstCompany: {
+                          id: sg.dstCompanyId,
+                          businessName: sg.dstCompanyBusinessName,
+                          companyRegistrationNumber:
+                            sg.dstCompanyCompanyRegistrationNumber,
+                          invoiceCode: sg.dstCompanyInvoiceCode,
+                          bizType: sg.dstCompanyBizType,
+                          bizItem: sg.dstCompanyBizItem,
+                          representative: sg.dstCompanyRepresentative,
+                          address: sg.dstCompanyAddress,
+                          phoneNo: sg.dstCompanyPhoneNo,
+                          faxNo: sg.dstCompanyFaxNo,
+                          managedById: sg.dstCompanyManagedById,
+                        },
                       },
                     }
                   : null,
