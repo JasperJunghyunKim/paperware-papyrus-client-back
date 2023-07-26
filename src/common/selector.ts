@@ -539,6 +539,9 @@ export const ORDER_PROCESS = {
       companyId: true,
       status: true,
     },
+    where: {
+      isDeleted: false,
+    },
   },
   // 외주공정의 주문 원지 정보
   company: {

@@ -1485,10 +1485,10 @@ export class OrderChangeService {
     });
 
     const srcPlan = order.orderProcess.plan.find(
-      (plan) => plan.companyId === order.srcCompanyId,
+      (plan) => plan.companyId === order.srcCompanyId && !plan.isDeleted,
     );
     const dstPlan = order.orderProcess.plan.find(
-      (plan) => plan.companyId === order.dstCompanyId,
+      (plan) => plan.companyId === order.dstCompanyId && !plan.isDeleted,
     );
     const stock = srcPlan.initialStock[0];
     const quantity = Math.abs(stock.stockEvent[0].change);
