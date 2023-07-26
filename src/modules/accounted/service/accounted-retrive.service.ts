@@ -237,13 +237,15 @@ export class AccountedRetriveService {
         ? Prisma.sql`o.srcCompanyId = ${companyId} AND o.dstCompanyId = partnerCompany.id`
         : Prisma.sql`o.dstCompanyId = ${companyId} AND o.srcCompanyId = partnerCompany.id`;
 
-    const minAmountQuery = minAmount
-      ? Prisma.sql`AND totalPrice >= ${minAmount}`
-      : Prisma.empty;
+    const minAmountQuery =
+      minAmount !== null
+        ? Prisma.sql`AND totalPrice >= ${minAmount}`
+        : Prisma.empty;
 
-    const maxAmountQuery = maxAmount
-      ? Prisma.sql`AND totalPrice <= ${maxAmount}`
-      : Prisma.empty;
+    const maxAmountQuery =
+      maxAmount !== null
+        ? Prisma.sql`AND totalPrice <= ${maxAmount}`
+        : Prisma.empty;
 
     // 날짜(DB 시간 기준)
     const now: any[] = await this.prisma.$queryRaw`

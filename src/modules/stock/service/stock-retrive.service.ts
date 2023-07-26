@@ -825,6 +825,8 @@ export class StockRetriveService {
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
                         },
+                        srcCompany: null, // TODO: 추가
+                        dstCompany: null, // TODO: 추가
                       },
                       dstLocation: {
                         id: sg.osDstLocationId,
@@ -871,6 +873,8 @@ export class StockRetriveService {
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
                         },
+                        srcCompany: null, // TODO: 추가
+                        dstCompany: null, // TODO: 추가
                       },
                     }
                   : null,
