@@ -70,6 +70,7 @@ interface StockGroupFromDB {
   osDstLocationName: string;
   osDstLocationIsPublic: boolean;
   osDstLocationAddress: string;
+  osDstLocationPhoneNo: string | null;
   osWantedDate: string;
 
   orderProcessId: number;
@@ -77,17 +78,20 @@ interface StockGroupFromDB {
   opDstLocationName: string;
   opDstLocationIsPublic: boolean;
   opDstLocationAddress: string;
+  opDstLocationPhoneNo: string | null;
   opDstWantedDate: string;
   opSrcLocationId: number;
   opSrcLocationName: string;
   opSrcLocationIsPublic: boolean;
   opSrcLocationAddress: string;
+  opSrcLocationPhoneNo: string | null;
   opSrcWtantedDate: string;
 
   psLocationId: number;
   psLocationName: string;
   psLocationIsPublic: boolean;
   psLocationAddress: string;
+  psLocationPhoneNo: string | null;
   psWantedDate: string;
 
   // 원지정보
@@ -242,6 +246,7 @@ export interface PlanStockGroupFromDB {
   osDstLocationName: string;
   osDstLocationIsPublic: boolean;
   osDstLocationAddress: string;
+  osDstLocationPhoneNo: string;
   osWantedDate: string;
   osIsDirectShipping: number;
 
@@ -250,11 +255,13 @@ export interface PlanStockGroupFromDB {
   opDstLocationName: string;
   opDstLocationIsPublic: boolean;
   opDstLocationAddress: string;
+  opDstLocationPhoneNo: string;
   opDstWantedDate: string;
   opSrcLocationId: number;
   opSrcLocationName: string;
   opSrcLocationIsPublic: boolean;
   opSrcLocationAddress: string;
+  opSrcLocationPhoneNo: string;
   opSrcWtantedDate: string;
   opIsSrcDirectShipping: number;
   opIsDstDirectShipping: number;
@@ -263,6 +270,7 @@ export interface PlanStockGroupFromDB {
   psLocationName: string;
   psLocationIsPublic: boolean;
   psLocationAddress: string;
+  psLocationPhoneNo: string;
   psWantedDate: string;
   psIsDirectShipping: number;
 
@@ -823,6 +831,7 @@ export class StockRetriveService {
                         name: sg.osDstLocationName,
                         isPublic: sg.osDstLocationIsPublic,
                         address: sg.osDstLocationAddress,
+                        phoneNo: sg.osDstLocationPhoneNo,
                       },
                     }
                   : null,
@@ -835,12 +844,14 @@ export class StockRetriveService {
                         name: sg.opSrcLocationName,
                         isPublic: sg.opSrcLocationIsPublic,
                         address: sg.opSrcLocationAddress,
+                        phoneNo: sg.opSrcLocationPhoneNo,
                       },
                       dstLocation: {
                         id: sg.opDstLocationId,
                         name: sg.opDstLocationName,
                         isPublic: sg.opDstLocationIsPublic,
                         address: sg.opDstLocationAddress,
+                        phoneNo: sg.opDstLocationPhoneNo,
                       },
                       order: {
                         id: sg.orderId,
@@ -871,6 +882,7 @@ export class StockRetriveService {
                         name: sg.psLocationName,
                         isPublic: sg.psLocationIsPublic,
                         address: sg.psLocationAddress,
+                        phoneNo: sg.psLocationPhoneNo,
                       },
                     }
                   : null,
@@ -1505,6 +1517,7 @@ export class StockRetriveService {
             , osDstLocation.name AS osDstLocationName
             , osDstLocation.isPublic AS osDstLocationIsPublic
             , osDstLocation.address AS osDstLocationAddress
+            , osDstLocation.phoneNo AS osDstLocationPhoneNo
             , os.wantedDate AS osWantedDate
             , os.isDirectShipping AS osIsDirectShipping
 
@@ -1513,6 +1526,7 @@ export class StockRetriveService {
             , opDstLocation.name AS opDstLocationName
             , opDstLocation.isPublic AS opDstLocationIsPublic
             , opDstLocation.address AS opDstLocationAddress
+            , opDstLocation.phoneNo AS opDstLocationPhoneNo
             , op.dstWantedDate AS opDstWantedDate
             , op.isSrcDirectShipping AS opIsSrcDirectShipping
             , op.isDstDirectShipping AS opIsDstDirectShipping
@@ -1521,12 +1535,14 @@ export class StockRetriveService {
             , opSrcLocation.name AS opSrcLocationName
             , opSrcLocation.isPublic AS opSrcLocationIsPublic
             , opSrcLocation.address AS opSrcLocationAddress
+            , opSrcLocation.phoneNo AS opSrcLocationPhoneNo
             , op.srcWantedDate AS opSrcWtantedDate
 
             , psLocation.id AS psLocationId
             , psLocation.name AS psLocationName
             , psLocation.isPublic AS psLocationIsPublic
             , psLocation.address AS psLocationAddress
+            , psLocation.phoneNo AS psLocationPhoneNo
             , ps.isDirectShipping AS psIsDirectShipping
 
             -- 배정
@@ -1718,6 +1734,7 @@ export class StockRetriveService {
                       name: sg.osDstLocationName,
                       isPublic: sg.osDstLocationIsPublic,
                       address: sg.osDstLocationAddress,
+                      phoneNo: sg.osDstLocationPhoneNo,
                     },
                   }
                 : null,
@@ -1732,12 +1749,14 @@ export class StockRetriveService {
                       name: sg.opSrcLocationName,
                       isPublic: sg.opSrcLocationIsPublic,
                       address: sg.opSrcLocationAddress,
+                      phoneNo: sg.opSrcLocationPhoneNo,
                     },
                     dstLocation: {
                       id: sg.opDstLocationId,
                       name: sg.opDstLocationName,
                       isPublic: sg.opDstLocationIsPublic,
                       address: sg.opDstLocationAddress,
+                      phoneNo: sg.opDstLocationPhoneNo,
                     },
                     order: {
                       id: sg.orderId,
@@ -1769,6 +1788,7 @@ export class StockRetriveService {
                       name: sg.psLocationName,
                       isPublic: sg.psLocationIsPublic,
                       address: sg.psLocationAddress,
+                      phoneNo: sg.psLocationPhoneNo,
                     },
                   }
                 : null,

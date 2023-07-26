@@ -78,6 +78,7 @@ export const LOCATION = {
   id: true,
   name: true,
   isPublic: true,
+  phoneNo: true,
   company: {
     select: COMPANY,
   },

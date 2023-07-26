@@ -352,6 +352,7 @@ model Location {
   company         Company        @relation(fields: [companyId], references: [id])
   isPublic        Boolean
   isDeleted       Boolean        @default(false)
+  phoneNo         String?
   orderStock      OrderStock[] // 정상거래의 도착지
   PlanShipping    PlanShipping[]
   dstOrderProcess OrderProcess[] @relation("dstLocation")
