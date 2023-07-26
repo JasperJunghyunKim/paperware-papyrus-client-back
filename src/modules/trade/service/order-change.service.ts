@@ -195,6 +195,72 @@ export class OrderChangeService {
       }
     }
 
+    const targetStockCheck = await tx.order.findUnique({
+      select: {
+        orderStock: {
+          select: {
+            plan: {
+              include: {
+                targetStockEvent: {
+                  include: {
+                    stock: {
+                      include: {
+                        stockEvent: true,
+                      },
+                    },
+                  },
+                  where: {
+                    status: {
+                      not: 'CANCELLED',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderProcess: {
+          select: {
+            plan: {
+              include: {
+                targetStockEvent: {
+                  include: {
+                    stock: {
+                      include: {
+                        stockEvent: true,
+                      },
+                    },
+                  },
+                  where: {
+                    status: {
+                      not: 'CANCELLED',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      where: {
+        id: params.order.id,
+      },
+    });
+
+    const srcPlanStocks =
+      targetStockCheck.orderStock?.plan
+        .find((p) => p.companyId === params.order.srcCompany.id)
+        ?.targetStockEvent.map((e) => e.stock) ||
+      targetStockCheck.orderProcess?.plan
+        .find((p) => p.companyId === params.order.srcCompany.id)
+        ?.targetStockEvent.map((e) => e.stock) ||
+      null;
+
+    const dstPlanStocks =
+      targetStockCheck.orderProcess?.plan
+        .find((p) => p.companyId === params.order.dstCompany.id)
+        ?.targetStockEvent.map((e) => e.stock) || null;
+
     // 5-1. 직송 toggle (도착예정재고 상태 제외)
     // 5-2. 직송 (도착예정재고 상태)
     if (
@@ -205,6 +271,35 @@ export class OrderChangeService {
     ) {
       if (params.order.srcCompany.id !== params.companyId)
         throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
+
+      for (const stock of srcPlanStocks) {
+        if (stock.planId === null)
+          throw new ConflictException(
+            `이미 입고된 도착예정재고가 존재해, 직송여부 수정이 불가능합니다.`,
+          );
+
+        const stocks = await tx.stock.findMany({
+          where: {
+            companyId: stock.companyId,
+            warehouseId: stock.warehouseId,
+            planId: stock.planId,
+            productId: stock.productId,
+            packagingId: stock.packagingId,
+            grammage: stock.grammage,
+            sizeX: stock.sizeX,
+            sizeY: stock.sizeY,
+            paperColorGroupId: stock.paperColorGroupId,
+            paperColorId: stock.paperColorId,
+            paperPatternId: stock.paperPatternId,
+            paperCertId: stock.paperCertId,
+          },
+        });
+        if (stocks.length > 1) {
+          throw new ConflictException(
+            `다른 작업에 배정된 재고가 존재해, 직송여부 수정이 불가능합니다.`,
+          );
+        }
+      }
     }
 
     if (
@@ -217,6 +312,35 @@ export class OrderChangeService {
         throw new ForbiddenException(
           `원지 직송여부는 판매기업만 수정 가능합니다.`,
         );
+
+      for (const stock of dstPlanStocks) {
+        if (stock.planId === null)
+          throw new ConflictException(
+            `이미 입고된 도착예정재고가 존재해, 직송여부 수정이 불가능합니다.`,
+          );
+
+        const stocks = await tx.stock.findMany({
+          where: {
+            companyId: stock.companyId,
+            warehouseId: stock.warehouseId,
+            planId: stock.planId,
+            productId: stock.productId,
+            packagingId: stock.packagingId,
+            grammage: stock.grammage,
+            sizeX: stock.sizeX,
+            sizeY: stock.sizeY,
+            paperColorGroupId: stock.paperColorGroupId,
+            paperColorId: stock.paperColorId,
+            paperPatternId: stock.paperPatternId,
+            paperCertId: stock.paperCertId,
+          },
+        });
+        if (stocks.length > 1) {
+          throw new ConflictException(
+            `다른 작업에 배정된 재고가 존재해, 직송여부 수정이 불가능합니다.`,
+          );
+        }
+      }
     }
 
     // 6. 발주자
@@ -727,7 +851,6 @@ export class OrderChangeService {
         isDstDirectShipping: null,
         memo: params.memo,
       });
-      throw new BadRequestException('test');
 
       // 주문 업데이트
       const order = await tx.order.update({
@@ -3059,26 +3182,47 @@ export class OrderChangeService {
     isDstDirectShipping: boolean;
   }): Promise<Model.Order> {
     const order = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
+      const orderForUpdate = await tx.$queryRaw`
+        SELECT *
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+
+         FOR UPDATE;
+      `;
+
+      const orderCheck = await tx.order.findUnique({
         include: {
-          orderProcess: true,
-          srcCompany: true,
           dstCompany: true,
+          srcCompany: true,
+          orderStock: true,
+          orderProcess: true,
         },
         where: {
           id: params.orderId,
         },
       });
       if (
-        !order ||
-        (order.srcCompanyId !== params.companyId &&
-          order.dstCompanyId !== params.companyId)
-      )
+        !orderCheck ||
+        (orderCheck.dstCompanyId !== params.companyId &&
+          orderCheck.srcCompanyId !== params.companyId)
+      ) {
         throw new NotFoundException(`존재하지 않는 주문입니다.`);
-      if (order.orderType !== 'OUTSOURCE_PROCESS')
-        throw new ConflictException(
-          `잘못된 요청입니다. 주문타입을 확인해주세요`,
-        );
+      }
+      if (orderCheck.orderType !== 'OUTSOURCE_PROCESS')
+        throw new ConflictException(`주문타입이 맞지 않습니다.`);
+
+      await this.validateUpdateOrder(tx, {
+        companyId: params.companyId,
+        order: orderCheck,
+        orderDate: params.orderDate,
+        srcWantedDate: params.srcWantedDate,
+        dstWantedDate: params.dstWantedDate,
+        srcLocationId: params.srcLocationId,
+        dstLocationId: params.dstLocationId,
+        isSrcDirectShipping: params.isSrcDirectShipping,
+        isDstDirectShipping: params.isDstDirectShipping,
+        memo: params.memo,
+      });
 
       // TODO: 도착지 확인
 
@@ -3341,33 +3485,47 @@ export class OrderChangeService {
     orderDate: string;
   }) {
     const order = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
+      const orderForUpdate = await tx.$queryRaw`
+        SELECT *
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+
+         FOR UPDATE;
+      `;
+
+      const orderCheck = await tx.order.findUnique({
         include: {
-          orderEtc: true,
-          srcCompany: true,
           dstCompany: true,
+          srcCompany: true,
+          orderStock: true,
+          orderProcess: true,
         },
         where: {
           id: params.orderId,
         },
       });
       if (
-        !order ||
-        (order.srcCompanyId !== params.companyId &&
-          order.dstCompanyId !== params.companyId)
-      )
+        !orderCheck ||
+        (orderCheck.dstCompanyId !== params.companyId &&
+          orderCheck.srcCompanyId !== params.companyId)
+      ) {
         throw new NotFoundException(`존재하지 않는 주문입니다.`);
-      if (order.orderType !== 'ETC')
-        throw new ConflictException(
-          `잘못된 요청입니다. 주문타입을 확인해주세요`,
-        );
-      if (
-        params.companyId !== order.dstCompanyId &&
-        order.dstCompany.managedById === null
-      )
-        throw new BadRequestException(
-          `주문정보 변경은 판매기업에 요청해주세요.`,
-        );
+      }
+      if (orderCheck.orderType !== 'ETC')
+        throw new ConflictException(`주문타입이 맞지 않습니다.`);
+
+      await this.validateUpdateOrder(tx, {
+        companyId: params.companyId,
+        order: orderCheck,
+        orderDate: params.orderDate,
+        srcWantedDate: null,
+        dstWantedDate: null,
+        srcLocationId: null,
+        dstLocationId: null,
+        isSrcDirectShipping: null,
+        isDstDirectShipping: null,
+        memo: params.memo,
+      });
 
       await tx.order.update({
         data: {
