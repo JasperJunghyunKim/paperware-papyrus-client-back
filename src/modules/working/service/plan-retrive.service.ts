@@ -18,7 +18,15 @@ export class PlanRetriveService {
     const type = params.type ?? 'DEFAULT';
 
     return await this.prisma.plan.findMany({
-      select: Selector.PLAN,
+      select: {
+        ...Selector.PLAN,
+        task: {
+          select: {
+            status: true,
+            type: true,
+          },
+        },
+      },
       where: {
         companyId: params.companyId,
         status: {
