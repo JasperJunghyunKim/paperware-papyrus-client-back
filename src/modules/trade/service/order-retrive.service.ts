@@ -19,10 +19,14 @@ import {
   WAREHOUSE,
 } from 'src/common/selector';
 import { PrismaService } from 'src/core';
+import { StockRetriveService } from 'src/modules/stock/service/stock-retrive.service';
 
 @Injectable()
 export class OrderRetriveService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly stockRetriveService: StockRetriveService,
+  ) {}
 
   async getList(params: {
     skip?: number;
@@ -94,7 +98,76 @@ export class OrderRetriveService {
       },
     });
 
-    return orders.map(Util.serialize);
+    const planOrderIdMap = new Map<number, number>();
+    const dstPlans: {
+      orderId: number;
+      planId: number;
+    }[] = orders
+      .filter((o) => Util.inc(o.orderType, 'NORMAL', 'OUTSOURCE_PROCESS'))
+      .map((o) => {
+        const plan = o.orderStock
+          ? o.orderStock.plan.find((p) => p.type === 'TRADE_NORMAL_SELLER')
+          : o.orderProcess.plan.find(
+              (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
+            );
+
+        return {
+          orderId: o.id,
+          planId: plan.id,
+        };
+      });
+    for (const plan of dstPlans) {
+      planOrderIdMap.set(plan.planId, plan.orderId);
+    }
+
+    const orderStockSuppliedPriceMap = new Map<number, number>();
+    const plans = await this.prisma.plan.findMany({
+      include: {
+        targetStockEvent: {
+          include: {
+            stock: {
+              include: {
+                packaging: true,
+                stockPrice: true,
+              },
+            },
+          },
+          where: {
+            status: 'NORMAL',
+            change: {
+              lt: 0,
+            },
+          },
+        },
+      },
+      where: {
+        id: {
+          in: dstPlans.map((p) => p.planId),
+        },
+      },
+    });
+    for (const plan of plans) {
+      let supplicedPrice = 0;
+      for (const stockEvent of plan.targetStockEvent) {
+        supplicedPrice += this.stockRetriveService.getStockSuppliedPrice(
+          stockEvent.stock,
+          Math.abs(stockEvent.change),
+          stockEvent.stock.stockPrice,
+        );
+      }
+
+      orderStockSuppliedPriceMap.set(
+        planOrderIdMap.get(plan.id),
+        supplicedPrice,
+      );
+    }
+
+    return orders.map((o) => {
+      return {
+        ...Util.serialize(o),
+        purchaseSuppliedPrice: orderStockSuppliedPriceMap.get(o.id) || null,
+      };
+    });
   }
 
   async getCount(params: {

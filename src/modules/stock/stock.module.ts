@@ -29,6 +29,11 @@ import { InhouseModule } from '../inhouse/inhouse.module';
     PlanChangeService,
     StockQuantityChecker,
   ],
-  exports: [StockChangeService, StockValidator, StockQuantityChecker],
+  exports: [
+    StockRetriveService,
+    StockChangeService,
+    StockValidator,
+    StockQuantityChecker,
+  ],
 })
 export class StockModule {}
