@@ -23,6 +23,7 @@ export class ShippingRetriveService {
       take: params.take,
       select: {
         ...Selector.SHIPPING,
+        invoice: { select: { invoiceStatus: true } },
         _count: {
           select: {
             invoice: true,
