@@ -121,51 +121,69 @@ export class OrderRetriveService {
     }
 
     const orderStockSuppliedPriceMap = new Map<number, number>();
-    const plans = await this.prisma.plan.findMany({
-      include: {
-        targetStockEvent: {
-          include: {
-            stock: {
-              include: {
-                packaging: true,
-                stockPrice: true,
+    if (dstPlans.length > 0) {
+      const plans = await this.prisma.plan.findMany({
+        include: {
+          targetStockEvent: {
+            include: {
+              stock: {
+                include: {
+                  packaging: true,
+                  stockPrice: true,
+                },
+              },
+            },
+            where: {
+              status: 'NORMAL',
+              change: {
+                lt: 0,
               },
             },
           },
-          where: {
-            status: 'NORMAL',
-            change: {
-              lt: 0,
-            },
+        },
+        where: {
+          id: {
+            in: dstPlans.map((p) => p.planId),
           },
         },
-      },
-      where: {
-        id: {
-          in: dstPlans.map((p) => p.planId),
-        },
-      },
-    });
-    for (const plan of plans) {
-      let supplicedPrice = 0;
-      for (const stockEvent of plan.targetStockEvent) {
-        supplicedPrice += this.stockRetriveService.getStockSuppliedPrice(
-          stockEvent.stock,
-          Math.abs(stockEvent.change),
-          stockEvent.stock.stockPrice,
+      });
+      for (const plan of plans) {
+        let supplicedPrice = 0;
+        for (const stockEvent of plan.targetStockEvent) {
+          supplicedPrice += this.stockRetriveService.getStockSuppliedPrice(
+            stockEvent.stock,
+            Math.abs(stockEvent.change),
+            stockEvent.stock.stockPrice,
+          );
+        }
+
+        orderStockSuppliedPriceMap.set(
+          planOrderIdMap.get(plan.id),
+          supplicedPrice,
         );
       }
-
-      orderStockSuppliedPriceMap.set(
-        planOrderIdMap.get(plan.id),
-        supplicedPrice,
-      );
     }
 
     return orders.map((o) => {
+      const supplicedPrice = orderStockSuppliedPriceMap.get(o.id);
+      const salesTradePrice =
+        o.tradePrice.find((tp) => tp.companyId === o.dstCompany.id)
+          ?.suppliedPrice || 0;
+
       return {
         ...Util.serialize(o),
-        purchaseSuppliedPrice: orderStockSuppliedPriceMap.get(o.id) || null,
+        purchaseSuppliedPrice:
+          supplicedPrice === undefined ? null : supplicedPrice,
+        salesSuppliedPrice:
+          supplicedPrice === undefined ? null : salesTradePrice,
+        salesProfit:
+          supplicedPrice === undefined
+            ? null
+            : salesTradePrice - supplicedPrice,
+        salesProfitRate:
+          supplicedPrice === undefined
+            ? null
+            : ((salesTradePrice - supplicedPrice) / salesTradePrice) * 100,
       };
     });
   }
@@ -243,7 +261,68 @@ export class OrderRetriveService {
       return null;
     }
 
-    return Util.serialize(order);
+    let dstPlan = null;
+    switch (order.orderType) {
+      case 'NORMAL':
+        dstPlan = order.orderStock.plan.find(
+          (p) => p.type === 'TRADE_NORMAL_SELLER',
+        );
+        break;
+      case 'OUTSOURCE_PROCESS':
+        dstPlan = order.orderProcess.plan.find(
+          (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
+        );
+        break;
+    }
+
+    let supplicedPrice = 0;
+    if (dstPlan) {
+      const plan = await this.prisma.plan.findUnique({
+        include: {
+          targetStockEvent: {
+            include: {
+              stock: {
+                include: {
+                  packaging: true,
+                  stockPrice: true,
+                },
+              },
+            },
+            where: {
+              status: 'NORMAL',
+              change: {
+                lt: 0,
+              },
+            },
+          },
+        },
+        where: {
+          id: dstPlan.id,
+        },
+      });
+
+      for (const stockEvent of plan.targetStockEvent) {
+        supplicedPrice += this.stockRetriveService.getStockSuppliedPrice(
+          stockEvent.stock,
+          Math.abs(stockEvent.change),
+          stockEvent.stock.stockPrice,
+        );
+      }
+    }
+
+    const salesTradePrice =
+      order.tradePrice.find((tp) => tp.companyId === order.dstCompany.id)
+        ?.suppliedPrice || 0;
+
+    return Util.serialize({
+      ...order,
+      purchaseSuppliedPrice: dstPlan ? supplicedPrice : null,
+      salesSuppliedPrice: dstPlan ? salesTradePrice : null,
+      salesProfit: dstPlan ? salesTradePrice - supplicedPrice : null,
+      salesProfitRate: dstPlan
+        ? ((salesTradePrice - supplicedPrice) / salesTradePrice) * 100
+        : null,
+    });
   }
 
   /** 원지 가져오기 */
