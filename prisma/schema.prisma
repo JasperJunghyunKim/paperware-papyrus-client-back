@@ -725,6 +725,8 @@ enum InvoiceStatus {
   ON_SHIPPING
   // 배송완료
   DONE_SHIPPING
+  // 취소
+  CANCELLED
 }
 
 model Invoice {
