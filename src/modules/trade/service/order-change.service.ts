@@ -1125,7 +1125,7 @@ export class OrderChangeService {
     });
   }
 
-  async cancel(params: { orderId: number }) {
+  async delete(params: { orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -1149,8 +1149,8 @@ export class OrderChangeService {
         data: {
           status:
             order.status === 'OFFER_PREPARING'
-              ? 'OFFER_CANCELLED'
-              : 'ORDER_CANCELLED',
+              ? 'OFFER_DELETED'
+              : 'ORDER_DELETED',
         },
       });
     });

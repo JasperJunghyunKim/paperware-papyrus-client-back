@@ -154,7 +154,6 @@ export class OrderController {
 
     // TODO: 등록된 거래 관계인지 확인
     // TODO: 재고 가용수량 확인
-
     const isOffer = body.dstCompanyId === req.user.companyId;
 
     return await this.change.insertOrder({
@@ -330,18 +329,23 @@ export class OrderController {
     await this.change.reject({ orderId: Number(id) });
   }
 
-  @Post(':id/cancel')
+  @Post(':id/delete')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  async cancelOrder(@Request() req: AuthType, @Param('id') id: string) {
+  async deleteOrder(@Request() req: AuthType, @Param('id') id: string) {
     const order = await this.retrive.getItem({ orderId: Number(id) });
 
     if (!order) {
       throw new ForbiddenException('존재하지 않는 주문입니다.');
     }
 
-    await this.change.cancel({ orderId: Number(id) });
+    await this.change.delete({ orderId: Number(id) });
   }
+
+  @Post('/:id/cancel')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async cancelOrder(@Request() req: AuthType, @Param() param: IdDto) {}
 
   @Post(':id/reset')
   @UseGuards(AuthGuard)
