@@ -1160,6 +1160,25 @@ export class OrderChangeService {
               },
             },
           },
+          orderProcess: {
+            select: {
+              plan: {
+                include: {
+                  assignStockEvent: true,
+                  targetStockEvent: {
+                    where: {
+                      status: {
+                        not: 'CANCELLED',
+                      },
+                    },
+                  },
+                },
+                where: {
+                  isDeleted: false,
+                },
+              },
+            },
+          },
           depositEvent: true,
         },
         where: {
@@ -1230,6 +1249,23 @@ export class OrderChangeService {
             },
           });
           break;
+        case 'OUTSOURCE_PROCESS':
+          const processDstPlan = order.orderProcess.plan.find(
+            (plan) => plan.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
+          );
+          await tx.stockEvent.updateMany({
+            data: {
+              status: 'CANCELLED',
+            },
+            where: {
+              id: {
+                in: [
+                  processDstPlan.assignStockEvent.id,
+                  ...processDstPlan.targetStockEvent.map((e) => e.id),
+                ],
+              },
+            },
+          });
         default:
           break;
       }
