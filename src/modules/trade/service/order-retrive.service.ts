@@ -97,6 +97,7 @@ export class OrderRetriveService {
         id: 'desc',
       },
     });
+    console.log(111, orders);
 
     const planOrderIdMap = new Map<number, number>();
     const dstPlans: {
@@ -105,17 +106,21 @@ export class OrderRetriveService {
     }[] = orders
       .filter((o) => Util.inc(o.orderType, 'NORMAL', 'OUTSOURCE_PROCESS'))
       .map((o) => {
-        const plan = o.orderStock
-          ? o.orderStock.plan.find((p) => p.type === 'TRADE_NORMAL_SELLER')
-          : o.orderProcess.plan.find(
-              (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
-            );
+        const plan =
+          (o.orderStock
+            ? o.orderStock.plan.find((p) => p.type === 'TRADE_NORMAL_SELLER')
+            : o.orderProcess.plan.find(
+                (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
+              )) || null;
 
-        return {
-          orderId: o.id,
-          planId: plan.id,
-        };
-      });
+        return plan
+          ? {
+              orderId: o.id,
+              planId: plan.id,
+            }
+          : null;
+      })
+      .filter((p) => p !== null);
     for (const plan of dstPlans) {
       planOrderIdMap.set(plan.planId, plan.orderId);
     }
@@ -264,14 +269,15 @@ export class OrderRetriveService {
     let dstPlan = null;
     switch (order.orderType) {
       case 'NORMAL':
-        dstPlan = order.orderStock.plan.find(
-          (p) => p.type === 'TRADE_NORMAL_SELLER',
-        );
+        dstPlan =
+          order.orderStock.plan.find((p) => p.type === 'TRADE_NORMAL_SELLER') ||
+          null;
         break;
       case 'OUTSOURCE_PROCESS':
-        dstPlan = order.orderProcess.plan.find(
-          (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
-        );
+        dstPlan =
+          order.orderProcess.plan.find(
+            (p) => p.type === 'TRADE_OUTSOURCE_PROCESS_SELLER',
+          ) || null;
         break;
     }
 
