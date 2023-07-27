@@ -131,7 +131,7 @@ export class InvoiceChangeService {
     await this.prisma.$transaction(async (tx) => {
       const invoices = await tx.invoice.findMany({
         where: {
-          shipping: {
+          plan: {
             companyId,
           },
           id: {
@@ -153,7 +153,7 @@ export class InvoiceChangeService {
       switch (status) {
         case 'CANCELLED':
           throw new BadRequestException(`이미 취소된 송장입니다.`);
-        case 'DONE_SHIPPING':
+        default:
           nextStatus = 'CANCELLED';
       }
 
