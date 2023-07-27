@@ -130,7 +130,7 @@ interface StockGroupFromDB {
   // 거래처 정보
   partnerCompanyId: number;
   partnerCompanyBusinessName: string;
-  partnerCompanyCompanyRegistrationNumber: string;
+  partnerCompanyRegistrationNumber: string;
   partnerCompanyInvoiceCode: string;
   partnerCompanyBizType: string;
   partnerCompanyBizItem: string;
@@ -143,7 +143,7 @@ interface StockGroupFromDB {
   // 구매회사
   srcCompanyId: number;
   srcCompanyBusinessName: string;
-  srcCompanyCompanyRegistrationNumber: string;
+  srcCompanyRegistrationNumber: string;
   srcCompanyInvoiceCode: string;
   srcCompanyBizType: string;
   srcCompanyBizItem: string;
@@ -156,7 +156,7 @@ interface StockGroupFromDB {
   // 판매회사
   dstCompanyId: number;
   dstCompanyBusinessName: string;
-  dstCompanyCompanyRegistrationNumber: string;
+  dstCompanyRegistrationNumber: string;
   dstCompanyInvoiceCode: string;
   dstCompanyBizType: string;
   dstCompanyBizItem: string;
@@ -560,7 +560,7 @@ export class StockRetriveService {
             -- 거래처 정보
             , partnerCompany.id AS partnerCompanyId
             , partnerCompany.businessName As partnerCompanyBusinessName
-            , partnerCompany.companyRegistrationNumber As partnerCompanyRegistrationNumbers
+            , partnerCompany.companyRegistrationNumber As partnerCompanyRegistrationNumber
             , partnerCompany.invoiceCode AS partnerCompanyInvoiceCode
             , partnerCompany.bizType AS partnerCompanyBizType
             , partnerCompany.bizItem AS partnerCompanyBizItem
@@ -573,7 +573,7 @@ export class StockRetriveService {
             -- 구매회사
             , srcCompany.id AS srcCompanyId
             , srcCompany.businessName As srcCompanyBusinessName
-            , srcCompany.companyRegistrationNumber As srcCompanyRegistrationNumbers
+            , srcCompany.companyRegistrationNumber As srcCompanyRegistrationNumber
             , srcCompany.invoiceCode AS srcCompanyInvoiceCode
             , srcCompany.bizType AS srcCompanyBizType
             , srcCompany.bizItem AS srcCompanyBizItem
@@ -586,7 +586,7 @@ export class StockRetriveService {
             -- 판매회사
             , dstCompany.id AS dstCompanyId
             , dstCompany.businessName As dstCompanyBusinessName
-            , dstCompany.companyRegistrationNumber As dstCompanyRegistrationNumbers
+            , dstCompany.companyRegistrationNumber As dstCompanyRegistrationNumber
             , dstCompany.invoiceCode AS dstCompanyInvoiceCode
             , dstCompany.bizType AS dstCompanyBizType
             , dstCompany.bizItem AS dstCompanyBizItem
@@ -790,6 +790,8 @@ export class StockRetriveService {
     `;
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
 
+    console.log(1111, stockGroups);
+
     return {
       items: stockGroups.map((sg) => {
         return {
@@ -869,7 +871,7 @@ export class StockRetriveService {
                           id: sg.partnerCompanyId,
                           businessName: sg.partnerCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.partnerCompanyCompanyRegistrationNumber,
+                            sg.partnerCompanyRegistrationNumber,
                           invoiceCode: sg.partnerCompanyInvoiceCode,
                           bizType: sg.partnerCompanyBizType,
                           bizItem: sg.partnerCompanyBizItem,
@@ -883,7 +885,7 @@ export class StockRetriveService {
                           id: sg.srcCompanyId,
                           businessName: sg.srcCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.srcCompanyCompanyRegistrationNumber,
+                            sg.srcCompanyRegistrationNumber,
                           invoiceCode: sg.srcCompanyInvoiceCode,
                           bizType: sg.srcCompanyBizType,
                           bizItem: sg.srcCompanyBizItem,
@@ -897,7 +899,7 @@ export class StockRetriveService {
                           id: sg.dstCompanyId,
                           businessName: sg.dstCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.dstCompanyCompanyRegistrationNumber,
+                            sg.dstCompanyRegistrationNumber,
                           invoiceCode: sg.dstCompanyInvoiceCode,
                           bizType: sg.dstCompanyBizType,
                           bizItem: sg.dstCompanyBizItem,
@@ -943,7 +945,7 @@ export class StockRetriveService {
                           id: sg.partnerCompanyId,
                           businessName: sg.partnerCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.partnerCompanyCompanyRegistrationNumber,
+                            sg.partnerCompanyRegistrationNumber,
                           invoiceCode: sg.partnerCompanyInvoiceCode,
                           bizType: sg.partnerCompanyBizType,
                           bizItem: sg.partnerCompanyBizItem,
@@ -957,7 +959,7 @@ export class StockRetriveService {
                           id: sg.srcCompanyId,
                           businessName: sg.srcCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.srcCompanyCompanyRegistrationNumber,
+                            sg.srcCompanyRegistrationNumber,
                           invoiceCode: sg.srcCompanyInvoiceCode,
                           bizType: sg.srcCompanyBizType,
                           bizItem: sg.srcCompanyBizItem,
@@ -971,7 +973,7 @@ export class StockRetriveService {
                           id: sg.dstCompanyId,
                           businessName: sg.dstCompanyBusinessName,
                           companyRegistrationNumber:
-                            sg.dstCompanyCompanyRegistrationNumber,
+                            sg.dstCompanyRegistrationNumber,
                           invoiceCode: sg.dstCompanyInvoiceCode,
                           bizType: sg.dstCompanyBizType,
                           bizItem: sg.dstCompanyBizItem,
