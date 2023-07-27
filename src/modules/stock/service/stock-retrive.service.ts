@@ -1,15 +1,19 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import {
   OrderType,
+  Packaging,
   PackagingType,
   PlanStatus,
   PlanType,
   Prisma,
+  Stock,
   StockEventStatus,
+  StockPrice,
 } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { Selector } from 'src/common';
@@ -323,6 +327,73 @@ export interface PlanStockGroupFromDB {
 @Injectable()
 export class StockRetriveService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private ReamToSheetQuantity(quantity: number): number {
+    return quantity * 500;
+  }
+
+  private SheetToReamQuantity(quantity: number): number {
+    return quantity / 500;
+  }
+
+  private SheetToTonQuantity(
+    quantity: number,
+    grammage: number,
+    sizeX: number,
+    sizeY: number,
+  ) {
+    return quantity * grammage * sizeX * sizeY * 0.000001;
+  }
+
+  getStockSuppliedPrice(
+    stock: Stock & { packaging: Packaging },
+    quantity: number,
+    stockPrice: StockPrice,
+  ): number {
+    switch (stockPrice.unitPriceUnit) {
+      case 'WON_PER_BOX':
+        // 수량을 BOX로
+        if (stock.packaging.type !== 'BOX') return null;
+        break;
+      case 'WON_PER_REAM':
+        // 수량을 REAM으로
+        if (stock.packaging.type === 'ROLL') return null;
+        if (
+          stock.packaging.type === 'SKID' ||
+          stock.packaging.type === 'REAM'
+        ) {
+          quantity = this.SheetToReamQuantity(quantity);
+        } else if (stock.packaging.type === 'BOX') {
+          quantity = this.SheetToReamQuantity(
+            quantity * stock.packaging.packA * stock.packaging.packB,
+          );
+        }
+        break;
+      case 'WON_PER_TON':
+        // 수량을 TON으로
+        if (
+          stock.packaging.type === 'SKID' ||
+          stock.packaging.type === 'REAM'
+        ) {
+          quantity = this.SheetToTonQuantity(
+            quantity,
+            stock.grammage,
+            stock.sizeX,
+            stock.sizeY,
+          );
+        } else if (stock.packaging.type === 'BOX') {
+          quantity = this.SheetToTonQuantity(
+            quantity * stock.packaging.packA * stock.packaging.packB,
+            stock.grammage,
+            stock.sizeX,
+            stock.sizeY,
+          );
+        }
+        break;
+    }
+
+    return stockPrice.unitPrice * quantity;
+  }
 
   async getStockGroupList(params: {
     companyId: number;
@@ -789,8 +860,6 @@ export class StockRetriveService {
       ${limit}
     `;
     const total = stockGroups.length === 0 ? 0 : Number(stockGroups[0].total);
-
-    console.log(1111, stockGroups);
 
     return {
       items: stockGroups.map((sg) => {
