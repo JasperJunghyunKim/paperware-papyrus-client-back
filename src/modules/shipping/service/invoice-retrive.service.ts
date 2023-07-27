@@ -11,6 +11,7 @@ export class InvoiceRetriveService {
     skip?: number;
     take?: number;
     shippingId?: number | null;
+    planId?: number | null;
     companyId: number;
   }): Promise<Model.Invoice[]> {
     const { companyId } = params;
@@ -18,6 +19,7 @@ export class InvoiceRetriveService {
     const invoices = await this.prisma.invoice.findMany({
       where: {
         plan: {
+          id: params.planId ?? undefined,
           companyId: companyId,
         },
         shippingId: params.shippingId ?? null,
@@ -33,12 +35,14 @@ export class InvoiceRetriveService {
   async getCount(params: {
     companyId: number;
     shippingId?: number | null;
+    planId?: number | null;
   }): Promise<number> {
     const { companyId } = params;
 
     const count = await this.prisma.invoice.count({
       where: {
         plan: {
+          id: params.planId ?? undefined,
           companyId: companyId,
         },
         shippingId: params.shippingId,

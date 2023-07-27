@@ -38,11 +38,13 @@ export class InvoiceController {
       take: query.take,
       companyId: req.user.companyId,
       shippingId: query.shippingId,
+      planId: query.planId,
     });
 
     const total = await this.retrive.getCount({
       companyId: req.user.companyId,
       shippingId: query.shippingId,
+      planId: query.planId,
     });
 
     return {

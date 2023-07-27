@@ -31,6 +31,11 @@ export default class InvoiceListQueryDto implements InvoiceListQuery {
   @IsInt()
   @Type(() => Number)
   readonly shippingId: number | null = undefined;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly planId: number | null = undefined;
 }
 
 export class InvoiceDisconnectShippingRequestDto
