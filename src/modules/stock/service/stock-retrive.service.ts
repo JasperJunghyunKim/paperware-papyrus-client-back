@@ -469,7 +469,7 @@ export class StockRetriveService {
         )`;
     const zeroQuantityQuery = isZeroQuantityIncluded
       ? Prisma.empty
-      : Prisma.sql`AND availableQuantity != 0 OR totalQuantity != 0`;
+      : Prisma.sql`AND (availableQuantity != 0 OR totalQuantity != 0)`;
 
     const initialPlanQuery = initialPlanId
       ? Prisma.sql`AND s.initialPlanId = ${initialPlanId}`
@@ -738,8 +738,12 @@ export class StockRetriveService {
 
         FROM Stock              AS s
         JOIN (
-          SELECT *, COUNT(1) OVER(PARTITION BY stockId ORDER BY stockId)
-            FROM StockEvent
+          SELECT A.*
+            FROM (
+              SELECT *, ROW_NUMBER() OVER(PARTITION BY stockId ORDER BY stockId) AS rowNum
+                FROM StockEvent
+            ) AS A
+          WHERE A.rowNum = 1
         ) AS firstStockEvent ON firstStockEvent.stockId = s.id AND firstStockEvent.status != ${StockEventStatus.CANCELLED}
    LEFT JOIN (
           SELECT stockId
@@ -854,7 +858,7 @@ export class StockRetriveService {
                 , os.id
                 , p.id
 
-        HAVING (availableQuantity >= 0)
+        HAVING (availableQuantity >= 0 OR totalQuantity >= 0)
         ${zeroQuantityQuery}
 
       ${limit}
