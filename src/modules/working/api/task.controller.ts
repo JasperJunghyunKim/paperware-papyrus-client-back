@@ -162,18 +162,9 @@ export class TaskController {
     @Param('id') id: number,
     @Body() body: TaskUpdateConvertingRequestDto,
   ) {
-    const task = await this.taskRetriveService.getTaskById(id);
-
-    if (task.plan.company.id !== req.user.companyId) {
-      throw new ForbiddenException('Not allowed');
-    }
-
-    if (task.type !== 'CONVERTING') {
-      throw new BadRequestException('Not allowed');
-    }
-
     const updatedTask = await this.taskChangeService.updateConvertingTask({
-      id: task.id,
+      companyId: req.user.companyId,
+      id,
       sizeX: body.sizeX,
       sizeY: body.sizeY,
       memo: body.memo,
@@ -190,18 +181,9 @@ export class TaskController {
     @Param('id') id: number,
     @Body() body: TaskUpdateGuillotineRequestDto,
   ) {
-    const task = await this.taskRetriveService.getTaskById(id);
-
-    if (task.plan.company.id !== req.user.companyId) {
-      throw new ForbiddenException('Not allowed');
-    }
-
-    if (task.type !== 'GUILLOTINE') {
-      throw new BadRequestException('Not allowed');
-    }
-
     const updatedTask = await this.taskChangeService.updateGuillotineTask({
-      id: task.id,
+      companyId: req.user.companyId,
+      id,
       sizeX: body.sizeX,
       sizeY: body.sizeY,
       memo: body.memo,
@@ -225,6 +207,7 @@ export class TaskController {
     }
 
     const updatedTask = await this.taskChangeService.updateQuantityTask({
+      companyId: req.user.companyId,
       id: task.id,
       quantity: body.quantity,
       memo: body.memo,

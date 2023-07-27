@@ -8,7 +8,7 @@ import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { ulid } from 'ulid';
 import { Process } from 'src/@shared/task';
-import { PlanStatus, TaskStatus } from '@prisma/client';
+import { PlanStatus, TaskStatus, TaskType } from '@prisma/client';
 
 @Injectable()
 export class TaskChangeService {
@@ -97,72 +97,162 @@ export class TaskChangeService {
   }
 
   async updateConvertingTask(params: {
+    companyId: number;
     id: number;
     sizeX: number;
     sizeY: number;
     memo: string;
   }) {
-    const { id, sizeX, sizeY, memo } = params;
-    return await this.prisma.task.update({
-      select: Selector.TASK,
-      where: {
-        id,
-      },
-      data: {
-        taskConverting: {
-          update: {
-            sizeX,
-            sizeY,
-            memo,
+    const { companyId, id, sizeX, sizeY, memo } = params;
+    return await this.prisma.$transaction(async (tx) => {
+      const [task]: {
+        id: number;
+        taskType: TaskType;
+        taskStatus: TaskStatus;
+        planStatus: PlanStatus;
+      }[] = await tx.$queryRaw`
+        SELECT t.id AS id
+              , t.type AS taskType
+              , t.status AS taskStatus
+              , p.status AS planStatus
+          FROM Task   AS t
+          JOIN Plan   AS p    ON p.id = t.planId
+
+        WHERE t.id = ${id}
+          AND t.status != ${TaskStatus.CANCELLED}
+          AND p.companyId = ${companyId}
+          AND p.isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+
+      if (!task) throw new NotFoundException(`존재하지 않는 공정입니다.`);
+      if (task.taskType !== 'CONVERTING')
+        throw new ConflictException(`공정타입 에러`);
+      if (task.taskStatus !== 'PREPARING')
+        throw new ConflictException(`수정할 수 없는 공정입니다.`);
+
+      return await tx.task.update({
+        select: Selector.TASK,
+        where: {
+          id,
+        },
+        data: {
+          taskConverting: {
+            update: {
+              sizeX,
+              sizeY,
+              memo,
+            },
           },
         },
-      },
+      });
     });
   }
 
   async updateGuillotineTask(params: {
+    companyId: number;
     id: number;
     sizeX: number;
     sizeY: number;
     memo: string;
   }) {
-    const { id, sizeX, sizeY, memo } = params;
-    return await this.prisma.task.update({
-      select: Selector.TASK,
-      where: {
-        id,
-      },
-      data: {
-        taskGuillotine: {
-          update: {
-            sizeX,
-            sizeY,
-            memo,
+    const { companyId, id, sizeX, sizeY, memo } = params;
+    return await this.prisma.$transaction(async (tx) => {
+      const [task]: {
+        id: number;
+        taskType: TaskType;
+        taskStatus: TaskStatus;
+        planStatus: PlanStatus;
+      }[] = await tx.$queryRaw`
+        SELECT t.id AS id
+              , t.type AS taskType
+              , t.status AS taskStatus
+              , p.status AS planStatus
+          FROM Task   AS t
+          JOIN Plan   AS p    ON p.id = t.planId
+
+        WHERE t.id = ${id}
+          AND t.status != ${TaskStatus.CANCELLED}
+          AND p.companyId = ${companyId}
+          AND p.isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+
+      if (!task) throw new NotFoundException(`존재하지 않는 공정입니다.`);
+      if (task.taskType !== 'GUILLOTINE')
+        throw new ConflictException(`공정타입 에러`);
+      if (task.taskStatus !== 'PREPARING')
+        throw new ConflictException(`수정할 수 없는 공정입니다.`);
+
+      return await tx.task.update({
+        select: Selector.TASK,
+        where: {
+          id,
+        },
+        data: {
+          taskGuillotine: {
+            update: {
+              sizeX,
+              sizeY,
+              memo,
+            },
           },
         },
-      },
+      });
     });
   }
 
   async updateQuantityTask(params: {
+    companyId: number;
     id: number;
     quantity: number;
     memo: string;
   }) {
-    const { id, quantity, memo } = params;
-    return await this.prisma.task.update({
-      select: Selector.TASK,
-      where: {
-        id,
-      },
-      data: {
-        taskQuantity: {
-          update: {
-            quantity,
-            memo,
+    const { companyId, id, quantity, memo } = params;
+    return await this.prisma.$transaction(async (tx) => {
+      const [task]: {
+        id: number;
+        taskType: TaskType;
+        taskStatus: TaskStatus;
+        planStatus: PlanStatus;
+      }[] = await tx.$queryRaw`
+        SELECT t.id AS id
+              , t.type AS taskType
+              , t.status AS taskStatus
+              , p.status AS planStatus
+          FROM Task   AS t
+          JOIN Plan   AS p    ON p.id = t.planId
+
+        WHERE t.id = ${id}
+          AND t.status != ${TaskStatus.CANCELLED}
+          AND p.companyId = ${companyId}
+          AND p.isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+
+      if (!task) throw new NotFoundException(`존재하지 않는 공정입니다.`);
+      if (task.taskType !== 'RELEASE')
+        throw new ConflictException(`공정타입 에러`);
+      if (task.taskStatus !== 'PREPARING')
+        throw new ConflictException(`수정할 수 없는 공정입니다.`);
+
+      return await tx.task.update({
+        select: Selector.TASK,
+        where: {
+          id,
+        },
+        data: {
+          taskQuantity: {
+            update: {
+              quantity,
+              memo,
+            },
           },
         },
-      },
+      });
     });
   }
 
