@@ -98,4 +98,13 @@ export class InvoiceController {
   ) {
     await this.change.backwardInvoiceStatus(req.user.companyId, dto.invoiceIds);
   }
+
+  @Post('/cancel')
+  @UseGuards(AuthGuard)
+  async cancelInvoiceStatus(
+    @Request() req: AuthType,
+    @Body() dto: UpdateInvoiceStatusDto,
+  ) {
+    await this.change.cancelInvoice(req.user.companyId, dto.invoiceIds);
+  }
 }

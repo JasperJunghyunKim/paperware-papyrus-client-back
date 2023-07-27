@@ -126,4 +126,47 @@ export class InvoiceChangeService {
       });
     });
   }
+
+  async cancelInvoice(companyId: number, invoiceIds: number[]) {
+    await this.prisma.$transaction(async (tx) => {
+      const invoices = await tx.invoice.findMany({
+        where: {
+          shipping: {
+            companyId,
+          },
+          id: {
+            in: invoiceIds,
+          },
+        },
+      });
+      if (invoiceIds.length !== invoices.length) {
+        throw new ConflictException(`존재하지 않는 송장이 포함되어 있습니다.`);
+      }
+
+      const status = invoices[0].invoiceStatus;
+      let nextStatus = status;
+      for (const invoice of invoices) {
+        if (invoice.invoiceStatus !== status)
+          throw new BadRequestException(`배송상태가 같은 송장만 선택해야합니.`);
+      }
+
+      switch (status) {
+        case 'CANCELLED':
+          throw new BadRequestException(`이미 취소된 송장입니다.`);
+        case 'DONE_SHIPPING':
+          nextStatus = 'CANCELLED';
+      }
+
+      await tx.invoice.updateMany({
+        data: {
+          invoiceStatus: nextStatus,
+        },
+        where: {
+          id: {
+            in: invoiceIds,
+          },
+        },
+      });
+    });
+  }
 }
