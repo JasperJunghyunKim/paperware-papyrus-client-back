@@ -1125,6 +1125,117 @@ export class OrderChangeService {
     });
   }
 
+  async cancel(companyId: number, orderId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const orderForUpdate = await tx.$queryRaw`
+        SELECT *
+          FROM \`Order\`
+         WHERE id = ${orderId}
+
+           FOR UPDATE
+      `;
+
+      const order = await tx.order.findFirst({
+        include: {
+          dstCompany: true,
+          srcCompany: true,
+          orderStock: {
+            select: {
+              plan: {
+                include: {
+                  assignStockEvent: true,
+                },
+                where: {
+                  isDeleted: false,
+                },
+              },
+            },
+          },
+          orderDeposit: {
+            include: {
+              depositEvent: {
+                where: {
+                  status: 'NORMAL',
+                },
+              },
+            },
+          },
+          depositEvent: true,
+        },
+        where: {
+          id: orderId,
+          status: {
+            notIn: ['OFFER_DELETED', 'ORDER_DELETED'],
+          },
+        },
+      });
+      if (
+        !order ||
+        (order.srcCompanyId !== companyId && order.dstCompanyId !== companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+
+      if (
+        order.dstCompanyId !== companyId &&
+        order.dstCompany.managedById === null
+      )
+        throw new ForbiddenException(`주문취소는 판매회사에서만 가능합니다.`);
+
+      if (order.status !== 'ACCEPTED')
+        throw new ConflictException(`주문취소가 가능한 상태가 아닙니다.`);
+
+      await tx.order.update({
+        data: {
+          status: 'CANCELLED',
+        },
+        where: {
+          id: orderId,
+        },
+      });
+
+      switch (order.orderType) {
+        case 'NORMAL':
+          const dstPlan = order.orderStock.plan.find(
+            (plan) => plan.type === 'TRADE_NORMAL_SELLER',
+          );
+          await tx.stockEvent.update({
+            data: {
+              status: 'CANCELLED',
+            },
+            where: {
+              id: dstPlan.assignStockEventId,
+            },
+          });
+          await this.stockChangeService.cacheStockQuantityTx(tx, {
+            id: dstPlan.assignStockEvent.stockId,
+          });
+          if (order.depositEvent) {
+            await tx.depositEvent.update({
+              data: {
+                status: 'CANCELLED',
+              },
+              where: {
+                id: order.depositEvent.id,
+              },
+            });
+          }
+          break;
+        case 'DEPOSIT':
+          await tx.depositEvent.update({
+            data: {
+              status: 'CANCELLED',
+            },
+            where: {
+              id: order.orderDeposit.depositEvent[0].id,
+            },
+          });
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
   async delete(params: { orderId: number }) {
     const { orderId } = params;
 

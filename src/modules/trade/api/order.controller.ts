@@ -78,6 +78,7 @@ export class OrderController {
           'ACCEPTED',
           'ORDER_REQUESTED',
           'ORDER_REJECTED',
+          'CANCELLED',
         ]
       : [
           'ORDER_PREPARING',
@@ -86,6 +87,7 @@ export class OrderController {
           'ACCEPTED',
           'OFFER_REQUESTED',
           'OFFER_REJECTED',
+          'CANCELLED',
         ];
 
     const items = await this.retrive.getList({
@@ -345,7 +347,9 @@ export class OrderController {
   @Post('/:id/cancel')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  async cancelOrder(@Request() req: AuthType, @Param() param: IdDto) {}
+  async cancelOrder(@Request() req: AuthType, @Param() param: IdDto) {
+    return await this.change.cancel(req.user.companyId, param.id);
+  }
 
   @Post(':id/reset')
   @UseGuards(AuthGuard)
