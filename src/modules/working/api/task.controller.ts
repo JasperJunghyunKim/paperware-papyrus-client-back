@@ -237,13 +237,7 @@ export class TaskController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async deleteTask(@Request() req: AuthType, @Param('id') id: number) {
-    const task = await this.taskRetriveService.getTaskById(id);
-
-    if (task.plan.company.id !== req.user.companyId) {
-      throw new ForbiddenException('Not allowed');
-    }
-
-    await this.taskChangeService.deleteTask(id);
+    await this.taskChangeService.deleteTask(req.user.companyId, id);
 
     return;
   }

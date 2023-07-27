@@ -1,9 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { ulid } from 'ulid';
 import { Process } from 'src/@shared/task';
+import { PlanStatus, TaskStatus } from '@prisma/client';
 
 @Injectable()
 export class TaskChangeService {
@@ -161,15 +166,40 @@ export class TaskChangeService {
     });
   }
 
-  async deleteTask(id: number) {
-    return await this.prisma.task.update({
-      select: Selector.TASK,
-      where: {
-        id,
-      },
-      data: {
-        status: 'CANCELLED',
-      },
+  async deleteTask(companyId: number, taskId: number) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [task]: {
+        id: number;
+        taskStatus: TaskStatus;
+        planStatus: PlanStatus;
+      }[] = await tx.$queryRaw`
+        SELECT t.id AS id
+              , t.status AS taskStatus
+              , p.status AS planStatus
+          FROM Task   AS t
+          JOIN Plan   AS p    ON p.id = t.planId
+
+        WHERE t.id = ${taskId}
+          AND t.status != ${TaskStatus.CANCELLED}
+          AND p.companyId = ${companyId}
+          AND p.isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+
+      if (!task) throw new NotFoundException(`존재하지 않는 공정입니다.`);
+      if (task.taskStatus !== 'PREPARING')
+        throw new ConflictException(`삭제할 수 없는 공정입니다.`);
+
+      return await tx.task.update({
+        select: Selector.TASK,
+        where: {
+          id: taskId,
+        },
+        data: {
+          status: 'CANCELLED',
+        },
+      });
     });
   }
 
