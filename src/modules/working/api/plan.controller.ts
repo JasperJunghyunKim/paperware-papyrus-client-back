@@ -125,6 +125,16 @@ export class PlanController {
     return updatedPlan;
   }
 
+  @Post('/:id/backward')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async backwardPlan(@Request() req: AuthType, @Param() param: IdDto) {
+    return await this.planChangeService.backwardPlan(
+      req.user.companyId,
+      param.id,
+    );
+  }
+
   @Post('/:id/complete')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)

@@ -1,5 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { PlanType } from '@prisma/client';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PlanStatus, PlanType } from '@prisma/client';
 import { Task } from 'src/@shared';
 import { Util } from 'src/common';
 import { PrismaTransaction } from 'src/common/types';
@@ -146,6 +151,40 @@ export class PlanChangeService {
         },
         data: {
           status: 'PROGRESSING',
+        },
+      });
+    });
+  }
+
+  async backwardPlan(companyId: number, planId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const [plan]: {
+        id: number;
+        status: PlanStatus;
+      }[] = await tx.$queryRaw`
+        SELECT id, status
+          FROM Plan
+         WHERE id = ${planId}
+           AND companyId = ${companyId}
+           AND status != ${PlanStatus.CANCELLED}
+          
+          FOR UPDATE;
+      `;
+      if (!plan) throw new NotFoundException(`존재하지 않는 작업계획입니다.`);
+      if (plan.status === 'PREPARING') {
+        throw new ConflictException(`작업지시되지 않은 작업계획입니다.`);
+      } else if (plan.status === 'PROGRESSED') {
+        throw new ConflictException(
+          `작업완료된 작업계획은 취소할 수 없습니다.`,
+        );
+      }
+
+      await tx.plan.update({
+        data: {
+          status: 'PREPARING',
+        },
+        where: {
+          id: planId,
         },
       });
     });
