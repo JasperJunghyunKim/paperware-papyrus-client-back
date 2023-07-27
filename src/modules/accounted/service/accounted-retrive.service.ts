@@ -212,6 +212,8 @@ export class AccountedRetriveService {
     companyRegistrationNumbers: string[];
     minAmount: number | null;
     maxAmount: number | null;
+    year: number | null;
+    month: number | null;
   }) {
     const {
       companyId,
@@ -247,23 +249,35 @@ export class AccountedRetriveService {
         ? Prisma.sql`AND totalPrice <= ${maxAmount}`
         : Prisma.empty;
 
+    /** 테스트용 */
+    const nowQuery =
+      params.year !== null && params.month !== null
+        ? Prisma.sql`${
+            params.year +
+            '-' +
+            params.month.toString().padStart(2, '0') +
+            '-10 00:00:00.000'
+          }`
+        : Prisma.sql`NOW()`;
+
     // 날짜(DB 시간 기준)
     const now: any[] = await this.prisma.$queryRaw`
-      SELECT YEAR(CONVERT_TZ(DATE_ADD(NOW(), INTERVAL 1 MONTH), '+00:00', '+09:00')) AS year1
-            , MONTH(CONVERT_TZ(DATE_ADD(NOW(), INTERVAL 1 MONTH), '+00:00', '+09:00')) AS month1
-            , YEAR(CONVERT_TZ(NOW(), '+00:00', '+09:00')) AS year2
-            , MONTH(CONVERT_TZ(NOW(), '+00:00', '+09:00')) AS month2
-            , YEAR(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 1 MONTH), '+00:00', '+09:00')) AS year3
-            , MONTH(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 1 MONTH), '+00:00', '+09:00')) AS month3
-            , YEAR(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 2 MONTH), '+00:00', '+09:00')) AS year4
-            , MONTH(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 2 MONTH), '+00:00', '+09:00')) AS month4
-            , YEAR(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 3 MONTH), '+00:00', '+09:00')) AS year5
-            , MONTH(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 3 MONTH), '+00:00', '+09:00')) AS month5
-            , YEAR(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 4 MONTH), '+00:00', '+09:00')) AS year6
-            , MONTH(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 4 MONTH), '+00:00', '+09:00')) AS month6
-            , YEAR(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 5 MONTH), '+00:00', '+09:00')) AS year7
-            , MONTH(CONVERT_TZ(DATE_SUB(NOW(), INTERVAL 5 MONTH), '+00:00', '+09:00')) AS month7
+      SELECT YEAR(CONVERT_TZ(DATE_ADD(${nowQuery}, INTERVAL 1 MONTH), '+00:00', '+09:00')) AS year1
+            , MONTH(CONVERT_TZ(DATE_ADD(${nowQuery}, INTERVAL 1 MONTH), '+00:00', '+09:00')) AS month1
+            , YEAR(CONVERT_TZ(${nowQuery}, '+00:00', '+09:00')) AS year2
+            , MONTH(CONVERT_TZ(${nowQuery}, '+00:00', '+09:00')) AS month2
+            , YEAR(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 1 MONTH), '+00:00', '+09:00')) AS year3
+            , MONTH(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 1 MONTH), '+00:00', '+09:00')) AS month3
+            , YEAR(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 2 MONTH), '+00:00', '+09:00')) AS year4
+            , MONTH(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 2 MONTH), '+00:00', '+09:00')) AS month4
+            , YEAR(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 3 MONTH), '+00:00', '+09:00')) AS year5
+            , MONTH(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 3 MONTH), '+00:00', '+09:00')) AS month5
+            , YEAR(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 4 MONTH), '+00:00', '+09:00')) AS year6
+            , MONTH(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 4 MONTH), '+00:00', '+09:00')) AS month6
+            , YEAR(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 5 MONTH), '+00:00', '+09:00')) AS year7
+            , MONTH(CONVERT_TZ(DATE_SUB(${nowQuery}, INTERVAL 5 MONTH), '+00:00', '+09:00')) AS month7
     `;
+
     const year1 = Number(now[0].year1);
     const month1 = Number(now[0].month1);
     const year2 = Number(now[0].year2);

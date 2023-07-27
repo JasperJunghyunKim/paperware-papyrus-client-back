@@ -5,9 +5,11 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { AccountedQuery, AccountedUnpaidListQuery } from 'src/@shared/api';
 
@@ -75,4 +77,21 @@ export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
   @IsInt()
   @Type(() => Number)
   readonly maxAmount: number | null = null;
+
+  /** 테스트용 */
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly year: number | null = null;
+
+  /** 테스트용 */
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(1)
+  @Max(12)
+  readonly month: number | null = null;
 }
