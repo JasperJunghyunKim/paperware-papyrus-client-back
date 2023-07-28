@@ -275,6 +275,7 @@ export class OrderChangeService {
         throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
 
       for (const stock of srcPlanStocks) {
+        console.log(111, stock);
         if (stock.planId === null)
           throw new ConflictException(
             `이미 입고된 도착예정재고가 존재해, 직송여부 수정이 불가능합니다.`,
@@ -3410,6 +3411,8 @@ export class OrderChangeService {
       if (orderCheck.orderType !== 'OUTSOURCE_PROCESS')
         throw new ConflictException(`주문타입이 맞지 않습니다.`);
 
+      params.isDstDirectShipping = undefined;
+
       await this.validateUpdateOrder(tx, {
         companyId: params.companyId,
         order: orderCheck,
@@ -3426,8 +3429,8 @@ export class OrderChangeService {
       // TODO: 도착지 확인
 
       if (
-        params.companyId !== order.dstCompanyId &&
-        order.dstCompany.managedById === null
+        params.companyId !== orderCheck.dstCompanyId &&
+        orderCheck.dstCompany.managedById === null
       )
         throw new ConflictException(
           `주문정보 수정은 판매기업에 요청해야합니다.`,
@@ -3449,12 +3452,12 @@ export class OrderChangeService {
           dstWantedDate: params.dstWantedDate,
           isDstDirectShipping: false,
           isSrcDirectShipping:
-            params.companyId === order.srcCompanyId
+            params.companyId === orderCheck.srcCompanyId
               ? params.isSrcDirectShipping
               : undefined,
         },
         where: {
-          id: order.orderProcess.id,
+          id: orderCheck.orderProcess.id,
         },
       });
       await tx.order.update({
@@ -3467,9 +3470,9 @@ export class OrderChangeService {
         },
       });
 
-      await this.updateOrderRevisionTx(tx, order.id);
+      await this.updateOrderRevisionTx(tx, orderCheck.id);
 
-      return await this.getOrderCreateResponseTx(tx, order.id);
+      return await this.getOrderCreateResponseTx(tx, orderCheck.id);
     });
 
     return order;

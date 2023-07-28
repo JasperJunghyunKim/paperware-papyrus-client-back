@@ -1023,11 +1023,11 @@ export class OrderProcessInfoUpdateDto
 
   @IsOptional()
   @IsBoolean()
-  readonly isSrcDirectShipping: boolean = false;
+  readonly isSrcDirectShipping: boolean = undefined;
 
   @IsOptional()
   @IsBoolean()
-  readonly isDstDirectShipping: boolean = false;
+  readonly isDstDirectShipping: boolean = undefined;
 }
 
 export class OrderProcessStockUpdateDto
