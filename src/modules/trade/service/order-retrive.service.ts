@@ -53,6 +53,30 @@ export class OrderRetriveService {
     const orders = await this.prisma.order.findMany({
       select: {
         ...Selector.ORDER,
+        orderStock: {
+          select: {
+            ...Selector.ORDER.orderStock.select,
+            plan: {
+              select: {
+                ...Selector.ORDER.orderStock.select.plan.select,
+                invoice: { select: { invoiceStatus: true } },
+                task: { select: { type: true, status: true } },
+              },
+            },
+          },
+        },
+        orderProcess: {
+          select: {
+            ...Selector.ORDER.orderProcess.select,
+            plan: {
+              select: {
+                ...Selector.ORDER.orderProcess.select.plan.select,
+                invoice: { select: { invoiceStatus: true } },
+                task: { select: { type: true, status: true } },
+              },
+            },
+          },
+        },
         orderDeposit: {
           select: ORDER_DEPOSIT,
         },
