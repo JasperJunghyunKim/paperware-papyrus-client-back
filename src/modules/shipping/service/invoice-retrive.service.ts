@@ -22,7 +22,7 @@ export class InvoiceRetriveService {
           id: params.planId ?? undefined,
           companyId: companyId,
         },
-        shippingId: params.shippingId ?? null,
+        shippingId: params.planId ? undefined : params.shippingId ?? null,
       },
       skip: params.skip,
       take: params.take,
