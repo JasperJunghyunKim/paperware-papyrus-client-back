@@ -165,6 +165,7 @@ export class OrderRequestChangeService {
             WHEN ri.status = ${OrderRequestItemStatus.REQUESTED} THEN ${OrderRequestItemStatus.ON_CHECKING}
             ELSE ri.status
            END)
+        WHERE r.id = ${orderRequestId};
       `;
     }
   }
