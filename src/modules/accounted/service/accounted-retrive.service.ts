@@ -342,6 +342,12 @@ export class AccountedRetriveService {
 
           ORDER BY p.id
         ) AS partner
+        JOIN (
+          SELECT b.*, dstCompany.*
+            FROM BusinessRelationship AS b
+            JOIN Company              AS dstCompany    ON dstCompany.id = b.dstCompanyId
+          WHERE b.srcCompanyId = ${companyId}
+        ) AS br ON br.companyRegistrationNumber = partner.companyRegistrationNumber
         JOIN Company AS partnerCompany ON partnerCompany.companyRegistrationNumber = partner.companyRegistrationNumber AND (partnerCompany.managedById = ${companyId} OR partnerCompany.managedById IS NULL)
 
         -- 거래금액
@@ -485,6 +491,12 @@ export class AccountedRetriveService {
              )})
           ORDER BY p.id
         ) AS partner
+        JOIN (
+          SELECT b.*, dstCompany.*
+            FROM BusinessRelationship AS b
+            JOIN Company              AS dstCompany    ON dstCompany.id = b.dstCompanyId
+          WHERE b.srcCompanyId = ${companyId}
+        ) AS br ON br.companyRegistrationNumber = partner.companyRegistrationNumber
         JOIN Company AS partnerCompany ON partnerCompany.companyRegistrationNumber = partner.companyRegistrationNumber AND (partnerCompany.managedById = ${companyId} OR partnerCompany.managedById IS NULL)
 
         -- 거래금액
