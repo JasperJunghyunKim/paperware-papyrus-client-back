@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import {
+  InvoiceStatus,
+  OrderStatus,
+  OrderType,
+  TaskStatus,
+} from '@prisma/client';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
@@ -21,6 +26,15 @@ import {
 import { PrismaService } from 'src/core';
 import { StockRetriveService } from 'src/modules/stock/service/stock-retrive.service';
 
+export type SearchOrderType =
+  | 'NORMAL'
+  | 'DEPOSIT'
+  | 'NORMAL_DEPOSIT'
+  | 'PROCESS'
+  | 'ETC';
+
+export type SearchBookCloseMethod = 'TAX_INVOICE';
+
 @Injectable()
 export class OrderRetriveService {
   constructor(
@@ -38,6 +52,20 @@ export class OrderRetriveService {
     bookClosed: boolean | null;
     year: string | null;
     month: string | null;
+    /// 검색
+    orderTypes: SearchOrderType[];
+    orderStatus: OrderStatus[];
+    taskStatus: TaskStatus[];
+    releaseStatus: TaskStatus[];
+    invoiceStatus: InvoiceStatus[];
+    packagingIds: number[];
+    paperTypeIds: number[];
+    manufacturerIds: number[];
+    minGrammage: number | null;
+    maxGrammage: number | null;
+    sizeX: number | null;
+    sizeY: number | null;
+    bookCloseMethods: SearchBookCloseMethod[];
   }): Promise<Model.Order[]> {
     const { srcCompanyId, dstCompanyId } = params;
 

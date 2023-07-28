@@ -13,11 +13,15 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import { InvoiceStatus, OrderStatus, TaskStatus } from '@prisma/client';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { OrderChangeService } from '../service/order-change.service';
-import { OrderRetriveService } from '../service/order-retrive.service';
+import {
+  OrderRetriveService,
+  SearchBookCloseMethod,
+  SearchOrderType,
+} from '../service/order-retrive.service';
 import OrderStockCreateRequestDto, {
   IdDto,
   OrderDepositAssignDepositCreateDto,
@@ -101,6 +105,31 @@ export class OrderController {
         query.bookClosed === null ? null : query.bookClosed === 'true',
       year: query.year,
       month: query.month,
+      orderTypes: Util.searchKeywordsToStringArray(
+        query.orderTypes,
+      ) as SearchOrderType[],
+      orderStatus: Util.searchKeywordsToStringArray(
+        query.orderStatus,
+      ) as OrderStatus[],
+      taskStatus: Util.searchKeywordsToStringArray(
+        query.taskStatus,
+      ) as TaskStatus[],
+      releaseStatus: Util.searchKeywordsToStringArray(
+        query.releaseStatus,
+      ) as TaskStatus[],
+      invoiceStatus: Util.searchKeywordsToStringArray(
+        query.invoiceStatus,
+      ) as InvoiceStatus[],
+      packagingIds: Util.searchKeywordsToIntArray(query.packagingIds),
+      paperTypeIds: Util.searchKeywordsToIntArray(query.paperTypeIds),
+      manufacturerIds: Util.searchKeywordsToIntArray(query.manufacturerIds),
+      minGrammage: query.minGrammage,
+      maxGrammage: query.maxGrammage,
+      sizeX: query.sizeX,
+      sizeY: query.sizeY,
+      bookCloseMethods: Util.searchKeywordsToStringArray(
+        query.bookCloseMethods,
+      ) as SearchBookCloseMethod[],
     });
 
     const total = await this.retrive.getCount({
