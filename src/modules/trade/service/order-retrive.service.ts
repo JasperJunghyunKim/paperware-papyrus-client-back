@@ -63,46 +63,6 @@ export class OrderRetriveService {
             },
           },
         },
-        orderStock: {
-          select: {
-            ...Selector.ORDER.orderStock.select,
-            plan: {
-              select: {
-                ...Selector.ORDER.orderStock.select.plan.select,
-                task: {
-                  select: {
-                    status: true,
-                  },
-                },
-                invoice: {
-                  select: {
-                    invoiceStatus: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderProcess: {
-          select: {
-            ...Selector.ORDER.orderProcess.select,
-            plan: {
-              select: {
-                ...Selector.ORDER.orderProcess.select.plan.select,
-                task: {
-                  select: {
-                    status: true,
-                  },
-                },
-                invoice: {
-                  select: {
-                    invoiceStatus: true,
-                  },
-                },
-              },
-            },
-          },
-        },
       },
       where: {
         srcCompanyId: srcCompanyId,
