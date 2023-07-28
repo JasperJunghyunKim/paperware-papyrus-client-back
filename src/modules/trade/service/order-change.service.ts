@@ -271,7 +271,6 @@ export class OrderChangeService {
       curIsSrcDirectShipping !== null &&
       curIsSrcDirectShipping !== params.isSrcDirectShipping
     ) {
-      console.log(11111, params.isSrcDirectShipping);
       if (params.order.srcCompany.id !== params.companyId)
         throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
 
