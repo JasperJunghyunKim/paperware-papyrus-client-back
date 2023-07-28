@@ -264,11 +264,14 @@ export class OrderChangeService {
     // 5-1. 직송 toggle (도착예정재고 상태 제외)
     // 5-2. 직송 (도착예정재고 상태)
     if (
-      (params.isSrcDirectShipping !== undefined ||
-        params.isSrcDirectShipping !== null) &&
+      !(
+        params.isSrcDirectShipping === undefined ||
+        params.isSrcDirectShipping === null
+      ) &&
       curIsSrcDirectShipping !== null &&
       curIsSrcDirectShipping !== params.isSrcDirectShipping
     ) {
+      console.log(11111, params.isSrcDirectShipping);
       if (params.order.srcCompany.id !== params.companyId)
         throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
 
@@ -303,8 +306,10 @@ export class OrderChangeService {
     }
 
     if (
-      (params.isDstDirectShipping !== undefined ||
-        params.isDstDirectShipping !== null) &&
+      !(
+        params.isDstDirectShipping === undefined ||
+        params.isDstDirectShipping === null
+      ) &&
       curIsDstDirectShipping !== null &&
       curIsDstDirectShipping !== params.isDstDirectShipping
     ) {
@@ -847,6 +852,9 @@ export class OrderChangeService {
       if (orderCheck.orderType !== 'NORMAL')
         throw new ConflictException(`주문타입이 맞지 않습니다.`);
 
+      if (orderCheck.srcCompanyId !== params.companyId)
+        params.isDirectShipping === undefined;
+
       await this.validateUpdateOrder(tx, {
         companyId: params.companyId,
         order: orderCheck,
@@ -885,7 +893,9 @@ export class OrderChangeService {
           wantedDate: params.wantedDate,
           dstLocationId: params.locationId,
           isDirectShipping:
-            order.srcCompanyId === params.companyId
+            order.srcCompanyId === params.companyId &&
+            params.isDirectShipping !== null &&
+            params.isDirectShipping !== undefined
               ? params.isDirectShipping
               : undefined,
         },
