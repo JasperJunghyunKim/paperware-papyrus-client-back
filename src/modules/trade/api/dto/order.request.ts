@@ -88,6 +88,95 @@ export class OrderListQueryDto implements OrderListQuery {
   @Min(1)
   @Max(12)
   readonly month: string | null = null;
+
+  /// 검색필드
+  @IsOptional()
+  @IsString()
+  readonly orderTypes: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly partnerCompanyRegistionNumbers: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly orderNo: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly minOrderDate: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly maxOrderDate: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly minWantedDate: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly maxWantedDate: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly orderStatus: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly taskStatus: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly releaseStatus: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly invoiceStatus: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly packagingIds: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly paperTypeIds: string | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly manufacturerIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly minGrammage: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly maxGrammage: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number | null = null;
+
+  @IsOptional()
+  @IsString()
+  readonly bookCloseMethods: string | null = null;
 }
 
 /** 정상거래 등록 요청 */
