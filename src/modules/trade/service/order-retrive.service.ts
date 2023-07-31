@@ -307,7 +307,9 @@ export class OrderRetriveService {
         : Prisma.empty;
 
     /// 16. 마감
-    params.bookCloseMethods.filter((m) => Util.inc(m, 'TAX_INVOICE'));
+    params.bookCloseMethods = Array.from(
+      new Set(params.bookCloseMethods),
+    ).filter((m) => Util.inc(m, 'TAX_INVOICE'));
     const bookCloseMethodMap = new Map<string, boolean>();
     for (const bcMethod of params.bookCloseMethods) {
       bookCloseMethodMap.set(bcMethod, true);
