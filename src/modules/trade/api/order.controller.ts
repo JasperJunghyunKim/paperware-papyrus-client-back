@@ -28,6 +28,7 @@ import OrderStockCreateRequestDto, {
   OrderDepositAssignDepositQuantityUpdateDto,
   OrderDepositCreateDto,
   OrderDepositUpdateAssignDto,
+  OrderDepositUpdateDto,
   OrderEtcCreateDto,
   OrderEtcUpdateDto,
   OrderIdDto,
@@ -489,6 +490,22 @@ export class OrderController {
     );
   }
 
+  /** 보관매입/매출 정보 수정 */
+  @Put('/deposit/:id')
+  @UseGuards(AuthGuard)
+  async updateOrderDeposit(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: OrderDepositUpdateDto,
+  ) {
+    return await this.change.updateOrderDeposit(
+      req.user.companyId,
+      param.id,
+      body.orderDate,
+      body.memo || '',
+    );
+  }
+
   @Get('/:id/deposit')
   @UseGuards(AuthGuard)
   async getOrderDeposit(
@@ -546,12 +563,12 @@ export class OrderController {
 
   @Put('/:id/deposit')
   @UseGuards(AuthGuard)
-  async updateOrderDeposit(
+  async updateOrderDepositQuantity(
     @Request() req: AuthType,
     @Param() idDto: IdDto,
     @Body() dto: OrderDepositAssignDepositQuantityUpdateDto,
   ) {
-    await this.change.updateOrderDeposit(
+    await this.change.updateOrderDepositQuantity(
       req.user.id,
       req.user.companyId,
       idDto.id,

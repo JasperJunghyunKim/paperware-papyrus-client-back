@@ -2820,6 +2820,70 @@ export class OrderChangeService {
     });
   }
 
+  /** 보관등록 공통정보 수정 */
+  async updateOrderDeposit(
+    companyId: number,
+    orderId: number,
+    orderDate: string,
+    memo: string,
+  ) {
+    return await this.prisma.$transaction(async (tx) => {
+      const orderForUpdate = await tx.$queryRaw`
+      SELECT *
+        FROM \`Order\`
+       WHERE id = ${orderId}
+
+       FOR UPDATE;
+    `;
+
+      const orderCheck = await tx.order.findUnique({
+        include: {
+          dstCompany: true,
+          srcCompany: true,
+          orderStock: true,
+          orderProcess: true,
+        },
+        where: {
+          id: orderId,
+        },
+      });
+      if (
+        !orderCheck ||
+        (orderCheck.dstCompanyId !== companyId &&
+          orderCheck.srcCompanyId !== companyId)
+      ) {
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      }
+      if (orderCheck.orderType !== 'DEPOSIT')
+        throw new ConflictException(`주문타입이 맞지 않습니다.`);
+
+      await this.validateUpdateOrder(tx, {
+        companyId,
+        order: orderCheck,
+        orderDate,
+        srcWantedDate: null,
+        dstWantedDate: null,
+        srcLocationId: null,
+        dstLocationId: null,
+        isSrcDirectShipping: null,
+        isDstDirectShipping: null,
+        memo,
+      });
+
+      await tx.order.update({
+        data: {
+          orderDate,
+          memo,
+        },
+        where: {
+          id: orderId,
+        },
+      });
+
+      return this.getOrderCreateResponseTx(tx, orderId);
+    });
+  }
+
   async createOrderDeposit(
     userId: number,
     companyId: number,
@@ -2998,7 +3062,7 @@ export class OrderChangeService {
     });
   }
 
-  async updateOrderDeposit(
+  async updateOrderDepositQuantity(
     userId: number,
     companyId: number,
     orderId: number,

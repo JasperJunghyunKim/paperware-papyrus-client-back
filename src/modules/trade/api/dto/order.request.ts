@@ -44,6 +44,7 @@ import {
   OrderProcessStockUpdateRequest,
   OrderEtcUpdateRequest,
   OrderDepositUpdateAssignRequest,
+  OrderDepositUpdateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -602,6 +603,16 @@ export class OrderDepositCreateDto implements OrderDepositCreateRequest {
 
   @IsOptional()
   @IsString()
+  @Length(0, 200)
+  readonly memo: string = '';
+}
+
+/** 보관등록 공통정보 업데이트 */
+export class OrderDepositUpdateDto implements OrderDepositUpdateRequest {
+  @IsDateString()
+  readonly orderDate: string;
+
+  @IsOptional()
   @Length(0, 200)
   readonly memo: string = '';
 }
