@@ -275,11 +275,13 @@ export class OrderChangeService {
         throw new ForbiddenException(`직송여부는 구매기업만 수정 가능합니다.`);
 
       for (const stock of srcPlanStocks) {
-        console.log(111, stock);
-        if (stock.planId === null)
+        if (stock.planId === null) {
+          if (stock.stockEvent[0].change < 0) continue;
+
           throw new ConflictException(
             `이미 입고된 도착예정재고가 존재해, 직송여부 수정이 불가능합니다.`,
           );
+        }
 
         const stocks = await tx.stock.findMany({
           where: {
