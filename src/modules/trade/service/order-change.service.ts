@@ -3708,6 +3708,7 @@ export class OrderChangeService {
           srcCompany: true,
           orderStock: true,
           orderProcess: true,
+          orderEtc: true,
         },
         where: {
           id: params.orderId,
@@ -3742,7 +3743,7 @@ export class OrderChangeService {
           orderDate: params.orderDate,
         },
         where: {
-          id: order.id,
+          id: orderCheck.id,
         },
       });
       await tx.orderEtc.update({
@@ -3750,13 +3751,13 @@ export class OrderChangeService {
           item: params.item,
         },
         where: {
-          id: order.orderEtc.id,
+          id: orderCheck.orderEtc.id,
         },
       });
 
-      await this.updateOrderRevisionTx(tx, order.id);
+      await this.updateOrderRevisionTx(tx, orderCheck.id);
 
-      return await this.getOrderCreateResponseTx(tx, order.id);
+      return await this.getOrderCreateResponseTx(tx, orderCheck.id);
     });
     return order;
   }
