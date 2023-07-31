@@ -326,6 +326,23 @@ export class OrderRetriveService {
         )`
         : Prisma.empty;
 
+    /// 세금계산서 - 매출목록
+    const yearAndMonthQuery =
+      params.year && params.month
+        ? Prisma.sql`AND SUBSTR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00'), 1, 7) = ${
+            params.year + '-' + params.month.toString().padStart(2, '0')
+          }`
+        : Prisma.empty;
+    const srcCompanyQuery = params.srcCompanyRegistrationNumber
+      ? Prisma.sql`AND o.srcCmopanyRegistrationNumber = ${params.srcCompanyRegistrationNumber}`
+      : Prisma.empty;
+    const bookCloseQuery =
+      params.bookClosed === null
+        ? Prisma.empty
+        : params.bookClosed
+        ? Prisma.sql`AND o.taxInvoiceId IS NOT NULL`
+        : Prisma.sql`AND o.taxInvoiceId IS NULL`;
+
     // 검색으로인한 수정
     const searchOrders: {
       id: number;
@@ -390,6 +407,9 @@ export class OrderRetriveService {
             ${sizeXQuery}
             ${sizeYQuery}
             ${bookCloseMethodQuery}
+            ${srcCompanyQuery}
+            ${bookCloseQuery}
+            ${yearAndMonthQuery}
 
         ORDER BY o.id DESC
 
@@ -402,16 +422,6 @@ export class OrderRetriveService {
         total: 0,
       };
     }
-
-    // OLD...
-    const monthFirstDay =
-      params.year && params.month
-        ? new Date(
-            `${params.year}-${
-              params.month.length === 1 ? '0' + params.month : params.month
-            }-01`,
-          )
-        : null;
 
     const orders = await this.prisma.order.findMany({
       select: {
