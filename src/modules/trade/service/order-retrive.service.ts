@@ -1,10 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   InvoiceStatus,
   OrderStatus,
   OrderType,
+  Prisma,
   TaskStatus,
+  TaskType,
 } from '@prisma/client';
+import { Sql } from '@prisma/client/runtime';
 import _ from 'lodash';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
@@ -43,17 +50,24 @@ export class OrderRetriveService {
   ) {}
 
   async getList(params: {
+    companyId: number;
     skip?: number;
     take?: number;
     srcCompanyId?: number;
     dstCompanyId?: number;
-    status: OrderStatus[];
     srcCompanyRegistrationNumber: string | null;
     bookClosed: boolean | null;
     year: string | null;
     month: string | null;
+    status: OrderStatus[];
     /// 검색
     orderTypes: SearchOrderType[];
+    partnerCompanyRegistrationNumbers: string[];
+    orderNo: string | null;
+    minOrderDate: string | null;
+    maxOrderDate: string | null;
+    minWantedDate: string | null;
+    maxWantedDate: string | null;
     orderStatus: OrderStatus[];
     taskStatus: TaskStatus[];
     releaseStatus: TaskStatus[];
@@ -66,9 +80,328 @@ export class OrderRetriveService {
     sizeX: number | null;
     sizeY: number | null;
     bookCloseMethods: SearchBookCloseMethod[];
-  }): Promise<Model.Order[]> {
-    const { srcCompanyId, dstCompanyId } = params;
+  }): Promise<{
+    items: Model.Order[];
+    total: number;
+  }> {
+    const { companyId, srcCompanyId, dstCompanyId } = params;
+    const isOffer = companyId === dstCompanyId;
 
+    const companyIdQuery = isOffer
+      ? Prisma.sql`o.dstCompanyId = ${companyId}`
+      : Prisma.sql`o.srcCompanyId = ${companyId}`;
+
+    /// 1. 거래유형
+    params.orderTypes = Array.from(new Set(params.orderTypes));
+    let normalTypeQuery: Sql | null = null;
+    let depositTypeQuery: Sql | null = null;
+    let normalDepositTypeQuery: Sql | null = null;
+    let processTypeQuery: Sql | null = null;
+    let etcTypeQuery: Sql | null = null;
+    for (const orderType of params.orderTypes) {
+      switch (orderType) {
+        case 'NORMAL':
+          normalTypeQuery = Prisma.sql` (o.orderType = ${OrderType.NORMAL} AND o.depositEventId IS NULL) OR`;
+          break;
+        case 'DEPOSIT':
+          depositTypeQuery = Prisma.sql` (o.orderType = ${OrderType.DEPOSIT}) OR`;
+          break;
+        case 'NORMAL_DEPOSIT':
+          normalDepositTypeQuery = Prisma.sql` (o.orderType = ${OrderType.NORMAL} AND o.depositEventId IS NOT NULL) OR`;
+          break;
+        case 'PROCESS':
+          processTypeQuery = Prisma.sql` (o.orderType = ${OrderType.OUTSOURCE_PROCESS}) OR`;
+          break;
+        case 'ETC':
+          etcTypeQuery = Prisma.sql` (o.orderType = ${OrderType.ETC}) OR`;
+          break;
+      }
+    }
+
+    const orderTypeQuery =
+      params.orderTypes.length > 0
+        ? Prisma.sql`
+          AND (
+            ${normalTypeQuery ? normalTypeQuery : Prisma.empty}
+            ${depositTypeQuery ? depositTypeQuery : Prisma.empty}
+            ${normalDepositTypeQuery ? normalDepositTypeQuery : Prisma.empty}
+            ${processTypeQuery ? processTypeQuery : Prisma.empty}
+            ${etcTypeQuery ? etcTypeQuery : Prisma.empty}
+            (0=1)
+          )
+        `
+        : Prisma.empty;
+
+    /// 2. 거래처
+    let partnerQuery = Prisma.empty;
+    if (params.partnerCompanyRegistrationNumbers.length > 0) {
+      partnerQuery = isOffer
+        ? Prisma.sql`AND srcCompany.companyRegistrationNumber IN (${Prisma.join(
+            params.partnerCompanyRegistrationNumbers,
+          )})`
+        : Prisma.sql`AND dstCompany.companyRegistrationNumber IN (${Prisma.join(
+            params.partnerCompanyRegistrationNumbers,
+          )})`;
+    }
+
+    /// 3. 매출번호
+    const orderNoQuery = params.orderNo
+      ? Prisma.sql`AND o.orderNo = ${params.orderNo}`
+      : Prisma.empty;
+
+    /// 4. 거래일
+    const minOrderDateQuery = params.minOrderDate
+      ? Prisma.sql`AND SUBSTR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00'), 1, 10) >= CONVERT_TZ(${params.minOrderDate}, '+00:00', '+09:00')`
+      : Prisma.empty;
+    const maxOrderDateQuery = params.maxOrderDate
+      ? Prisma.sql`AND SUBSTR(CONVERT_TZ(o.orderDate, '+00:00', '+09:00'), 1, 10) <= CONVERT_TZ(${params.maxOrderDate}, '+00:00', '+09:00')`
+      : Prisma.empty;
+
+    /// 5. 납품요청일
+    const minWantedDateQuery = params.minWantedDate
+      ? Prisma.sql`AND (CASE
+        WHEN o.orderType = ${OrderType.NORMAL} THEN SUBSTR(CONVERT_TZ(os.wantedDate, '+00:00', '+09:00'), 1, 10) >= CONVERT_TZ(${params.minWantedDate}, '+00:00', '+09:00')
+        WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN SUBSTR(CONVERT_TZ(op.srcWantedDate, '+00:00', '+09:00'), 1, 10) >= CONVERT_TZ(${params.minWantedDate}, '+00:00', '+09:00')
+        ELSE 0=1
+      END)`
+      : Prisma.empty;
+    const maxWantedDateQuery = params.maxWantedDate
+      ? Prisma.sql`AND (CASE
+        WHEN o.orderType = ${OrderType.NORMAL} THEN SUBSTR(CONVERT_TZ(os.wantedDate, '+00:00', '+09:00'), 1, 10) <= CONVERT_TZ(${params.maxWantedDate}, '+00:00', '+09:00')
+        WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN SUBSTR(CONVERT_TZ(op.srcWantedDate, '+00:00', '+09:00'), 1, 10) <= CONVERT_TZ(${params.maxWantedDate}, '+00:00', '+09:00')
+        ELSE 0=1
+      END)`
+      : Prisma.empty;
+
+    /// 6. 주문상태
+    const orderStatusMap = new Map<string, boolean>();
+    for (const status of params.status) {
+      orderStatusMap.set(status, true);
+    }
+    const orderStautsQuery =
+      params.orderStatus.length > 0
+        ? Prisma.sql`AND o.status IN (${Prisma.join(
+            params.orderStatus.filter((s) => orderStatusMap.get(s)),
+          )})`
+        : Prisma.sql`AND o.status IN (${Prisma.join(params.status)})`;
+
+    /// 7. 공정 상태
+    params.taskStatus = Array.from(new Set(params.taskStatus)).filter((s) =>
+      Util.inc(s, 'PREPARING', 'PROGRESSING', 'PROGRESSED'),
+    );
+    const taskStatusQuery =
+      params.taskStatus.length > 0
+        ? Prisma.sql`JOIN (
+        SELECT *
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY planId) AS rowNum
+              FROM Task
+            WHERE status IN (${Prisma.join(params.taskStatus)})
+              AND type != ${TaskType.RELEASE}
+          ) AS A
+        WHERE A.rowNum = 1
+      ) AS taskCheck ON taskCheck.planId = dstPlan.id`
+        : Prisma.empty;
+
+    /// 8. 출고 상태
+    params.releaseStatus = Array.from(new Set(params.releaseStatus)).filter(
+      (s) => Util.inc(s, 'PREPARING', 'PROGRESSED'),
+    );
+    const releaseStatusQuery =
+      params.releaseStatus.length > 0
+        ? Prisma.sql`JOIN (
+        SELECT *
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY planId) AS rowNum
+              FROM Task
+            WHERE status IN (${Prisma.join(params.releaseStatus)})
+              AND type = ${TaskType.RELEASE}
+          ) AS B
+        WHERE B.rowNum = 1
+      ) AS \`releaseCheck\` ON \`releaseCheck\`.planId = dstPlan.id`
+        : Prisma.empty;
+
+    /// 9. 배송 상태
+    params.invoiceStatus = Array.from(new Set(params.invoiceStatus)).filter(
+      (s) => Util.inc(s, 'WAIT_SHIPPING', 'ON_SHIPPING', 'DONE_SHIPPING'),
+    );
+    const invoiceStatusQuery =
+      params.invoiceStatus.length > 0
+        ? Prisma.sql`JOIN (
+        SELECT *
+          FROM (
+            SELECT *, ROW_NUMBER() OVER(PARTITION BY planId) AS rowNum
+              FROM Invoice
+            WHERE invoiceStatus IN (${Prisma.join(params.invoiceStatus)})
+          ) AS C
+        WHERE C.rowNum = 1
+      ) AS invoiceCheck ON invoiceCheck.planId = dstPlan.id`
+        : Prisma.empty;
+
+    /// 10. 포장
+    const packagingQuery =
+      params.packagingIds.length > 0
+        ? Prisma.sql`AND (CASE 
+          WHEN o.orderType = ${
+            OrderType.NORMAL
+          } THEN os.packagingId IN (${Prisma.join(params.packagingIds)})
+          WHEN o.orderType = ${
+            OrderType.OUTSOURCE_PROCESS
+          } THEN op.packagingId IN (${Prisma.join(params.packagingIds)})
+          ELSE 0 = 1
+        END)`
+        : Prisma.empty;
+
+    /// 11. 지종
+    const paperTypeQuery =
+      params.paperTypeIds.length > 0
+        ? Prisma.sql`AND product.paperTypeId IN (${Prisma.join(
+            params.paperTypeIds,
+          )})`
+        : Prisma.empty;
+
+    /// 12. 제지사
+    const manufacturerQuery =
+      params.manufacturerIds.length > 0
+        ? Prisma.sql`AND product.manufacturerId IN (${Prisma.join(
+            params.manufacturerIds,
+          )})`
+        : Prisma.empty;
+
+    /// 13. 평량
+    const minGrammageQuery =
+      params.minGrammage !== null
+        ? Prisma.sql`AND (CASE
+            WHEN o.orderType = ${OrderType.NORMAL} THEN os.grammage >= ${params.minGrammage}
+            WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN op.grammage >= ${params.minGrammage}
+            ELSE 0=1
+          END)`
+        : Prisma.empty;
+    const maxrammageQuery =
+      params.maxGrammage !== null
+        ? Prisma.sql`AND (CASE
+            WHEN o.orderType = ${OrderType.NORMAL} THEN os.grammage <= ${params.maxGrammage}
+            WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN op.grammage <= ${params.maxGrammage}
+            ELSE 0=1
+          END)`
+        : Prisma.empty;
+
+    /// 14. 지폭
+    const sizeXQuery =
+      params.sizeX !== null
+        ? Prisma.sql`AND (CASE
+            WHEN o.orderType = ${OrderType.NORMAL} THEN os.sizeX >= ${params.sizeX}
+            WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN op.sizeX >= ${params.sizeX}
+            ELSE 0=1
+          END)`
+        : Prisma.empty;
+
+    /// 15. 지장
+    const sizeYQuery =
+      params.sizeY !== null
+        ? Prisma.sql`AND (CASE
+            WHEN o.orderType = ${OrderType.NORMAL} THEN os.sizeY >= ${params.sizeY}
+            WHEN o.orderType = ${OrderType.OUTSOURCE_PROCESS} THEN op.sizeY >= ${params.sizeY}
+            ELSE 0=1
+          END)`
+        : Prisma.empty;
+
+    /// 16. 마감
+    params.bookCloseMethods.filter((m) => Util.inc(m, 'TAX_INVOICE'));
+    const bookCloseMethodMap = new Map<string, boolean>();
+    for (const bcMethod of params.bookCloseMethods) {
+      bookCloseMethodMap.set(bcMethod, true);
+    }
+    const bookCloseMethodQuery =
+      params.bookCloseMethods.length > 0
+        ? Prisma.sql`AND (
+            ${
+              bookCloseMethodMap.get('TAX_INVOICE')
+                ? Prisma.sql`(o.taxInvoiceId IS NOT NULL) OR`
+                : Prisma.empty
+            }
+          (0=1)
+        )`
+        : Prisma.empty;
+
+    // 검색으로인한 수정
+    const searchOrders: {
+      id: number;
+      total: bigint;
+    }[] = await this.prisma.$queryRaw`
+        SELECT o.id
+              , o.orderNo
+              , o.orderType
+              , o.orderDate
+              , o.status
+              , os.wantedDate AS osWantedDate
+              , op.srcWantedDate AS opWantedDate
+              , dstPlan.id AS dstPlanId
+              , product.id AS productId
+              , COUNT(1) OVER() AS total
+          FROM \`Order\`      AS o
+          JOIN Company        AS srcCompany     ON srcCompany.id = o.srcCompanyId
+          JOIN Company        AS dstCompany     ON dstCompany.id = o.dstCompanyId
+     LEFT JOIN DepositEvent   AS ode            ON ode.id = o.depositEventId
+     
+          -- 거래종류/원지
+     LEFT JOIN OrderStock     AS os             ON os.orderId = o.id
+     LEFT JOIN OrderProcess   AS op             ON op.orderId = o.id
+     LEFT JOIN Product        AS product        ON product.id = (CASE 
+                                                                    WHEN o.orderType = ${
+                                                                      OrderType.NORMAL
+                                                                    } THEN os.productId
+                                                                    WHEN o.orderType = ${
+                                                                      OrderType.OUTSOURCE_PROCESS
+                                                                    } THEN op.productId
+                                                                    ELSE 0
+                                                                END)
+
+          -- 공정정보 (dstPlan)
+     LEFT JOIN Plan           AS dstPlan        ON dstPlan.isDeleted = ${false} AND dstPlan.companyId = o.dstCompanyId AND (CASE 
+                                                                                                                  WHEN o.orderType = ${
+                                                                                                                    OrderType.NORMAL
+                                                                                                                  } THEN dstPlan.orderStockId = os.id
+                                                                                                                  WHEN o.orderType = ${
+                                                                                                                    OrderType.OUTSOURCE_PROCESS
+                                                                                                                  } THEN dstPlan.orderProcessId = op.id
+                                                                                                                  ELSE 0=1
+                                                                                                                END)
+          ${taskStatusQuery}
+          ${releaseStatusQuery}
+          ${invoiceStatusQuery}
+
+         WHERE ${companyIdQuery}
+            ${orderTypeQuery}
+            ${partnerQuery}
+            ${orderNoQuery}
+            ${minOrderDateQuery}
+            ${maxOrderDateQuery}
+            ${minWantedDateQuery}
+            ${maxWantedDateQuery}
+            ${orderStautsQuery}
+            ${packagingQuery}
+            ${paperTypeQuery}
+            ${manufacturerQuery}
+            ${minGrammageQuery}
+            ${maxrammageQuery}
+            ${sizeXQuery}
+            ${sizeYQuery}
+            ${bookCloseMethodQuery}
+
+        ORDER BY o.id DESC
+
+        LIMIT ${params.skip}, ${params.take}
+      `;
+
+    if (searchOrders.length === 0) {
+      return {
+        items: [],
+        total: 0,
+      };
+    }
+
+    // OLD...
     const monthFirstDay =
       params.year && params.month
         ? new Date(
@@ -117,39 +450,11 @@ export class OrderRetriveService {
         },
       },
       where: {
-        srcCompanyId: srcCompanyId,
-        dstCompanyId: dstCompanyId,
-        status: {
-          in: params.status,
+        id: {
+          in: searchOrders.map((o) => o.id),
         },
-        // 세금계산서 매출 검색 조건
-        srcCompany: params.srcCompanyRegistrationNumber
-          ? {
-              companyRegistrationNumber: params.srcCompanyRegistrationNumber,
-            }
-          : undefined,
-        taxInvoiceId:
-          params.bookClosed === null
-            ? undefined
-            : params.bookClosed
-            ? {
-                not: null,
-              }
-            : null,
-        orderDate: monthFirstDay
-          ? {
-              gte: monthFirstDay,
-              lt: Util.addMonth(monthFirstDay, 1),
-            }
-          : undefined,
-      },
-      skip: params.skip,
-      take: params.take,
-      orderBy: {
-        id: 'desc',
       },
     });
-    console.log(111, orders);
 
     const planOrderIdMap = new Map<number, number>();
     const dstPlans: {
@@ -221,28 +526,31 @@ export class OrderRetriveService {
       }
     }
 
-    return orders.map((o) => {
-      const supplicedPrice = orderStockSuppliedPriceMap.get(o.id);
-      const salesTradePrice =
-        o.tradePrice.find((tp) => tp.companyId === o.dstCompany.id)
-          ?.suppliedPrice || 0;
+    return {
+      items: orders.map((o) => {
+        const supplicedPrice = orderStockSuppliedPriceMap.get(o.id);
+        const salesTradePrice =
+          o.tradePrice.find((tp) => tp.companyId === o.dstCompany.id)
+            ?.suppliedPrice || 0;
 
-      return {
-        ...Util.serialize(o),
-        purchaseSuppliedPrice:
-          supplicedPrice === undefined ? null : supplicedPrice,
-        salesSuppliedPrice:
-          supplicedPrice === undefined ? null : salesTradePrice,
-        salesProfit:
-          supplicedPrice === undefined
-            ? null
-            : salesTradePrice - supplicedPrice,
-        salesProfitRate:
-          supplicedPrice === undefined
-            ? null
-            : ((salesTradePrice - supplicedPrice) / salesTradePrice) * 100,
-      };
-    });
+        return {
+          ...Util.serialize(o),
+          purchaseSuppliedPrice:
+            supplicedPrice === undefined ? null : supplicedPrice,
+          salesSuppliedPrice:
+            supplicedPrice === undefined ? null : salesTradePrice,
+          salesProfit:
+            supplicedPrice === undefined
+              ? null
+              : salesTradePrice - supplicedPrice,
+          salesProfitRate:
+            supplicedPrice === undefined
+              ? null
+              : ((salesTradePrice - supplicedPrice) / salesTradePrice) * 100,
+        };
+      }),
+      total: Number(searchOrders[0].total),
+    };
   }
 
   async getCount(params: {

@@ -97,7 +97,7 @@ export class OrderListQueryDto implements OrderListQuery {
 
   @IsOptional()
   @IsString()
-  readonly partnerCompanyRegistionNumbers: string | null = null;
+  readonly partnerCompanyRegistrationNumbers: string | null = null;
 
   @IsOptional()
   @IsString()

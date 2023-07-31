@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -95,59 +96,69 @@ export class OrderController {
           'CANCELLED',
         ];
 
-    const items = await this.retrive.getList({
+    return await this.retrive.getList({
+      companyId: req.user.companyId,
       skip: query.skip,
       take: query.take,
       dstCompanyId: query.dstCompanyId,
       srcCompanyId: query.srcCompanyId,
-      status,
       srcCompanyRegistrationNumber: query.srcCompanyRegistrationNumber,
       bookClosed:
         query.bookClosed === null ? null : query.bookClosed === 'true',
       year: query.year,
       month: query.month,
+      status,
+      /// 검색
+      // 1. 거래타입
       orderTypes: Util.searchKeywordsToStringArray(
         query.orderTypes,
       ) as SearchOrderType[],
+      // 2. 거래처
+      partnerCompanyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        query.partnerCompanyRegistrationNumbers,
+      ),
+      // 3. 주문번호
+      orderNo: query.orderNo || null,
+      // 4. 주문일
+      minOrderDate: query.minOrderDate || null,
+      maxOrderDate: query.maxOrderDate || null,
+      // 5. 납품요청일
+      minWantedDate: query.minWantedDate || null,
+      maxWantedDate: query.maxWantedDate || null,
+      // 6. 주문상태
       orderStatus: Util.searchKeywordsToStringArray(
         query.orderStatus,
       ) as OrderStatus[],
+      // 7. 공정상태
       taskStatus: Util.searchKeywordsToStringArray(
         query.taskStatus,
       ) as TaskStatus[],
+      // 8. 출고상태
       releaseStatus: Util.searchKeywordsToStringArray(
         query.releaseStatus,
       ) as TaskStatus[],
+      // 9. 배송상태
       invoiceStatus: Util.searchKeywordsToStringArray(
         query.invoiceStatus,
       ) as InvoiceStatus[],
+      // 10. 포장
       packagingIds: Util.searchKeywordsToIntArray(query.packagingIds),
+      // 11. 지종
       paperTypeIds: Util.searchKeywordsToIntArray(query.paperTypeIds),
+      // 12. 제지사
       manufacturerIds: Util.searchKeywordsToIntArray(query.manufacturerIds),
+      // 13. 평량
       minGrammage: query.minGrammage,
       maxGrammage: query.maxGrammage,
+      // 14. 지폭
       sizeX: query.sizeX,
+      // 15. 지장
       sizeY: query.sizeY,
+      // 16. 마감
       bookCloseMethods: Util.searchKeywordsToStringArray(
         query.bookCloseMethods,
       ) as SearchBookCloseMethod[],
     });
-
-    const total = await this.retrive.getCount({
-      dstCompanyId: query.dstCompanyId,
-      srcCompanyId: query.srcCompanyId,
-      status,
-      srcCompanyRegistrationNumber: query.srcCompanyRegistrationNumber,
-      bookClosed:
-        query.bookClosed === null ? null : query.bookClosed === 'true',
-      year: query.year,
-      month: query.month,
-    });
-
-    return {
-      items,
-      total,
-    };
   }
 
   @Get(':id')
