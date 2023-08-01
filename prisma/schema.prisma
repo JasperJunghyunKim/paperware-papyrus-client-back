@@ -249,6 +249,7 @@ model User {
   name         String
   phoneNo      String
   email        String?
+  birthDate    DateTime?
   company      Company?       @relation(fields: [companyId], references: [id])
   companyId    Int?
   DepositEvent DepositEvent[]
@@ -1519,4 +1520,11 @@ model TempInvoiceCode {
   invoiceCode String @unique
   number      Int
   maxPercent  Float
+}
+
+model Authentication {
+  phoneNo   String   @unique
+  authNo    String
+  authKey   String
+  createdAt DateTime @default(now())
 }

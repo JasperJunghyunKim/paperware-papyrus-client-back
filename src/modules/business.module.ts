@@ -11,6 +11,7 @@ import { ShippingModule } from './shipping/shipping.module';
 import { PartnerModule } from './partner/partner.module';
 import { AccountedModule } from './accounted/accounted.module';
 import { TaxInvoiceModule } from './tax-invoice/tax-invoice.module';
+import { SettingModule } from './setting/setting.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TaxInvoiceModule } from './tax-invoice/tax-invoice.module';
     PartnerModule,
     AccountedModule,
     TaxInvoiceModule,
+    SettingModule,
   ],
 })
 export class BusinessModule {}

@@ -2,6 +2,7 @@
 CREATE TABLE `PaperDomain` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -10,6 +11,7 @@ CREATE TABLE `PaperDomain` (
 CREATE TABLE `Manufacturer` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -18,6 +20,7 @@ CREATE TABLE `Manufacturer` (
 CREATE TABLE `PaperGroup` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -26,6 +29,7 @@ CREATE TABLE `PaperGroup` (
 CREATE TABLE `PaperType` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -34,6 +38,7 @@ CREATE TABLE `PaperType` (
 CREATE TABLE `PaperColorGroup` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -42,6 +47,7 @@ CREATE TABLE `PaperColorGroup` (
 CREATE TABLE `PaperColor` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -50,6 +56,7 @@ CREATE TABLE `PaperColor` (
 CREATE TABLE `PaperPattern` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -58,6 +65,7 @@ CREATE TABLE `PaperPattern` (
 CREATE TABLE `PaperCert` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -81,6 +89,7 @@ CREATE TABLE `Product` (
     `manufacturerId` INTEGER NOT NULL,
     `paperGroupId` INTEGER NOT NULL,
     `paperTypeId` INTEGER NOT NULL,
+    `isDiscontinued` BOOLEAN NOT NULL DEFAULT false,
 
     INDEX `Product_paperDomainId_idx`(`paperDomainId`),
     INDEX `Product_manufacturerId_idx`(`manufacturerId`),
@@ -166,7 +175,9 @@ CREATE TABLE `User` (
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
+    `phoneNo` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NULL,
+    `birthDate` DATETIME(3) NULL,
     `companyId` INTEGER NULL,
 
     UNIQUE INDEX `User_username_key`(`username`),
@@ -176,8 +187,10 @@ CREATE TABLE `User` (
 -- CreateTable
 CREATE TABLE `Company` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `companyType` ENUM('DISTRIBUTOR', 'MANUFACTURER', 'PRACTICAL', 'ETC') NOT NULL DEFAULT 'ETC',
     `businessName` VARCHAR(191) NOT NULL,
     `companyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `corporateRegistrationNumber` VARCHAR(191) NULL,
     `phoneNo` VARCHAR(191) NOT NULL DEFAULT '',
     `faxNo` VARCHAR(191) NOT NULL DEFAULT '',
     `representative` VARCHAR(191) NOT NULL DEFAULT '',
@@ -185,7 +198,10 @@ CREATE TABLE `Company` (
     `bizType` VARCHAR(191) NOT NULL DEFAULT '',
     `bizItem` VARCHAR(191) NOT NULL DEFAULT '',
     `address` VARCHAR(500) NOT NULL DEFAULT '',
+    `popbillId` VARCHAR(191) NULL,
     `managedById` INTEGER NULL,
+    `startDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -219,6 +235,7 @@ CREATE TABLE `Location` (
     `companyId` INTEGER NOT NULL,
     `isPublic` BOOLEAN NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+    `phoneNo` VARCHAR(191) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -259,15 +276,16 @@ CREATE TABLE `Order` (
     `orderDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `srcCompanyId` INTEGER NOT NULL,
     `dstCompanyId` INTEGER NOT NULL,
-    `status` ENUM('ORDER_PREPARING', 'ORDER_REQUESTED', 'ORDER_REJECTED', 'OFFER_PREPARING', 'OFFER_REQUESTED', 'OFFER_REJECTED', 'ACCEPTED', 'ORDER_CANCELLED', 'OFFER_CANCELLED') NOT NULL DEFAULT 'ORDER_PREPARING',
+    `status` ENUM('ORDER_PREPARING', 'ORDER_REQUESTED', 'ORDER_REJECTED', 'OFFER_PREPARING', 'OFFER_REQUESTED', 'OFFER_REJECTED', 'ACCEPTED', 'ORDER_DELETED', 'OFFER_DELETED', 'CANCELLED') NOT NULL DEFAULT 'ORDER_PREPARING',
     `isEntrusted` BOOLEAN NOT NULL DEFAULT false,
     `memo` VARCHAR(191) NOT NULL,
+    `ordererName` VARCHAR(191) NOT NULL DEFAULT '',
     `acceptedCompanyId` INTEGER NULL,
     `isStockRejected` BOOLEAN NOT NULL DEFAULT false,
-    `srcDepositEventId` INTEGER NULL,
-    `dstDepositEventId` INTEGER NULL,
     `taxInvoiceId` INTEGER NULL,
     `revision` INTEGER NOT NULL DEFAULT 0,
+    `depositEventId` INTEGER NULL,
+    `createdCompanyId` INTEGER NOT NULL,
 
     UNIQUE INDEX `Order_orderNo_key`(`orderNo`),
     PRIMARY KEY (`id`)
@@ -440,6 +458,7 @@ CREATE TABLE `TaskQuantity` (
     `taskId` INTEGER NOT NULL,
     `quantity` INTEGER NOT NULL,
     `memo` VARCHAR(191) NOT NULL,
+    `invoiceId` INTEGER NULL,
 
     PRIMARY KEY (`taskId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -472,7 +491,7 @@ CREATE TABLE `Invoice` (
     `paperCertId` INTEGER NULL,
     `quantity` INTEGER NOT NULL,
     `planId` INTEGER NOT NULL,
-    `invoiceStatus` ENUM('WAIT_LOADING', 'WAIT_SHIPPING', 'ON_SHIPPING', 'DONE_SHIPPING') NOT NULL DEFAULT 'WAIT_LOADING',
+    `invoiceStatus` ENUM('WAIT_LOADING', 'WAIT_SHIPPING', 'ON_SHIPPING', 'DONE_SHIPPING', 'CANCELLED') NOT NULL DEFAULT 'WAIT_LOADING',
 
     UNIQUE INDEX `Invoice_invoiceNo_key`(`invoiceNo`),
     PRIMARY KEY (`id`)
@@ -485,15 +504,34 @@ CREATE TABLE `TaxInvoice` (
     `issuedDate` DATETIME(3) NULL,
     `sendedDate` DATETIME(3) NULL,
     `purposeType` ENUM('RECEIPT', 'CHARGE') NOT NULL,
-    `companyId` INTEGER NOT NULL,
-    `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     `invoicerMgtKey` VARCHAR(191) NOT NULL,
     `writeDate` DATETIME(3) NOT NULL,
+    `cash` INTEGER NULL,
+    `check` INTEGER NULL,
+    `note` INTEGER NULL,
+    `credit` INTEGER NULL,
+    `companyId` INTEGER NOT NULL,
+    `dstCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `dstCompanyName` VARCHAR(191) NOT NULL,
+    `dstCompanyRepresentative` VARCHAR(191) NOT NULL,
+    `dstCompanyAddress` VARCHAR(191) NOT NULL,
+    `dstCompanyBizType` VARCHAR(191) NOT NULL,
+    `dstCompanyBizItem` VARCHAR(191) NOT NULL,
     `dstEmail` VARCHAR(191) NOT NULL DEFAULT '',
+    `srcCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `srcCompanyName` VARCHAR(191) NOT NULL,
+    `srcCompanyRepresentative` VARCHAR(191) NOT NULL,
+    `srcCompanyAddress` VARCHAR(191) NOT NULL,
+    `srcCompanyBizType` VARCHAR(191) NOT NULL,
+    `srcCompanyBizItem` VARCHAR(191) NOT NULL,
+    `srcEmailName` VARCHAR(191) NOT NULL DEFAULT '',
     `srcEmail` VARCHAR(191) NOT NULL DEFAULT '',
+    `srcEmailName2` VARCHAR(191) NOT NULL DEFAULT '',
     `srcEmail2` VARCHAR(191) NOT NULL DEFAULT '',
     `memo` VARCHAR(191) NOT NULL DEFAULT '',
     `status` ENUM('PREPARING', 'ON_ISSUE', 'ISSUED', 'ISSUE_FAILED', 'ON_SEND', 'SENDED', 'SEND_FAILED') NOT NULL DEFAULT 'PREPARING',
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `TaxInvoice_ntsconfirmNum_key`(`ntsconfirmNum`),
     UNIQUE INDEX `TaxInvoice_invoicerMgtKey_key`(`invoicerMgtKey`),
@@ -581,13 +619,14 @@ CREATE TABLE `PartnerTaxManager` (
 -- CreateTable
 CREATE TABLE `Accounted` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `companyId` INTEGER NOT NULL,
+    `partnerCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
     `accountedType` ENUM('PAID', 'COLLECTED') NOT NULL,
     `accountedMethod` ENUM('ACCOUNT_TRANSFER', 'PROMISSORY_NOTE', 'CARD_PAYMENT', 'CASH', 'OFFSET', 'ETC', 'All') NOT NULL,
     `accountedDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `accountedSubject` ENUM('ACCOUNTS_RECEIVABLE', 'UNPAID', 'ADVANCES', 'MISCELLANEOUS_INCOME', 'PRODUCT_SALES', 'ETC', 'All') NOT NULL,
     `memo` VARCHAR(500) NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
-    `partnerId` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -636,7 +675,8 @@ CREATE TABLE `ByCard` (
     `approvalNumber` VARCHAR(191) NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `accountedId` INTEGER NOT NULL,
-    `cardId` INTEGER NOT NULL,
+    `cardId` INTEGER NULL,
+    `bankAccountId` INTEGER NULL,
 
     UNIQUE INDEX `ByCard_accountedId_key`(`accountedId`),
     PRIMARY KEY (`id`)
@@ -734,9 +774,8 @@ CREATE TABLE `OrderDeposit` (
 -- CreateTable
 CREATE TABLE `Deposit` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `companyId` INTEGER NOT NULL,
-    `partnerCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
-    `depositType` ENUM('PURCHASE', 'SALES') NOT NULL,
+    `srcCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `dstCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
     `packagingId` INTEGER NOT NULL,
     `productId` INTEGER NOT NULL,
     `grammage` INTEGER NOT NULL,
@@ -753,13 +792,16 @@ CREATE TABLE `Deposit` (
 -- CreateTable
 CREATE TABLE `DepositEvent` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `userId` INTEGER NOT NULL,
     `depositId` INTEGER NOT NULL,
     `change` INTEGER NOT NULL,
     `status` ENUM('NORMAL', 'CANCELLED') NOT NULL DEFAULT 'NORMAL',
     `memo` VARCHAR(200) NOT NULL DEFAULT '',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `orderDepositId` INTEGER NULL,
+    `targetOrderId` INTEGER NULL,
 
+    UNIQUE INDEX `DepositEvent_targetOrderId_key`(`targetOrderId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -788,6 +830,36 @@ CREATE TABLE `OrderDepositTradeAltBundle` (
     `altQuantity` INTEGER NOT NULL,
 
     PRIMARY KEY (`orderId`, `companyId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `OrderRequest` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `srcCompanyId` INTEGER NOT NULL,
+    `dstCompanyId` INTEGER NOT NULL,
+    `ordererName` VARCHAR(191) NOT NULL,
+    `ordererPhoneNo` VARCHAR(191) NOT NULL,
+    `locationId` INTEGER NULL,
+    `wantedDate` DATETIME(3) NULL,
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `OrderRequestItem` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `serial` VARCHAR(191) NOT NULL,
+    `item` VARCHAR(191) NOT NULL,
+    `quantity` VARCHAR(191) NOT NULL DEFAULT '',
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
+    `dstMemo` VARCHAR(191) NOT NULL DEFAULT '',
+    `status` ENUM('REQUESTED', 'ON_CHECKING', 'DONE', 'CANCELLED') NOT NULL DEFAULT 'REQUESTED',
+    `orderRequestId` INTEGER NOT NULL,
+
+    UNIQUE INDEX `OrderRequestItem_serial_key`(`serial`),
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -917,13 +989,10 @@ ALTER TABLE `Order` ADD CONSTRAINT `Order_dstCompanyId_fkey` FOREIGN KEY (`dstCo
 ALTER TABLE `Order` ADD CONSTRAINT `Order_acceptedCompanyId_fkey` FOREIGN KEY (`acceptedCompanyId`) REFERENCES `Company`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Order` ADD CONSTRAINT `Order_srcDepositEventId_fkey` FOREIGN KEY (`srcDepositEventId`) REFERENCES `DepositEvent`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Order` ADD CONSTRAINT `Order_dstDepositEventId_fkey` FOREIGN KEY (`dstDepositEventId`) REFERENCES `DepositEvent`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `Order` ADD CONSTRAINT `Order_taxInvoiceId_fkey` FOREIGN KEY (`taxInvoiceId`) REFERENCES `TaxInvoice`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Order` ADD CONSTRAINT `Order_createdCompanyId_fkey` FOREIGN KEY (`createdCompanyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1043,6 +1112,9 @@ ALTER TABLE `TaskGuillotine` ADD CONSTRAINT `TaskGuillotine_taskId_fkey` FOREIGN
 ALTER TABLE `TaskQuantity` ADD CONSTRAINT `TaskQuantity_taskId_fkey` FOREIGN KEY (`taskId`) REFERENCES `Task`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `TaskQuantity` ADD CONSTRAINT `TaskQuantity_invoiceId_fkey` FOREIGN KEY (`invoiceId`) REFERENCES `Invoice`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `Shipping` ADD CONSTRAINT `Shipping_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1088,7 +1160,7 @@ ALTER TABLE `Partner` ADD CONSTRAINT `Partner_companyId_fkey` FOREIGN KEY (`comp
 ALTER TABLE `PartnerTaxManager` ADD CONSTRAINT `PartnerTaxManager_partnerId_fkey` FOREIGN KEY (`partnerId`) REFERENCES `Partner`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Accounted` ADD CONSTRAINT `Accounted_partnerId_fkey` FOREIGN KEY (`partnerId`) REFERENCES `Partner`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `Accounted` ADD CONSTRAINT `Accounted_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ByCash` ADD CONSTRAINT `ByCash_accountedId_fkey` FOREIGN KEY (`accountedId`) REFERENCES `Accounted`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -1107,6 +1179,9 @@ ALTER TABLE `ByCard` ADD CONSTRAINT `ByCard_accountedId_fkey` FOREIGN KEY (`acco
 
 -- AddForeignKey
 ALTER TABLE `ByCard` ADD CONSTRAINT `ByCard_cardId_fkey` FOREIGN KEY (`cardId`) REFERENCES `Card`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `ByCard` ADD CONSTRAINT `ByCard_bankAccountId_fkey` FOREIGN KEY (`bankAccountId`) REFERENCES `BankAccount`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `ByOffset` ADD CONSTRAINT `ByOffset_accountedId_fkey` FOREIGN KEY (`accountedId`) REFERENCES `Accounted`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -1172,9 +1247,6 @@ ALTER TABLE `OrderDeposit` ADD CONSTRAINT `OrderDeposit_paperPatternId_fkey` FOR
 ALTER TABLE `OrderDeposit` ADD CONSTRAINT `OrderDeposit_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_packagingId_fkey` FOREIGN KEY (`packagingId`) REFERENCES `Packaging`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1193,10 +1265,16 @@ ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_paperPatternId_fkey` FOREIGN KEY (
 ALTER TABLE `Deposit` ADD CONSTRAINT `Deposit_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_depositId_fkey` FOREIGN KEY (`depositId`) REFERENCES `Deposit`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_orderDepositId_fkey` FOREIGN KEY (`orderDepositId`) REFERENCES `OrderDeposit`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `DepositEvent` ADD CONSTRAINT `DepositEvent_targetOrderId_fkey` FOREIGN KEY (`targetOrderId`) REFERENCES `Order`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `OrderDepositTradePrice` ADD CONSTRAINT `OrderDepositTradePrice_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1209,6 +1287,18 @@ ALTER TABLE `OrderDepositTradeAltBundle` ADD CONSTRAINT `OrderDepositTradeAltBun
 
 -- AddForeignKey
 ALTER TABLE `OrderDepositTradeAltBundle` ADD CONSTRAINT `OrderDepositTradeAltBundle_orderId_companyId_fkey` FOREIGN KEY (`orderId`, `companyId`) REFERENCES `OrderDepositTradePrice`(`orderId`, `companyId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `OrderRequest` ADD CONSTRAINT `OrderRequest_srcCompanyId_fkey` FOREIGN KEY (`srcCompanyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `OrderRequest` ADD CONSTRAINT `OrderRequest_dstCompanyId_fkey` FOREIGN KEY (`dstCompanyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `OrderRequest` ADD CONSTRAINT `OrderRequest_locationId_fkey` FOREIGN KEY (`locationId`) REFERENCES `Location`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `OrderRequestItem` ADD CONSTRAINT `OrderRequestItem_orderRequestId_fkey` FOREIGN KEY (`orderRequestId`) REFERENCES `OrderRequest`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_OrderStockToStockEvent` ADD CONSTRAINT `_OrderStockToStockEvent_A_fkey` FOREIGN KEY (`A`) REFERENCES `OrderStock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
