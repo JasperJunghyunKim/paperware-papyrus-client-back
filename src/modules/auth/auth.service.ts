@@ -83,7 +83,7 @@ export class AuthService {
     return await bcrypt.compare(password, hashedPassword);
   }
 
-  private async createSmsAuthenticationLogTx(
+  async createSmsAuthenticationLogTx(
     tx: PrismaTransaction,
     params: {
       type: AuthenticationLogType;

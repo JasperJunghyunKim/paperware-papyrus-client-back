@@ -15,6 +15,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountResponse } from 'src/@shared/api/setting/account.response';
 import {
   AccountPasswordUpdateDto,
+  AccountPhoneNoUpdateDto,
   AccountUpdateDto,
 } from './dto/account.request';
 
@@ -52,6 +53,17 @@ export class AccountController {
     @Body() body: AccountPasswordUpdateDto,
   ): Promise<AccountResponse> {
     await this.change.updatePassowrd(req.user.id, body.password);
+
+    return await this.retrive.get(req.user.id);
+  }
+
+  @Patch('/phoneNo')
+  @UseGuards(AuthGuard)
+  async updatePhoneNo(
+    @Request() req: AuthType,
+    @Body() body: AccountPhoneNoUpdateDto,
+  ): Promise<AccountResponse> {
+    await this.change.updatePhoneNo(req.user.id, body.phoneNo, body.authKey);
 
     return await this.retrive.get(req.user.id);
   }
