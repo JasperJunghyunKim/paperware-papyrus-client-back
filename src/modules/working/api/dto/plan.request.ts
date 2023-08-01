@@ -1,9 +1,12 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsBooleanString,
+  IsDateString,
   IsInt,
   IsOptional,
   IsPositive,
+  IsString,
   Min,
   ValidateIf,
 } from 'class-validator';
@@ -30,6 +33,91 @@ export class PlanListQueryDto implements PlanListQuery {
   @IsOptional()
   @Type(() => String)
   readonly type: PlanListQueryType = 'DEFAULT';
+
+  /// 검색
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly planNo: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly convertingStatus: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly guillotineStatus: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly releaseStatus: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly partnerCompanyRegistrationNumbers: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsDateString()
+  readonly minWantedDate: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsDateString()
+  readonly maxWantedDate: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsBooleanString()
+  readonly arrived: 'true' | 'false' | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly warehouseIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly packagingIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly paperTypeIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly manufacturerIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly minGrammage: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly maxGrammage: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number | null = null;
 }
 
 export class PlanCreateRequestDto implements PlanCreateRequest {

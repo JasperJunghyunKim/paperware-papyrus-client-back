@@ -32,6 +32,8 @@ import {
   UpdateInputStockRequestDto,
 } from './dto/plan.request';
 import { IdDto } from 'src/common/request';
+import { Util } from 'src/common';
+import { TaskStatus } from '@prisma/client';
 
 @Controller('working/plan')
 export class PlanController {
@@ -53,6 +55,31 @@ export class PlanController {
       take: query.take,
       companyId: req.user.companyId,
       type: query.type,
+      // 검색
+      planNo: query.planNo,
+      convertingStatus: Util.searchKeywordsToStringArray(
+        query.convertingStatus,
+      ) as TaskStatus[],
+      guillotineStatus: Util.searchKeywordsToStringArray(
+        query.guillotineStatus,
+      ) as TaskStatus[],
+      releaseStatus: Util.searchKeywordsToStringArray(
+        query.releaseStatus,
+      ) as TaskStatus[],
+      partnerCompanyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        query.partnerCompanyRegistrationNumbers,
+      ),
+      minWantedDate: query.minWantedDate,
+      maxWantedDate: query.maxWantedDate,
+      arrived: query.arrived === null ? null : query.arrived === 'true',
+      warehouseIds: Util.searchKeywordsToIntArray(query.warehouseIds),
+      packagingIds: Util.searchKeywordsToIntArray(query.warehouseIds),
+      paperTypeIds: Util.searchKeywordsToIntArray(query.paperTypeIds),
+      manufacturerIds: Util.searchKeywordsToIntArray(query.manufacturerIds),
+      minGrammage: query.minGrammage,
+      maxGrammage: query.maxGrammage,
+      sizeX: query.sizeX,
+      sizeY: query.sizeY,
     });
 
     const total = await this.planRetriveService.getPlanListCount({
