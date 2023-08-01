@@ -50,7 +50,7 @@ export class PlanController {
     @Request() req: AuthType,
     @Query() query: PlanListQueryDto,
   ) {
-    const items = await this.planRetriveService.getPlanList({
+    return await this.planRetriveService.getPlanList({
       skip: query.skip,
       take: query.take,
       companyId: req.user.companyId,
@@ -73,7 +73,7 @@ export class PlanController {
       maxWantedDate: query.maxWantedDate,
       arrived: query.arrived === null ? null : query.arrived === 'true',
       warehouseIds: Util.searchKeywordsToIntArray(query.warehouseIds),
-      packagingIds: Util.searchKeywordsToIntArray(query.warehouseIds),
+      packagingIds: Util.searchKeywordsToIntArray(query.packagingIds),
       paperTypeIds: Util.searchKeywordsToIntArray(query.paperTypeIds),
       manufacturerIds: Util.searchKeywordsToIntArray(query.manufacturerIds),
       minGrammage: query.minGrammage,
@@ -81,15 +81,6 @@ export class PlanController {
       sizeX: query.sizeX,
       sizeY: query.sizeY,
     });
-
-    const total = await this.planRetriveService.getPlanListCount({
-      companyId: req.user.companyId,
-    });
-
-    return {
-      items,
-      total,
-    };
   }
 
   @Get('/:id')

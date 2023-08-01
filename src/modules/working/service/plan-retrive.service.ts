@@ -7,6 +7,7 @@ import {
   PlanStatus,
   PlanType,
   Prisma,
+  StockEventStatus,
   TaskStatus,
   TaskType,
 } from '@prisma/client';
@@ -169,34 +170,71 @@ export class PlanRetriveService {
       : Prisma.empty;
 
     // 7. 수급 여부
-    const arrivedQuery = params.arrived === null ? Prisma.empty : Prisma.sql``;
+    const arrivedQuery =
+      params.arrived === null
+        ? Prisma.empty
+        : Prisma.sql`AND assignStockEvent.status = ${
+            params.arrived ? StockEventStatus.NORMAL : StockEventStatus.PENDING
+          }`;
 
     // 8. 창고
     const warehouseQuery =
-      params.arrived === null ? Prisma.empty : Prisma.sql``;
+      params.warehouseIds.length > 0
+        ? Prisma.sql`AND assignStock.warehouseId IN (${Prisma.join(
+            params.warehouseIds,
+          )})`
+        : Prisma.empty;
 
     // 9-1. 포장
     const packagingQuery =
-      params.arrived === null ? Prisma.empty : Prisma.sql``;
+      params.packagingIds.length > 0
+        ? Prisma.sql`AND assignStock.packagingId IN (${Prisma.join(
+            params.packagingIds,
+          )})`
+        : Prisma.empty;
 
     // 9-2. 지종
     const paperTypeQuery =
-      params.arrived === null ? Prisma.empty : Prisma.sql``;
+      params.paperTypeIds.length > 0
+        ? Prisma.sql`AND assignStockProduct.paperTypeId IN(${Prisma.join(
+            params.paperTypeIds,
+          )})`
+        : Prisma.empty;
 
     // 9-3. 제지사
     const manufacturerQuery =
-      params.arrived === null ? Prisma.empty : Prisma.sql``;
+      params.manufacturerIds.length > 0
+        ? Prisma.sql`AND assignStockProduct.manufacturerId IN(${Prisma.join(
+            params.manufacturerIds,
+          )})`
+        : Prisma.empty;
 
     // 9-4. 평량
-    const grammageQuery = params.arrived === null ? Prisma.empty : Prisma.sql``;
+    const minGrammageQuery =
+      params.minGrammage === null
+        ? Prisma.empty
+        : Prisma.sql`AND assignStock.grammage >= ${params.minGrammage}`;
+    const maxGrammageQuery =
+      params.maxGrammage === null
+        ? Prisma.empty
+        : Prisma.sql`AND assignStock.grammage <= ${params.maxGrammage}`;
 
     // 9-5. 지폭
-    const sizeXQuery = params.arrived === null ? Prisma.empty : Prisma.sql``;
+    const sizeXQuery =
+      params.sizeX === null
+        ? Prisma.empty
+        : Prisma.sql`AND assignStock.sizeX >= ${params.sizeX}`;
 
     // 9-6. 지장
-    const sizeYQuery = params.arrived === null ? Prisma.empty : Prisma.sql``;
+    const sizeYQuery =
+      params.sizeY === null
+        ? Prisma.empty
+        : Prisma.sql`AND assignStock.sizeY >= ${params.sizeY}`;
 
-    const searchPlans: any[] = await this.prisma.$queryRaw`
+    const searchPlans: {
+      id: number;
+      total: bigint;
+    }[] = await this.prisma.$queryRaw`
       SELECT p.id
             , p.planNo
             , p.type
@@ -212,19 +250,30 @@ export class PlanRetriveService {
             , op.dstWantedDate AS opDstWantedDate
             , ps.wantedDate AS psWantedDate
 
+            , assignStock.id AS assignStockId
+
             , COUNT(1) OVER() AS total
 
         FROM Plan           AS p
-   LEFT JOIN OrderStock     AS os         ON os.id = p.orderStockId
-   LEFT JOIN OrderProcess   AS op         ON op.id = p.orderProcessId
-   LEFT JOIN PlanShipping   AS ps         ON ps.planId = p.id
-   LEFT JOIN \`Order\`      AS o          ON o.id = (CASE 
-                                                      WHEN os.id IS NOT NULL THEN os.orderId
-                                                      WHEN op.id IS NOT NULL THEN op.orderId
-                                                      ELSE 0
-                                                    END)
-   LEFT JOIN Company        AS srcCompany ON srcCompany.id = o.srcCompanyId
-   LEFT JOIN Company        AS dstCompany ON dstCompany.id = o.dstCompanyId
+   LEFT JOIN OrderStock     AS os               ON os.id = p.orderStockId
+   LEFT JOIN OrderProcess   AS op               ON op.id = p.orderProcessId
+   LEFT JOIN PlanShipping   AS ps               ON ps.planId = p.id
+   LEFT JOIN \`Order\`      AS o                ON o.id = (CASE 
+                                                            WHEN os.id IS NOT NULL THEN os.orderId
+                                                            WHEN op.id IS NOT NULL THEN op.orderId
+                                                            ELSE 0
+                                                          END)
+   LEFT JOIN Company        AS srcCompany       ON srcCompany.id = o.srcCompanyId
+   LEFT JOIN Company        AS dstCompany       ON dstCompany.id = o.dstCompanyId
+   LEFT JOIN Plan           AS opSrcPlan        ON opSrcPlan.orderProcessId = op.id AND opSrcPlan.type = ${
+     PlanType.TRADE_OUTSOURCE_PROCESS_BUYER
+   } ANd opSrcPlan.isDeleted = ${false}
+   LEFT JOIN StockEvent     AS assignStockEvent ON assignStockEvent.id = (CASE
+                                                                            WHEN opSrcPlan.id IS NOT NULL THEN opSrcPlan.assignStockEventId
+                                                                            ELSE p.assignStockEventId
+                                                                          END)
+   LEFT JOIN Stock          AS assignStock      ON assignStock.id = assignStockEvent.stockId
+   LEFT JOIN Product        AS assignStockProduct ON assignStockProduct.id = assignStock.productId                                                        
 
         ${convertingStatusQuery}
         ${guillotineStatusQuery}
@@ -243,17 +292,22 @@ export class PlanRetriveService {
          ${packagingQuery}
          ${paperTypeQuery}
          ${manufacturerQuery}
-         ${grammageQuery}
+         ${minGrammageQuery}
+         ${maxGrammageQuery}
          ${sizeXQuery}
          ${sizeYQuery}
 
       LIMIT ${skip}, ${take}
     `;
-    console.log(111111, searchPlans);
-    throw new BadRequestException('test');
+    if (searchPlans.length === 0) {
+      return {
+        items: [],
+        total: 0,
+      };
+    }
 
     // OLD...
-    return await this.prisma.plan.findMany({
+    const items = await this.prisma.plan.findMany({
       select: {
         ...Selector.PLAN,
         task: {
@@ -264,20 +318,15 @@ export class PlanRetriveService {
         },
       },
       where: {
-        companyId: params.companyId,
-        isDeleted: false,
-        status: {
-          notIn:
-            type === 'INHOUSE' ? ['CANCELLED'] : ['CANCELLED', 'PREPARING'],
-        },
-        type: {
-          in: type === 'INHOUSE' ? ['INHOUSE_PROCESS'] : undefined,
-          notIn: ['INHOUSE_STOCK_QUANTITY_CHANGE'],
+        id: {
+          in: searchPlans.map((p) => p.id),
         },
       },
-      skip,
-      take,
     });
+    return {
+      items,
+      total: Number(searchPlans[0].total),
+    };
   }
 
   async getPlanListCount(params: { companyId: number }) {
