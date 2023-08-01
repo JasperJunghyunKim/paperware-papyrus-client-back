@@ -20,6 +20,8 @@ import {
 } from './dto/shipping.request';
 import { ShippingListResponse } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
+import { Util } from 'src/common';
+import { InvoiceStatus } from '@prisma/client';
 
 @Controller('shipping')
 export class ShippingController {
@@ -38,10 +40,16 @@ export class ShippingController {
       skip: query.skip,
       take: query.take,
       companyId: req.user.companyId,
+      invoiceStatus: Util.searchKeywordsToStringArray(
+        query.invoiceStatus,
+      ) as InvoiceStatus[],
     });
 
     const total = await this.retrive.getCount({
       companyId: req.user.companyId,
+      invoiceStatus: Util.searchKeywordsToStringArray(
+        query.invoiceStatus,
+      ) as InvoiceStatus[],
     });
 
     return {

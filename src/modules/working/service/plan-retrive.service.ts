@@ -306,7 +306,6 @@ export class PlanRetriveService {
       };
     }
 
-    // OLD...
     const items = await this.prisma.plan.findMany({
       select: {
         ...Selector.PLAN,
