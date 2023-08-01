@@ -1,5 +1,8 @@
 import { IsDateString, IsEmail, IsString, Length } from 'class-validator';
-import { AccountUpdateRequest } from 'src/@shared/api/setting/account.request';
+import {
+  AccountPasswordUpdateRequest,
+  AccountUpdateRequest,
+} from 'src/@shared/api/setting/account.request';
 
 export class AccountUpdateDto implements AccountUpdateRequest {
   @IsString()
@@ -12,4 +15,10 @@ export class AccountUpdateDto implements AccountUpdateRequest {
   @IsEmail()
   @Length(3, 150)
   readonly email: string;
+}
+
+export class AccountPasswordUpdateDto implements AccountPasswordUpdateRequest {
+  @IsString()
+  @Length(4, 30)
+  readonly password: string;
 }

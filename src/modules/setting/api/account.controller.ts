@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Put,
   Request,
   UseGuards,
@@ -12,7 +13,10 @@ import { AccountChangeService } from '../service/account.change.service';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountResponse } from 'src/@shared/api/setting/account.response';
-import { AccountUpdateDto } from './dto/account.request';
+import {
+  AccountPasswordUpdateDto,
+  AccountUpdateDto,
+} from './dto/account.request';
 
 @Controller('/setting/account')
 export class AccountController {
@@ -37,6 +41,17 @@ export class AccountController {
       userId: req.user.id,
       ...body,
     });
+
+    return await this.retrive.get(req.user.id);
+  }
+
+  @Patch('/password')
+  @UseGuards(AuthGuard)
+  async updatePassword(
+    @Request() req: AuthType,
+    @Body() body: AccountPasswordUpdateDto,
+  ): Promise<AccountResponse> {
+    await this.change.updatePassowrd(req.user.id, body.password);
 
     return await this.retrive.get(req.user.id);
   }
