@@ -20,7 +20,7 @@ import {
 } from './dto/account.request';
 
 @Controller('/setting/account')
-export class AccountController {
+export class SettingAccountController {
   constructor(
     private readonly retrive: AccountRetriveService,
     private readonly change: AccountChangeService,
