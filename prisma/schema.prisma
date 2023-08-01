@@ -1528,3 +1528,20 @@ model Authentication {
   authKey   String
   createdAt DateTime @default(now())
 }
+
+enum AuthenticationLogType {
+  CREATE // 인증 요청
+  AUTH_NO // 인증번호 인증
+  AUTH_KEY // 인증키 인증
+}
+
+model AuthenticationLog {
+  id           BigInt                @id @default(autoincrement())
+  type         AuthenticationLogType
+  phoneNo      String
+  authNo       String
+  authKey      String
+  inputAuthNo  String?
+  inputAuthKey String?
+  createdAt    DateTime              @default(now())
+}

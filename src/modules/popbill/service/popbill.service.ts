@@ -41,6 +41,7 @@ const popbillConfig = {
   POPBILL_USE_LOCAL_TIME_YN: process.env.POPBILL_USE_LOCAL_TIME_YN === 'true',
   POPBILL_USER_ID: process.env.POPBILL_USER_ID,
   POPBILL_CORP_NUM: process.env.POPBILL_CORP_NUM,
+  PIPBILL_SEND_NUM: process.env.PIPBILL_SEND_NUM,
 };
 
 popbill.config({
@@ -70,6 +71,8 @@ popbill.config({
 
 // 세금계산서
 const taxInvoiceService = popbill.TaxinvoiceService();
+// 메세지
+const messageService = popbill.MessageService();
 
 /** 인증서 URL */
 export const getCertUrl = async (
@@ -353,6 +356,32 @@ export const deleteTaxInvoice = async (CorpNum: string, mgtKey: string) => {
       mgtKey,
       function (result) {
         res(result);
+      },
+      function (err) {
+        console.log(err);
+        rej(err);
+      },
+    );
+  });
+
+  return result;
+};
+
+/** 문자보내기 */
+export const sendSMS = async (phoneNo: string, contents: string) => {
+  const result: string | PopbillResponse = await new Promise((res, rej) => {
+    messageService.sendSMS(
+      popbillConfig.POPBILL_CORP_NUM,
+      popbillConfig.PIPBILL_SEND_NUM,
+      phoneNo,
+      '',
+      contents,
+      '',
+      false,
+      '',
+      '',
+      function (receiptNum) {
+        res(receiptNum);
       },
       function (err) {
         console.log(err);
