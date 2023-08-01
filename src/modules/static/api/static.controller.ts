@@ -66,7 +66,7 @@ export class StaticController {
     });
 
     return {
-      items: Util.serialize(items),
+      items: items.map((item) => Util.serialize(item)),
       count,
     };
   }

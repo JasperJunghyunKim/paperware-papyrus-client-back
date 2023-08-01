@@ -21,7 +21,7 @@ export class LocationRetriveService {
       skip: params.skip,
       take: params.take,
     });
-    return Util.serialize(items);
+    return items.map((item) => Util.serialize(item));
   }
 
   async getCount(params: { companyId: number }): Promise<number> {
@@ -56,7 +56,7 @@ export class LocationRetriveService {
       take: params.take,
     });
 
-    return Util.serialize(items);
+    return items.map((item) => Util.serialize(item));
   }
 
   async getCountForSales(params: {

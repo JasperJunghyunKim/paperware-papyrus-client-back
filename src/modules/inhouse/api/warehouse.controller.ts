@@ -51,7 +51,7 @@ export class WarehouseController {
     });
 
     return {
-      items: Util.serialize(items),
+      items: items.map((item) => Util.serialize(item)),
       total,
     };
   }

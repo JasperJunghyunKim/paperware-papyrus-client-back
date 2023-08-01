@@ -49,7 +49,7 @@ export class BusinessRelationshipRequestRequestController {
     });
 
     return {
-      items: Util.serialize(items),
+      items: items.map((item) => Util.serialize(item)),
       total,
     };
   }
@@ -72,7 +72,7 @@ export class BusinessRelationshipRequestRequestController {
     });
 
     return {
-      items: Util.serialize(items),
+      items: items.map((item) => Util.serialize(item)),
       total,
     };
   }

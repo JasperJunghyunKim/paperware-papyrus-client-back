@@ -20,7 +20,7 @@ export class VirtualCompanyRetriveService {
         managedById: params.managedById,
       },
     });
-    return Util.serialize(items);
+    return items.map((item) => Util.serialize(item));
   }
 
   async getCount(params: { managedById: number }): Promise<number> {

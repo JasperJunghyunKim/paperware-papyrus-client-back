@@ -19,7 +19,7 @@ export class CompanyRetriveService {
         managedById: null,
       },
     });
-    return Util.serialize(items);
+    return items.map((item) => Util.serialize(item));
   }
 
   async getCount(): Promise<number> {
@@ -31,10 +31,10 @@ export class CompanyRetriveService {
   }
 
   async getItem(id: number): Promise<Model.Company> {
-    const items = await this.prisma.company.findUnique({
+    const item = await this.prisma.company.findUnique({
       select: Selector.COMPANY,
       where: { id },
     });
-    return Util.serialize(items);
+    return Util.serialize(item);
   }
 }
