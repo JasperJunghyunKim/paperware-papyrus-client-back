@@ -761,7 +761,7 @@ export class OrderRetriveService {
       take: params.take,
     });
 
-    return list;
+    return Util.serialize(list);
   }
 
   /** 도착 목록 수 가져오기 */

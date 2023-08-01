@@ -282,6 +282,7 @@ model Company {
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
   startDate                      DateTime                      @default(now())
   memo                           String                        @default("")
+  createdAt                      DateTime                      @default(now())
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")
   dstBusinessRelationship        BusinessRelationship[]        @relation("dstBusinessRelationship")
   srcOrder                       Order[]                       @relation("srcOrderCompany")

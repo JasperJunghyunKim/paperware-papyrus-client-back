@@ -40,6 +40,7 @@ export const COMPANY = {
   bizType: true,
   bizItem: true,
   managedById: true,
+  createdAt: true,
 } satisfies Prisma.CompanySelect;
 
 export const BUSINESS_RELATIONSHIP = {

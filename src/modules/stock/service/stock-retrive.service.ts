@@ -143,6 +143,7 @@ interface StockGroupFromDB {
   partnerCompanyPhoneNo: string;
   partnerCompanyFaxNo: string;
   partnerCompanyManagedById: number;
+  partnerComapanyCreatedAt: string;
 
   // 구매회사
   srcCompanyId: number;
@@ -156,6 +157,7 @@ interface StockGroupFromDB {
   srcCompanyPhoneNo: string;
   srcCompanyFaxNo: string;
   srcCompanyManagedById: number;
+  srcComapanyCreatedAt: string;
 
   // 판매회사
   dstCompanyId: number;
@@ -169,6 +171,7 @@ interface StockGroupFromDB {
   dstCompanyPhoneNo: string;
   dstCompanyFaxNo: string;
   dstCompanyManagedById: number;
+  dstComapanyCreatedAt: string;
 
   totalQuantity: number;
   availableQuantity: number;
@@ -316,6 +319,7 @@ export interface PlanStockGroupFromDB {
   partnerCompanyPhoneNo: string;
   partnerCompanyFaxNo: string;
   partnerCompanyManagedById: number;
+  partnerCompanyCreatedAt: string;
 
   // 배정정보
   isAssigned: number;
@@ -640,6 +644,7 @@ export class StockRetriveService {
             , partnerCompany.phoneNo AS partnerCompanyPhoneNo
             , partnerCompany.faxNo As partnerCompanyFaxNo
             , partnerCompany.managedById AS partnerCompanyManagedById
+            , partnerCompany.createdAt AS partnerComapanyCreatedAt
 
             -- 구매회사
             , srcCompany.id AS srcCompanyId
@@ -653,6 +658,7 @@ export class StockRetriveService {
             , srcCompany.phoneNo AS srcCompanyPhoneNo
             , srcCompany.faxNo As srcCompanyFaxNo
             , srcCompany.managedById AS srcCompanyManagedById
+            , srcCompany.createdAt AS srcComapanyCreatedAt
 
             -- 판매회사
             , dstCompany.id AS dstCompanyId
@@ -666,6 +672,7 @@ export class StockRetriveService {
             , dstCompany.phoneNo AS dstCompanyPhoneNo
             , dstCompany.faxNo As dstCompanyFaxNo
             , dstCompany.managedById AS dstCompanyManagedById
+            , dstCompany.createdAt AS dstComapanyCreatedAt
 
             -- 원지정보
             , asw.id AS asWarehouseId
@@ -953,6 +960,7 @@ export class StockRetriveService {
                           phoneNo: sg.partnerCompanyPhoneNo,
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
+                          createdAt: sg.partnerComapanyCreatedAt,
                         },
                         srcCompany: {
                           id: sg.srcCompanyId,
@@ -967,6 +975,7 @@ export class StockRetriveService {
                           phoneNo: sg.srcCompanyPhoneNo,
                           faxNo: sg.srcCompanyFaxNo,
                           managedById: sg.srcCompanyManagedById,
+                          createdAt: sg.srcComapanyCreatedAt,
                         },
                         dstCompany: {
                           id: sg.dstCompanyId,
@@ -981,6 +990,7 @@ export class StockRetriveService {
                           phoneNo: sg.dstCompanyPhoneNo,
                           faxNo: sg.dstCompanyFaxNo,
                           managedById: sg.dstCompanyManagedById,
+                          createdAt: sg.dstComapanyCreatedAt,
                         },
                       },
                       dstLocation: {
@@ -1027,6 +1037,7 @@ export class StockRetriveService {
                           phoneNo: sg.partnerCompanyPhoneNo,
                           faxNo: sg.partnerCompanyFaxNo,
                           managedById: sg.partnerCompanyManagedById,
+                          createdAt: sg.partnerComapanyCreatedAt,
                         },
                         srcCompany: {
                           id: sg.srcCompanyId,
@@ -1041,6 +1052,7 @@ export class StockRetriveService {
                           phoneNo: sg.srcCompanyPhoneNo,
                           faxNo: sg.srcCompanyFaxNo,
                           managedById: sg.srcCompanyManagedById,
+                          createdAt: sg.srcComapanyCreatedAt,
                         },
                         dstCompany: {
                           id: sg.dstCompanyId,
@@ -1055,6 +1067,7 @@ export class StockRetriveService {
                           phoneNo: sg.dstCompanyPhoneNo,
                           faxNo: sg.dstCompanyFaxNo,
                           managedById: sg.dstCompanyManagedById,
+                          createdAt: sg.dstComapanyCreatedAt,
                         },
                       },
                     }
@@ -1912,6 +1925,7 @@ export class StockRetriveService {
                         phoneNo: sg.partnerCompanyPhoneNo,
                         faxNo: sg.partnerCompanyFaxNo,
                         managedById: sg.partnerCompanyManagedById,
+                        createdAt: sg.partnerCompanyCreatedAt,
                       },
                     },
                     dstLocation: {
@@ -1960,6 +1974,7 @@ export class StockRetriveService {
                         phoneNo: sg.partnerCompanyPhoneNo,
                         faxNo: sg.partnerCompanyFaxNo,
                         managedById: sg.partnerCompanyManagedById,
+                        createdAt: sg.partnerCompanyCreatedAt,
                       },
                     },
                   }

@@ -24,6 +24,7 @@ import {
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { WarehouseListResponse } from 'src/@shared/api';
+import { Util } from 'src/common';
 
 @Controller('inhouse/warehouse')
 export class WarehouseController {
@@ -50,7 +51,7 @@ export class WarehouseController {
     });
 
     return {
-      items,
+      items: Util.serialize(items),
       total,
     };
   }

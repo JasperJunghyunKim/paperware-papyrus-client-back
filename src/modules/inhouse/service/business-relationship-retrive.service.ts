@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
 import { BusinessRelationshipCompact } from 'src/@shared/models';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -214,7 +214,7 @@ export class BusinessRelationshipRetriveService {
 
     return {
       partner,
-      company,
+      company: Util.serialize(company),
     };
   }
 }

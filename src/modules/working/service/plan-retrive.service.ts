@@ -421,7 +421,7 @@ export class PlanRetriveService {
       stockId: plan.targetStockEvent[0].stockId,
       quantity: Math.abs(plan.targetStockEvent[0].change),
       useRemainder: plan.targetStockEvent[0].useRemainder,
-      stock: plan.targetStockEvent[0].stock,
+      stock: Util.serialize(plan.targetStockEvent[0].stock),
     };
   }
 }

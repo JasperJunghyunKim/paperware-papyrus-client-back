@@ -22,6 +22,7 @@ import {
   BusinessRelationshipRequestListQueryDto,
   BusinessRelationshipRequestRejectRequestDto,
 } from './dto/business-relationship-request.request';
+import { Util } from 'src/common';
 
 @Controller('inhouse/business-relationship-request')
 export class BusinessRelationshipRequestRequestController {
@@ -48,7 +49,7 @@ export class BusinessRelationshipRequestRequestController {
     });
 
     return {
-      items,
+      items: Util.serialize(items),
       total,
     };
   }
@@ -71,7 +72,7 @@ export class BusinessRelationshipRequestRequestController {
     });
 
     return {
-      items,
+      items: Util.serialize(items),
       total,
     };
   }

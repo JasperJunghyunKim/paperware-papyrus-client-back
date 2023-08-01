@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class CompanyRetriveService {
     skip: number;
     take: number;
   }): Promise<Array<Model.Company>> {
-    return await this.prisma.company.findMany({
+    const items = await this.prisma.company.findMany({
       select: Selector.COMPANY,
       skip: params.skip,
       take: params.take,
@@ -19,6 +19,7 @@ export class CompanyRetriveService {
         managedById: null,
       },
     });
+    return Util.serialize(items);
   }
 
   async getCount(): Promise<number> {
@@ -30,9 +31,10 @@ export class CompanyRetriveService {
   }
 
   async getItem(id: number): Promise<Model.Company> {
-    return await this.prisma.company.findUnique({
+    const items = await this.prisma.company.findUnique({
       select: Selector.COMPANY,
       where: { id },
     });
+    return Util.serialize(items);
   }
 }

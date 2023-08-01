@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'src/@shared';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class LocationRetriveService {
     take: number;
     companyId: number;
   }): Promise<Array<Model.Location>> {
-    return await this.prisma.location.findMany({
+    const items = await this.prisma.location.findMany({
       select: Selector.LOCATION,
       where: {
         companyId: params.companyId,
@@ -21,6 +21,7 @@ export class LocationRetriveService {
       skip: params.skip,
       take: params.take,
     });
+    return Util.serialize(items);
   }
 
   async getCount(params: { companyId: number }): Promise<number> {
@@ -38,7 +39,7 @@ export class LocationRetriveService {
     companyId: number;
     targetCompanyId: number;
   }): Promise<Array<Model.Location>> {
-    return await this.prisma.location.findMany({
+    const items = await this.prisma.location.findMany({
       select: Selector.LOCATION,
       where: {
         isDeleted: false,
@@ -54,6 +55,8 @@ export class LocationRetriveService {
       skip: params.skip,
       take: params.take,
     });
+
+    return Util.serialize(items);
   }
 
   async getCountForSales(params: {
@@ -78,9 +81,10 @@ export class LocationRetriveService {
   }
 
   async getItem(id: number): Promise<Model.Location> {
-    return await this.prisma.location.findUnique({
+    const item = await this.prisma.location.findUnique({
       select: Selector.LOCATION,
       where: { id },
     });
+    return Util.serialize(item);
   }
 }

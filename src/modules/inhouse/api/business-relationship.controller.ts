@@ -31,6 +31,7 @@ import {
   SearchPartnerResponse,
 } from 'src/@shared/api';
 import { CompanyRetriveService } from '../service/company-retrive.service';
+import { Util } from 'src/common';
 
 @Controller('inhouse/business-relationship')
 export class BusinessRelationshipController {
@@ -67,7 +68,7 @@ export class BusinessRelationshipController {
     });
 
     return {
-      items,
+      items: Util.serialize(items),
       total,
     };
   }

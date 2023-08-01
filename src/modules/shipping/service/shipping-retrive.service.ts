@@ -52,10 +52,12 @@ export class ShippingRetriveService {
       },
     });
 
-    return shippings.map((shipping) => ({
-      ...shipping,
-      invoiceCount: shipping._count.invoice,
-    }));
+    return shippings.map((shipping) =>
+      Util.serialize({
+        ...shipping,
+        invoiceCount: shipping._count.invoice,
+      }),
+    );
   }
 
   async getCount(params: {
