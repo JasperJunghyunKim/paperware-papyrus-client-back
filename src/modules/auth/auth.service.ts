@@ -21,10 +21,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signIn(params: {
-    username: string;
-    password: string;
-  }): Promise<string | null | any> {
+  async signIn(params: { username: string; password: string }): Promise<{
+    accessToken: string;
+    isFirstLogin: boolean;
+  }> {
     const { username, password } = params;
     const user = await this.prisma.user.findUnique({
       where: {
@@ -47,11 +47,16 @@ export class AuthService {
       throw new UnauthorizedException(`사용할 수 없는 계정입니다.`);
     }
 
-    return await this.jwtService.signAsync({
+    const accessToken = await this.jwtService.signAsync({
       id: user.id,
       companyId: user.company.id,
       companyRegistrationNumber: user.company.companyRegistrationNumber,
     });
+
+    return {
+      accessToken,
+      isFirstLogin: user.lastLoginTime === null,
+    };
   }
 
   async validateUser(username: string, pass: string): Promise<any> {

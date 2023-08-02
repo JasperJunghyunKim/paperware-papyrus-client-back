@@ -1,7 +1,12 @@
 import {
+  Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
+  NotImplementedException,
   Param,
+  Post,
   Query,
   Request,
   UseGuards,
@@ -10,10 +15,15 @@ import { SettingUserRetriveService } from '../service/user.retrive.service';
 import { SettingUserChangeService } from '../service/user.change.service';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
-import { SettingUserListDto } from './dto/user.request';
+import {
+  SettingUserCreateDto,
+  SettingUserIdCheckDto,
+  SettingUserListDto,
+} from './dto/user.request';
 import {
   SettingUserListReseponse,
   SettingUserResponse,
+  UserIdCheckResponse,
 } from 'src/@shared/api/setting/user.response';
 import { IdDto } from 'src/common/request';
 
@@ -44,5 +54,24 @@ export class SettingUserController {
     @Param() param: IdDto,
   ): Promise<SettingUserResponse> {
     return await this.retrive.get(req.user.companyId, param.id);
+  }
+
+  @Get('/id/check')
+  @UseGuards(AuthGuard)
+  async checkId(
+    @Request() req: AuthType,
+    @Query() query: SettingUserIdCheckDto,
+  ): Promise<UserIdCheckResponse> {
+    return await this.retrive.chekcId(query.username);
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async create(@Request() req: AuthType, @Body() body: SettingUserCreateDto) {
+    return await this.change.create({
+      companyId: req.user.companyId,
+      ...body,
+    });
   }
 }

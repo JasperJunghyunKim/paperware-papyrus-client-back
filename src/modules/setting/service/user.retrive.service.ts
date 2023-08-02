@@ -73,4 +73,16 @@ export class SettingUserRetriveService {
     if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
     return Util.serialize(user);
   }
+
+  async chekcId(id: string): Promise<{ isExists: boolean }> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username: id,
+      },
+    });
+
+    return {
+      isExists: !!user,
+    };
+  }
 }

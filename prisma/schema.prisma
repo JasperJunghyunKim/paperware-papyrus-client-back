@@ -243,18 +243,19 @@ model StockEvent {
 
 // User
 model User {
-  id           Int            @id @default(autoincrement())
-  username     String         @unique
-  password     String
-  name         String
-  phoneNo      String
-  email        String?
-  birthDate    DateTime?
-  company      Company?       @relation(fields: [companyId], references: [id])
-  companyId    Int?
-  isActivated  Boolean        @default(true)
-  isAdmin      Boolean        @default(false)
-  DepositEvent DepositEvent[]
+  id            Int            @id @default(autoincrement())
+  username      String         @unique
+  password      String
+  name          String
+  phoneNo       String         @default("")
+  email         String?
+  birthDate     DateTime?
+  company       Company?       @relation(fields: [companyId], references: [id])
+  companyId     Int?
+  isActivated   Boolean        @default(true)
+  isAdmin       Boolean        @default(false)
+  lastLoginTime DateTime?
+  DepositEvent  DepositEvent[]
 }
 
 // Company & Client
