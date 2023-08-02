@@ -25,6 +25,7 @@ export class SettingUserRetriveService {
           phoneNo: true,
           email: true,
           birthDate: true,
+          isActivated: true,
           isAdmin: true,
         },
         where: {
