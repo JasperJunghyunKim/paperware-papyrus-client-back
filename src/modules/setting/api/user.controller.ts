@@ -74,4 +74,11 @@ export class SettingUserController {
       ...body,
     });
   }
+
+  @Post('/:id/admin')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
+  async updateAdmin(@Request() req: AuthType, @Param() param: IdDto) {
+    return await this.change.updateAdmin(req.user.companyId, param.id);
+  }
 }
