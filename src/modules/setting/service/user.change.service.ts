@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -138,6 +139,8 @@ export class SettingUserChangeService {
         },
       });
       if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+      if (user.isAdmin && !isActivated)
+        throw new BadRequestException(`관리자는 비활성화 할 수 없습니다.`);
 
       await tx.user.update({
         where: {
@@ -145,6 +148,31 @@ export class SettingUserChangeService {
         },
         data: {
           isActivated,
+        },
+      });
+    });
+  }
+
+  async updateUserMenu(companyId: number, userId: number, menu: string) {
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: {
+          id: userId,
+          companyId,
+        },
+      });
+      if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+
+      await tx.userMenu.upsert({
+        where: {
+          userId,
+        },
+        create: {
+          menu,
+          userId,
+        },
+        update: {
+          menu,
         },
       });
     });

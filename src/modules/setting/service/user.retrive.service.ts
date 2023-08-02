@@ -27,6 +27,7 @@ export class SettingUserRetriveService {
           birthDate: true,
           isActivated: true,
           isAdmin: true,
+          menu: true,
         },
         where: {
           companyId,
@@ -64,6 +65,7 @@ export class SettingUserRetriveService {
         birthDate: true,
         isActivated: true,
         isAdmin: true,
+        menu: true,
       },
       where: {
         id,

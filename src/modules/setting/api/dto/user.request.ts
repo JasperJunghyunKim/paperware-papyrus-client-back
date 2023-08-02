@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsEmail,
   IsInt,
+  IsJSON,
   IsOptional,
   IsString,
   Length,
@@ -16,6 +17,7 @@ import {
   UserActivatedUpdateRequest,
   UserCreateRequest,
   UserIdCheckQuery,
+  UserMenuUpdateRequest,
   UserUpdateRequest,
 } from 'src/@shared/api/setting/user.request';
 import { IsId } from 'src/validator/is-id.validator';
@@ -94,4 +96,10 @@ export class SettingUserUpdateDto implements UserUpdateRequest {
 export class UserActivatedUpdateDto implements UserActivatedUpdateRequest {
   @IsBoolean()
   readonly isActivated: boolean;
+}
+
+export class UserMenuUpdateDto implements UserMenuUpdateRequest {
+  @IsString()
+  @IsJSON()
+  readonly menu: string;
 }

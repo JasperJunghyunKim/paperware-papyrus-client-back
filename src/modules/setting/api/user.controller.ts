@@ -24,6 +24,7 @@ import {
   SettingUserListDto,
   SettingUserUpdateDto,
   UserActivatedUpdateDto,
+  UserMenuUpdateDto,
 } from './dto/user.request';
 import {
   SettingUserListReseponse,
@@ -124,6 +125,20 @@ export class SettingUserController {
       req.user.companyId,
       param.id,
       body.isActivated,
+    );
+  }
+
+  @Put('/:id/menu')
+  @UseGuards(AuthGuard)
+  async updateMenu(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: UserMenuUpdateDto,
+  ) {
+    return await this.change.updateUserMenu(
+      req.user.companyId,
+      param.id,
+      body.menu,
     );
   }
 }

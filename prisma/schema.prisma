@@ -256,6 +256,7 @@ model User {
   isAdmin       Boolean        @default(false)
   lastLoginTime DateTime?
   DepositEvent  DepositEvent[]
+  menu          UserMenu?
 }
 
 // Company & Client
@@ -1548,4 +1549,10 @@ model AuthenticationLog {
   inputAuthNo  String?
   inputAuthKey String?
   createdAt    DateTime              @default(now())
+}
+
+model UserMenu {
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+  menu   String @db.Text
 }

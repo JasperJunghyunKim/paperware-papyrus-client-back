@@ -19,6 +19,7 @@ export class AccountRetriveService {
         birthDate: true,
         isActivated: true,
         isAdmin: true,
+        menu: true,
       },
       where: {
         id: userId,
