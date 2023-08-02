@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/core/database/prisma.service';
@@ -41,6 +42,9 @@ export class AuthService {
 
     if (!user || !(await this.comparePassword(password, user.password))) {
       throw new BadRequestException('Invalid username or password');
+    }
+    if (!user.isActivated) {
+      throw new UnauthorizedException(`사용할 수 없는 계정입니다.`);
     }
 
     return await this.jwtService.signAsync({
