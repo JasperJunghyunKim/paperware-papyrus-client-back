@@ -65,7 +65,7 @@ export class AuthService {
 
       return {
         accessToken,
-        isFirstLogin: user.lastLoginTime === null,
+        isFirstLogin: user.lastLoginTime === null || !user.phoneNo,
       };
     });
   }
