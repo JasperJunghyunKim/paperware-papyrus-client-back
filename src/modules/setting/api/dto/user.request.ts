@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsDateString,
   IsEmail,
   IsInt,
@@ -12,6 +13,7 @@ import {
 } from 'class-validator';
 import {
   SettingUserListQuery,
+  UserActivatedUpdateRequest,
   UserCreateRequest,
   UserIdCheckQuery,
   UserUpdateRequest,
@@ -87,4 +89,9 @@ export class SettingUserUpdateDto implements UserUpdateRequest {
   @IsEmail()
   @Length(1, 150)
   readonly email: string;
+}
+
+export class UserActivatedUpdateDto implements UserActivatedUpdateRequest {
+  @IsBoolean()
+  readonly isActivated: boolean;
 }

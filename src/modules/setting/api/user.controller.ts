@@ -6,6 +6,7 @@ import {
   HttpStatus,
   NotImplementedException,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -21,6 +22,7 @@ import {
   SettingUserIdCheckDto,
   SettingUserListDto,
   SettingUserUpdateDto,
+  UserActivatedUpdateDto,
 } from './dto/user.request';
 import {
   SettingUserListReseponse,
@@ -96,5 +98,19 @@ export class SettingUserController {
       userId: param.id,
       ...body,
     });
+  }
+
+  @Patch('/:id/activated')
+  @UseGuards(AuthGuard)
+  async updateActivated(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: UserActivatedUpdateDto,
+  ) {
+    return await this.change.updateUserActivated(
+      req.user.companyId,
+      param.id,
+      body.isActivated,
+    );
   }
 }

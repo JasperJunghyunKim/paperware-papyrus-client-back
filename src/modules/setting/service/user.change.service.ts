@@ -124,4 +124,29 @@ export class SettingUserChangeService {
       });
     });
   }
+
+  async updateUserActivated(
+    companyId: number,
+    userId: number,
+    isActivated: boolean,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: {
+          id: userId,
+          companyId,
+        },
+      });
+      if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+
+      await tx.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          isActivated,
+        },
+      });
+    });
+  }
 }
