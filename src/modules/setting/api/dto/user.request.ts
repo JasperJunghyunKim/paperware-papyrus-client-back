@@ -8,11 +8,13 @@ import {
   Length,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import {
   SettingUserListQuery,
   UserCreateRequest,
   UserIdCheckQuery,
+  UserUpdateRequest,
 } from 'src/@shared/api/setting/user.request';
 import { IsId } from 'src/validator/is-id.validator';
 import { IsName } from 'src/validator/is-name.validator';
@@ -50,6 +52,28 @@ export class SettingUserCreateDto implements UserCreateRequest {
   @IsPassword()
   @Length(10, 30)
   readonly password: string;
+
+  @IsString()
+  @IsName()
+  @Length(1, 100)
+  readonly name: string;
+
+  @IsDateString()
+  readonly birthDate: string;
+
+  @IsString()
+  @IsEmail()
+  @Length(1, 150)
+  readonly email: string;
+}
+
+export class SettingUserUpdateDto implements UserUpdateRequest {
+  @ValidateIf((obj, val) => val !== null && val !== '')
+  @IsOptional()
+  @IsString()
+  @IsPassword()
+  @Length(10, 30)
+  readonly password: string | null = null;
 
   @IsString()
   @IsName()

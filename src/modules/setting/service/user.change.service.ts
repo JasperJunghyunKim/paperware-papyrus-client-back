@@ -64,7 +64,6 @@ export class SettingUserChangeService {
         
         FOR UPDATE;
       `;
-      console.log(111, user);
       if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
       if (!user.isActivated)
         throw new ConflictException(`비활성화 된 직원입니다.`);
@@ -86,6 +85,41 @@ export class SettingUserChangeService {
         },
         data: {
           isAdmin: true,
+        },
+      });
+    });
+  }
+
+  async update(params: {
+    companyId: number;
+    userId: number;
+    password: string | null;
+    name: string;
+    birthDate: string;
+    email: string;
+  }) {
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findFirst({
+        where: {
+          id: params.userId,
+          companyId: params.companyId,
+        },
+      });
+      if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+
+      let hashedPassword = null;
+      if (params.password) {
+        hashedPassword = await this.authService.hashPassword(params.password);
+      }
+      await tx.user.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          password: hashedPassword ? hashedPassword : undefined,
+          name: params.name,
+          birthDate: params.birthDate,
+          email: params.email,
         },
       });
     });

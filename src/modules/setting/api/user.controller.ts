@@ -7,6 +7,7 @@ import {
   NotImplementedException,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -19,6 +20,7 @@ import {
   SettingUserCreateDto,
   SettingUserIdCheckDto,
   SettingUserListDto,
+  SettingUserUpdateDto,
 } from './dto/user.request';
 import {
   SettingUserListReseponse,
@@ -80,5 +82,19 @@ export class SettingUserController {
   @UseGuards(AuthGuard)
   async updateAdmin(@Request() req: AuthType, @Param() param: IdDto) {
     return await this.change.updateAdmin(req.user.companyId, param.id);
+  }
+
+  @Put('/:id')
+  @UseGuards(AuthGuard)
+  async update(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: SettingUserUpdateDto,
+  ) {
+    return await this.change.update({
+      companyId: req.user.companyId,
+      userId: param.id,
+      ...body,
+    });
   }
 }
