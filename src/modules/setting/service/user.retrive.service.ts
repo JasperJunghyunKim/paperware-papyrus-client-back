@@ -87,4 +87,30 @@ export class SettingUserRetriveService {
       isExists: !!user,
     };
   }
+
+  async getMenu(
+    companyId: number,
+    userId: number,
+  ): Promise<{
+    menu: string | null;
+  }> {
+    const user = await this.prisma.user.findFirst({
+      include: {
+        menu: {
+          select: {
+            menu: true,
+          },
+        },
+      },
+      where: {
+        id: userId,
+        companyId,
+      },
+    });
+    if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+
+    return {
+      menu: user.menu?.menu || null,
+    };
+  }
 }

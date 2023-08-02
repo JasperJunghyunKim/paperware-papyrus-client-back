@@ -30,6 +30,7 @@ import {
   SettingUserListReseponse,
   SettingUserResponse,
   UserIdCheckResponse,
+  UserMemuResponse,
 } from 'src/@shared/api/setting/user.response';
 import { IdDto } from 'src/common/request';
 
@@ -140,5 +141,14 @@ export class SettingUserController {
       param.id,
       body.menu,
     );
+  }
+
+  @Get('/:id/menu')
+  @UseGuards(AuthGuard)
+  async getMenu(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<UserMemuResponse> {
+    return await this.retrive.getMenu(req.user.companyId, param.id);
   }
 }
