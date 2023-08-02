@@ -13,6 +13,9 @@ export const USER = {
   username: true,
   name: true,
   email: true,
+  phoneNo: true,
+  birthDate: true,
+  isAdmin: true,
 } satisfies Prisma.UserSelect;
 
 export const PARTNER = {

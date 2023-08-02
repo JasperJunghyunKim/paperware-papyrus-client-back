@@ -1,10 +1,4 @@
-import {
-  IsDateString,
-  IsEmail,
-  IsString,
-  IsStrongPassword,
-  Length,
-} from 'class-validator';
+import { IsDateString, IsEmail, IsString, Length } from 'class-validator';
 import {
   AccountPasswordUpdateRequest,
   AccountPhoneNoUpdateRequest,

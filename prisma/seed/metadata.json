@@ -2980,7 +2980,8 @@
       "userId": "paperware_kjh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kjh@paperware.kr",
-      "phoneNo": "01072470096"
+      "phoneNo": "01072470096",
+      "isAdmin": true
     },
     {
       "id": 4,
@@ -2989,7 +2990,8 @@
       "userId": "paperware_phj",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "phj@paperare.kr",
-      "phoneNo": "01082797702"
+      "phoneNo": "01082797702",
+      "isAdmin": false
     },
     {
       "id": 5,
@@ -2998,7 +3000,8 @@
       "userId": "paperware_ahe",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "ahe@paperware.kr",
-      "phoneNo": "01047936583"
+      "phoneNo": "01047936583",
+      "isAdmin": false
     },
     {
       "id": 6,
@@ -3007,7 +3010,8 @@
       "userId": "samziepaper_kjj",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kjj@samziepaper.com",
-      "phoneNo": "01047655443"
+      "phoneNo": "01047655443",
+      "isAdmin": true
     },
     {
       "id": 7,
@@ -3016,7 +3020,8 @@
       "userId": "samziepaper_kjh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kjh@samziepaper.com",
-      "phoneNo": "01072470096"
+      "phoneNo": "01072470096",
+      "isAdmin": false
     },
     {
       "id": 8,
@@ -3025,7 +3030,8 @@
       "userId": "samziepaper_pym",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "pym@samziepaper.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 9,
@@ -3034,7 +3040,8 @@
       "userId": "samziepaper_kgy",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kgy@samziepaper.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 10,
@@ -3043,7 +3050,8 @@
       "userId": "samziepaper_ksh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "ksh@samziepaper.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 11,
@@ -3052,7 +3060,8 @@
       "userId": "samziepaper_kje",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kje@samziepaper.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 12,
@@ -3061,7 +3070,8 @@
       "userId": "samziepaper_pjj",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "pjj@samziepaper.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 13,
@@ -3070,7 +3080,8 @@
       "userId": "tjep_lsb",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "lsb@tjep.com",
-      "phoneNo": "01053188026"
+      "phoneNo": "01053188026",
+      "isAdmin": true
     },
     {
       "id": 14,
@@ -3079,7 +3090,8 @@
       "userId": "tjep_pjh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "pjh@tjep.com",
-      "phoneNo": "01083255550"
+      "phoneNo": "01083255550",
+      "isAdmin": false
     },
     {
       "id": 15,
@@ -3088,7 +3100,8 @@
       "userId": "tjep_hys",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "hys@tjep.com",
-      "phoneNo": "01048057770"
+      "phoneNo": "01048057770",
+      "isAdmin": false
     },
     {
       "id": 16,
@@ -3097,7 +3110,8 @@
       "userId": "tjep_car",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "car@tjep.com",
-      "phoneNo": "01046530103"
+      "phoneNo": "01046530103",
+      "isAdmin": false
     },
     {
       "id": 17,
@@ -3106,7 +3120,8 @@
       "userId": "samzieprintech_knh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "knh@samzieprintech.com",
-      "phoneNo": "01038588723"
+      "phoneNo": "01038588723",
+      "isAdmin": true
     },
     {
       "id": 18,
@@ -3115,7 +3130,8 @@
       "userId": "samzieprintech_kjj",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kjj@samzieprintech.com",
-      "phoneNo": "01047655443"
+      "phoneNo": "01047655443",
+      "isAdmin": false
     },
     {
       "id": 19,
@@ -3124,7 +3140,8 @@
       "userId": "samzieprintech_yty",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "yty@samzieprintech.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 20,
@@ -3133,7 +3150,8 @@
       "userId": "samzieprintech_ksh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "ksh@samzieprintech.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 21,
@@ -3142,7 +3160,8 @@
       "userId": "pl1",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "lim@pl.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": true
     },
     {
       "id": 22,
@@ -3151,7 +3170,8 @@
       "userId": "pl2",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "pl@pl.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 23,
@@ -3160,7 +3180,8 @@
       "userId": "ktp1",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kt1@ktp.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": true
     },
     {
       "id": 24,
@@ -3169,7 +3190,8 @@
       "userId": "ktp2",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "ktp2@ktp.com",
-      "phoneNo": "01012341234"
+      "phoneNo": "01012341234",
+      "isAdmin": false
     },
     {
       "id": 25,
@@ -3178,7 +3200,8 @@
       "userId": "test_kjh",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "kjh@test.test",
-      "phoneNo": "01072470096"
+      "phoneNo": "01072470096",
+      "isAdmin": false
     },
     {
       "id": 26,
@@ -3187,7 +3210,8 @@
       "userId": "test_phj",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "phj@test.test",
-      "phoneNo": "01082797702"
+      "phoneNo": "01082797702",
+      "isAdmin": false
     },
     {
       "id": 27,
@@ -3196,7 +3220,8 @@
       "userId": "test_ahe",
       "password": "$2a$10$KBijN3PZuUg0Qsa0QmnLIeDUYX.yY5XZQbORctErkYHjHJoxFH5hi",
       "email": "ahe@test.test",
-      "phoneNo": "01047936583"
+      "phoneNo": "01047936583",
+      "isAdmin": true
     }
   ],
   "warehouses": [

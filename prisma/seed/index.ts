@@ -99,6 +99,7 @@ async function main() {
       companyId: u.companyId,
       phoneNo: u.phoneNo,
       birthDate: '1900-01-01T09:00:00.000Z',
+      isAdmin: u.isAdmin,
     })),
   });
 

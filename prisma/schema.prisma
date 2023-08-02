@@ -252,6 +252,7 @@ model User {
   birthDate    DateTime?
   company      Company?       @relation(fields: [companyId], references: [id])
   companyId    Int?
+  isAdmin      Boolean        @default(false)
   DepositEvent DepositEvent[]
 }
 

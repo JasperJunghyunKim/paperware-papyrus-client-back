@@ -6,15 +6,24 @@ import { AuthModule } from '../auth/auth.module';
 import { SettingCompanyController } from './api/company.controller';
 import { SettingCompanyRetriveService } from './service/company.retrive.service';
 import { SettingCompanyChangeService } from './service/company.change.service';
+import { SettingUserController } from './api/user.controller';
+import { SettingUserRetriveService } from './service/user.retrive.service';
+import { SettingUserChangeService } from './service/user.change.service';
 
 @Module({
   imports: [AuthModule],
-  controllers: [SettingAccountController, SettingCompanyController],
+  controllers: [
+    SettingAccountController,
+    SettingCompanyController,
+    SettingUserController,
+  ],
   providers: [
     AccountRetriveService,
     AccountChangeService,
     SettingCompanyRetriveService,
     SettingCompanyChangeService,
+    SettingUserRetriveService,
+    SettingUserChangeService,
   ],
 })
 export class SettingModule {}
