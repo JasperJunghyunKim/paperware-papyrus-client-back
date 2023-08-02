@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'src/@shared';
 import { Util } from 'src/common';
 import { USER } from 'src/common/selector';
@@ -48,5 +48,29 @@ export class SettingUserRetriveService {
       items: items.map((item) => Util.serialize(item)),
       total,
     };
+  }
+
+  async get(
+    companyId: number,
+    id: number,
+  ): Promise<Omit<Model.User, 'company'>> {
+    const user = await this.prisma.user.findFirst({
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        phoneNo: true,
+        email: true,
+        birthDate: true,
+        isActivated: true,
+        isAdmin: true,
+      },
+      where: {
+        id,
+        companyId,
+      },
+    });
+    if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+    return Util.serialize(user);
   }
 }
