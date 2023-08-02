@@ -1531,6 +1531,7 @@ model Authentication {
   phoneNo   String   @unique
   authNo    String
   authKey   String
+  count     Int      @default(1)
   createdAt DateTime @default(now())
 }
 

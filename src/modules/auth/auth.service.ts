@@ -131,6 +131,46 @@ export class AuthService {
     const authKey = ulid();
 
     await this.prisma.$transaction(async (tx) => {
+      const [auth]: {
+        phoneNo: string;
+        authNo: string;
+        authKey: string;
+        count: number;
+        isCreatedToday: bigint;
+      }[] = await tx.$queryRaw`
+        SELECT *, DATE(CONVERT_TZ(createdAt, '+00:00', '+09:00')) = DATE(CONVERT_TZ(NOW(),  '+00:00', '+09:00')) AS isCreatedToday
+          FROM Authentication
+         WHERE phoneNo = ${phoneNo}
+
+         FOR UPDATE;
+      `;
+
+      if (auth) {
+        if (auth.count >= 5 && Number(auth.isCreatedToday) === 1) {
+          throw new BadRequestException(`문자 전송은 1일 5회까지 가능합니다.`);
+        }
+        await tx.authentication.update({
+          data: {
+            phoneNo,
+            authNo,
+            authKey,
+            count: auth.isCreatedToday ? auth.count + 1 : 1,
+            createdAt: new Date(),
+          },
+          where: {
+            phoneNo,
+          },
+        });
+      } else {
+        await tx.authentication.create({
+          data: {
+            phoneNo,
+            authNo,
+            authKey,
+          },
+        });
+      }
+
       await tx.authentication.upsert({
         create: {
           phoneNo,
