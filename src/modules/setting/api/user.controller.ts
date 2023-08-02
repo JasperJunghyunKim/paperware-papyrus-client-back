@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -73,6 +74,9 @@ export class SettingUserController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async create(@Request() req: AuthType, @Body() body: SettingUserCreateDto) {
+    const user = await this.retrive.get(req.user.companyId, req.user.id);
+    if (!user.isAdmin) throw new ForbiddenException();
+
     return await this.change.create({
       companyId: req.user.companyId,
       ...body,
@@ -83,6 +87,9 @@ export class SettingUserController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard)
   async updateAdmin(@Request() req: AuthType, @Param() param: IdDto) {
+    const user = await this.retrive.get(req.user.companyId, req.user.id);
+    if (!user.isAdmin) throw new ForbiddenException();
+
     return await this.change.updateAdmin(req.user.companyId, param.id);
   }
 
@@ -93,6 +100,9 @@ export class SettingUserController {
     @Param() param: IdDto,
     @Body() body: SettingUserUpdateDto,
   ) {
+    const user = await this.retrive.get(req.user.companyId, req.user.id);
+    if (!user.isAdmin) throw new ForbiddenException();
+
     return await this.change.update({
       companyId: req.user.companyId,
       userId: param.id,
@@ -107,6 +117,9 @@ export class SettingUserController {
     @Param() param: IdDto,
     @Body() body: UserActivatedUpdateDto,
   ) {
+    const user = await this.retrive.get(req.user.companyId, req.user.id);
+    if (!user.isAdmin) throw new ForbiddenException();
+
     return await this.change.updateUserActivated(
       req.user.companyId,
       param.id,
