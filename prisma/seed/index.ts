@@ -79,6 +79,7 @@ async function main() {
       bizType: '',
       bizItem: '',
       managedById: c.managedBy,
+      isActivated: false,
     })),
   });
   await prisma.businessRelationship.createMany({

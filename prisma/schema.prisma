@@ -293,6 +293,8 @@ model Company {
   managedBy                      Company?                      @relation("CompanyManagedBy", fields: [managedById], references: [id])
   startDate                      DateTime                      @default(now())
   memo                           String                        @default("")
+  isActivated                    Boolean                       @default(true)
+  isDeleted                      Boolean                       @default(false)
   createdAt                      DateTime                      @default(now())
   srcBusinessRelationship        BusinessRelationship[]        @relation("srcBusinessRelationship")
   dstBusinessRelationship        BusinessRelationship[]        @relation("dstBusinessRelationship")
