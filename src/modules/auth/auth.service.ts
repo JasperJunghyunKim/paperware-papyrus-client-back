@@ -26,37 +26,48 @@ export class AuthService {
     isFirstLogin: boolean;
   }> {
     const { username, password } = params;
-    const user = await this.prisma.user.findUnique({
-      where: {
-        username,
-      },
-      include: {
-        company: true,
-      },
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          username,
+        },
+        include: {
+          company: true,
+        },
+      });
+
+      // const payload = { username: user.username, sub: user.name };
+      // return {
+      //   access_token: this.jwtService.sign(payload),
+      // };
+
+      if (!user || !(await this.comparePassword(password, user.password))) {
+        throw new BadRequestException('Invalid username or password');
+      }
+      if (!user.isActivated) {
+        throw new UnauthorizedException(`사용할 수 없는 계정입니다.`);
+      }
+
+      const accessToken = await this.jwtService.signAsync({
+        id: user.id,
+        companyId: user.company.id,
+        companyRegistrationNumber: user.company.companyRegistrationNumber,
+      });
+
+      await tx.user.update({
+        where: {
+          username: user.username,
+        },
+        data: {
+          lastLoginTime: new Date(),
+        },
+      });
+
+      return {
+        accessToken,
+        isFirstLogin: user.lastLoginTime === null,
+      };
     });
-
-    // const payload = { username: user.username, sub: user.name };
-    // return {
-    //   access_token: this.jwtService.sign(payload),
-    // };
-
-    if (!user || !(await this.comparePassword(password, user.password))) {
-      throw new BadRequestException('Invalid username or password');
-    }
-    if (!user.isActivated) {
-      throw new UnauthorizedException(`사용할 수 없는 계정입니다.`);
-    }
-
-    const accessToken = await this.jwtService.signAsync({
-      id: user.id,
-      companyId: user.company.id,
-      companyRegistrationNumber: user.company.companyRegistrationNumber,
-    });
-
-    return {
-      accessToken,
-      isFirstLogin: user.lastLoginTime === null,
-    };
   }
 
   async validateUser(username: string, pass: string): Promise<any> {
