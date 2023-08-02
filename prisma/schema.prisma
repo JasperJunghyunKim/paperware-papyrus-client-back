@@ -260,6 +260,12 @@ model User {
   menu          UserMenu?
 }
 
+model UserFindPasswordAuth {
+  userId    Int      @unique
+  authKey   String
+  createdAt DateTime @default(now())
+}
+
 // Company & Client
 
 enum CompanyType {

@@ -139,7 +139,7 @@ export class AuthService {
         count: number;
         isCreatedToday: bigint;
       }[] = await tx.$queryRaw`
-        SELECT *, DATE(CONVERT_TZ(createdAt, '+00:00', '+09:00')) = DATE(CONVERT_TZ(NOW(),  '+00:00', '+09:00')) AS isCreatedToday
+        SELECT *, IF(DATE(CONVERT_TZ(createdAt, '+00:00', '+09:00')) = DATE(CONVERT_TZ(NOW(),  '+00:00', '+09:00')), 1, 0) AS isCreatedToday
           FROM Authentication
          WHERE phoneNo = ${phoneNo}
 
@@ -246,6 +246,45 @@ export class AuthService {
     });
   }
 
+  private async checkAuthKeyTx(
+    tx: PrismaTransaction,
+    phoneNo: string,
+    authKey: string,
+  ) {
+    const [auth]: {
+      phoneNo: string;
+      authNo: string;
+      authKey: string;
+    }[] = await tx.$queryRaw`
+      SELECT *
+        FROM Authentication
+       WHERE phoneNo = ${phoneNo}
+
+       FOR UPDATE;
+    `;
+
+    if (!auth)
+      throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
+
+    await this.createSmsAuthenticationLogTx(tx, {
+      type: AuthenticationLogType.AUTH_KEY,
+      phoneNo: auth.phoneNo,
+      authNo: auth.authNo,
+      authKey: auth.authKey,
+      inputAuthKey: authKey,
+    });
+
+    if (auth.authKey !== authKey)
+      throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
+
+    // 확인 후 삭제
+    await tx.authentication.delete({
+      where: {
+        phoneNo,
+      },
+    });
+  }
+
   async findId(params: {
     name: string;
     birthDate: string;
@@ -259,37 +298,7 @@ export class AuthService {
     }[];
   }> {
     return await this.prisma.$transaction(async (tx) => {
-      const [auth]: {
-        phoneNo: string;
-        authNo: string;
-        authKey: string;
-      }[] = await tx.$queryRaw`
-        SELECT *
-          FROM Authentication
-         WHERE phoneNo = ${params.phoneNo}
-
-         FOR UPDATE;
-      `;
-
-      if (!auth)
-        throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
-
-      await this.createSmsAuthenticationLogTx(tx, {
-        type: AuthenticationLogType.AUTH_KEY,
-        phoneNo: auth.phoneNo,
-        authNo: auth.authNo,
-        authKey: auth.authKey,
-        inputAuthKey: params.authKey,
-      });
-
-      if (auth.authKey !== params.authKey)
-        throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
-
-      await tx.authentication.delete({
-        where: {
-          phoneNo: params.phoneNo,
-        },
-      });
+      await this.checkAuthKeyTx(tx, params.phoneNo, params.authKey);
 
       const users: {
         userId: number;
@@ -324,6 +333,97 @@ export class AuthService {
           createdAt: user.createdAt,
         })),
       };
+    });
+  }
+
+  async findPassword(params: {
+    username: string;
+    name: string;
+    birthDate: string;
+    phoneNo: string;
+    authKey: string;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      await this.checkAuthKeyTx(tx, params.phoneNo, params.authKey);
+
+      const [user]: {
+        userId: number;
+      }[] = await tx.$queryRaw`
+         SELECT id AS userId
+              , username AS username
+              , phoneNo AS phoneNo
+              , name AS name
+              , birthDate AS birthDate
+              , createdAt AS createdAt
+          FROM User
+         WHERE username = ${params.username}
+           AND phoneNo = ${params.phoneNo}
+           AND name = ${params.name}
+           AND DATE(CONVERT_TZ(birthDate, '+00:00', '+09:00')) = DATE(CONVERT_TZ(${params.birthDate}, '+00:00', '+09:00'))
+      `;
+
+      if (!user) throw new NotFoundException(`일치하는 회원정보가 없습니다.`);
+
+      const passwordAuthKey = ulid();
+
+      await tx.userFindPasswordAuth.upsert({
+        where: {
+          userId: user.userId,
+        },
+        create: {
+          userId: user.userId,
+          authKey: passwordAuthKey,
+        },
+        update: {
+          authKey: passwordAuthKey,
+          createdAt: new Date(),
+        },
+      });
+
+      return {
+        userId: user.userId,
+        authKey: passwordAuthKey,
+      };
+    });
+  }
+
+  async findPasswordChange(params: {
+    userId: number;
+    authKey: string;
+    password: string;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [auth]: {
+        userId: number;
+        authKey: string;
+        createdAt: string;
+      }[] = await tx.$queryRaw`
+        SELECT *
+          FROM UserFindPasswordAuth
+         WHERE userId = ${params.userId}
+           AND authKey = ${params.authKey}
+      `;
+      if (!auth)
+        throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
+
+      if (dayjs().diff(auth.createdAt, 'minute') > 60)
+        throw new ConflictException(`인증시간 초과입니다. 다시 시도해주세요.`);
+
+      await tx.userFindPasswordAuth.delete({
+        where: {
+          userId: params.userId,
+        },
+      });
+
+      const hashedPassword = await this.hashPassword(params.password);
+      await tx.user.update({
+        where: {
+          id: params.userId,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
     });
   }
 }

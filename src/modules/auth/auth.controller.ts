@@ -12,6 +12,8 @@ import {
   SendSmsAuthenticationDto,
   AuthNoCheckDto,
   FindIdDto,
+  FindPasswordDto,
+  FindPasswordChangeDto,
 } from './dto/auth.request';
 import {
   FindIdResponse,
@@ -48,7 +50,13 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('/find/password')
-  async findPassword() {
-    throw new NotImplementedException();
+  async findPassword(@Body() dto: FindPasswordDto) {
+    return await this.authService.findPassword({ ...dto });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('/find/password/change')
+  async findPasswordAndChange(@Body() dto: FindPasswordChangeDto) {
+    return await this.authService.findPasswordChange({ ...dto });
   }
 }
