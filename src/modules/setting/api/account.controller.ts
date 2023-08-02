@@ -14,6 +14,7 @@ import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountResponse } from 'src/@shared/api/setting/account.response';
 import {
+  AccountPasswordAndPhoneNoUpdateDto,
   AccountPasswordUpdateDto,
   AccountPhoneNoUpdateDto,
   AccountUpdateDto,
@@ -65,6 +66,22 @@ export class SettingAccountController {
   ): Promise<AccountResponse> {
     await this.change.updatePhoneNo(req.user.id, body.phoneNo, body.authKey);
 
+    return await this.retrive.get(req.user.id);
+  }
+
+  /** 최초 로그인시 */
+  @Patch('/password-phone')
+  @UseGuards(AuthGuard)
+  async updatePasswordAndPhoneNo(
+    @Request() req: AuthType,
+    @Body() body: AccountPasswordAndPhoneNoUpdateDto,
+  ): Promise<AccountResponse> {
+    await this.change.updatePasswordAndPhoneNo(
+      req.user.id,
+      body.password,
+      body.phoneNo,
+      body.authKey,
+    );
     return await this.retrive.get(req.user.id);
   }
 }

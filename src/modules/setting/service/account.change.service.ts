@@ -81,4 +81,67 @@ export class AccountChangeService {
       });
     });
   }
+
+  async updatePasswordAndPhoneNo(
+    userId: number,
+    password: string,
+    phoneNo: string,
+    authKey: string,
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+      if (user.lastLoginTime !== null && user.phoneNo) {
+        throw new BadRequestException(
+          `최초 로그인 정보를 이미 입력하셨습니다.`,
+        );
+      }
+
+      const auth = await tx.authentication.findUnique({
+        where: {
+          phoneNo,
+        },
+      });
+      if (!auth || auth.authKey !== authKey)
+        throw new ConflictException(
+          `인증정보가 올바르지 않습니다. 다시 시도해주세요.`,
+        );
+
+      await this.authService.createSmsAuthenticationLogTx(tx, {
+        type: AuthenticationLogType.AUTH_KEY,
+        phoneNo: auth.phoneNo,
+        authKey: auth.authKey,
+        authNo: auth.authNo,
+        inputAuthKey: authKey,
+      });
+
+      await tx.authentication.delete({
+        where: {
+          phoneNo,
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          phoneNo,
+        },
+      });
+
+      const hashedPassword = await this.authService.hashPassword(password);
+      await tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
+    });
+  }
 }
