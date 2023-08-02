@@ -8,8 +8,15 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './auth.dto';
-import { SendSmsAuthenticationDto, AuthNoCheckDto } from './dto/auth.request';
-import { LoginResponse } from 'src/@shared/api/auth/auth.response';
+import {
+  SendSmsAuthenticationDto,
+  AuthNoCheckDto,
+  FindIdDto,
+} from './dto/auth.request';
+import {
+  FindIdResponse,
+  LoginResponse,
+} from 'src/@shared/api/auth/auth.response';
 
 @Controller('auth')
 export class AuthController {
@@ -35,8 +42,8 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('/find/id')
-  async findId() {
-    throw new NotImplementedException();
+  async findId(@Body() dto: FindIdDto): Promise<FindIdResponse> {
+    return await this.authService.findId({ ...dto });
   }
 
   @HttpCode(HttpStatus.OK)

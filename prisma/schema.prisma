@@ -254,6 +254,7 @@ model User {
   companyId     Int?
   isActivated   Boolean        @default(true)
   isAdmin       Boolean        @default(false)
+  createdAt     DateTime       @default(now())
   lastLoginTime DateTime?
   DepositEvent  DepositEvent[]
   menu          UserMenu?

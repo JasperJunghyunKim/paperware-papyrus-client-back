@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -241,6 +242,87 @@ export class AuthService {
 
       return {
         authKey: check.authKey,
+      };
+    });
+  }
+
+  async findId(params: {
+    name: string;
+    birthDate: string;
+    phoneNo: string;
+    authKey: string;
+  }): Promise<{
+    items: {
+      companyName: string;
+      username: string;
+      createdAt: string;
+    }[];
+  }> {
+    return await this.prisma.$transaction(async (tx) => {
+      const [auth]: {
+        phoneNo: string;
+        authNo: string;
+        authKey: string;
+      }[] = await tx.$queryRaw`
+        SELECT *
+          FROM Authentication
+         WHERE phoneNo = ${params.phoneNo}
+
+         FOR UPDATE;
+      `;
+
+      if (!auth)
+        throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
+
+      await this.createSmsAuthenticationLogTx(tx, {
+        type: AuthenticationLogType.AUTH_KEY,
+        phoneNo: auth.phoneNo,
+        authNo: auth.authNo,
+        authKey: auth.authKey,
+        inputAuthKey: params.authKey,
+      });
+
+      if (auth.authKey !== params.authKey)
+        throw new ConflictException(`인증에러입니다. 다시 시도해주세요.`);
+
+      await tx.authentication.delete({
+        where: {
+          phoneNo: params.phoneNo,
+        },
+      });
+
+      const users: {
+        userId: number;
+        username: string;
+        phoneNo: string;
+        name: string;
+        birthDate: string;
+        createdAt: string;
+        companyName: string;
+      }[] = await tx.$queryRaw`
+        SELECT u.id AS userId
+              , u.username AS username
+              , u.phoneNo AS phoneNo
+              , u.name AS name
+              , u.birthDate AS birthDate
+              , u.createdAt AS createdAt
+              , c.businessName AS companyName
+          FROM User       AS u
+          JOIN Company    AS c        ON c.id = u.companyId
+         WHERE u.phoneNo = ${params.phoneNo}
+           AND u.name = ${params.name}
+           AND DATE(CONVERT_TZ(u.birthDate, '+00:00', '+09:00')) = DATE(CONVERT_TZ(${params.birthDate}, '+00:00', '+09:00'))
+      `;
+
+      if (users.length === 0)
+        throw new NotFoundException(`일치하는 회원정보가 없습니다.`);
+
+      return {
+        items: users.map((user) => ({
+          companyName: user.companyName,
+          username: user.username,
+          createdAt: user.createdAt,
+        })),
       };
     });
   }
