@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ShippingType } from '@prisma/client';
+import { ShippingStatus, ShippingType } from '@prisma/client';
 import * as dayjs from 'dayjs';
 import * as utc from 'dayjs/plugin/utc';
 import * as timezone from 'dayjs/plugin/timezone';
@@ -45,7 +45,7 @@ export class ShippingChangeService {
             id: managerId,
           },
         });
-        if (!manager) throw new NotFoundException(`존재하지 않는 유저입니다.`);
+        if (!manager) throw new NotFoundException(`존재하지 않는 직원 입니다.`);
       }
       if (companyRegistrationNumber) {
         const partner = await tx.partner.findUnique({
@@ -266,6 +266,90 @@ export class ShippingChangeService {
       return {
         id: shipping.id,
       };
+    });
+  }
+
+  async unassignManager(companyId: number, shippingId: number) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [shipping]: {
+        id: number;
+        type: ShippingType;
+        status: ShippingStatus;
+        managerId: number | null;
+      }[] = await tx.$queryRaw`
+        SELECT *
+          FROM Shipping
+         WHERE id = ${shippingId}
+           AND companyId = ${companyId}
+           AND isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+      if (!shipping)
+        throw new NotFoundException(`존재하지 않는 배송정보 입니다.`);
+      if (!shipping.managerId)
+        throw new ConflictException(`담당자가 지정되어 있지 않습니다.`);
+
+      await tx.shipping.update({
+        where: {
+          id: shippingId,
+        },
+        data: {
+          manager: {
+            disconnect: true,
+          },
+        },
+      });
+    });
+  }
+
+  async assignManager(
+    companyId: number,
+    shippingId: number,
+    managerId: number,
+  ) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [shipping]: {
+        id: number;
+        type: ShippingType;
+        status: ShippingStatus;
+        managerId: number | null;
+      }[] = await tx.$queryRaw`
+        SELECT *
+          FROM Shipping
+         WHERE id = ${shippingId}
+           AND companyId = ${companyId}
+           AND isDeleted = ${false}
+
+        FOR UPDATE;
+      `;
+      if (!shipping)
+        throw new NotFoundException(`존재하지 않는 배송정보 입니다.`);
+      if (shipping.type !== 'INHOUSE')
+        throw new ConflictException(`담당자를 지정할 수 없는 배송타입입니다.`);
+      if (shipping.managerId)
+        throw new ConflictException(`이미 담당자가 지정되어 있습니다.`);
+
+      const manager = await tx.user.findUnique({
+        where: {
+          id: managerId,
+        },
+      });
+      if (!manager || manager.companyId !== companyId)
+        throw new NotFoundException(`존재하지 않는 직원 입니다.`);
+
+      await tx.shipping.update({
+        where: {
+          id: shippingId,
+        },
+        data: {
+          manager: {
+            connect: {
+              id: managerId,
+            },
+          },
+        },
+      });
     });
   }
 }

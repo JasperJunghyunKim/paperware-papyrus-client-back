@@ -12,6 +12,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import {
+  ShippingAssignMangerRequest,
   ShippingCreateRequest,
   ShippingListQuery,
   ShippingUpdateRequest,
@@ -123,4 +124,12 @@ export class ShippingUpdateDto implements ShippingUpdateRequest {
   @IsString()
   @Length(0, 200)
   readonly memo: string | null = null;
+}
+
+/** 담당자 배정 */
+export class ShippingAssignMangerDto implements ShippingAssignMangerRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly managerId: number;
 }

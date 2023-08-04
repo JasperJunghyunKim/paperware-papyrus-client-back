@@ -9,12 +9,15 @@ import {
   Param,
   Delete,
   Put,
+  NotImplementedException,
+  Patch,
 } from '@nestjs/common';
 import { ShippingChangeService } from '../service/shipping-change.service';
 import { ShippingRetriveService } from '../service/shipping-retrive.service';
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import {
+  ShippingAssignMangerDto,
   ShippingConnectInvoicesRequestDto,
   ShippingCreateRequestDto,
   ShippingListQueryDto,
@@ -144,5 +147,27 @@ export class ShippingController {
       shippingId: param.id,
       ...body,
     });
+  }
+
+  /** 담당자 배정 취소 */
+  @Delete('/:id/manager')
+  @UseGuards(AuthGuard)
+  async unassignManager(@Request() req: AuthType, @Param() param: IdDto) {
+    return await this.change.unassignManager(req.user.companyId, param.id);
+  }
+
+  /** 담당자 배정 */
+  @Patch('/:id/manager')
+  @UseGuards(AuthGuard)
+  async assignManager(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: ShippingAssignMangerDto,
+  ) {
+    return await this.change.assignManager(
+      req.user.companyId,
+      param.id,
+      body.managerId,
+    );
   }
 }
