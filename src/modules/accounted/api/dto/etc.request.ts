@@ -1,51 +1,49 @@
 import { AccountedType, Method, Subject } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 import { ByEtcCreateRequest, ByEtcUpdateRequest } from 'src/@shared/api';
 
 export class ByEtcCreateRequestDto implements ByEtcCreateRequest {
-  @IsNumber()
-  readonly companyId: number;
-
   @IsString()
   readonly companyRegistrationNumber: string;
-
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
 
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 }
 
 export class ByEtcUpdateRequestDto implements ByEtcUpdateRequest {
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
-
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 }

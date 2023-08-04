@@ -21,6 +21,8 @@ import {
   ByEtcUpdateRequestDto,
 } from './dto/etc.request';
 import { ByEtcResponse } from './dto/etc.response';
+import { AccountedTypeDto } from './dto/accounted.request';
+import { IdDto } from 'src/common/request';
 
 @Controller('/accounted')
 export class ByEtcController {
@@ -47,23 +49,30 @@ export class ByEtcController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createEtc(
-    @Param('accountedType') accountedType: AccountedType,
+    @Request() req: AuthType,
+    @Param() param: AccountedTypeDto,
     @Body() byEtcCreateRequest: ByEtcCreateRequestDto,
   ): Promise<void> {
-    await this.byEtcChangeService.createEtc(accountedType, byEtcCreateRequest);
+    await this.byEtcChangeService.createEtc(
+      req.user.companyId,
+      param.accountedType,
+      byEtcCreateRequest,
+    );
   }
 
-  @Patch('accountedType/:accountedType/accountedId/:accountedId/etc')
+  @Patch('accountedType/:accountedType/accountedId/:id/etc')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateEtc(
-    @Param('accountedType') accountedType: AccountedType,
-    @Param('accountedId') accountedId: number,
+    @Request() req: AuthType,
+    @Param() idParam: IdDto,
+    @Param() typeParam: AccountedTypeDto,
     @Body() byEtcUpdateRequest: ByEtcUpdateRequestDto,
   ): Promise<void> {
     await this.byEtcChangeService.updateEtc(
-      accountedType,
-      accountedId,
+      req.user.companyId,
+      typeParam.accountedType,
+      idParam.id,
       byEtcUpdateRequest,
     );
   }
