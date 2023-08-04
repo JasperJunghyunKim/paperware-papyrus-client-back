@@ -1009,6 +1009,13 @@ export const SHIPPING = {
   companyRegistrationNumber: true,
   price: true,
   memo: true,
+  createdAt: true,
+  createdByUser: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   company: {
     select: COMPANY,
   },

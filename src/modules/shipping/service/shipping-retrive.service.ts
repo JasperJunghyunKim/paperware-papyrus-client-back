@@ -3,10 +3,14 @@ import { InvoiceStatus } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
 import { PrismaService } from 'src/core';
+import { InvoiceService } from './invoice.service';
 
 @Injectable()
 export class ShippingRetriveService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly invoiceService: InvoiceService,
+  ) {}
 
   async getList(params: {
     skip?: number;
@@ -43,7 +47,11 @@ export class ShippingRetriveService {
       take: params.take,
       select: {
         ...Selector.SHIPPING,
-        invoice: { select: { invoiceStatus: true } },
+        invoice: {
+          include: {
+            packaging: true,
+          },
+        },
         _count: {
           select: {
             invoice: true,
@@ -55,7 +63,11 @@ export class ShippingRetriveService {
     return shippings.map((shipping) =>
       Util.serialize({
         ...shipping,
+        invoice: shipping.invoice.map((invoice) => ({
+          invoiceStatus: invoice.invoiceStatus,
+        })),
         invoiceCount: shipping._count.invoice,
+        invoiceWeight: this.invoiceService.getInvoicesWeight(shipping.invoice),
       }),
     );
   }
