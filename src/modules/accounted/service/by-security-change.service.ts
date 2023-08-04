@@ -144,36 +144,36 @@ export class BySecurityChangeService {
     accountedId: number,
     bySecurityUpdateRequest: BySecurityUpdateRequestDto,
   ): Promise<void> {
-    const check = await this.prisma.accounted.findFirst({
-      where: {
-        id: accountedId,
-        accountedType,
-        companyId,
-        isDeleted: false,
-      },
-    });
-    if (!check)
-      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
-    if (check.accountedMethod !== 'PROMISSORY_NOTE')
-      throw new ConflictException(`수금/지급 수단 에러`);
-
-    if (accountedType === AccountedType.PAID) {
-      // 1.  지급일때...
-      await this.prisma.accounted.update({
-        data: {
-          accountedType,
-          accountedSubject: bySecurityUpdateRequest.accountedSubject,
-          accountedMethod: bySecurityUpdateRequest.accountedMethod,
-          accountedDate: bySecurityUpdateRequest.accountedDate,
-          memo: bySecurityUpdateRequest.memo,
-        },
+    await this.prisma.$transaction(async (tx) => {
+      const check = await tx.accounted.findFirst({
         where: {
           id: accountedId,
+          accountedType,
+          companyId,
+          isDeleted: false,
         },
       });
-    } else {
-      // 2.  수금일때...
-      await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (!check)
+        throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+      if (check.accountedMethod !== 'PROMISSORY_NOTE')
+        throw new ConflictException(`수금/지급 수단 에러`);
+
+      if (accountedType === AccountedType.PAID) {
+        // 1.  지급일때...
+        await tx.accounted.update({
+          data: {
+            accountedType,
+            accountedSubject: bySecurityUpdateRequest.accountedSubject,
+            accountedMethod: bySecurityUpdateRequest.accountedMethod,
+            accountedDate: bySecurityUpdateRequest.accountedDate,
+            memo: bySecurityUpdateRequest.memo,
+          },
+          where: {
+            id: accountedId,
+          },
+        });
+      } else {
+        // 2.  수금일때...
         await tx.accounted.update({
           data: {
             accountedType,
@@ -192,19 +192,19 @@ export class BySecurityChangeService {
             id: accountedId,
           },
         });
-      });
-    }
+      }
+    });
   }
 
   async deleteBySecurity(
     accountedType: AccountedType,
     accountedId: number,
   ): Promise<void> {
-    if (accountedType === AccountedType.PAID) {
+    await this.prisma.$transaction(async (tx) => {
       // 1. 지급일때...
       // 1.1 지급 생성은 삭제 한다.
       // 1.2 유가증권에서는 삭제하지 않고, 유가증권 상태를 기본(NONE)으로 변경한다.
-      this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (accountedType === AccountedType.PAID) {
         const result = await tx.accounted.findFirst({
           select: {
             bySecurity: {
@@ -249,13 +249,12 @@ export class BySecurityChangeService {
             id: result.bySecurity.security.id,
           },
         });
-      });
-    } else {
+      }
       // 2.  수금일때...
       // 2.1 유가증권의 상태가 기본일때만 삭제 한다.
       // 2.2 유가증권 테이블에 삭제한다. isDeleted = true
       // 2.3 회계 테이블에 삭제한다. isDeleted = true 4번과 동일
-      await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      else {
         const result = await tx.accounted.findFirst({
           select: {
             bySecurity: {
@@ -306,7 +305,7 @@ export class BySecurityChangeService {
             id: result.bySecurity.security.id,
           },
         });
-      });
-    }
+      }
+    });
   }
 }
