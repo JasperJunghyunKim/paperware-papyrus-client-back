@@ -243,22 +243,23 @@ model StockEvent {
 
 // User
 model User {
-  id            Int            @id @default(autoincrement())
-  username      String         @unique
-  password      String
-  name          String
-  phoneNo       String         @default("")
-  email         String?
-  birthDate     DateTime?
-  company       Company?       @relation(fields: [companyId], references: [id])
-  companyId     Int?
-  isActivated   Boolean        @default(true)
-  isAdmin       Boolean        @default(false)
-  createdAt     DateTime       @default(now())
-  lastLoginTime DateTime?
-  DepositEvent  DepositEvent[]
-  menu          UserMenu?
-  Shipping      Shipping[]
+  id              Int            @id @default(autoincrement())
+  username        String         @unique
+  password        String
+  name            String
+  phoneNo         String         @default("")
+  email           String?
+  birthDate       DateTime?
+  company         Company?       @relation(fields: [companyId], references: [id])
+  companyId       Int?
+  isActivated     Boolean        @default(true)
+  isAdmin         Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  lastLoginTime   DateTime?
+  DepositEvent    DepositEvent[]
+  menu            UserMenu?
+  shipping        Shipping[]
+  createdShipping Shipping[]     @relation("createdBy")
 }
 
 model UserFindPasswordAuth {
@@ -737,11 +738,14 @@ model Shipping {
   status                    ShippingStatus @default(PREPARING)
   company                   Company        @relation(fields: [companyId], references: [id])
   invoice                   Invoice[]
-  userId                    Int?
-  user                      User?          @relation(fields: [userId], references: [id])
+  managerId                 Int?
+  manager                   User?          @relation(fields: [managerId], references: [id])
   companyRegistrationNumber String?
   memo                      String         @default("")
   isDeleted                 Boolean        @default(false)
+  createdAt                 DateTime       @default(now())
+  createdById               Int
+  createdByUser             User           @relation("createdBy", fields: [createdById], references: [id])
 }
 
 enum InvoiceStatus {

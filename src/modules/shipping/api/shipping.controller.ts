@@ -66,6 +66,7 @@ export class ShippingController {
   ): Promise<ShippingCreateResponse> {
     body.validate();
     return await this.change.create({
+      userId: req.user.id,
       companyId: req.user.companyId,
       ...body,
     });

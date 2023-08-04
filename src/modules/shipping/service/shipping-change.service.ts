@@ -13,24 +13,31 @@ export class ShippingChangeService {
   constructor(private prisma: PrismaService) {}
 
   async create(params: {
+    userId: number;
     companyId: number;
     type: ShippingType;
-    userId: number | null;
+    managerId: number | null;
     companyRegistrationNumber: string | null;
     price: number | null;
     memo: string | null;
   }) {
-    const { companyId, type, userId, companyRegistrationNumber, price, memo } =
-      params;
+    const {
+      companyId,
+      type,
+      managerId,
+      companyRegistrationNumber,
+      price,
+      memo,
+    } = params;
 
-    if (userId) {
-      const user = await this.prisma.user.findFirst({
+    if (managerId) {
+      const manager = await this.prisma.user.findFirst({
         where: {
           companyId,
-          id: userId,
+          id: managerId,
         },
       });
-      if (!user) throw new NotFoundException(`존재하지 않는 유저입니다.`);
+      if (!manager) throw new NotFoundException(`존재하지 않는 유저입니다.`);
     }
     if (companyRegistrationNumber) {
       const partner = await this.prisma.partner.findUnique({
@@ -47,13 +54,14 @@ export class ShippingChangeService {
 
     const shipping = await this.prisma.shipping.create({
       data: {
-        shippingNo: ulid(),
-        companyId,
         type,
-        userId,
-        companyRegistrationNumber,
+        shippingNo: ulid(),
         price: price || 0,
+        companyId,
+        managerId,
+        companyRegistrationNumber,
         memo: memo || '',
+        createdById: params.userId,
       },
     });
 

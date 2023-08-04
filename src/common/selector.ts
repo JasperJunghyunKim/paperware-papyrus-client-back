@@ -997,8 +997,18 @@ export const TASK = {
 
 export const SHIPPING = {
   id: true,
+  type: true,
   shippingNo: true,
   status: true,
+  manager: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  companyRegistrationNumber: true,
+  price: true,
+  memo: true,
   company: {
     select: COMPANY,
   },

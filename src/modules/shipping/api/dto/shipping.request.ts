@@ -43,7 +43,7 @@ export class ShippingCreateRequestDto implements ShippingCreateRequest {
   @IsInt()
   @Type(() => Number)
   @IsPositive()
-  readonly userId: number | null = null;
+  readonly managerId: number | null = null;
 
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
@@ -73,7 +73,7 @@ export class ShippingCreateRequestDto implements ShippingCreateRequest {
           );
         break;
       case 'OUTSOURCE':
-        if (this.userId !== null)
+        if (this.managerId !== null)
           throw new BadRequestException(
             `외주배송은 배송담당자를 선택할 수 없습니다.`,
           );
@@ -83,7 +83,7 @@ export class ShippingCreateRequestDto implements ShippingCreateRequest {
           );
         break;
       case 'PARTNER_PICKUP':
-        if (this.userId !== null)
+        if (this.managerId !== null)
           throw new BadRequestException(
             `거래처 픽업은 배송담당자를 선택할 수 없습니다.`,
           );
