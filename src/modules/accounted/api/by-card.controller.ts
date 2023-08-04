@@ -73,12 +73,13 @@ export class ByCardController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateByCard(
-    @Param() param: IdDto & AccountedTypeDto,
+    @Param() idParam: IdDto,
+    @Param() typeParam: AccountedTypeDto,
     @Body() byCardUpdateRequest: ByCardUpdateRequestDto,
   ): Promise<void> {
     await this.byCardChangeService.updateCard(
-      param.accountedType,
-      param.id,
+      typeParam.accountedType,
+      idParam.id,
       byCardUpdateRequest,
     );
   }
