@@ -1,4 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AccountedType,
   DrawedStatus,
@@ -19,30 +24,48 @@ export class BySecurityChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBySecurity(
+    companyId: number,
     accountedType: AccountedType,
     bySecurityCreateRequest: BySecurityCreateRequestDto,
   ): Promise<void> {
     if (accountedType === AccountedType.PAID) {
-      this.prisma.$transaction(async (tx) => {
+      await this.prisma.$transaction(async (tx) => {
+        const [security]: {
+          id: number;
+          securityStatus: SecurityStatus;
+        }[] = await tx.$queryRaw`
+          SELECT *
+            FROM Security 
+           WHERE id = ${bySecurityCreateRequest.securityId}
+             AND companyId = ${companyId}
+             AND isDeleted = ${false}
+
+           FOR UPDATE;
+        `;
+        if (!security)
+          throw new BadRequestException(`존재하지 않는 유가증권 입니다.`);
+        if (security.securityStatus !== 'NONE')
+          throw new ConflictException(`사용할 수 없는 유가증권 입니다.`);
+
         // 지급일때...
         await tx.accounted.create({
           data: {
             // TODO: company, partner 확인
             company: {
               connect: {
-                id: bySecurityCreateRequest.companyId,
+                id: companyId,
               },
             },
             partnerCompanyRegistrationNumber:
               bySecurityCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: bySecurityCreateRequest.accountedSubject,
-            accountedMethod: bySecurityCreateRequest.accountedMethod,
+            accountedMethod: 'PROMISSORY_NOTE',
             accountedDate: bySecurityCreateRequest.accountedDate,
-            memo: bySecurityCreateRequest.memo,
+            memo: bySecurityCreateRequest.memo || '',
             bySecurity: {
               create: {
-                securityId: bySecurityCreateRequest.security.securityId,
+                securityId: bySecurityCreateRequest.securityId,
               },
             },
           },
@@ -53,7 +76,7 @@ export class BySecurityChangeService {
             securityStatus: SecurityStatus.ENDORSED,
           },
           where: {
-            id: bySecurityCreateRequest.security.securityId,
+            id: bySecurityCreateRequest.securityId,
           },
         });
       });
@@ -65,19 +88,19 @@ export class BySecurityChangeService {
           // TODO: company, partner 확인
           company: {
             connect: {
-              id: bySecurityCreateRequest.companyId,
+              id: companyId,
             },
           },
           partnerCompanyRegistrationNumber:
             bySecurityCreateRequest.companyRegistrationNumber,
           accountedType,
           accountedSubject: bySecurityCreateRequest.accountedSubject,
-          accountedMethod: bySecurityCreateRequest.accountedMethod,
+          accountedMethod: 'PROMISSORY_NOTE',
           accountedDate: bySecurityCreateRequest.accountedDate,
-          memo: bySecurityCreateRequest.memo ?? '',
+          memo: bySecurityCreateRequest.memo || '',
           bySecurity: {
             create: {
-              endorsement: bySecurityCreateRequest.endorsement,
+              endorsement: bySecurityCreateRequest.endorsement || '',
               endorsementType: bySecurityCreateRequest.endorsementType,
               security: {
                 create: {
@@ -86,24 +109,24 @@ export class BySecurityChangeService {
                     bySecurityCreateRequest.security.securitySerial,
                   securityAmount:
                     bySecurityCreateRequest.security.securityAmount,
-                  securityStatus:
-                    bySecurityCreateRequest.security.securityStatus,
+                  securityStatus: 'NONE',
                   drawedStatus: DrawedStatus.ACCOUNTED,
                   drawedDate: bySecurityCreateRequest.security.drawedDate,
                   drawedBank: bySecurityCreateRequest.security.drawedBank,
                   drawedBankBranch:
-                    bySecurityCreateRequest.security.drawedBankBranch,
-                  drawedRegion: bySecurityCreateRequest.security.drawedRegion,
-                  drawer: bySecurityCreateRequest.security.drawer,
+                    bySecurityCreateRequest.security.drawedBankBranch || '',
+                  drawedRegion:
+                    bySecurityCreateRequest.security.drawedRegion || '',
+                  drawer: bySecurityCreateRequest.security.drawer || '',
                   maturedDate: bySecurityCreateRequest.security.maturedDate,
                   payingBank: bySecurityCreateRequest.security.payingBank,
                   payingBankBranch:
-                    bySecurityCreateRequest.security.payingBankBranch,
-                  payer: bySecurityCreateRequest.security.payer,
-                  memo: bySecurityCreateRequest.memo ?? '',
+                    bySecurityCreateRequest.security.payingBankBranch || '',
+                  payer: bySecurityCreateRequest.security.payer || '',
+                  memo: bySecurityCreateRequest.memo || '',
                   company: {
                     connect: {
-                      id: bySecurityCreateRequest.companyId,
+                      id: companyId,
                     },
                   },
                 },
@@ -116,32 +139,26 @@ export class BySecurityChangeService {
   }
 
   async updateBySecurity(
+    companyId: number,
     accountedType: AccountedType,
     accountedId: number,
     bySecurityUpdateRequest: BySecurityUpdateRequestDto,
   ): Promise<void> {
+    const check = await this.prisma.accounted.findFirst({
+      where: {
+        id: accountedId,
+        accountedType,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!check)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+    if (check.accountedMethod !== 'PROMISSORY_NOTE')
+      throw new ConflictException(`수금/지급 수단 에러`);
+
     if (accountedType === AccountedType.PAID) {
-      // 유가증권 정보에 상태가 기본값인지 확인을 먼저한다. 그게 아닐경우 수정을 못하게 한다.
-      const resultSecurity = await this.prisma.security.findFirst({
-        select: {
-          securityStatus: true,
-        },
-        where: {
-          id: bySecurityUpdateRequest.security.securityId,
-          NOT: {
-            securityStatus: SecurityStatus.ENDORSED,
-          },
-        },
-      });
-
       // 1.  지급일때...
-      // 1.1 유가증권의 상태가 배서지급일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
-      if (!isNil(resultSecurity)) {
-        throw new BySecurityException(BySecurityError.BY_SECURITY_001, {
-          bySecurityId: bySecurityUpdateRequest.security.securityId,
-        });
-      }
-
       await this.prisma.accounted.update({
         data: {
           accountedType,
@@ -149,11 +166,6 @@ export class BySecurityChangeService {
           accountedMethod: bySecurityUpdateRequest.accountedMethod,
           accountedDate: bySecurityUpdateRequest.accountedDate,
           memo: bySecurityUpdateRequest.memo,
-          bySecurity: {
-            update: {
-              securityId: bySecurityUpdateRequest.security.securityId,
-            },
-          },
         },
         where: {
           id: accountedId,
@@ -161,43 +173,7 @@ export class BySecurityChangeService {
       });
     } else {
       // 2.  수금일때...
-      // 2.1 유가증권의 상태가 기본일때만 수정한다. (거래처, 수금수단, 수금금액 제외)
-      // 2.2 지급에 등록된 정보가 있는지 확인
-      const resultAccounted = await this.prisma.accounted.findFirst({
-        select: {
-          accountedType: true,
-          accountedSubject: true,
-          accountedMethod: true,
-          bySecurity: {
-            select: {
-              security: {
-                select: {
-                  id: true,
-                  securityStatus: true,
-                },
-              },
-            },
-          },
-        },
-        where: {
-          id: accountedId,
-          accountedType: AccountedType.PAID,
-          bySecurity: {
-            security: {
-              id: bySecurityUpdateRequest.security.securityId,
-            },
-          },
-        },
-      });
-
-      // 해당 row가 있으면 지급에 등록된 정보가 있다는 뜻이다.
-      if (!isNil(resultAccounted)) {
-        throw new BySecurityException(BySecurityError.BY_SECURITY_002, {
-          bySecurityId: bySecurityUpdateRequest.security.securityId,
-        });
-      }
-
-      this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await tx.accounted.update({
           data: {
             accountedType,
@@ -214,30 +190,6 @@ export class BySecurityChangeService {
           },
           where: {
             id: accountedId,
-          },
-        });
-
-        await tx.security.updateMany({
-          data: {
-            id: bySecurityUpdateRequest.security.securityId,
-            securityType: bySecurityUpdateRequest.security.securityType,
-            securitySerial: bySecurityUpdateRequest.security.securitySerial,
-            securityAmount: bySecurityUpdateRequest.security.securityAmount,
-            securityStatus: bySecurityUpdateRequest.security.securityStatus,
-            drawedStatus: DrawedStatus.ACCOUNTED,
-            drawedDate: bySecurityUpdateRequest.security.drawedDate,
-            drawedBank: bySecurityUpdateRequest.security.drawedBank,
-            drawedBankBranch: bySecurityUpdateRequest.security.drawedBankBranch,
-            drawedRegion: bySecurityUpdateRequest.security.drawedRegion,
-            drawer: bySecurityUpdateRequest.security.drawer,
-            maturedDate: bySecurityUpdateRequest.security.maturedDate,
-            payingBank: bySecurityUpdateRequest.security.payingBank,
-            payingBankBranch: bySecurityUpdateRequest.security.payingBankBranch,
-            payer: bySecurityUpdateRequest.security.payer,
-            memo: bySecurityUpdateRequest.memo,
-          },
-          where: {
-            id: bySecurityUpdateRequest.security.securityId,
           },
         });
       });

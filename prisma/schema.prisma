@@ -1310,7 +1310,7 @@ model BySecurity {
   /// 배서구분
   endorsementType EndorsementType?
   /// 배서자
-  endorsement     String?
+  endorsement     String           @default("")
   /// 삭제 여부
   isDeleted       Boolean          @default(false)
   /// 유가증권 식별자

@@ -70,6 +70,7 @@ export class ByOffsetController {
     @Body() byOffsetUpdateRequest: ByOffsetUpdateRequestDto,
   ): Promise<void> {
     await this.byOffsetChangeService.updateOffset(
+      req.user.companyId,
       typeParam.accountedType,
       idParam.id,
       byOffsetUpdateRequest,

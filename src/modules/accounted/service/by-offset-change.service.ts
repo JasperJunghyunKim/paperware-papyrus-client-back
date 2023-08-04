@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountedType, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import {
@@ -94,10 +98,24 @@ export class ByOffsetChangeService {
   }
 
   async updateOffset(
+    companyId: number,
     accountedType: AccountedType,
     accountedId: number,
     byOffsetUpdateRequest: ByOffsetUpdateRequestDto,
   ): Promise<void> {
+    const check = await this.prisma.accounted.findFirst({
+      where: {
+        id: accountedId,
+        accountedType,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!check)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+    if (check.accountedMethod !== 'OFFSET')
+      throw new ConflictException(`수금/지급 수단 에러`);
+
     await this.prisma.$transaction(async (tx) => {
       let result;
       if (accountedType === 'PAID') {
