@@ -64,11 +64,13 @@ export class ByBankAccountController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateByBankAccount(
+    @Request() req: AuthType,
     @Param() idParam: IdDto,
     @Param() typeParam: AccountedTypeDto,
     @Body() byBankAccountUpdateRequest: ByBankAccountUpdateRequestDto,
   ): Promise<void> {
     await this.byBankAccountChangeService.updateBankAccount(
+      req.user.companyId,
       typeParam.accountedType,
       idParam.id,
       byBankAccountUpdateRequest,

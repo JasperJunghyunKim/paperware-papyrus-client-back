@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
@@ -50,30 +54,40 @@ export class ByBankAccountChangeService {
   }
 
   async updateBankAccount(
+    companyId: number,
     accountedType: AccountedType,
     accountedId: number,
     byBankUpdateRequest: ByBankAccountUpdateRequestDto,
   ): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.accounted.update({
-          data: {
-            accountedType,
-            accountedSubject: byBankUpdateRequest.accountedSubject,
-            accountedDate: byBankUpdateRequest.accountedDate,
-            memo: byBankUpdateRequest.memo || null,
-            byBankAccount: {
-              update: {
-                bankAccountAmount: byBankUpdateRequest.amount,
-              },
-            },
+    const check = await this.prisma.accounted.findFirst({
+      where: {
+        id: accountedId,
+        accountedType,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!check)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+    if (check.accountedMethod !== 'ACCOUNT_TRANSFER')
+      throw new ConflictException(`수금/지급 수단 에러`);
+
+    await this.prisma.accounted.update({
+      data: {
+        accountedType,
+        accountedSubject: byBankUpdateRequest.accountedSubject,
+        accountedDate: byBankUpdateRequest.accountedDate,
+        memo: byBankUpdateRequest.memo || null,
+        byBankAccount: {
+          update: {
+            bankAccountAmount: byBankUpdateRequest.amount,
           },
-          where: {
-            id: accountedId,
-          },
-        }),
-      ),
-    );
+        },
+      },
+      where: {
+        id: accountedId,
+      },
+    });
   }
 
   async deleteBankAccount(

@@ -21,6 +21,8 @@ import {
   ByCashCreateRequestDto,
   ByCashUpdateRequestDto,
 } from './dto/cash.request';
+import { AccountedTypeDto } from './dto/accounted.request';
+import { IdDto } from 'src/common/request';
 
 @Controller('/accounted')
 export class ByCashController {
@@ -47,26 +49,30 @@ export class ByCashController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createCash(
-    @Param('accountedType') accountedType: AccountedType,
+    @Request() req: AuthType,
+    @Param() param: AccountedTypeDto,
     @Body() byCashCreateRequest: ByCashCreateRequestDto,
   ): Promise<void> {
     await this.byCashChangeService.createCash(
-      accountedType,
+      req.user.companyId,
+      param.accountedType,
       byCashCreateRequest,
     );
   }
 
-  @Patch('accountedType/:accountedType/accountedId/:accountedId/cash')
+  @Patch('accountedType/:accountedType/accountedId/:id/cash')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateCash(
-    @Param('accountedType') accountedType: AccountedType,
-    @Param('accountedId') accountedId: number,
+    @Request() req: AuthType,
+    @Param() idParam: IdDto,
+    @Param() typeParm: AccountedTypeDto,
     @Body() byCashUpdateRequest: ByCashUpdateRequestDto,
   ): Promise<void> {
     await this.byCashChangeService.updateCash(
-      accountedType,
-      accountedId,
+      req.user.companyId,
+      typeParm.accountedType,
+      idParam.id,
       byCashUpdateRequest,
     );
   }

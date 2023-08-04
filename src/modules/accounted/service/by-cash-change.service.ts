@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
@@ -12,6 +16,7 @@ export class ByCashChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createCash(
+    companyId: number,
     accountedType: AccountedType,
     byCashCreateRequest: ByCashCreateRequestDto,
   ): Promise<void> {
@@ -22,16 +27,16 @@ export class ByCashChangeService {
             // TODO: company, partner 확인
             company: {
               connect: {
-                id: byCashCreateRequest.companyId,
+                id: companyId,
               },
             },
             partnerCompanyRegistrationNumber:
               byCashCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byCashCreateRequest.accountedSubject,
-            accountedMethod: byCashCreateRequest.accountedMethod,
+            accountedMethod: 'CASH',
             accountedDate: byCashCreateRequest.accountedDate,
-            memo: byCashCreateRequest.memo,
+            memo: byCashCreateRequest.memo || '',
             byCash: {
               create: {
                 cashAmount: byCashCreateRequest.amount,
@@ -47,31 +52,40 @@ export class ByCashChangeService {
   }
 
   async updateCash(
+    companyId: number,
     accountedType: AccountedType,
     accountedId: number,
     byCashUpdateRequestDto: ByCashUpdateRequestDto,
   ): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.accounted.update({
-          data: {
-            accountedType,
-            accountedSubject: byCashUpdateRequestDto.accountedSubject,
-            accountedMethod: byCashUpdateRequestDto.accountedMethod,
-            accountedDate: byCashUpdateRequestDto.accountedDate,
-            memo: byCashUpdateRequestDto.memo,
-            byCash: {
-              update: {
-                cashAmount: byCashUpdateRequestDto.amount,
-              },
-            },
+    const check = await this.prisma.accounted.findFirst({
+      where: {
+        id: accountedId,
+        accountedType,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!check)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+    if (check.accountedMethod !== 'CASH')
+      throw new ConflictException(`수금/지급 수단 에러`);
+
+    await this.prisma.accounted.update({
+      data: {
+        accountedType,
+        accountedSubject: byCashUpdateRequestDto.accountedSubject,
+        accountedDate: byCashUpdateRequestDto.accountedDate,
+        memo: byCashUpdateRequestDto.memo || '',
+        byCash: {
+          update: {
+            cashAmount: byCashUpdateRequestDto.amount,
           },
-          where: {
-            id: accountedId,
-          },
-        }),
-      ),
-    );
+        },
+      },
+      where: {
+        id: accountedId,
+      },
+    });
   }
 
   async deleteCash(

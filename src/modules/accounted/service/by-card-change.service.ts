@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountedType } from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
@@ -75,10 +79,24 @@ export class ByCardChangeService {
   }
 
   async updateCard(
+    companyId: number,
     accountedType: AccountedType,
     accountedId: number,
     byCardUpdateRequest: ByCardUpdateRequestDto,
   ): Promise<void> {
+    const check = await this.prisma.accounted.findFirst({
+      where: {
+        id: accountedId,
+        accountedType,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!check)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보 입니다.`);
+    if (check.accountedMethod !== 'CARD_PAYMENT')
+      throw new ConflictException(`수금/지급 수단 에러`);
+
     const amount = byCardUpdateRequest.amount;
     const chargeAmount = byCardUpdateRequest.chargeAmount || 0;
     const totalAmount =
