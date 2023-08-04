@@ -14,6 +14,7 @@ import {
 import {
   ShippingCreateRequest,
   ShippingListQuery,
+  ShippingUpdateRequest,
 } from 'src/@shared/api/shipping/shipping.request';
 
 export class ShippingListQueryDto implements ShippingListQuery {
@@ -100,4 +101,26 @@ export class ShippingConnectInvoicesRequestDto {
   @IsInt({ each: true })
   @Type(() => Number)
   readonly invoiceIds: number[];
+}
+
+/** 배송정보 수정 */
+export class ShippingUpdateDto implements ShippingUpdateRequest {
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly price: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 200)
+  readonly memo: string | null = null;
 }

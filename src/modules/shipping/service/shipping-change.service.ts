@@ -212,4 +212,60 @@ export class ShippingChangeService {
       });
     });
   }
+
+  async update(params: {
+    companyId: number;
+    shippingId: number;
+    companyRegistrationNumber: string | null;
+    price: number | null;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const shipping = await tx.shipping.findFirst({
+        where: {
+          companyId: params.companyId,
+          id: params.shippingId,
+          isDeleted: false,
+        },
+      });
+      if (!shipping)
+        throw new NotFoundException(`존재하지 않는 배송정보 입니다.`);
+
+      switch (shipping.type) {
+        case 'INHOUSE':
+          if (params.companyRegistrationNumber)
+            throw new BadRequestException(
+              `자사배송은 거래처를 선택할 수 없습니다.`,
+            );
+          break;
+        case 'OUTSOURCE':
+          if (!params.memo)
+            throw new BadRequestException(
+              `외주배송은 배송메모를 필수로 입력하셔야 합니다.`,
+            );
+          break;
+        case 'PARTNER_PICKUP':
+          if (!params.memo)
+            throw new BadRequestException(
+              `거래처 픽업은 배송메모를 필수로 입력하셔야 합니다.`,
+            );
+          break;
+      }
+
+      await tx.shipping.update({
+        where: {
+          id: params.shippingId,
+        },
+        data: {
+          companyRegistrationNumber: params.companyRegistrationNumber,
+          price: params.price || 0,
+          memo: params.memo || '',
+        },
+      });
+
+      return {
+        id: shipping.id,
+      };
+    });
+  }
 }

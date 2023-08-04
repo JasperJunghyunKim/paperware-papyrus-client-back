@@ -8,6 +8,7 @@ import {
   Body,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { ShippingChangeService } from '../service/shipping-change.service';
 import { ShippingRetriveService } from '../service/shipping-retrive.service';
@@ -17,11 +18,13 @@ import {
   ShippingConnectInvoicesRequestDto,
   ShippingCreateRequestDto,
   ShippingListQueryDto,
+  ShippingUpdateDto,
 } from './dto/shipping.request';
 import {
   ShippingCreateResponse,
   ShippingListResponse,
   ShippingResponse,
+  ShippingUpdateResponse,
 } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
 import { Util } from 'src/common';
@@ -127,5 +130,19 @@ export class ShippingController {
   @UseGuards(AuthGuard)
   async delete(@Request() req: AuthType, @Param() idDto: IdDto) {
     await this.change.delete(req.user.companyId, idDto.id);
+  }
+
+  @Put('/:id')
+  @UseGuards(AuthGuard)
+  async updateShipping(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: ShippingUpdateDto,
+  ): Promise<ShippingUpdateResponse> {
+    return await this.change.update({
+      companyId: req.user.companyId,
+      shippingId: param.id,
+      ...body,
+    });
   }
 }
