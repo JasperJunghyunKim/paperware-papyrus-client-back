@@ -31,7 +31,7 @@ import {
 } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
 import { Util } from 'src/common';
-import { InvoiceStatus } from '@prisma/client';
+import { InvoiceStatus, ShippingType } from '@prisma/client';
 
 @Controller('shipping')
 export class ShippingController {
@@ -46,26 +46,25 @@ export class ShippingController {
     @Request() req: AuthType,
     @Query() query: ShippingListQueryDto,
   ): Promise<ShippingListResponse> {
-    const items = await this.retrive.getList({
+    const result = await this.retrive.getList({
       skip: query.skip,
       take: query.take,
       companyId: req.user.companyId,
       invoiceStatus: Util.searchKeywordsToStringArray(
         query.invoiceStatus,
       ) as InvoiceStatus[],
+      types: Util.searchKeywordsToStringArray(query.types) as ShippingType[],
+      shippingNo: query.shippingNo,
+      managerIds: Util.searchKeywordsToIntArray(query.managerIds),
+      partnerCompanyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        query.partnerCompanyRegistrationNumbers,
+      ),
+      memo: query.memo,
+      minCreatedAt: query.minCreatedAt,
+      maxCreatedAt: query.maxCreatedAt,
     });
 
-    const total = await this.retrive.getCount({
-      companyId: req.user.companyId,
-      invoiceStatus: Util.searchKeywordsToStringArray(
-        query.invoiceStatus,
-      ) as InvoiceStatus[],
-    });
-
-    return {
-      items,
-      total,
-    };
+    return result;
   }
 
   @Get('/:id')

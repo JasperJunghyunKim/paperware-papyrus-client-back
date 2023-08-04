@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ShippingType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -31,10 +32,46 @@ export class ShippingListQueryDto implements ShippingListQuery {
   @Min(0)
   readonly take: number = undefined;
 
+  // 검색
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
   readonly invoiceStatus: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly types: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly shippingNo: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly managerIds: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly partnerCompanyRegistrationNumbers: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsDateString()
+  readonly minCreatedAt: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsDateString()
+  readonly maxCreatedAt: string | null = null;
 }
 
 export class ShippingCreateRequestDto implements ShippingCreateRequest {
