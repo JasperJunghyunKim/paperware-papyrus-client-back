@@ -343,7 +343,7 @@ export class AccountedRetriveService {
           ORDER BY p.id
         ) AS partner
         JOIN (
-          SELECT b.*, dstCompany.*
+          SELECT b.*, dstCompany.companyRegistrationNumber
             FROM BusinessRelationship AS b
             JOIN Company              AS dstCompany    ON dstCompany.id = b.dstCompanyId
           WHERE b.srcCompanyId = ${companyId}
@@ -492,7 +492,7 @@ export class AccountedRetriveService {
           ORDER BY p.id
         ) AS partner
         JOIN (
-          SELECT b.*, dstCompany.*
+          SELECT b.*, dstCompany.companyRegistrationNumber
             FROM BusinessRelationship AS b
             JOIN Company              AS dstCompany    ON dstCompany.id = b.dstCompanyId
           WHERE b.srcCompanyId = ${companyId}
