@@ -21,6 +21,8 @@ import {
   ByOffsetCreateRequestDto,
   ByOffsetUpdateRequestDto,
 } from './dto/offset.request';
+import { AccountedTypeDto } from './dto/accounted.request';
+import { IdDto } from 'src/common/request';
 
 @Controller('/accounted')
 export class ByOffsetController {
@@ -47,26 +49,29 @@ export class ByOffsetController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createByOffset(
-    @Param('accountedType') accountedType: AccountedType,
+    @Request() req: AuthType,
+    @Param() param: AccountedTypeDto,
     @Body() byOffsetCreateRequest: ByOffsetCreateRequestDto,
   ): Promise<void> {
     await this.byOffsetChangeService.createOffset(
-      accountedType,
+      req.user.companyId,
+      param.accountedType,
       byOffsetCreateRequest,
     );
   }
 
-  @Patch('accountedType/:accountedType/accountedId/:accountedId/offset')
+  @Patch('accountedType/:accountedType/accountedId/:id/offset')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateByOffset(
-    @Param('accountedType') accountedType: AccountedType,
-    @Param('accountedId') accountedId: number,
+    @Request() req: AuthType,
+    @Param() idParam: IdDto,
+    @Param() typeParam: AccountedTypeDto,
     @Body() byOffsetUpdateRequest: ByOffsetUpdateRequestDto,
   ): Promise<void> {
     await this.byOffsetChangeService.updateOffset(
-      accountedType,
-      accountedId,
+      typeParam.accountedType,
+      idParam.id,
       byOffsetUpdateRequest,
     );
   }

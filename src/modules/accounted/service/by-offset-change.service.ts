@@ -11,6 +11,7 @@ export class ByOffsetChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOffset(
+    companyId: number,
     accountedType: AccountedType,
     byOffsetCreateRequest: ByOffsetCreateRequestDto,
   ): Promise<void> {
@@ -18,16 +19,16 @@ export class ByOffsetChangeService {
       // TODO: company, partner 확인
       company: {
         connect: {
-          id: byOffsetCreateRequest.companyId,
+          id: companyId,
         },
       },
       partnerCompanyRegistrationNumber:
         byOffsetCreateRequest.companyRegistrationNumber,
       accountedType: 'PAID',
       accountedSubject: byOffsetCreateRequest.accountedSubject,
-      accountedMethod: byOffsetCreateRequest.accountedMethod,
+      accountedMethod: 'OFFSET',
       accountedDate: byOffsetCreateRequest.accountedDate,
-      memo: byOffsetCreateRequest.memo,
+      memo: byOffsetCreateRequest.memo || '',
       byOffset: {
         create: {
           offsetAmount: byOffsetCreateRequest.amount,
@@ -108,9 +109,8 @@ export class ByOffsetChangeService {
       await tx.accounted.update({
         data: {
           accountedSubject: byOffsetUpdateRequest.accountedSubject,
-          accountedMethod: byOffsetUpdateRequest.accountedMethod,
           accountedDate: byOffsetUpdateRequest.accountedDate,
-          memo: byOffsetUpdateRequest.memo,
+          memo: byOffsetUpdateRequest.memo || '',
           byOffset: {
             update: {
               offsetAmount: byOffsetUpdateRequest.amount,
@@ -125,9 +125,8 @@ export class ByOffsetChangeService {
       await tx.accounted.update({
         data: {
           accountedSubject: byOffsetUpdateRequest.accountedSubject,
-          accountedMethod: byOffsetUpdateRequest.accountedMethod,
           accountedDate: byOffsetUpdateRequest.accountedDate,
-          memo: byOffsetUpdateRequest.memo,
+          memo: byOffsetUpdateRequest.memo || '',
           byOffset: {
             update: {
               offsetAmount: byOffsetUpdateRequest.amount,
