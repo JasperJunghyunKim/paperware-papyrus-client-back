@@ -1173,7 +1173,7 @@ model Accounted {
   /// 계정 과목
   accountedSubject Subject
   /// 메모
-  memo             String?       @db.VarChar(500)
+  memo             String        @default("") @db.VarChar(500)
   /// 삭제 여부
   isDeleted        Boolean       @default(false)
 

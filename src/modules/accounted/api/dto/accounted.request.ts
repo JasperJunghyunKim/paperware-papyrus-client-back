@@ -13,6 +13,11 @@ import {
 } from 'class-validator';
 import { AccountedQuery, AccountedUnpaidListQuery } from 'src/@shared/api';
 
+export class AccountedTypeDto {
+  @IsEnum(AccountedType)
+  readonly accountedType: AccountedType;
+}
+
 type AccountedRequestDto = Omit<AccountedQuery, 'partnerNickName'>;
 
 export class AccountedRequest implements AccountedRequestDto {

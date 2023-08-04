@@ -2,12 +2,15 @@ import { AccountedType, Method, Subject } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
+  Length,
+  Min,
   ValidateIf,
 } from 'class-validator';
 import {
@@ -16,22 +19,14 @@ import {
 } from 'src/@shared/api/accounted/by-card.request';
 
 export class ByCardCreateRequestDto implements ByCardCreateRequest {
-  @IsNumber()
-  readonly companyId: number;
-
   @IsString()
+  @Length(10, 10)
   readonly companyRegistrationNumber: string;
-
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
 
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
   @ValidateIf((obj, val) => val !== null)
@@ -48,28 +43,29 @@ export class ByCardCreateRequestDto implements ByCardCreateRequest {
   @IsPositive()
   readonly bankAccountId: number | null = null;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 
-  @IsNumber()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly totalAmount: number;
-
-  @IsNumber()
-  @IsOptional()
-  readonly chargeAmount: number;
+  @IsInt()
+  @Min(0)
+  readonly chargeAmount: number | null = null;
 
   @IsBoolean()
   @IsOptional()
   readonly isCharge: boolean;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly approvalNumber: string;
+  @IsString()
+  readonly approvalNumber: string | null = null;
 }
 
 export class ByCardUpdateRequestDto implements ByCardUpdateRequest {

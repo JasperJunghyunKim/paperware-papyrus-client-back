@@ -12,6 +12,7 @@ export class ByBankAccountChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createBankAccount(
+    companyId: number,
     accountedType: AccountedType,
     byBankCreateRequest: ByBankAccountCreateRequestDto,
   ): Promise<void> {
@@ -22,16 +23,16 @@ export class ByBankAccountChangeService {
             // TODO: company / partnerCompanyRegistrationNumber 데이터 확인
             company: {
               connect: {
-                id: byBankCreateRequest.companyId,
+                id: companyId,
               },
             },
             partnerCompanyRegistrationNumber:
               byBankCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byBankCreateRequest.accountedSubject,
-            accountedMethod: byBankCreateRequest.accountedMethod,
+            accountedMethod: 'ACCOUNT_TRANSFER',
             accountedDate: byBankCreateRequest.accountedDate,
-            memo: byBankCreateRequest.memo,
+            memo: byBankCreateRequest.memo || '',
             byBankAccount: {
               create: {
                 bankAccountAmount: byBankCreateRequest.amount,

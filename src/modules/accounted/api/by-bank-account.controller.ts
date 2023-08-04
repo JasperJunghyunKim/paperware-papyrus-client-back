@@ -21,6 +21,7 @@ import {
   ByBankAccountUpdateRequestDto,
 } from './dto/bank-account.request';
 import { ByBankAccountItemResponseDto } from './dto/bank-account.response';
+import { AccountedTypeDto } from './dto/accounted.request';
 
 @Controller('/accounted')
 export class ByBankAccountController {
@@ -47,11 +48,13 @@ export class ByBankAccountController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createByBankAccount(
-    @Param('accountedType') accountedType: AccountedType,
+    @Request() req: AuthType,
+    @Param() param: AccountedTypeDto,
     @Body() byBankAccountCreateRequest: ByBankAccountCreateRequestDto,
   ): Promise<void> {
     await this.byBankAccountChangeService.createBankAccount(
-      accountedType,
+      req.user.companyId,
+      param.accountedType,
       byBankAccountCreateRequest,
     );
   }

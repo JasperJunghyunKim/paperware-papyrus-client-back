@@ -22,6 +22,7 @@ import {
   ByCardUpdateRequestDto,
 } from './dto/card.request';
 import { ByCardResponseDto } from './dto/card.response';
+import { AccountedTypeDto } from './dto/accounted.request';
 
 @Controller('/accounted')
 export class ByCardController {
@@ -48,19 +49,21 @@ export class ByCardController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(AuthGuard)
   async createByCard(
-    @Param('accountedType') accountedType: AccountedType,
+    @Request() req: AuthType,
+    @Param() param: AccountedTypeDto,
     @Body() byCardCreateRequest: ByCardCreateRequestDto,
   ): Promise<void> {
-    if (accountedType === 'PAID' && byCardCreateRequest.cardId === null)
+    if (param.accountedType === 'PAID' && byCardCreateRequest.cardId === null)
       throw new BadRequestException(`카드를 선택해야 합니다.`);
     if (
-      accountedType === 'COLLECTED' &&
+      param.accountedType === 'COLLECTED' &&
       byCardCreateRequest.bankAccountId === null
     )
       throw new BadRequestException(`계좌를 선택해야 합니다.`);
 
     await this.byCardChangeService.createCard(
-      accountedType,
+      req.user.companyId,
+      param.accountedType,
       byCardCreateRequest,
     );
   }

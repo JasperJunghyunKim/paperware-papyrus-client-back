@@ -1,5 +1,16 @@
 import { AccountedType, Method, Subject } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  Length,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 import {
   ByBankAccountCreateRequest,
   ByBankAccountUpdateRequest,
@@ -7,32 +18,27 @@ import {
 export class ByBankAccountCreateRequestDto
   implements ByBankAccountCreateRequest
 {
-  @IsNumber()
-  readonly companyId: number;
-
   @IsString()
+  @Length(10, 10)
   readonly companyRegistrationNumber: string;
-
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
 
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 
-  @IsNumber()
+  @IsInt()
+  @IsPositive()
   readonly bankAccountId: number;
 }
 

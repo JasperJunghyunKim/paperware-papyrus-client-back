@@ -12,9 +12,20 @@ export class ByCardChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createCard(
+    companyId: number,
     accountedType: AccountedType,
     byCardCreateRequest: ByCardCreateRequestDto,
   ): Promise<void> {
+    const amount = byCardCreateRequest.amount;
+    const chargeAmount = byCardCreateRequest.chargeAmount || 0;
+    const totalAmount =
+      amount +
+      (byCardCreateRequest.isCharge
+        ? accountedType === 'PAID'
+          ? -chargeAmount
+          : chargeAmount
+        : 0);
+
     await lastValueFrom(
       from(
         this.prisma.accounted.create({
@@ -22,22 +33,22 @@ export class ByCardChangeService {
             // TODO: company, partner 확인
             company: {
               connect: {
-                id: byCardCreateRequest.companyId,
+                id: companyId,
               },
             },
             partnerCompanyRegistrationNumber:
               byCardCreateRequest.companyRegistrationNumber,
             accountedType,
             accountedSubject: byCardCreateRequest.accountedSubject,
-            accountedMethod: byCardCreateRequest.accountedMethod,
+            accountedMethod: 'CARD_PAYMENT',
             accountedDate: byCardCreateRequest.accountedDate,
-            memo: byCardCreateRequest.memo,
+            memo: byCardCreateRequest.memo || '',
             byCard: {
               create: {
-                cardAmount: byCardCreateRequest.amount,
+                cardAmount: amount,
                 isCharge: byCardCreateRequest.isCharge,
-                chargeAmount: byCardCreateRequest.chargeAmount ?? 0,
-                totalAmount: byCardCreateRequest.totalAmount ?? 0,
+                chargeAmount: chargeAmount,
+                totalAmount: totalAmount,
                 approvalNumber: byCardCreateRequest.approvalNumber ?? '',
                 card:
                   accountedType === 'PAID'
