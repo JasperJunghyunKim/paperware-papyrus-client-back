@@ -79,21 +79,31 @@ export class ByCardChangeService {
     accountedId: number,
     byCardUpdateRequest: ByCardUpdateRequestDto,
   ): Promise<void> {
+    const amount = byCardUpdateRequest.amount;
+    const chargeAmount = byCardUpdateRequest.chargeAmount || 0;
+    const totalAmount =
+      amount +
+      (byCardUpdateRequest.isCharge
+        ? accountedType === 'PAID'
+          ? -chargeAmount
+          : chargeAmount
+        : 0);
+
     await lastValueFrom(
       from(
         this.prisma.accounted.update({
           data: {
             accountedType,
             accountedSubject: byCardUpdateRequest.accountedSubject,
-            accountedMethod: byCardUpdateRequest.accountedMethod,
             accountedDate: byCardUpdateRequest.accountedDate,
-            memo: byCardUpdateRequest.memo,
+            memo: byCardUpdateRequest.memo || '',
             byCard: {
               update: {
-                cardAmount: byCardUpdateRequest.amount,
+                cardAmount: amount,
                 isCharge: byCardUpdateRequest.isCharge,
-                chargeAmount: byCardUpdateRequest.chargeAmount,
-                approvalNumber: byCardUpdateRequest.approvalNumber,
+                chargeAmount: chargeAmount,
+                totalAmount: totalAmount,
+                approvalNumber: byCardUpdateRequest.approvalNumber || '',
               },
             },
           },

@@ -23,6 +23,7 @@ import {
 } from './dto/card.request';
 import { ByCardResponseDto } from './dto/card.response';
 import { AccountedTypeDto } from './dto/accounted.request';
+import { IdDto } from 'src/modules/stock/api/dto/stock.request';
 
 @Controller('/accounted')
 export class ByCardController {
@@ -68,17 +69,16 @@ export class ByCardController {
     );
   }
 
-  @Patch('accountedType/:accountedType/accountedId/:accountedId/card')
+  @Patch('accountedType/:accountedType/accountedId/:id/card')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateByCard(
-    @Param('accountedType') accountedType: AccountedType,
-    @Param('accountedId') accountedId: number,
+    @Param() param: IdDto & AccountedTypeDto,
     @Body() byCardUpdateRequest: ByCardUpdateRequestDto,
   ): Promise<void> {
     await this.byCardChangeService.updateCard(
-      accountedType,
-      accountedId,
+      param.accountedType,
+      param.id,
       byCardUpdateRequest,
     );
   }

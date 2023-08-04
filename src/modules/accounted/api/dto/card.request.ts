@@ -69,38 +69,33 @@ export class ByCardCreateRequestDto implements ByCardCreateRequest {
 }
 
 export class ByCardUpdateRequestDto implements ByCardUpdateRequest {
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
-
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 
-  @IsNumber()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly totalAmount: number;
-
-  @IsNumber()
-  @IsOptional()
-  readonly chargeAmount: number;
+  @IsInt()
+  @Min(0)
+  readonly chargeAmount: number | null = null;
 
   @IsBoolean()
   @IsOptional()
   readonly isCharge: boolean;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly approvalNumber: string;
+  @IsString()
+  readonly approvalNumber: string | null = null;
 }
