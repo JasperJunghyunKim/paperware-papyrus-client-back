@@ -60,9 +60,8 @@ export class ByBankAccountChangeService {
           data: {
             accountedType,
             accountedSubject: byBankUpdateRequest.accountedSubject,
-            accountedMethod: byBankUpdateRequest.accountedMethod,
             accountedDate: byBankUpdateRequest.accountedDate,
-            memo: byBankUpdateRequest.memo,
+            memo: byBankUpdateRequest.memo || null,
             byBankAccount: {
               update: {
                 bankAccountAmount: byBankUpdateRequest.amount,

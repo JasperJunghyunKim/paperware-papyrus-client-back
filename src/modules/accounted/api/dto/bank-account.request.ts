@@ -45,22 +45,18 @@ export class ByBankAccountCreateRequestDto
 export class ByBankAccountUpdateRequestDto
   implements ByBankAccountUpdateRequest
 {
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
-
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
+  @IsDateString()
   readonly accountedDate: string;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  readonly memo: string | null = null;
 
-  @IsNumber()
+  @IsInt()
+  @Min(0)
   readonly amount: number;
 }

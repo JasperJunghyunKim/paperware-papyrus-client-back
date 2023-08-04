@@ -22,6 +22,7 @@ import {
 } from './dto/bank-account.request';
 import { ByBankAccountItemResponseDto } from './dto/bank-account.response';
 import { AccountedTypeDto } from './dto/accounted.request';
+import { IdDto } from 'src/common/request';
 
 @Controller('/accounted')
 export class ByBankAccountController {
@@ -59,17 +60,16 @@ export class ByBankAccountController {
     );
   }
 
-  @Patch('accountedType/:accountedType/accountedId/:accountedId/bank-account')
+  @Patch('accountedType/:accountedType/accountedId/:id/bank-account')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateByBankAccount(
-    @Param('accountedType') accountedType: AccountedType,
-    @Param('accountedId') accountedId: number,
+    @Param() param: IdDto & AccountedTypeDto,
     @Body() byBankAccountUpdateRequest: ByBankAccountUpdateRequestDto,
   ): Promise<void> {
     await this.byBankAccountChangeService.updateBankAccount(
-      accountedType,
-      accountedId,
+      param.accountedType,
+      param.id,
       byBankAccountUpdateRequest,
     );
   }
