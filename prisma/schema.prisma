@@ -258,6 +258,7 @@ model User {
   lastLoginTime DateTime?
   DepositEvent  DepositEvent[]
   menu          UserMenu?
+  Shipping      Shipping[]
 }
 
 model UserFindPasswordAuth {
@@ -721,14 +722,26 @@ enum ShippingStatus {
   DONE
 }
 
+enum ShippingType {
+  INHOUSE
+  OUTSOURCE
+  PARTNER_PICKUP
+}
+
 model Shipping {
-  id         Int            @id @default(autoincrement())
-  shippingNo String         @unique
-  companyId  Int
-  status     ShippingStatus @default(PREPARING)
-  company    Company        @relation(fields: [companyId], references: [id])
-  invoice    Invoice[]
-  isDeleted  Boolean        @default(false)
+  id                        Int            @id @default(autoincrement())
+  type                      ShippingType
+  shippingNo                String         @unique
+  price                     Float          @default(0)
+  companyId                 Int
+  status                    ShippingStatus @default(PREPARING)
+  company                   Company        @relation(fields: [companyId], references: [id])
+  invoice                   Invoice[]
+  userId                    Int?
+  user                      User?          @relation(fields: [userId], references: [id])
+  companyRegistrationNumber String?
+  memo                      String         @default("")
+  isDeleted                 Boolean        @default(false)
 }
 
 enum InvoiceStatus {

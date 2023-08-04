@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ShippingType } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { ulid } from 'ulid';
 
@@ -10,17 +12,54 @@ import { ulid } from 'ulid';
 export class ShippingChangeService {
   constructor(private prisma: PrismaService) {}
 
-  async create(params: { companyId: number }) {
-    const { companyId } = params;
+  async create(params: {
+    companyId: number;
+    type: ShippingType;
+    userId: number | null;
+    companyRegistrationNumber: string | null;
+    price: number | null;
+    memo: string | null;
+  }) {
+    const { companyId, type, userId, companyRegistrationNumber, price, memo } =
+      params;
+
+    if (userId) {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          companyId,
+          id: userId,
+        },
+      });
+      if (!user) throw new NotFoundException(`존재하지 않는 유저입니다.`);
+    }
+    if (companyRegistrationNumber) {
+      const partner = await this.prisma.partner.findUnique({
+        where: {
+          companyId_companyRegistrationNumber: {
+            companyId,
+            companyRegistrationNumber,
+          },
+        },
+      });
+      if (!partner)
+        throw new NotFoundException(`거래처로 등록되지 않은 거래처입니다.`);
+    }
 
     const shipping = await this.prisma.shipping.create({
       data: {
         shippingNo: ulid(),
-        companyId: companyId,
+        companyId,
+        type,
+        userId,
+        companyRegistrationNumber,
+        price: price || 0,
+        memo: memo || '',
       },
     });
 
-    return shipping;
+    return {
+      id: shipping.id,
+    };
   }
 
   async connectInvoices(params: { shippingId: number; invoiceIds: number[] }) {

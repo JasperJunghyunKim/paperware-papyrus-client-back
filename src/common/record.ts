@@ -1,6 +1,6 @@
 export type PackagingType = 'ROLL' | 'REAM' | 'SKID' | 'BOX';
 export type OfficialPriceType = 'NONE' | 'MANUAL' | 'RETAIL' | 'WHOLESALE';
-export type ShippingType = 'DELIVERY' | 'PICKUP' | 'STORE';
+export type ShippingType = 'INHOUSE' | 'OUTSOURCE' | 'PARTNER_PICKUP';
 export type StockEventStatus = 'NORMAL' | 'CANCELLED' | 'PENDING';
 export type TaskType = 'CONVERTING' | 'GUILLOTINE';
 export type DiscountType = 'DEFAULT' | 'SPECIAL';

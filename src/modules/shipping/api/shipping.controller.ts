@@ -18,7 +18,7 @@ import {
   ShippingCreateRequestDto,
   ShippingListQueryDto,
 } from './dto/shipping.request';
-import { ShippingListResponse } from 'src/@shared/api';
+import { ShippingCreateResponse, ShippingListResponse } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
 import { Util } from 'src/common';
 import { InvoiceStatus } from '@prisma/client';
@@ -63,9 +63,11 @@ export class ShippingController {
   async create(
     @Request() req: AuthType,
     @Body() body: ShippingCreateRequestDto,
-  ): Promise<void> {
-    await this.change.create({
+  ): Promise<ShippingCreateResponse> {
+    body.validate();
+    return await this.change.create({
       companyId: req.user.companyId,
+      ...body,
     });
   }
 
