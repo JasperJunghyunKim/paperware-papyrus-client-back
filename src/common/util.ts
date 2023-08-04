@@ -95,6 +95,15 @@ export const serialQ = (invoiceCode: string, month: string, num: number) => {
   return `Q${invoiceCode}${month}${String(num).padStart(6, '0')}`.toUpperCase();
 };
 
+/** 배송 */
+export const serialS = (invoiceCode: string, month: string, num: number) => {
+  if (invoiceCode.length !== 4 || month.length !== 4 || num < 1 || num > 999999)
+    throw new Error(
+      `serialS invalid parameter: ${invoiceCode}, ${month}, ${num}`,
+    );
+  return `S${invoiceCode}${month}${String(num).padStart(6, '0')}`.toUpperCase();
+};
+
 /** serial format */
 export function formatSerial(serial: string): string {
   if (serial?.length !== 15) {
