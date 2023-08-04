@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InvoiceStatus } from '@prisma/client';
 import { Model } from 'src/@shared';
 import { Selector, Util } from 'src/common';
@@ -104,5 +104,42 @@ export class ShippingRetriveService {
     });
 
     return count;
+  }
+
+  async get(
+    companyId: number,
+    shippingId: number,
+  ): Promise<Model.ShippingItem> {
+    const shipping = await this.prisma.shipping.findFirst({
+      where: {
+        id: shippingId,
+        companyId: companyId,
+        isDeleted: false,
+      },
+      select: {
+        ...Selector.SHIPPING,
+        invoice: {
+          include: {
+            packaging: true,
+          },
+        },
+        _count: {
+          select: {
+            invoice: true,
+          },
+        },
+      },
+    });
+    if (!shipping)
+      throw new NotFoundException(`존재하지 않는 배송정보 입니다.`);
+
+    return Util.serialize({
+      ...shipping,
+      invoice: shipping.invoice.map((invoice) => ({
+        invoiceStatus: invoice.invoiceStatus,
+      })),
+      invoiceCount: shipping._count.invoice,
+      invoiceWeight: this.invoiceService.getInvoicesWeight(shipping.invoice),
+    });
   }
 }

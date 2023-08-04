@@ -18,7 +18,11 @@ import {
   ShippingCreateRequestDto,
   ShippingListQueryDto,
 } from './dto/shipping.request';
-import { ShippingCreateResponse, ShippingListResponse } from 'src/@shared/api';
+import {
+  ShippingCreateResponse,
+  ShippingListResponse,
+  ShippingResponse,
+} from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
 import { Util } from 'src/common';
 import { InvoiceStatus } from '@prisma/client';
@@ -56,6 +60,16 @@ export class ShippingController {
       items,
       total,
     };
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  async get(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<ShippingResponse> {
+    const item = await this.retrive.get(req.user.companyId, param.id);
+    return item;
   }
 
   @Post()
