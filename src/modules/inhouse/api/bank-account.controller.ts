@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import {
   BankAccountItemResponseDto,
   BankAccountListResponseDto,
 } from './dto/bank-account.response';
+import { IdDto } from 'src/common/request';
 
 @Controller('/bank-account')
 export class BankAccountController {
@@ -41,12 +43,12 @@ export class BankAccountController {
     );
   }
 
-  @Get(':accountId')
+  @Get('/:id')
   @UseGuards(AuthGuard)
   async getCardItem(
-    @Param('accountId') accountId: number,
+    @Param() param: IdDto,
   ): Promise<BankAccountItemResponseDto> {
-    return await this.bankAccountRetriveService.getBankAccountItem(accountId);
+    return await this.bankAccountRetriveService.getBankAccountItem(param.id);
   }
 
   @Post()
@@ -54,25 +56,27 @@ export class BankAccountController {
   @UseGuards(AuthGuard)
   async createBankAccount(
     @Request() req: AuthType,
-    @Body() cardCreateRequest: BankAccountCreateRequestDto,
-  ): Promise<void> {
-    await this.bankAccountCahngeService.createBankAccount(
-      req.user.companyId,
-      cardCreateRequest,
-    );
+    @Body() dto: BankAccountCreateRequestDto,
+  ) {
+    await this.bankAccountCahngeService.createBankAccount({
+      companyId: req.user.companyId,
+      ...dto,
+    });
   }
 
-  @Patch(':accountId')
+  @Put('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateBankAccount(
-    @Param('accountId') accountId: number,
-    @Body() cardUpdateRequest: BankAccountUpdateRequestDto,
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: BankAccountUpdateRequestDto,
   ): Promise<void> {
-    await this.bankAccountCahngeService.updateBankAccount(
-      accountId,
-      cardUpdateRequest,
-    );
+    await this.bankAccountCahngeService.updateBankAccount({
+      companyId: req.user.companyId,
+      bankAccountId: param.id,
+      ...dto,
+    });
   }
 
   @Delete(':accountId')

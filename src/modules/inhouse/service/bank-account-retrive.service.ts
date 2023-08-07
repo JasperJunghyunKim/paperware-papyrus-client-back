@@ -18,7 +18,7 @@ export class BankAccountRetriveService {
         this.prisma.bankAccount.findMany({
           select: {
             id: true,
-            bankComapny: true,
+            bank: true,
             accountName: true,
             accountType: true,
             accountNumber: true,
@@ -35,7 +35,7 @@ export class BankAccountRetriveService {
             items: bankAccountList.map((bankAccount) => {
               return {
                 accountId: bankAccount.id,
-                bankComapny: bankAccount.bankComapny,
+                bankComapny: bankAccount.bank,
                 accountName: bankAccount.accountName,
                 accountType: bankAccount.accountType,
                 accountNumber: bankAccount.accountNumber,
@@ -57,7 +57,7 @@ export class BankAccountRetriveService {
         this.prisma.bankAccount.findFirst({
           select: {
             id: true,
-            bankComapny: true,
+            bank: true,
             accountName: true,
             accountType: true,
             accountNumber: true,
@@ -72,7 +72,7 @@ export class BankAccountRetriveService {
         map((bankAccount) => {
           return {
             accountId: bankAccount.id,
-            bankComapny: bankAccount.bankComapny,
+            bankComapny: bankAccount.bank,
             accountName: bankAccount.accountName,
             accountType: bankAccount.accountType,
             accountNumber: bankAccount.accountNumber,

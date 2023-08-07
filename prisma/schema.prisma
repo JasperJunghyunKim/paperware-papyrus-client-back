@@ -918,7 +918,7 @@ model BankAccount {
   /// 회사
   company       Company     @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 은행
-  bankComapny   Bank
+  bank          Bank
   /// 계좌명
   accountName   String      @db.VarChar(30)
   /// 계좌 유형
