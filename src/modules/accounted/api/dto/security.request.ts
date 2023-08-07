@@ -2,10 +2,8 @@ import { BadRequestException } from '@nestjs/common';
 import {
   AccountedType,
   Bank,
-  DrawedStatus,
   EndorsementType,
   Method,
-  SecurityStatus,
   SecurityType,
   Subject,
 } from '@prisma/client';

@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { SecurityChangeService } from '../service/security-change.service';
 import { SecurityRetriveService } from '../service/security-retrive.service';
 import {
   SecurityCreateRequestDto,
+  SecurityListDto,
   SecurityUpdateRequestDto,
   SecurityUpdateStatusRequestDto,
 } from './dto/security.request';
@@ -24,6 +26,8 @@ import {
   SecurityItemResponseDto,
   SecurityListResponseDto,
 } from './dto/security.response';
+import { SecurityItemResponse } from 'src/@shared/api';
+import { IdDto } from 'src/common/request';
 
 @Controller('/security')
 export class SecurityController {
@@ -36,18 +40,25 @@ export class SecurityController {
   @UseGuards(AuthGuard)
   async getSecurityList(
     @Request() req: AuthType,
+    @Query() dto: SecurityListDto,
   ): Promise<SecurityListResponseDto> {
     return await this.securityRetriveService.getSecurityList(
       req.user.companyId,
+      dto.skip,
+      dto.take,
     );
   }
 
-  @Get(':securityId')
+  @Get('/:id')
   @UseGuards(AuthGuard)
   async getSecurityItem(
-    @Param('securityId') securityId: number,
-  ): Promise<SecurityItemResponseDto> {
-    return await this.securityRetriveService.getSecurityItem(securityId);
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<SecurityItemResponse> {
+    return await this.securityRetriveService.getSecurityItem(
+      req.user.companyId,
+      param.id,
+    );
   }
 
   @Post()
@@ -55,12 +66,12 @@ export class SecurityController {
   @UseGuards(AuthGuard)
   async createSecurity(
     @Request() req: AuthType,
-    @Body() securityCreateRequest: SecurityCreateRequestDto,
-  ): Promise<void> {
-    await this.securityCahngeService.createSecurity(
-      req.user.companyId,
-      securityCreateRequest,
-    );
+    @Body() dto: SecurityCreateRequestDto,
+  ) {
+    return await this.securityCahngeService.createSecurity({
+      companyId: req.user.companyId,
+      ...dto,
+    });
   }
 
   @Patch(':securityId')

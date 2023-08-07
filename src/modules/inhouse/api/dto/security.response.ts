@@ -23,7 +23,7 @@ export class SecurityListResponseDto implements SecurityListResponse {
 export class SecurityItemResponseDto implements SecurityItemResponse {
   @Type(() => Number)
   @IsNumber()
-  readonly securityId: number;
+  readonly id: number;
 
   @IsEnum(SecurityType)
   readonly securityType: SecurityType;

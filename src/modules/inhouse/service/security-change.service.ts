@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DrawedStatus, SecurityStatus } from '@prisma/client';
+import {
+  Bank,
+  DrawedStatus,
+  SecurityStatus,
+  SecurityType,
+} from '@prisma/client';
 import { from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
 import {
@@ -14,38 +19,48 @@ import { SecurityPaidException } from '../infrastructure/exception/security-paid
 export class SecurityChangeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createSecurity(
-    companyId: number,
-    securityCreateRequest: SecurityCreateRequestDto,
-  ): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.security.create({
-          data: {
-            securityType: securityCreateRequest.securityType,
-            securitySerial: securityCreateRequest.securitySerial,
-            securityAmount: securityCreateRequest.securityAmount,
-            securityStatus: SecurityStatus.NONE,
-            drawedStatus: DrawedStatus.SELF,
-            drawedDate: securityCreateRequest.drawedDate,
-            drawedBank: securityCreateRequest.drawedBank,
-            drawedBankBranch: securityCreateRequest.drawedBankBranch,
-            drawedRegion: securityCreateRequest.drawedRegion,
-            drawer: securityCreateRequest.drawer,
-            maturedDate: securityCreateRequest.maturedDate,
-            payingBank: securityCreateRequest.payingBank,
-            payingBankBranch: securityCreateRequest.payingBankBranch,
-            payer: securityCreateRequest.payer,
-            memo: securityCreateRequest.memo,
-            company: {
-              connect: {
-                id: companyId,
-              },
-            },
+  async createSecurity(params: {
+    companyId: number;
+    securityType: SecurityType;
+    securitySerial: string;
+    securityAmount: number;
+    drawedDate: string | null;
+    drawedBank: Bank | null;
+    drawedBankBranch: string | null;
+    drawedRegion: string | null;
+    drawer: string | null;
+    maturedDate: string | null;
+    payingBank: Bank | null;
+    payingBankBranch: string | null;
+    payer: string | null;
+    memo: string | null;
+  }) {
+    return await this.prisma.security.create({
+      data: {
+        securityType: params.securityType,
+        securitySerial: params.securitySerial,
+        securityAmount: params.securityAmount,
+        drawedStatus: DrawedStatus.SELF,
+        drawedDate: params.drawedDate,
+        drawedBank: params.drawedBank,
+        drawedBankBranch: params.drawedBankBranch,
+        drawedRegion: params.drawedRegion,
+        drawer: params.drawer,
+        maturedDate: params.maturedDate,
+        payingBank: params.payingBank,
+        payingBankBranch: params.payingBankBranch,
+        payer: params.payer,
+        memo: params.memo || '',
+        company: {
+          connect: {
+            id: params.companyId,
           },
-        }),
-      ),
-    );
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 
   async updateSecurity(

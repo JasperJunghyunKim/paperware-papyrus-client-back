@@ -4,62 +4,118 @@ import {
   SecurityStatus,
   SecurityType,
 } from '@prisma/client';
-import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+  Max,
+  Min,
+  ValidateIf,
+} from 'class-validator';
 import {
   SecurityCreateRequest,
+  SecurityListQuery,
   SecurityUpdateRequest,
   SecurityUpdateStatusRequest,
 } from 'src/@shared/api/inhouse/security.request';
+import { IsName } from 'src/validator/is-name.validator';
 
+/** 유가증권 목록 */
+export class SecurityListDto implements SecurityListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
+
+  @ValidateIf((obj, val) => val !== undefined)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = undefined;
+}
+
+/** 유가증권 등록 */
 export class SecurityCreateRequestDto implements SecurityCreateRequest {
   @IsEnum(SecurityType)
   readonly securityType: SecurityType;
 
   @IsString()
+  @Length(1, 150)
   readonly securitySerial: string;
 
-  @IsNumber()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
   readonly securityAmount: number;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly drawedDate: string;
+  @IsDateString()
+  readonly drawedDate: string | null = null;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsEnum(Bank)
-  @IsOptional()
-  readonly drawedBank: Bank;
+  readonly drawedBank: Bank | null = null;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  readonly drawedBankBranch: string;
+  @IsName()
+  @Length(0, 150)
+  readonly drawedBankBranch: string | null = null;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  readonly drawedRegion: string;
+  @IsName()
+  @Length(0, 150)
+  readonly drawedRegion: string | null = null;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  readonly drawer: string;
+  @IsName()
+  @Length(0, 150)
+  readonly drawer: string | null = null;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly maturedDate: string;
+  @IsDateString()
+  readonly maturedDate: string | null = null;
 
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
   @IsEnum(Bank)
-  @IsOptional()
-  readonly payingBank: Bank;
+  readonly payingBank: Bank | null = null;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly payingBankBranch: string;
+  @IsString()
+  @IsName()
+  @Length(0, 150)
+  readonly payingBankBranch: string | null = null;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly payer: string;
+  @IsString()
+  @IsName()
+  @Length(0, 150)
+  readonly payer: string | null = null;
 
-  @IsString()
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  readonly memo: string;
+  @IsString()
+  @Length(0, 150)
+  readonly memo: string | null = null;
 }
 
 export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
