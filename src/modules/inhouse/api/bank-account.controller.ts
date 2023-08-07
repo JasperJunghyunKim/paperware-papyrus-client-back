@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -18,13 +19,14 @@ import { BankAccountChangeService } from '../service/bank-account-change.service
 import { BankAccountRetriveService } from '../service/bank-account-retrive.service';
 import {
   BankAccountCreateRequestDto,
+  BankAccountListDto,
   BankAccountUpdateRequestDto,
 } from './dto/bank-account.request';
-import {
-  BankAccountItemResponseDto,
-  BankAccountListResponseDto,
-} from './dto/bank-account.response';
 import { IdDto } from 'src/common/request';
+import {
+  BankAccountItemResponse,
+  BankAccountListResponse,
+} from 'src/@shared/api';
 
 @Controller('/bank-account')
 export class BankAccountController {
@@ -37,18 +39,25 @@ export class BankAccountController {
   @UseGuards(AuthGuard)
   async getBankAccountList(
     @Request() req: AuthType,
-  ): Promise<BankAccountListResponseDto> {
+    @Query() dto: BankAccountListDto,
+  ): Promise<BankAccountListResponse> {
     return await this.bankAccountRetriveService.getBankAccountList(
       req.user.companyId,
+      dto.skip,
+      dto.take,
     );
   }
 
   @Get('/:id')
   @UseGuards(AuthGuard)
   async getCardItem(
+    @Request() req: AuthType,
     @Param() param: IdDto,
-  ): Promise<BankAccountItemResponseDto> {
-    return await this.bankAccountRetriveService.getBankAccountItem(param.id);
+  ): Promise<BankAccountItemResponse> {
+    return await this.bankAccountRetriveService.getBankAccountItem(
+      req.user.companyId,
+      param.id,
+    );
   }
 
   @Post()
