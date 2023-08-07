@@ -8,7 +8,6 @@ import {
 } from '@prisma/client';
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
-import { AccountedRequest } from '../api/dto/accounted.request';
 import * as dayjs from 'dayjs';
 
 export interface Price {
@@ -33,8 +32,8 @@ export class AccountedRetriveService {
   async getAccountedList(
     companyId: number,
     accountedType: AccountedType,
-    paidRequest: AccountedRequest,
-  ): Promise<AccountedListResponse> {
+    paidRequest: any,
+  ): Promise<any> {
     const {
       companyId: conditionCompanyId,
       companyRegistrationNumber,

@@ -15,6 +15,7 @@ import {
   ByBankAccountCreateRequest,
   ByBankAccountUpdateRequest,
 } from 'src/@shared/api/accounted/by-bank-account.request';
+
 export class ByBankAccountCreateRequestDto
   implements ByBankAccountCreateRequest
 {

@@ -1,55 +1,26 @@
 import { AccountedType, Method, Subject } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsDateString,
   IsEnum,
   IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
+  Length,
   Max,
   Min,
   ValidateIf,
 } from 'class-validator';
-import { AccountedQuery, AccountedUnpaidListQuery } from 'src/@shared/api';
+import {
+  AccountedByBankAccountCreatedRequest,
+  AccountedUnpaidListQuery,
+} from 'src/@shared/api';
 
 export class AccountedTypeDto {
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
-}
-
-type AccountedRequestDto = Omit<AccountedQuery, 'partnerNickName'>;
-
-export class AccountedRequest implements AccountedRequestDto {
-  @Type(() => Number)
-  @IsNumber()
-  readonly skip: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  readonly take: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  readonly companyId: number;
-
-  @IsString()
-  readonly companyRegistrationNumber: string;
-
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
-
-  @IsEnum(Subject)
-  readonly accountedSubject: Subject;
-
-  @IsEnum(Method)
-  readonly accountedMethod: Method;
-
-  @IsString()
-  readonly accountedFromDate: string;
-
-  @IsString()
-  readonly accountedToDate: string;
 }
 
 export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
@@ -99,4 +70,35 @@ export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
   @Min(1)
   @Max(12)
   readonly month: number | null = null;
+}
+
+/** 수금/지급 등록 (계좌이체) */
+export class AccountedByBankAccountCreatedDto
+  implements AccountedByBankAccountCreatedRequest
+{
+  @IsEnum(AccountedType)
+  readonly accountedType: AccountedType;
+
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string;
+
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly amount: number;
+
+  @IsInt()
+  @IsPositive()
+  readonly bankAccountId: number;
 }

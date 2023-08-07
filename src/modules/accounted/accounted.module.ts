@@ -19,6 +19,7 @@ import { ByOffsetRetriveService } from './service/by-offset-retrive.service';
 import { BySecurityController } from './api/by-security.controller';
 import { BySecurityChangeService } from './service/by-security-change.service';
 import { BySecurityRetriveService } from './service/by-security-retrive.service';
+import { AccountedChangeService } from './service/accounted-change.service';
 
 @Module({
   controllers: [
@@ -32,6 +33,7 @@ import { BySecurityRetriveService } from './service/by-security-retrive.service'
   ],
   providers: [
     AccountedRetriveService,
+    AccountedChangeService,
     ByCashRetriveService,
     ByCashChangeService,
     ByEtcRetriveService,
