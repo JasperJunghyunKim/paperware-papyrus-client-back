@@ -15,6 +15,7 @@ import {
 } from 'class-validator';
 import {
   AccountedByBankAccountCreatedRequest,
+  AccountedByCashCreatedRequest,
   AccountedUnpaidListQuery,
 } from 'src/@shared/api';
 
@@ -101,4 +102,31 @@ export class AccountedByBankAccountCreatedDto
   @IsInt()
   @IsPositive()
   readonly bankAccountId: number;
+}
+
+/** 수금/지급 등록 (현금) */
+export class AccountedByCashCreatedDto
+  implements AccountedByCashCreatedRequest
+{
+  @IsEnum(AccountedType)
+  readonly accountedType: AccountedType;
+
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string;
+
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly amount: number;
 }

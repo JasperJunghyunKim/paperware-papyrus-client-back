@@ -57,4 +57,40 @@ export class AccountedChangeService {
       });
     });
   }
+
+  async createByCash(params: {
+    companyId: number;
+    accountedType: AccountedType;
+    companyRegistrationNumber: string;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      return await tx.accounted.create({
+        data: {
+          company: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
+          accountedType: params.accountedType,
+          accountedSubject: params.accountedSubject,
+          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedDate: params.accountedDate,
+          memo: params.memo || '',
+          byCash: {
+            create: {
+              cashAmount: params.amount,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    });
+  }
 }

@@ -18,6 +18,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
 import {
   AccountedByBankAccountCreatedDto,
+  AccountedByCashCreatedDto,
   AccountedTypeDto,
   AccountedUnpaidListDto,
 } from './dto/accounted.request';
@@ -68,6 +69,19 @@ export class AccountedController {
     @Body() dto: AccountedByBankAccountCreatedDto,
   ) {
     return await this.change.createByBankAccount({
+      companyId: req.user.companyId,
+      ...dto,
+    });
+  }
+
+  /** 현금 등록 */
+  @Post('/cash')
+  @UseGuards(AuthGuard)
+  async createByCash(
+    @Request() req: AuthType,
+    @Body() dto: AccountedByCashCreatedDto,
+  ) {
+    return await this.change.createByCash({
       companyId: req.user.companyId,
       ...dto,
     });
