@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { from, lastValueFrom } from 'rxjs';
 import {
   CardCreateRequest,
@@ -14,61 +14,69 @@ export class CardChangeService {
     companyId: number,
     cardCreateRequest: CardCreateRequest,
   ): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.card.create({
-          data: {
-            cardName: cardCreateRequest.cardName,
-            cardCompany: cardCreateRequest.cardCompany,
-            cardNumber: cardCreateRequest.cardNumber,
-            cardHolder: cardCreateRequest.cardHolder,
-            company: {
-              connect: {
-                id: companyId,
-              },
-            },
+    await this.prisma.card.create({
+      data: {
+        cardName: cardCreateRequest.cardName,
+        cardCompany: cardCreateRequest.cardCompany,
+        cardNumber: cardCreateRequest.cardNumber,
+        cardHolder: cardCreateRequest.cardHolder,
+        company: {
+          connect: {
+            id: companyId,
           },
-          select: {
-            id: true,
-          },
-        }),
-      ),
-    );
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
   }
 
-  async updateCard(
-    cardId: number,
-    cardUpdateRequest: CardUpdateRequest,
-  ): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.card.update({
-          data: {
-            cardName: cardUpdateRequest.cardName,
-          },
-          select: {
-            id: true,
-          },
-          where: {
-            id: cardId,
-          },
-        }),
-      ),
-    );
+  async updateCard(params: {
+    companyId: number;
+    cardId: number;
+    cardName: string;
+  }): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const card = await tx.card.findFirst({
+        where: {
+          id: params.cardId,
+          companyId: params.companyId,
+          isDeleted: false,
+        },
+      });
+      if (!card) throw new NotFoundException(`존재하지 않는 카드 정보입니다.`);
+
+      await this.prisma.card.update({
+        data: {
+          cardName: params.cardName,
+        },
+        where: {
+          id: params.cardId,
+        },
+      });
+    });
   }
 
-  async deleteCard(cardId: number): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.card.update({
-          data: {
-            isDeleted: true,
-          },
-          where: {
-            id: cardId,
-          },
-        }),
-      ),
-    );
+  async deleteCard(companyId: number, cardId: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const card = await tx.card.findFirst({
+        where: {
+          id: cardId,
+          companyId,
+          isDeleted: false,
+        },
+      });
+      if (!card) throw new NotFoundException(`존재하지 않는 카드 정보입니다.`);
+
+      await this.prisma.card.update({
+        data: {
+          isDeleted: true,
+        },
+        where: {
+          id: cardId,
+        },
+      });
+    });
   }
 }

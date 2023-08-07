@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -69,20 +70,28 @@ export class CardController {
     );
   }
 
-  @Patch(':cardId')
+  @Put('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async updateCard(
-    @Param('cardId') cardId: number,
-    @Body() cardUpdateRequest: CardUpdateRequest,
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: CardUpdateRequest,
   ): Promise<void> {
-    await this.cardCahngeService.updateCard(cardId, cardUpdateRequest);
+    await this.cardCahngeService.updateCard({
+      companyId: req.user.companyId,
+      cardId: param.id,
+      ...dto,
+    });
   }
 
-  @Delete(':cardId')
+  @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async deleteCard(@Param('cardId') cardId: number): Promise<void> {
-    await this.cardCahngeService.deleteCard(cardId);
+  async deleteCard(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<void> {
+    await this.cardCahngeService.deleteCard(req.user.companyId, param.id);
   }
 }
