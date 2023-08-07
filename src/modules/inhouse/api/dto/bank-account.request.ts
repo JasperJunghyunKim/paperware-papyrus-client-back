@@ -1,11 +1,36 @@
 import { AccountType, Bank } from '@prisma/client';
-import { IsEnum, IsString, Length } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Length,
+  Max,
+  Min,
+} from 'class-validator';
 import {
   BankAccountCreateRequest,
+  BankAccountListQuery,
   BankAccountUpdateRequest,
 } from 'src/@shared/api/inhouse/bank-account.request';
 import { IsAccountNumber } from 'src/validator/is-account-number';
 import { IsName } from 'src/validator/is-name.validator';
+
+export class BankAccountListDto implements BankAccountListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = 30;
+}
 
 export class BankAccountCreateRequestDto implements BankAccountCreateRequest {
   @IsEnum(Bank)
