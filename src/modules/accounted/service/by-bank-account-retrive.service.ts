@@ -33,7 +33,7 @@ export class ByBankAccountRetriveService {
               select: {
                 accountName: true,
                 accountNumber: true,
-                bankComapny: true,
+                bank: true,
               },
             },
           },
@@ -73,7 +73,7 @@ export class ByBankAccountRetriveService {
       bankAccountId: accounted.byBankAccount.bankAccountId,
       accountName: accounted.byBankAccount.bankAccount.accountName,
       accountNumber: accounted.byBankAccount.bankAccount.accountNumber,
-      bankComapny: accounted.byBankAccount.bankAccount.bankComapny,
+      bankComapny: accounted.byBankAccount.bankAccount.bank,
     };
   }
 }
