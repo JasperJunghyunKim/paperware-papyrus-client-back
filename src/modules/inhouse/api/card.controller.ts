@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -18,8 +19,10 @@ import {
 import { AuthGuard } from 'src/modules/auth/auth.guard';
 import { AuthType } from 'src/modules/auth/auth.type';
 import { CardChangeService } from '../service/card-change.service';
-import { CardItemResponseDto, CardListResponseDto } from './dto/card.response';
 import { CardRetriveService } from '../service/card-retrive.service';
+import { CardListDto } from './dto/card.request';
+import { CardListResponse } from 'src/@shared/api';
+import { IdDto } from 'src/common/request';
 
 @Controller('/card')
 export class CardController {
@@ -30,16 +33,27 @@ export class CardController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getCardList(@Request() req: AuthType): Promise<CardListResponseDto> {
-    return await this.cardRetriveService.getCardList(req.user.companyId);
+  async getCardList(
+    @Request() req: AuthType,
+    @Query() dto: CardListDto,
+  ): Promise<CardListResponse> {
+    return await this.cardRetriveService.getCardList(
+      req.user.companyId,
+      dto.skip,
+      dto.take,
+    );
   }
 
-  @Get(':cardId')
+  @Get('/:id')
   @UseGuards(AuthGuard)
   async getCardItem(
-    @Param('cardId') cardId: number,
-  ): Promise<CardItemResponseDto> {
-    return await this.cardRetriveService.getCardItem(cardId);
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<any> {
+    return await this.cardRetriveService.getCardItem(
+      req.user.companyId,
+      param.id,
+    );
   }
 
   @Post()
