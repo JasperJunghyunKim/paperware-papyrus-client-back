@@ -74,36 +74,16 @@ export class SecurityController {
     });
   }
 
-  @Patch(':securityId')
+  @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
-  async updateSecurity(
-    @Param('securityId') securityId: number,
-    @Body() securityUpdateRequest: SecurityUpdateRequestDto,
+  async deleteSecurity(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
   ): Promise<void> {
-    await this.securityCahngeService.updateSecurity(
-      securityId,
-      securityUpdateRequest,
+    await this.securityCahngeService.deleteSecurity(
+      req.user.companyId,
+      param.id,
     );
-  }
-
-  @Patch(':securityId/status')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(AuthGuard)
-  async updateSecurityStatus(
-    @Param('securityId') securityId: number,
-    @Body() securityUpdateStatusRequest: SecurityUpdateStatusRequestDto,
-  ): Promise<void> {
-    await this.securityCahngeService.updateSecurityStatus(
-      securityId,
-      securityUpdateStatusRequest,
-    );
-  }
-
-  @Delete(':securityId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(AuthGuard)
-  async deleteSecurity(@Param('securityId') securityId: number): Promise<void> {
-    await this.securityCahngeService.deleteSecurity(securityId);
   }
 }
