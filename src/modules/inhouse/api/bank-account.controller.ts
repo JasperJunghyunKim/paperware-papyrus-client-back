@@ -88,12 +88,16 @@ export class BankAccountController {
     });
   }
 
-  @Delete(':accountId')
+  @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AuthGuard)
   async deleteBankAccount(
-    @Param('accountId') accountId: number,
+    @Request() req: AuthType,
+    @Param() param: IdDto,
   ): Promise<void> {
-    await this.bankAccountCahngeService.deleteBankAccount(accountId);
+    await this.bankAccountCahngeService.deleteBankAccount(
+      req.user.companyId,
+      param.id,
+    );
   }
 }

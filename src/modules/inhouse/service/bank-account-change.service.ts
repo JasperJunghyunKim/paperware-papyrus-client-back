@@ -68,18 +68,29 @@ export class BankAccountChangeService {
     });
   }
 
-  async deleteBankAccount(bankAccountId: number): Promise<void> {
-    await lastValueFrom(
-      from(
-        this.prisma.bankAccount.update({
-          data: {
-            isDeleted: true,
-          },
-          where: {
-            id: bankAccountId,
-          },
-        }),
-      ),
-    );
+  async deleteBankAccount(
+    companyId: number,
+    bankAccountId: number,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      const account = await tx.bankAccount.findFirst({
+        where: {
+          id: bankAccountId,
+          companyId,
+          isDeleted: false,
+        },
+      });
+      if (!account)
+        throw new NotFoundException(`존재하지 않는 은행계좌 정보입니다.`);
+
+      await tx.bankAccount.update({
+        where: {
+          id: bankAccountId,
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+    });
   }
 }
