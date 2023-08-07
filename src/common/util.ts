@@ -53,7 +53,12 @@ export type Serialized<T> = {
     : T[K];
 };
 
-export function serialize<T extends object>(obj: T): Serialized<T> {
+export function serialize<T extends object>(
+  obj: T | null | undefined,
+): Serialized<T> | null | undefined {
+  if (obj === null) return null;
+  if (obj === undefined) return undefined;
+
   const newObj: any = {};
   for (const key in obj) {
     const value = obj[key];
