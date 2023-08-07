@@ -8,6 +8,7 @@ import {
   Length,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import {
   BankAccountCreateRequest,
@@ -24,12 +25,13 @@ export class BankAccountListDto implements BankAccountListQuery {
   @Min(0)
   readonly skip: number = 0;
 
+  @ValidateIf((obj, val) => val !== undefined)
   @IsOptional()
   @IsInt()
   @Type(() => Number)
   @Min(10)
   @Max(100)
-  readonly take: number = 30;
+  readonly take: number = undefined;
 }
 
 export class BankAccountCreateRequestDto implements BankAccountCreateRequest {
