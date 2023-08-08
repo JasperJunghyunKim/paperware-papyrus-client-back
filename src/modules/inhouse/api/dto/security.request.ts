@@ -1,9 +1,4 @@
-import {
-  Bank,
-  DrawedStatus,
-  SecurityStatus,
-  SecurityType,
-} from '@prisma/client';
+import { Bank, SecurityStatus, SecurityType } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsDateString,
@@ -131,10 +126,6 @@ export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
   @IsEnum(SecurityStatus)
   @IsOptional()
   readonly securityStatus: SecurityStatus;
-
-  @IsEnum(DrawedStatus)
-  @IsOptional()
-  readonly drawedStatus: DrawedStatus;
 
   @IsString()
   @IsOptional()

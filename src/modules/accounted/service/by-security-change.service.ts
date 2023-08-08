@@ -4,12 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  AccountedType,
-  DrawedStatus,
-  Prisma,
-  SecurityStatus,
-} from '@prisma/client';
+import { AccountedType, Prisma, SecurityStatus } from '@prisma/client';
 import { isNil } from 'lodash';
 import { PrismaService } from 'src/core';
 import {
@@ -70,15 +65,6 @@ export class BySecurityChangeService {
             },
           },
         });
-
-        await tx.security.update({
-          data: {
-            securityStatus: SecurityStatus.ENDORSED,
-          },
-          where: {
-            id: bySecurityCreateRequest.securityId,
-          },
-        });
       });
     } else {
       // 수금일때...
@@ -110,7 +96,6 @@ export class BySecurityChangeService {
                   securityAmount:
                     bySecurityCreateRequest.security.securityAmount,
                   securityStatus: 'NONE',
-                  drawedStatus: DrawedStatus.ACCOUNTED,
                   drawedDate: bySecurityCreateRequest.security.drawedDate,
                   drawedBank: bySecurityCreateRequest.security.drawedBank,
                   drawedBankBranch:

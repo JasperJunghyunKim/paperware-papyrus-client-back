@@ -22,11 +22,7 @@ import {
   SecurityUpdateRequestDto,
   SecurityUpdateStatusRequestDto,
 } from './dto/security.request';
-import {
-  SecurityItemResponseDto,
-  SecurityListResponseDto,
-} from './dto/security.response';
-import { SecurityItemResponse } from 'src/@shared/api';
+import { SecurityItemResponse, SecurityListResponse } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
 
 @Controller('/security')
@@ -41,7 +37,7 @@ export class SecurityController {
   async getSecurityList(
     @Request() req: AuthType,
     @Query() dto: SecurityListDto,
-  ): Promise<SecurityListResponseDto> {
+  ): Promise<SecurityListResponse> {
     return await this.securityRetriveService.getSecurityList(
       req.user.companyId,
       dto.skip,

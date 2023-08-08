@@ -1022,8 +1022,6 @@ enum SecurityType {
 enum SecurityStatus {
   /// 사용안함
   NONE
-  /// 배서지급
-  ENDORSED
   /// 정상 결제
   NORMAL_PAYMENT
   /// 할인 결제
@@ -1034,14 +1032,6 @@ enum SecurityStatus {
   LOST
   /// 보관
   SAFEKEEPING
-}
-
-/// 발행 상태
-enum DrawedStatus {
-  /// 자사로 등록
-  SELF
-  /// 수금으로 등록
-  ACCOUNTED
 }
 
 model Security {
@@ -1055,8 +1045,6 @@ model Security {
   securityAmount   Float
   /// 증권 상태
   securityStatus   SecurityStatus @default(NONE)
-  /// 발행 상태
-  drawedStatus     DrawedStatus
   /// 발행일
   drawedDate       DateTime?
   /// 발행 은행
@@ -1086,7 +1074,7 @@ model Security {
   company   Company @relation(fields: [companyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   /// 회계 유가증권 목록
-  bySecurityList BySecurity[]
+  bySecurities BySecurity[]
 }
 
 /// 회계 타입

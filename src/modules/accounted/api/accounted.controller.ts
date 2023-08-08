@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotImplementedException,
   Param,
   Post,
   Query,
@@ -19,6 +20,7 @@ import { AccountedRetriveService } from '../service/accounted-retrive.service';
 import {
   AccountedByBankAccountCreatedDto,
   AccountedByCashCreatedDto,
+  AccountedBySecurityCreatedDto,
   AccountedTypeDto,
   AccountedUnpaidListDto,
 } from './dto/accounted.request';
@@ -69,6 +71,21 @@ export class AccountedController {
     @Body() dto: AccountedByBankAccountCreatedDto,
   ) {
     return await this.change.createByBankAccount({
+      companyId: req.user.companyId,
+      ...dto,
+    });
+  }
+
+  /** 계좌이체 등록 */
+  @Post('/security')
+  @UseGuards(AuthGuard)
+  async createBySecurity(
+    @Request() req: AuthType,
+    @Body() dto: AccountedBySecurityCreatedDto,
+  ) {
+    throw new NotImplementedException();
+    dto.validate();
+    return await this.change.createBySecurity({
       companyId: req.user.companyId,
       ...dto,
     });

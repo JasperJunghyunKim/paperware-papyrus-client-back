@@ -1150,3 +1150,29 @@ export const ORDER_REQUEST_ITEM_WITH_ORDER_REQUEST = {
     },
   },
 } satisfies Prisma.OrderRequestItemSelect;
+
+export const SECURITY = {
+  id: true,
+  securityType: true,
+  securitySerial: true,
+  securityAmount: true,
+  securityStatus: true,
+  drawedDate: true,
+  drawedBank: true,
+  drawedBankBranch: true,
+  drawedRegion: true,
+  drawer: true,
+  maturedDate: true,
+  payingBank: true,
+  payingBankBranch: true,
+  payer: true,
+  memo: true,
+  bySecurities: {
+    include: {
+      accounted: true,
+    },
+    where: {
+      isDeleted: false,
+    },
+  },
+} satisfies Prisma.SecuritySelect;

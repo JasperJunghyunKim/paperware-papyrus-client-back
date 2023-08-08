@@ -181,7 +181,7 @@ export class BySecurityCreateRequestDto implements BySecurityCreateRequest {
   @IsObject()
   @Type(() => Security)
   @ValidateNested()
-  readonly security: Security | null;
+  readonly security: any | null;
 
   validate(type: AccountedType) {
     if (type === 'COLLECTED' && this.security === null) {

@@ -32,7 +32,6 @@ export class BySecurityRetriveService {
                 securitySerial: true,
                 securityAmount: true,
                 securityStatus: true,
-                drawedStatus: true,
                 drawedDate: true,
                 drawedBank: true,
                 drawedBankBranch: true,
@@ -70,37 +69,6 @@ export class BySecurityRetriveService {
       },
     });
 
-    return {
-      companyId: accounted.companyId,
-      companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
-      partnerNickName: partner.partnerNickName || '',
-      accountedId: accounted.id,
-      accountedType: accounted.accountedType,
-      accountedDate: accounted.accountedDate?.toISOString(),
-      accountedSubject: accounted.accountedSubject,
-      accountedMethod: accounted.accountedMethod,
-      memo: accounted.memo,
-      amount: accounted.bySecurity.security.securityAmount,
-      endorsementType: accounted.bySecurity.endorsementType,
-      endorsement: accounted.bySecurity.endorsement,
-      security: {
-        id: accounted.bySecurity.securityId,
-        securityType: accounted.bySecurity.security.securityType,
-        securitySerial: accounted.bySecurity.security.securitySerial,
-        securityAmount: accounted.bySecurity.security.securityAmount,
-        securityStatus: accounted.bySecurity.security.securityStatus,
-        drawedStatus: accounted.bySecurity.security.drawedStatus,
-        drawedDate: accounted.bySecurity.security.drawedDate?.toISOString(),
-        drawedBank: accounted.bySecurity.security.drawedBank,
-        drawedBankBranch: accounted.bySecurity.security.drawedBankBranch,
-        drawedRegion: accounted.bySecurity.security.drawedRegion,
-        drawer: accounted.bySecurity.security.drawer,
-        maturedDate: accounted.bySecurity.security.maturedDate?.toISOString(),
-        payingBank: accounted.bySecurity.security.payingBank,
-        payingBankBranch: accounted.bySecurity.security.payingBankBranch,
-        payer: accounted.bySecurity.security.payer,
-        memo: accounted.bySecurity.security.memo,
-      },
-    };
+    return null;
   }
 }
