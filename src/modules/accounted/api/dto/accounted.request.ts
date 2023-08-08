@@ -26,6 +26,7 @@ import {
 } from 'class-validator';
 import {
   AccountedByBankAccountCreatedRequest,
+  AccountedByBankAccountUpdateRequest,
   AccountedByCardCreatedRequest,
   AccountedByCashCreatedRequest,
   AccountedByEtcCreatedRequest,
@@ -410,6 +411,26 @@ export class AccountedByEtcCreatedDto implements AccountedByEtcCreatedRequest {
   @Length(10, 10)
   readonly companyRegistrationNumber: string;
 
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly amount: number;
+}
+
+/** 수금/지급 수정 (계좌이체) */
+export class AccountedByBankAccountUpdateDto
+  implements AccountedByBankAccountUpdateRequest
+{
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 

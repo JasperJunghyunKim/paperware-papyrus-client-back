@@ -1187,6 +1187,7 @@ export const ACCOUNTED = {
   memo: true,
   byCard: {
     select: {
+      id: true,
       amount: true,
       card: true,
       bankAccount: true,
@@ -1194,27 +1195,32 @@ export const ACCOUNTED = {
   },
   byBankAccount: {
     select: {
+      id: true,
       amount: true,
       bankAccount: true,
     },
   },
   byCash: {
     select: {
+      id: true,
       amount: true,
     },
   },
   byEtc: {
     select: {
+      id: true,
       amount: true,
     },
   },
   byOffset: {
     select: {
+      id: true,
       amount: true,
     },
   },
   bySecurity: {
     select: {
+      id: true,
       amount: true,
       security: {
         select: SECURITY,

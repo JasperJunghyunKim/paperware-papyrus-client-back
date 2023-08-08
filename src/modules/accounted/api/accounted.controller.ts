@@ -5,6 +5,7 @@ import {
   NotImplementedException,
   Param,
   Post,
+  Put,
   Query,
   Request,
   UseGuards,
@@ -20,6 +21,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
 import {
   AccountedByBankAccountCreatedDto,
+  AccountedByBankAccountUpdateDto,
   AccountedByCardCreatedDto,
   AccountedByCashCreatedDto,
   AccountedByOffsetCreatedDto,
@@ -146,6 +148,21 @@ export class AccountedController {
     return await this.change.createByCash({
       companyId: req.user.companyId,
       ...dto,
+    });
+  }
+
+  /** 계좌이체 수정 */
+  @Put('/:id/bank-account')
+  @UseGuards(AuthGuard)
+  async updateByBank(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: AccountedByBankAccountUpdateDto,
+  ) {
+    return await this.change.updateByBankAccount({
+      companyId: req.user.companyId,
+      accountedId: param.id,
+      ...body,
     });
   }
 

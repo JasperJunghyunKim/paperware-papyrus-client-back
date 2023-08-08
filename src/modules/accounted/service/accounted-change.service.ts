@@ -12,11 +12,15 @@ import {
   SecurityType,
   Subject,
 } from '@prisma/client';
+import { Selector } from 'src/common';
+import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 
 @Injectable()
 export class AccountedChangeService {
   constructor(private readonly prisma: PrismaService) {}
+
+  // 등록
 
   async createByBankAccount(params: {
     companyId: number;
@@ -433,6 +437,67 @@ export class AccountedChangeService {
         },
         select: {
           id: true,
+        },
+      });
+    });
+  }
+
+  // 수정
+
+  private async getAccounted(
+    tx: PrismaTransaction,
+    companyId: number,
+    accountedId: number,
+  ) {
+    return await this.prisma.accounted.findFirst({
+      select: Selector.ACCOUNTED,
+      where: {
+        id: accountedId,
+        companyId,
+        isDeleted: false,
+      },
+    });
+  }
+
+  async updateByBankAccount(params: {
+    companyId: number;
+    accountedId: number;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(
+        tx,
+        params.companyId,
+        params.accountedId,
+      );
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+      if (accounted.accountedMethod !== 'ACCOUNT_TRANSFER')
+        throw new ConflictException(`회계수단 에러`);
+
+      await tx.byBankAccount.update({
+        where: {
+          id: accounted.byBankAccount.id,
+        },
+        data: {
+          amount: params.amount,
+        },
+      });
+
+      return await tx.accounted.update({
+        select: {
+          id: true,
+        },
+        where: {
+          id: params.accountedId,
+        },
+        data: {
+          accountedDate: params.accountedDate,
+          accountedSubject: params.accountedSubject,
+          memo: params.memo || '',
         },
       });
     });
