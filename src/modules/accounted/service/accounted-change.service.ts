@@ -54,7 +54,7 @@ export class AccountedChangeService {
           memo: params.memo || '',
           byBankAccount: {
             create: {
-              bankAccountAmount: params.amount,
+              amount: params.amount,
               bankAccount: {
                 connect: {
                   id: params.bankAccountId,
@@ -219,7 +219,7 @@ export class AccountedChangeService {
           memo: params.memo || '',
           byCash: {
             create: {
-              cashAmount: params.amount,
+              amount: params.amount,
             },
           },
         },
@@ -348,7 +348,7 @@ export class AccountedChangeService {
           partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
           accountedType: 'COLLECTED',
           accountedSubject: params.accountedSubject,
-          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedMethod: 'OFFSET',
           accountedDate: params.accountedDate,
           memo: params.memo || '',
           byOffset: {
@@ -378,7 +378,7 @@ export class AccountedChangeService {
           partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
           accountedType: 'PAID',
           accountedSubject: params.accountedSubject,
-          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedMethod: 'OFFSET',
           accountedDate: params.accountedDate,
           memo: params.memo || '',
           byOffset: {
@@ -395,6 +395,42 @@ export class AccountedChangeService {
               id: true,
             },
           },
+        },
+      });
+    });
+  }
+
+  async createByEtc(params: {
+    companyId: number;
+    accountedType: AccountedType;
+    companyRegistrationNumber: string;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      return await tx.accounted.create({
+        data: {
+          company: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
+          accountedType: params.accountedType,
+          accountedSubject: params.accountedSubject,
+          accountedMethod: 'ETC',
+          accountedDate: params.accountedDate,
+          memo: params.memo || '',
+          byEtc: {
+            create: {
+              amount: params.amount,
+            },
+          },
+        },
+        select: {
+          id: true,
         },
       });
     });

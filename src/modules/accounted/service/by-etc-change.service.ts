@@ -39,7 +39,7 @@ export class ByEtcChangeService {
             memo: byEtcCreateRequest.memo || '',
             byEtc: {
               create: {
-                etcAmount: byEtcCreateRequest.amount,
+                amount: byEtcCreateRequest.amount,
               },
             },
           },
@@ -78,7 +78,7 @@ export class ByEtcChangeService {
         memo: byEtcUpdateRequest.memo ?? '',
         byEtc: {
           update: {
-            etcAmount: byEtcUpdateRequest.amount,
+            amount: byEtcUpdateRequest.amount,
           },
         },
       },

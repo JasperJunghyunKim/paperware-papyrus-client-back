@@ -79,7 +79,7 @@ export class AccountedRetriveService {
         byEtc: true,
         byBankAccount: {
           select: {
-            bankAccountAmount: true,
+            amount: true,
             bankAccount: {
               select: {
                 accountName: true,
@@ -141,13 +141,13 @@ export class AccountedRetriveService {
       const getAmount = (method): number => {
         switch (method) {
           case Method.CASH:
-            return accounted.byCash.cashAmount;
+            return accounted.byCash.amount;
           case Method.PROMISSORY_NOTE:
             return accounted.bySecurity.security.securityAmount;
           case Method.ETC:
-            return accounted.byEtc.etcAmount;
+            return accounted.byEtc.amount;
           case Method.ACCOUNT_TRANSFER:
-            return accounted.byBankAccount.bankAccountAmount;
+            return accounted.byBankAccount.amount;
           case Method.CARD_PAYMENT:
             return accounted.byCard.isCharge
               ? accounted.byCard.amount
@@ -356,24 +356,24 @@ export class AccountedRetriveService {
         -- 지급/수금
       LEFT JOIN (
       SELECT a.partnerCompanyRegistrationNumber
-            , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
+            , IFNULL(SUM(IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
               .toString()
               .padStart(
                 2,
                 '0',
-              )}-01 00:00:00.000`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price1
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price2
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price3
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price4
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price5
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price6
+              )}-01 00:00:00.000`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price2
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price3
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price4
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price5
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price6
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
               .toString()
               .padStart(
                 2,
                 '0',
-              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price7
+              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price7
 
         FROM Accounted      AS a
       LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
@@ -505,24 +505,24 @@ export class AccountedRetriveService {
         -- 지급/수금
    LEFT JOIN (
       SELECT a.partnerCompanyRegistrationNumber
-            , IFNULL(SUM(IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
+            , IFNULL(SUM(IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
               .toString()
               .padStart(
                 2,
                 '0',
-              )}-01 00:00:00.000`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price1
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price2
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price3
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price4
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price5
-            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price6
+              )}-01 00:00:00.000`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price1
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year2} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month2} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price2
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year3} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month3} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price3
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year4} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month4} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price4
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year5} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month5} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price5
+            , IFNULL(SUM(CASE WHEN YEAR(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${year6} AND MONTH(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) = ${month6} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price6
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) <= ${`${year7}-${month7
               .toString()
               .padStart(
                 2,
                 '0',
-              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.cashAmount, 0) + IFNULL(e.etcAmount, 0) + IFNULL(b.bankAccountAmount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price7
+              )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(s2.securityAmount, 0) + IFNULL(o.amount, 0) END), 0) AS price7
 
         FROM Accounted      AS a
     LEFT JOIN ByCash         AS c  ON c.accountedId = a.id

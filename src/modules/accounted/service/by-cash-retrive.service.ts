@@ -55,7 +55,7 @@ export class ByCashRetriveService {
       accountedDate: accounted.accountedDate.toISOString(),
       accountedSubject: accounted.accountedSubject,
       accountedMethod: accounted.accountedMethod,
-      amount: accounted.byCash.cashAmount,
+      amount: accounted.byCash.amount,
       memo: accounted.memo,
       partnerNickName: partner.partnerNickName,
     };

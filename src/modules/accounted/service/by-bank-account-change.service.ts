@@ -39,7 +39,7 @@ export class ByBankAccountChangeService {
             memo: byBankCreateRequest.memo || '',
             byBankAccount: {
               create: {
-                bankAccountAmount: byBankCreateRequest.amount,
+                amount: byBankCreateRequest.amount,
                 bankAccount: {
                   connect: {
                     id: byBankCreateRequest.bankAccountId,
@@ -80,7 +80,7 @@ export class ByBankAccountChangeService {
         memo: byBankUpdateRequest.memo || null,
         byBankAccount: {
           update: {
-            bankAccountAmount: byBankUpdateRequest.amount,
+            amount: byBankUpdateRequest.amount,
           },
         },
       },

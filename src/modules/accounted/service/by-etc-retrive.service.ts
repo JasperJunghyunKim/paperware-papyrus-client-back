@@ -55,7 +55,7 @@ export class ByEtcRetriveService {
       accountedDate: accounted.accountedDate.toISOString(),
       accountedSubject: accounted.accountedSubject,
       accountedMethod: accounted.accountedMethod,
-      amount: accounted.byEtc.etcAmount,
+      amount: accounted.byEtc.amount,
       memo: accounted.memo,
       partnerNickName: partner.partnerNickName,
     };

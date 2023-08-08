@@ -28,7 +28,7 @@ export class ByBankAccountRetriveService {
           select: {
             id: true,
             bankAccountId: true,
-            bankAccountAmount: true,
+            amount: true,
             bankAccount: {
               select: {
                 accountName: true,
@@ -67,7 +67,7 @@ export class ByBankAccountRetriveService {
       accountedDate: accounted.accountedDate.toISOString(),
       accountedSubject: accounted.accountedSubject,
       accountedMethod: accounted.accountedMethod,
-      amount: accounted.byBankAccount.bankAccountAmount,
+      amount: accounted.byBankAccount.amount,
       memo: accounted.memo,
       partnerNickName: partner.partnerNickName || '',
       bankAccountId: accounted.byBankAccount.bankAccountId,

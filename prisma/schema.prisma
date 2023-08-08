@@ -1184,7 +1184,7 @@ model ByCash {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 금액
-  cashAmount  Int
+  amount      Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
   /// 회계 식별자
@@ -1197,7 +1197,7 @@ model ByEtc {
   /// 식별자
   id          Int       @id @default(autoincrement())
   /// 금액
-  etcAmount   Int
+  amount      Int
   /// 삭제 여부
   isDeleted   Boolean   @default(false)
   /// 회계 식별자
@@ -1209,19 +1209,19 @@ model ByEtc {
 /// 계좌
 model ByBankAccount {
   /// 식별자
-  id                Int         @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   /// 금액
-  bankAccountAmount Int
+  amount        Int
   /// 삭제 여부
-  isDeleted         Boolean     @default(false)
+  isDeleted     Boolean     @default(false)
   /// 회계 식별자
-  accountedId       Int         @unique
+  accountedId   Int         @unique
   /// 회계
-  accounted         Accounted   @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounted     Accounted   @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 계좌 식별자
-  bankAccountId     Int
+  bankAccountId Int
   /// 계좌
-  bankAccount       BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 /// 카드
@@ -1255,18 +1255,18 @@ model ByCard {
 /// 상계
 model ByOffset {
   /// 식별자
-  id             Int           @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   /// 금액
   amount         Int
   /// 삭제 여부
-  isDeleted      Boolean       @default(false)
+  isDeleted      Boolean      @default(false)
   /// 회계 식별자
-  accountedId    Int           @unique
+  accountedId    Int          @unique
   /// 회계
-  accounted      Accounted     @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accounted      Accounted    @relation(fields: [accountedId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   /// 상계 '지급' 식별자
-  byOffsetPairId Int?
-  offsetPair     ByOffsetPair? @relation(fields: [byOffsetPairId], references: [id])
+  byOffsetPairId Int
+  offsetPair     ByOffsetPair @relation(fields: [byOffsetPairId], references: [id])
 }
 
 model ByOffsetPair {

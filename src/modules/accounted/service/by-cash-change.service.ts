@@ -39,7 +39,7 @@ export class ByCashChangeService {
             memo: byCashCreateRequest.memo || '',
             byCash: {
               create: {
-                cashAmount: byCashCreateRequest.amount,
+                amount: byCashCreateRequest.amount,
               },
             },
           },
@@ -78,7 +78,7 @@ export class ByCashChangeService {
         memo: byCashUpdateRequestDto.memo || '',
         byCash: {
           update: {
-            cashAmount: byCashUpdateRequestDto.amount,
+            amount: byCashUpdateRequestDto.amount,
           },
         },
       },

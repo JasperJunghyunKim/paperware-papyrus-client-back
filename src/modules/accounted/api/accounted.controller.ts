@@ -120,7 +120,7 @@ export class AccountedController {
     });
   }
 
-  /** 현금 등록 */
+  /** 상계 등록 */
   @Post('/offset')
   @UseGuards(AuthGuard)
   async createByOffset(
@@ -128,6 +128,19 @@ export class AccountedController {
     @Body() dto: AccountedByOffsetCreatedDto,
   ) {
     return await this.change.createByOffset({
+      companyId: req.user.companyId,
+      ...dto,
+    });
+  }
+
+  /** 기타 등록 */
+  @Post('/etc')
+  @UseGuards(AuthGuard)
+  async createByEtc(
+    @Request() req: AuthType,
+    @Body() dto: AccountedByCashCreatedDto,
+  ) {
+    return await this.change.createByCash({
       companyId: req.user.companyId,
       ...dto,
     });

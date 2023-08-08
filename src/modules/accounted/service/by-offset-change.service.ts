@@ -33,11 +33,6 @@ export class ByOffsetChangeService {
       accountedMethod: 'OFFSET',
       accountedDate: byOffsetCreateRequest.accountedDate,
       memo: byOffsetCreateRequest.memo || '',
-      byOffset: {
-        create: {
-          amount: byOffsetCreateRequest.amount,
-        },
-      },
     };
 
     await this.prisma.$transaction(async (tx) => {
