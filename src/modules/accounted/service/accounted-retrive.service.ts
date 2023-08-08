@@ -240,7 +240,7 @@ export class AccountedRetriveService {
 
         -- 지급/수금
       LEFT JOIN (
-      SELECT a.partnerCompanyRegistrationNumber
+      SELECT a.companyRegistrationNumber
             , IFNULL(SUM(IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(o.amount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
               .toString()
@@ -272,8 +272,8 @@ export class AccountedRetriveService {
       WHERE a.companyId = ${companyId}
         AND a.accountedType = ${accountedType}
 
-      GROUP BY a.partnerCompanyRegistrationNumber
-      ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = partner.companyRegistrationNumber
+      GROUP BY a.companyRegistrationNumber
+      ) AS paidPrice ON paidPrice.companyRegistrationNumber = partner.companyRegistrationNumber
 
         GROUP BY partner.companyRegistrationNumber
                 , partner.id
@@ -389,7 +389,7 @@ export class AccountedRetriveService {
 
         -- 지급/수금
    LEFT JOIN (
-      SELECT a.partnerCompanyRegistrationNumber
+      SELECT a.companyRegistrationNumber
             , IFNULL(SUM(IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(o.amount, 0) + IFNULL(o.amount, 0)), 0) AS totalPrice
             , IFNULL(SUM(CASE WHEN DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= ${`${year1}-${month1
               .toString()
@@ -420,12 +420,12 @@ export class AccountedRetriveService {
     
     WHERE a.companyId = ${companyId}
       AND a.accountedType = ${accountedType}
-      AND a.partnerCompanyRegistrationNumber IN (${Prisma.join(
+      AND a.companyRegistrationNumber IN (${Prisma.join(
         partners.map((p) => p.companyRegistrationNumber),
       )})
 
-    GROUP BY a.partnerCompanyRegistrationNumber
-   ) AS paidPrice ON paidPrice.partnerCompanyRegistrationNumber = partner.companyRegistrationNumber
+    GROUP BY a.companyRegistrationNumber
+   ) AS paidPrice ON paidPrice.companyRegistrationNumber = partner.companyRegistrationNumber
       
         GROUP BY partner.companyRegistrationNumber
                 , partner.id
