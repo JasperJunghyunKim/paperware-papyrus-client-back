@@ -46,6 +46,63 @@ export class AccountedRetriveService {
     items: Model.Accounted[];
     total: number;
   }> {
+    const partnerQuery =
+      params.companyRegistrationNumbers.length > 0
+        ? Prisma.sql`AND a.companyRegistrationNumber IN (${Prisma.join(
+            params.companyRegistrationNumbers,
+          )})`
+        : Prisma.empty;
+    const minDateQuery = params.minAccountedDate
+      ? Prisma.sql`AND DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) >= DATE(CONVERT_TZ(${params.minAccountedDate}, '+00:00', '+09:00'))`
+      : Prisma.empty;
+    const maxDateQuery = params.minAccountedDate
+      ? Prisma.sql`AND DATE(CONVERT_TZ(a.accountedDate, '+00:00', '+09:00')) <= DATE(CONVERT_TZ(${params.maxAccountedDate}, '+00:00', '+09:00'))`
+      : Prisma.empty;
+
+    params.accountedSubjects = Array.from(
+      new Set(
+        params.accountedSubjects.filter((s) =>
+          Util.inc(
+            s,
+            'ACCOUNTS_RECEIVABLE',
+            'ADVANCES',
+            'ETC',
+            'MISCELLANEOUS_INCOME',
+            'PRODUCT_SALES',
+            'UNPAID',
+          ),
+        ),
+      ),
+    );
+    const subjectQuery =
+      params.accountedSubjects.length > 0
+        ? Prisma.sql`AND a.accountedSubject IN (${Prisma.join(
+            params.accountedSubjects,
+          )})`
+        : Prisma.empty;
+
+    params.accountedMethods = Array.from(
+      new Set(
+        params.accountedMethods.filter((m) =>
+          Util.inc(
+            m,
+            'ACCOUNT_TRANSFER',
+            'CARD_PAYMENT',
+            'CASH',
+            'ETC',
+            'OFFSET',
+            'PROMISSORY_NOTE',
+          ),
+        ),
+      ),
+    );
+    const methodQuery =
+      params.accountedMethods.length > 0
+        ? Prisma.sql`AND a.accountedMethod IN (${Prisma.join(
+            params.accountedMethods,
+          )})`
+        : Prisma.empty;
+
     const searchAccounted: {
       id: number;
       total: bigint;
@@ -58,6 +115,11 @@ export class AccountedRetriveService {
        WHERE a.companyId = ${params.companyId}
          AND a.accountedType = ${params.accountedType}
          AND isDeleted = ${false}
+         ${partnerQuery}
+         ${minDateQuery}
+         ${maxDateQuery}
+         ${subjectQuery}
+         ${methodQuery}
 
        ORDER BY id DESC
        
