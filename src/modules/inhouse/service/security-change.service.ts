@@ -119,5 +119,32 @@ export class SecurityChangeService {
     companyId: number,
     securityId: number,
     securityStatus: SecurityStatus,
-  ) {}
+  ) {
+    await this.prisma.$transaction(async (tx) => {
+      const security = await this.getSecurityForUpdateTx(
+        tx,
+        securityId,
+        companyId,
+      );
+
+      if (!security)
+        throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);
+      if (
+        (security.securityStatus !== 'NONE' &&
+          securityStatus !== 'NONE' &&
+          security.securityStatus !== securityStatus) ||
+        Number(security.bySecurityCount) > 0
+      )
+        throw new ConflictException(`수정할 수 없는 상태입니다.`);
+
+      await tx.security.update({
+        where: {
+          id: security.id,
+        },
+        data: {
+          securityStatus,
+        },
+      });
+    });
+  }
 }
