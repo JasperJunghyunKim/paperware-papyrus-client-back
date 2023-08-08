@@ -61,6 +61,22 @@ export class AccountedController {
     });
   }
 
+  /** 미수금/미지급 목록 */
+  @Get('/unpaid')
+  @UseGuards(AuthGuard)
+  async getUnpaidList(
+    @Request() req: AuthType,
+    @Query() dto: AccountedUnpaidListDto,
+  ): Promise<AccountedUnpaidListResponse> {
+    return await this.accountedRetriveService.getUnpaidList({
+      companyId: req.user.companyId,
+      ...dto,
+      companyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        dto.companyRegistrationNumbers,
+      ),
+    });
+  }
+
   @Get('/:id')
   @UseGuards(AuthGuard)
   async get(
@@ -163,22 +179,6 @@ export class AccountedController {
       companyId: req.user.companyId,
       accountedId: param.id,
       ...body,
-    });
-  }
-
-  /** 미수금/미지급 목록 */
-  @Get('/unpaid')
-  @UseGuards(AuthGuard)
-  async getUnpaidList(
-    @Request() req: AuthType,
-    @Query() dto: AccountedUnpaidListDto,
-  ): Promise<AccountedUnpaidListResponse> {
-    return await this.accountedRetriveService.getUnpaidList({
-      companyId: req.user.companyId,
-      ...dto,
-      companyRegistrationNumbers: Util.searchKeywordsToStringArray(
-        dto.companyRegistrationNumbers,
-      ),
     });
   }
 }
