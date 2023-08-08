@@ -109,7 +109,7 @@ export class SecurityChangeService {
       if (!security)
         throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);
 
-      if (security.securityStatus !== 'NONE')
+      if (security.securityStatus !== 'NONE' || security.paidBySecurityId)
         throw new ConflictException(`삭제할 수 없는 상태입니다.`);
       if (security.collectedBySecurityId)
         throw new ConflictException(
