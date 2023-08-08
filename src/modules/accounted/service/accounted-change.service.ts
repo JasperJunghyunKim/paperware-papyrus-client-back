@@ -133,6 +133,7 @@ export class AccountedChangeService {
             bySecurity: {
               create: {
                 securityId: params.securityId,
+                amount: params.amount,
               },
             },
           },
@@ -163,6 +164,7 @@ export class AccountedChangeService {
               create: {
                 endorsement: params.endorsement || '',
                 endorsementType: params.endorsementType,
+                amount: params.amount,
                 security: {
                   create: {
                     securityType: params.security.securityType,

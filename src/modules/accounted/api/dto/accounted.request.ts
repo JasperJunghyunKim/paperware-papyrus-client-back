@@ -31,17 +31,14 @@ import {
   AccountedByEtcCreatedRequest,
   AccountedByOffsetCreatedRequest,
   AccountedBySecurityCreatedRequest,
+  AccountedListQuery,
   AccountedUnpaidListQuery,
 } from 'src/@shared/api';
 import { IsName } from 'src/validator/is-name.validator';
 import { IsOnlyNumber } from 'src/validator/is-only-number';
 
-export class AccountedTypeDto {
-  @IsEnum(AccountedType)
-  readonly accountedType: AccountedType;
-}
-
-export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
+/** 수금/지급 목록 */
+export class AccountedListDto implements AccountedListQuery {
   @IsOptional()
   @IsInt()
   @Type(() => Number)
@@ -58,36 +55,30 @@ export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
   @IsEnum(AccountedType)
   readonly accountedType: AccountedType;
 
+  @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
-  readonly companyRegistrationNumbers: string = '';
+  readonly companyRegistrationNumbers: string | null = null;
 
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  readonly minAmount: number | null = null;
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  readonly maxAmount: number | null = null;
-
-  /** 테스트용 */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  @IsPositive()
-  readonly year: number | null = null;
+  @IsDateString()
+  readonly minAccountedDate: string | null = null;
 
-  /** 테스트용 */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  @Min(1)
-  @Max(12)
-  readonly month: number | null = null;
+  @IsDateString()
+  readonly maxAccountedDate: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly accountedSubjects: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly accountedMethods: string | null = null;
 }
 
 /** 수금/지급 등록 (계좌이체) */
@@ -433,4 +424,54 @@ export class AccountedByEtcCreatedDto implements AccountedByEtcCreatedRequest {
   @IsInt()
   @Min(0)
   readonly amount: number;
+}
+
+/** 미수금/미지급 목록 */
+export class AccountedUnpaidListDto implements AccountedUnpaidListQuery {
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly skip: number = 0;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(10)
+  @Max(100)
+  readonly take: number = 30;
+
+  @IsEnum(AccountedType)
+  readonly accountedType: AccountedType;
+
+  @IsOptional()
+  @IsString()
+  readonly companyRegistrationNumbers: string = '';
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly minAmount: number | null = null;
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  readonly maxAmount: number | null = null;
+
+  /** 테스트용 */
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly year: number | null = null;
+
+  /** 테스트용 */
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(1)
+  @Max(12)
+  readonly month: number | null = null;
 }

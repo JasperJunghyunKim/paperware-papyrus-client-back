@@ -994,8 +994,6 @@ enum Method {
   OFFSET
   /// 기타
   ETC
-  /// 전체
-  All
 }
 
 /// 증권타입
@@ -1099,8 +1097,6 @@ enum Subject {
   PRODUCT_SALES
   /// 기타
   ETC
-  /// 전체
-  All
 }
 
 /// 파트너
@@ -1289,6 +1285,8 @@ enum EndorsementType {
 model BySecurity {
   /// 식별자
   id              Int              @id @default(autoincrement())
+  /// 금액
+  amount          Int
   /// 배서구분
   endorsementType EndorsementType?
   /// 배서자

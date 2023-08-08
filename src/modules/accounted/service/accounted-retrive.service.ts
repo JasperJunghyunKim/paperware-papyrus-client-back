@@ -5,10 +5,12 @@ import {
   OrderStatus,
   Partner,
   Prisma,
+  Subject,
 } from '@prisma/client';
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import * as dayjs from 'dayjs';
+import { Selector } from 'src/common';
 
 export interface Price {
   partnerCompanyRegistrationNumber: string;
@@ -29,177 +31,56 @@ export interface Price {
 export class AccountedRetriveService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAccountedList(
-    companyId: number,
-    accountedType: AccountedType,
-    paidRequest: any,
-  ): Promise<any> {
-    const {
-      companyId: conditionCompanyId,
-      companyRegistrationNumber,
-      accountedSubject,
-      accountedMethod,
-      accountedFromDate,
-      accountedToDate,
-    } = paidRequest;
-    const param: any = {
-      accountedType,
-      isDeleted: false,
-    };
+  async getList(params: {
+    companyId: number;
+    skip: number;
+    take: number;
+    accountedType: AccountedType;
+    companyRegistrationNumbers: string[];
+    minAccountedDate: string | null;
+    maxAccountedDate: string | null;
+    accountedSubjects: Subject[];
+    accountedMethods: Method[];
+  }) {
+    const searchAccounted: {
+      id: number;
+      total: bigint;
+    }[] = await this.prisma.$queryRaw`
+      SELECT a.id AS id
+            
+            , COUNT(1) OVER() AS total
+        FROM Accounted    AS a
+       
+       WHERE a.companyId = ${params.companyId}
+         AND a.accountedType = ${params.accountedType}
+         AND isDeleted = ${false}
 
-    if (accountedSubject !== 'All') {
-      param.accountedSubject = {
-        equals: accountedSubject,
-      };
-    }
-
-    if (accountedMethod !== 'All') {
-      param.accountedMethod = {
-        equals: accountedMethod,
-      };
-    }
-
-    if (accountedFromDate !== '' && accountedToDate !== '') {
-      param.accountedDate = {
-        gte: new Date(accountedFromDate),
-        lte: new Date(accountedToDate),
-      };
-    }
-
-    const accountedList = await this.prisma.accounted.findMany({
-      select: {
-        id: true,
-        partnerCompanyRegistrationNumber: true,
-        accountedType: true,
-        accountedSubject: true,
-        accountedMethod: true,
-        accountedDate: true,
-        memo: true,
-        byCash: true,
-        byEtc: true,
-        byBankAccount: {
-          select: {
-            amount: true,
-            bankAccount: {
-              select: {
-                accountName: true,
-              },
-            },
-          },
-        },
-        byCard: {
-          select: {
-            isCharge: true,
-            cardAmount: true,
-            vatPrice: true,
-            amount: true,
-            card: {
-              select: {
-                cardName: true,
-              },
-            },
-            bankAccount: {
-              select: {
-                accountName: true,
-              },
-            },
-          },
-        },
-        byOffset: true,
-        bySecurity: {
-          select: {
-            security: {
-              select: {
-                securityAmount: true,
-                securityStatus: true,
-                securitySerial: true,
-              },
-            },
-          },
-        },
-      },
-      where: {
-        companyId,
-        companyRegistrationNumber: companyRegistrationNumber
-          ? companyRegistrationNumber
-          : undefined,
-        ...param,
-      },
-    });
-
-    const partners = await this.prisma.partner.findMany({
-      where: {
-        companyId,
-      },
-    });
-    const partnerMap = new Map<string, Partner>();
-    for (const partner of partners) {
-      partnerMap.set(partner.companyRegistrationNumber, partner);
-    }
-
-    const items = accountedList.map((accounted) => {
-      const getAmount = (method): number => {
-        switch (method) {
-          case Method.CASH:
-            return accounted.byCash.amount;
-          case Method.PROMISSORY_NOTE:
-            return accounted.bySecurity.security.securityAmount;
-          case Method.ETC:
-            return accounted.byEtc.amount;
-          case Method.ACCOUNT_TRANSFER:
-            return accounted.byBankAccount.amount;
-          case Method.CARD_PAYMENT:
-            return accounted.byCard.isCharge
-              ? accounted.byCard.amount
-              : accounted.byCard.cardAmount;
-          case Method.OFFSET:
-            return accounted.byOffset.amount;
-        }
-      };
-
-      const getGubun = (method): string => {
-        switch (method) {
-          case Method.CASH:
-            return '';
-          case Method.PROMISSORY_NOTE:
-            return accounted.bySecurity.security.securitySerial;
-          case Method.ETC:
-            return '';
-          case Method.ACCOUNT_TRANSFER:
-            return accounted.byBankAccount.bankAccount.accountName;
-          case Method.CARD_PAYMENT:
-            return accounted.byCard.card
-              ? accounted.byCard.card.cardName
-              : accounted.byCard.bankAccount.accountName;
-          case Method.OFFSET:
-            return '';
-        }
-      };
-
+       ORDER BY id DESC
+       
+       LIMIT ${params.skip}, ${params.take}
+    `;
+    if (searchAccounted.length === 0) {
       return {
-        companyId,
-        companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
-        partnerNickName:
-          partnerMap.get(accounted.partnerCompanyRegistrationNumber)
-            ?.partnerNickName || '',
-        accountedId: accounted.id,
-        accountedType: accounted.accountedType,
-        accountedDate: accounted.accountedDate.toISOString(),
-        accountedMethod: accounted.accountedMethod,
-        accountedSubject: accounted.accountedSubject,
-        amount: getAmount(accounted.accountedMethod),
-        memo: accounted.memo,
-        gubun: getGubun(accounted.accountedMethod),
-        securityStatus:
-          accounted.accountedMethod === Method.PROMISSORY_NOTE
-            ? accounted.bySecurity.security.securityStatus
-            : undefined,
+        items: [],
+        total: 0,
       };
+    }
+
+    const items = await this.prisma.accounted.findMany({
+      select: Selector.ACCOUNTED,
+      where: {
+        id: {
+          in: searchAccounted.map((a) => a.id),
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
     });
 
     return {
       items,
-      total: items.length,
+      total: Number(searchAccounted[0].total),
     };
   }
 

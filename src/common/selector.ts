@@ -1176,3 +1176,46 @@ export const SECURITY = {
     },
   },
 } satisfies Prisma.SecuritySelect;
+
+export const ACCOUNTED = {
+  id: true,
+  partnerCompanyRegistrationNumber: true,
+  accountedType: true,
+  accountedMethod: true,
+  accountedDate: true,
+  accountedSubject: true,
+  memo: true,
+  byCard: {
+    select: {
+      amount: true,
+      card: true,
+      bankAccount: true,
+    },
+  },
+  byBankAccount: {
+    select: {
+      amount: true,
+      bankAccount: true,
+    },
+  },
+  byCash: {
+    select: {
+      amount: true,
+    },
+  },
+  byEtc: {
+    select: {
+      amount: true,
+    },
+  },
+  byOffset: {
+    select: {
+      amount: true,
+    },
+  },
+  bySecurity: {
+    select: {
+      security: true,
+    },
+  },
+} satisfies Prisma.AccountedSelect;

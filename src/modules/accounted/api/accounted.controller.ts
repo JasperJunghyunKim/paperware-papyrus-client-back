@@ -9,7 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AccountedType } from '@prisma/client';
+import { AccountedType, Method, Subject } from '@prisma/client';
 import {
   AccountedListResponse,
   AccountedUnpaidListResponse,
@@ -23,7 +23,7 @@ import {
   AccountedByCashCreatedDto,
   AccountedByOffsetCreatedDto,
   AccountedBySecurityCreatedDto,
-  AccountedTypeDto,
+  AccountedListDto,
   AccountedUnpaidListDto,
 } from './dto/accounted.request';
 import { Util } from 'src/common';
@@ -36,32 +36,21 @@ export class AccountedController {
     private readonly change: AccountedChangeService,
   ) {}
 
-  @Get('accountedType/:accountedType')
+  @Get()
   @UseGuards(AuthGuard)
-  async getcAccountedList(
-    @Request() req: AuthType,
-    @Param() param: AccountedTypeDto,
-    @Query() accountedRequest: any,
-  ): Promise<AccountedListResponse> {
-    return await this.accountedRetriveService.getAccountedList(
-      req.user.companyId,
-      param.accountedType,
-      accountedRequest,
-    );
-  }
-
-  @Get('/unpaid')
-  @UseGuards(AuthGuard)
-  async getUnpaidList(
-    @Request() req: AuthType,
-    @Query() dto: AccountedUnpaidListDto,
-  ): Promise<AccountedUnpaidListResponse> {
-    return await this.accountedRetriveService.getUnpaidList({
+  async getList(@Request() req: AuthType, @Query() dto: AccountedListDto) {
+    return await this.accountedRetriveService.getList({
       companyId: req.user.companyId,
       ...dto,
       companyRegistrationNumbers: Util.searchKeywordsToStringArray(
         dto.companyRegistrationNumbers,
       ),
+      accountedSubjects: Util.searchKeywordsToStringArray(
+        dto.accountedSubjects,
+      ) as Subject[],
+      accountedMethods: Util.searchKeywordsToStringArray(
+        dto.accountedMethods,
+      ) as Method[],
     });
   }
 
@@ -143,6 +132,22 @@ export class AccountedController {
     return await this.change.createByCash({
       companyId: req.user.companyId,
       ...dto,
+    });
+  }
+
+  /** 미수금/미지급 목록 */
+  @Get('/unpaid')
+  @UseGuards(AuthGuard)
+  async getUnpaidList(
+    @Request() req: AuthType,
+    @Query() dto: AccountedUnpaidListDto,
+  ): Promise<AccountedUnpaidListResponse> {
+    return await this.accountedRetriveService.getUnpaidList({
+      companyId: req.user.companyId,
+      ...dto,
+      companyRegistrationNumbers: Util.searchKeywordsToStringArray(
+        dto.companyRegistrationNumbers,
+      ),
     });
   }
 }
