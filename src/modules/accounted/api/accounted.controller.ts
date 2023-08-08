@@ -38,7 +38,10 @@ export class AccountedController {
 
   @Get()
   @UseGuards(AuthGuard)
-  async getList(@Request() req: AuthType, @Query() dto: AccountedListDto) {
+  async getList(
+    @Request() req: AuthType,
+    @Query() dto: AccountedListDto,
+  ): Promise<AccountedListResponse> {
     return await this.accountedRetriveService.getList({
       companyId: req.user.companyId,
       ...dto,

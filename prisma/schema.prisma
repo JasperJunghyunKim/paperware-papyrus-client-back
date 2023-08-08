@@ -1146,7 +1146,7 @@ model Accounted {
   company   Company @relation(fields: [companyId], references: [id])
 
   /// 거래처 사업자등록번호
-  partnerCompanyRegistrationNumber String
+  companyRegistrationNumber String
 
   /// 회계 타입
   accountedType    AccountedType

@@ -10,7 +10,8 @@ import {
 import { AccountedListResponse } from 'src/@shared/api';
 import { PrismaService } from 'src/core';
 import * as dayjs from 'dayjs';
-import { Selector } from 'src/common';
+import { Selector, Util } from 'src/common';
+import { Model } from 'src/@shared';
 
 export interface Price {
   partnerCompanyRegistrationNumber: string;
@@ -41,7 +42,10 @@ export class AccountedRetriveService {
     maxAccountedDate: string | null;
     accountedSubjects: Subject[];
     accountedMethods: Method[];
-  }) {
+  }): Promise<{
+    items: Model.Accounted[];
+    total: number;
+  }> {
     const searchAccounted: {
       id: number;
       total: bigint;
@@ -79,7 +83,7 @@ export class AccountedRetriveService {
     });
 
     return {
-      items,
+      items: items.map((item) => Util.serialize(item)),
       total: Number(searchAccounted[0].total),
     };
   }

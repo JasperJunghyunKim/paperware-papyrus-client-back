@@ -1179,7 +1179,7 @@ export const SECURITY = {
 
 export const ACCOUNTED = {
   id: true,
-  partnerCompanyRegistrationNumber: true,
+  companyRegistrationNumber: true,
   accountedType: true,
   accountedMethod: true,
   accountedDate: true,
@@ -1215,7 +1215,10 @@ export const ACCOUNTED = {
   },
   bySecurity: {
     select: {
-      security: true,
+      amount: true,
+      security: {
+        select: SECURITY,
+      },
     },
   },
 } satisfies Prisma.AccountedSelect;
