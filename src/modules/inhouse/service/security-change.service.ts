@@ -6,13 +6,10 @@ import {
 import { Bank, SecurityStatus, SecurityType } from '@prisma/client';
 import { NotFoundError, from, lastValueFrom } from 'rxjs';
 import { PrismaService } from 'src/core';
-import {
-  SecurityCreateRequestDto,
-  SecurityUpdateRequestDto,
-  SecurityUpdateStatusRequestDto,
-} from '../api/dto/security.request';
+import { SecurityCreateRequestDto } from '../api/dto/security.request';
 import { SecurityError } from '../infrastructure/constants/security-error.enum';
 import { SecurityPaidException } from '../infrastructure/exception/security-paid.exception';
+import { PrismaTransaction } from 'src/common/types';
 
 @Injectable()
 export class SecurityChangeService {
@@ -61,115 +58,48 @@ export class SecurityChangeService {
     });
   }
 
-  async updateSecurity(
+  private async getSecurityForUpdateTx(
+    tx: PrismaTransaction,
     securityId: number,
-    securityUpdateRequest: SecurityUpdateRequestDto,
-  ): Promise<void> {
-    const result = await this.prisma.security.findUnique({
-      select: {
-        securitySerial: true,
-        securityStatus: true,
-        bySecurities: {
-          select: {
-            id: true,
-            security: true,
-          },
-        },
-      },
-      where: {
-        id: securityId,
-      },
-    });
+    companyId: number,
+  ) {
+    const [security]: {
+      id: number;
+      securityStatus: SecurityStatus;
+      bySecurityCount: bigint;
+    }[] = await tx.$queryRaw`
+      SELECT *, IFNULL(bs.bsCount, 0) AS bySecurityCount
+        FROM Security       AS s
+   LEFT JOIN (
+        SELECT COUNT(1) AS bsCount, securityId
+          FROM BySecurity
 
-    if (result.securityStatus !== SecurityStatus.NONE) {
-      throw new SecurityPaidException(
-        SecurityError.SECURITY_003,
-        result.securitySerial,
-      );
-    }
+         GROUP BY securityId
+      ) AS bs     ON bs.securityId = s.id
+       WHERE s.id = ${securityId}
+         AND s.companyId = ${companyId}
+         AND s.isDeleted = ${false}
 
-    await lastValueFrom(
-      from(
-        this.prisma.security.update({
-          data: {
-            securityType: securityUpdateRequest.securityType,
-            securitySerial: securityUpdateRequest.securitySerial,
-            securityAmount: securityUpdateRequest.securityAmount,
-            drawedDate: securityUpdateRequest.drawedDate,
-            drawedBank: securityUpdateRequest.drawedBank,
-            drawedBankBranch: securityUpdateRequest.drawedBankBranch,
-            drawedRegion: securityUpdateRequest.drawedRegion,
-            drawer: securityUpdateRequest.drawer,
-            maturedDate: securityUpdateRequest.maturedDate,
-            payingBank: securityUpdateRequest.payingBank,
-            payingBankBranch: securityUpdateRequest.payingBankBranch,
-            payer: securityUpdateRequest.payer,
-            memo: securityUpdateRequest.memo,
-          },
-          select: {
-            id: true,
-          },
-          where: {
-            id: securityId,
-          },
-        }),
-      ),
-    );
-  }
+         FOR UPDATE;
+    `;
 
-  async updateSecurityStatus(
-    securityId: number,
-    securityUpdateStatusRequest: SecurityUpdateStatusRequestDto,
-  ): Promise<void> {
-    const result = await this.prisma.security.findFirst({
-      select: {
-        securitySerial: true,
-        securityStatus: true,
-      },
-      where: {
-        id: securityId,
-      },
-    });
-
-    await lastValueFrom(
-      from(
-        this.prisma.security.update({
-          data: {
-            securityStatus: securityUpdateStatusRequest.securityStatus,
-            memo: securityUpdateStatusRequest.memo,
-          },
-          select: {
-            id: true,
-          },
-          where: {
-            id: securityId,
-          },
-        }),
-      ),
-    );
+    return security || null;
   }
 
   async deleteSecurity(companyId: number, securityId: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
-      const [security]: {
-        id: number;
-        securityStatus: SecurityStatus;
-      }[] = await tx.$queryRaw`
-        SELECT *
-          FROM Security
-         WHERE id = ${securityId}
-           AND companyId = ${companyId}
-           AND isDeleted = ${false}
-
-           FOR UPDATE;
-      `;
+      const security = await this.getSecurityForUpdateTx(
+        tx,
+        securityId,
+        companyId,
+      );
 
       if (!security)
         throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);
 
       if (security.securityStatus !== 'NONE')
         throw new ConflictException(`삭제할 수 없는 상태입니다.`);
-      if (true)
+      if (Number(security.bySecurityCount) > 0)
         throw new ConflictException(
           `수금을 통해 생성된 유가증권 정보는 수금정보 삭제를 통해서만 삭제 가능합니다.`,
         );
@@ -184,4 +114,10 @@ export class SecurityChangeService {
       });
     });
   }
+
+  async updateStatus(
+    companyId: number,
+    securityId: number,
+    securityStatus: SecurityStatus,
+  ) {}
 }

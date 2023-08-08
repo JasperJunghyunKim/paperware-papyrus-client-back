@@ -19,8 +19,7 @@ import { SecurityRetriveService } from '../service/security-retrive.service';
 import {
   SecurityCreateRequestDto,
   SecurityListDto,
-  SecurityUpdateRequestDto,
-  SecurityUpdateStatusRequestDto,
+  SecurityStatusUpdateDto,
 } from './dto/security.request';
 import { SecurityItemResponse, SecurityListResponse } from 'src/@shared/api';
 import { IdDto } from 'src/common/request';
@@ -80,6 +79,20 @@ export class SecurityController {
     await this.securityCahngeService.deleteSecurity(
       req.user.companyId,
       param.id,
+    );
+  }
+
+  @Patch('/:id')
+  @UseGuards(AuthGuard)
+  async updateStatus(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: SecurityStatusUpdateDto,
+  ) {
+    await this.securityCahngeService.updateStatus(
+      req.user.companyId,
+      param.id,
+      dto.securityStatus,
     );
   }
 }

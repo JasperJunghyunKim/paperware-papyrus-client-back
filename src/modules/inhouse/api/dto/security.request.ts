@@ -15,8 +15,7 @@ import {
 import {
   SecurityCreateRequest,
   SecurityListQuery,
-  SecurityUpdateRequest,
-  SecurityUpdateStatusRequest,
+  SecurityStatusUpdateRequest,
 } from 'src/@shared/api/inhouse/security.request';
 import { IsName } from 'src/validator/is-name.validator';
 
@@ -113,68 +112,7 @@ export class SecurityCreateRequestDto implements SecurityCreateRequest {
   readonly memo: string | null = null;
 }
 
-export class SecurityUpdateRequestDto implements SecurityUpdateRequest {
-  @IsEnum(SecurityType)
-  readonly securityType: SecurityType;
-
-  @IsString()
-  readonly securitySerial: string;
-
-  @IsNumber()
-  readonly securityAmount: number;
-
-  @IsEnum(SecurityStatus)
-  @IsOptional()
-  readonly securityStatus: SecurityStatus;
-
-  @IsString()
-  @IsOptional()
-  readonly drawedDate: string;
-
-  @IsEnum(Bank)
-  @IsOptional()
-  readonly drawedBank: Bank;
-
-  @IsString()
-  @IsOptional()
-  readonly drawedBankBranch: string;
-
-  @IsString()
-  @IsOptional()
-  readonly drawedRegion: string;
-
-  @IsString()
-  @IsOptional()
-  readonly drawer: string;
-
-  @IsString()
-  @IsOptional()
-  readonly maturedDate: string;
-
-  @IsEnum(Bank)
-  @IsOptional()
-  readonly payingBank: Bank;
-
-  @IsString()
-  @IsOptional()
-  readonly payingBankBranch: string;
-
-  @IsString()
-  @IsOptional()
-  readonly payer: string;
-
-  @IsString()
-  @IsOptional()
-  readonly memo: string;
-}
-
-export class SecurityUpdateStatusRequestDto
-  implements SecurityUpdateStatusRequest
-{
+export class SecurityStatusUpdateDto implements SecurityStatusUpdateRequest {
   @IsEnum(SecurityStatus)
   readonly securityStatus: SecurityStatus;
-
-  @IsString()
-  @IsOptional()
-  readonly memo: string;
 }
