@@ -214,7 +214,7 @@ export class AccountedChangeService {
           partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
           accountedType: params.accountedType,
           accountedSubject: params.accountedSubject,
-          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedMethod: 'CASH',
           accountedDate: params.accountedDate,
           memo: params.memo || '',
           byCash: {
