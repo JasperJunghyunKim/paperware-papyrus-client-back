@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AccountedType,
   Method,
@@ -148,6 +152,21 @@ export class AccountedRetriveService {
       items: items.map((item) => Util.serialize(item)),
       total: Number(searchAccounted[0].total),
     };
+  }
+
+  async get(companyId: number, acccountedId: number): Promise<Model.Accounted> {
+    const item = await this.prisma.accounted.findFirst({
+      select: Selector.ACCOUNTED,
+      where: {
+        id: acccountedId,
+        companyId,
+        isDeleted: false,
+      },
+    });
+    if (!item)
+      throw new NotFoundException(`존재하지 않는 수금/지급 정보입니다.`);
+
+    return Util.serialize(item);
   }
 
   async getUnpaidList(params: {

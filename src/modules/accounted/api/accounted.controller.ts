@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AccountedType, Method, Subject } from '@prisma/client';
 import {
+  AccountedItemResponse,
   AccountedListResponse,
   AccountedUnpaidListResponse,
 } from 'src/@shared/api';
@@ -28,6 +29,7 @@ import {
 } from './dto/accounted.request';
 import { Util } from 'src/common';
 import { AccountedChangeService } from '../service/accounted-change.service';
+import { IdDto } from 'src/common/request';
 
 @Controller('/accounted')
 export class AccountedController {
@@ -55,6 +57,15 @@ export class AccountedController {
         dto.accountedMethods,
       ) as Method[],
     });
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  async get(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<AccountedItemResponse> {
+    return await this.accountedRetriveService.get(req.user.companyId, param.id);
   }
 
   /** 계좌이체 등록 */
