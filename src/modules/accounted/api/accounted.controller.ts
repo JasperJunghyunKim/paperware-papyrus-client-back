@@ -76,14 +76,13 @@ export class AccountedController {
     });
   }
 
-  /** 계좌이체 등록 */
+  /** 유가증권 등록 */
   @Post('/security')
   @UseGuards(AuthGuard)
   async createBySecurity(
     @Request() req: AuthType,
     @Body() dto: AccountedBySecurityCreatedDto,
   ) {
-    throw new NotImplementedException();
     dto.validate();
     return await this.change.createBySecurity({
       companyId: req.user.companyId,
