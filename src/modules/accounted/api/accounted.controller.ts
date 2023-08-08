@@ -181,4 +181,39 @@ export class AccountedController {
       ...body,
     });
   }
+
+  /** 유가증권 수정 */
+  @Put('/:id/security')
+  @UseGuards(AuthGuard)
+  async updateBySecurity(@Request() req: AuthType, @Param() param: IdDto) {
+    throw new NotImplementedException();
+  }
+
+  /** 카드입금 수정 */
+  @Put('/:id/card')
+  @UseGuards(AuthGuard)
+  async updateByCard(@Request() req: AuthType, @Param() param: IdDto) {
+    throw new NotImplementedException();
+  }
+
+  /** 현금 수정 */
+  @Put('/:id/cash')
+  @UseGuards(AuthGuard)
+  async updateByCash(@Request() req: AuthType, @Param() param: IdDto) {
+    throw new NotImplementedException();
+  }
+
+  /** 상계 수정 */
+  @Put('/:id/offset')
+  @UseGuards(AuthGuard)
+  async updateByOffset(@Request() req: AuthType, @Param() param: IdDto) {
+    throw new NotImplementedException();
+  }
+
+  /** 유가증권 수정 */
+  @Put('/:id/etc')
+  @UseGuards(AuthGuard)
+  async updateByEtc(@Request() req: AuthType, @Param() param: IdDto) {
+    throw new NotImplementedException();
+  }
 }
