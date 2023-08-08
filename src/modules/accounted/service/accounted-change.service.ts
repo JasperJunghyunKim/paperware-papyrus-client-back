@@ -229,4 +229,99 @@ export class AccountedChangeService {
       });
     });
   }
+
+  async createByCard(params: {
+    companyId: number;
+    accountedType: AccountedType;
+    companyRegistrationNumber: string;
+    accountedDate: string;
+    accountedSubject: Subject;
+    cardAmount: number;
+    vatPrice: number;
+    isCharge: boolean;
+    memo: string | null;
+    approvalNumber: string | null;
+    cardId: number | null;
+    bankAccountId: number | null;
+  }) {
+    const cardAmount = params.cardAmount;
+    const vatPrice = params.vatPrice || 0;
+    const amount =
+      cardAmount +
+      (params.isCharge
+        ? params.accountedType === 'PAID'
+          ? -vatPrice
+          : vatPrice
+        : 0);
+
+    return await this.prisma.$transaction(async (tx) => {
+      // 카드, 계좌정보 확인
+      if (params.accountedType === 'PAID') {
+        const card = await tx.card.findFirst({
+          where: {
+            id: params.cardId,
+            companyId: params.companyId,
+            isDeleted: false,
+          },
+        });
+        if (!card)
+          throw new BadRequestException(`존재하지 않는 카드 정보입니다.`);
+      } else {
+        const bankAccount = await tx.bankAccount.findFirst({
+          where: {
+            id: params.bankAccountId,
+            companyId: params.companyId,
+            isDeleted: false,
+          },
+        });
+        if (!bankAccount)
+          throw new BadRequestException(`존재하지 않는 계좌 정보입니다.`);
+      }
+
+      return await tx.accounted.create({
+        select: {
+          id: true,
+        },
+        data: {
+          // TODO: company, partner 확인
+          company: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
+          accountedType: params.accountedType,
+          accountedSubject: params.accountedSubject,
+          accountedMethod: 'CARD_PAYMENT',
+          accountedDate: params.accountedDate,
+          memo: params.memo || '',
+          byCard: {
+            create: {
+              cardAmount,
+              isCharge: params.isCharge,
+              vatPrice,
+              amount,
+              approvalNumber: params.approvalNumber || '',
+              card:
+                params.accountedType === 'PAID'
+                  ? {
+                      connect: {
+                        id: params.cardId,
+                      },
+                    }
+                  : undefined,
+              bankAccount:
+                params.accountedType === 'COLLECTED'
+                  ? {
+                      connect: {
+                        id: params.bankAccountId,
+                      },
+                    }
+                  : undefined,
+            },
+          },
+        },
+      });
+    });
+  }
 }

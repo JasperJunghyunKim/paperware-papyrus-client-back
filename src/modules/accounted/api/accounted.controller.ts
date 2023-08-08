@@ -19,6 +19,7 @@ import { AuthType } from 'src/modules/auth/auth.type';
 import { AccountedRetriveService } from '../service/accounted-retrive.service';
 import {
   AccountedByBankAccountCreatedDto,
+  AccountedByCardCreatedDto,
   AccountedByCashCreatedDto,
   AccountedBySecurityCreatedDto,
   AccountedTypeDto,
@@ -100,6 +101,21 @@ export class AccountedController {
     return await this.change.createByCash({
       companyId: req.user.companyId,
       ...dto,
+    });
+  }
+
+  /** 현금 등록 */
+  @Post('/card')
+  @UseGuards(AuthGuard)
+  async createByCard(
+    @Request() req: AuthType,
+    @Body() dto: AccountedByCardCreatedDto,
+  ) {
+    dto.validate();
+    return await this.change.createByCard({
+      companyId: req.user.companyId,
+      ...dto,
+      vatPrice: dto.vatPrice || 0,
     });
   }
 }

@@ -9,6 +9,7 @@ import {
 } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -25,11 +26,13 @@ import {
 } from 'class-validator';
 import {
   AccountedByBankAccountCreatedRequest,
+  AccountedByCardCreatedRequest,
   AccountedByCashCreatedRequest,
   AccountedBySecurityCreatedRequest,
   AccountedUnpaidListQuery,
 } from 'src/@shared/api';
 import { IsName } from 'src/validator/is-name.validator';
+import { IsOnlyNumber } from 'src/validator/is-only-number';
 
 export class AccountedTypeDto {
   @IsEnum(AccountedType)
@@ -316,4 +319,67 @@ export class AccountedByCashCreatedDto
   @IsInt()
   @Min(0)
   readonly amount: number;
+}
+
+/** 수금/지급 등록 (카드입금) */
+export class AccountedByCardCreatedDto
+  implements AccountedByCardCreatedRequest
+{
+  @IsEnum(AccountedType)
+  readonly accountedType: AccountedType;
+
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string;
+
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly cardAmount: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  readonly vatPrice: number | null = null;
+
+  @IsBoolean()
+  readonly isCharge: boolean;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsString()
+  @IsOnlyNumber()
+  @Length(0, 150)
+  readonly approvalNumber: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly cardId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @IsPositive()
+  readonly bankAccountId: number | null = null;
+
+  validate() {
+    if (this.accountedType === 'PAID' && !this.cardId) {
+      throw new BadRequestException(`카드를 선택해 주세요.`);
+    }
+    if (this.accountedType === 'COLLECTED' && !this.bankAccountId) {
+      throw new BadRequestException(`계좌를 선택해 주세요.`);
+    }
+  }
 }

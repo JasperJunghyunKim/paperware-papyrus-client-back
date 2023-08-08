@@ -28,10 +28,10 @@ export class ByCardRetriveService {
         byCard: {
           select: {
             cardAmount: true,
-            totalAmount: true,
+            amount: true,
             approvalNumber: true,
             isCharge: true,
-            chargeAmount: true,
+            vatPrice: true,
             card: {
               select: {
                 id: true,
@@ -71,29 +71,6 @@ export class ByCardRetriveService {
       },
     });
 
-    return {
-      companyId: accounted.companyId,
-      companyRegistrationNumber: accounted.partnerCompanyRegistrationNumber,
-      accountedId: accounted.id,
-      accountedType: accounted.accountedType,
-      accountedDate: accounted.accountedDate.toISOString(),
-      accountedSubject: accounted.accountedSubject,
-      accountedMethod: accounted.accountedMethod,
-      amount: accounted.byCard.cardAmount,
-      memo: accounted.memo,
-      partnerNickName: partner.partnerNickName,
-      cardId: accounted.byCard.card?.id || null,
-      cardName: accounted.byCard.card?.cardName || null,
-      cardNumber: accounted.byCard.card?.cardNumber || null,
-      cardCompany: accounted.byCard.card?.cardCompany || null,
-      bankAccountId: accounted.byCard.bankAccount?.id || null,
-      accountName: accounted.byCard.bankAccount?.accountName || null,
-      bankAccountNumber: accounted.byCard.bankAccount?.accountNumber || null,
-      bankComapny: accounted.byCard.bankAccount?.bank || null,
-      totalAmount: accounted.byCard.totalAmount,
-      chargeAmount: accounted.byCard.chargeAmount,
-      isCharge: accounted.byCard.isCharge,
-      approvalNumber: accounted.byCard.approvalNumber,
-    };
+    return null;
   }
 }

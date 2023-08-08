@@ -1231,9 +1231,9 @@ model ByCard {
   /// 금액
   cardAmount     Int
   /// 수수료 금액
-  chargeAmount   Int
+  vatPrice       Int
   /// 수수료 합 or 뺀 금액(지급, 수급에 따라 변경) 수수료가 포함 안되면 0
-  totalAmount    Int
+  amount         Int
   /// 수수료 포함 여부
   isCharge       Boolean      @default(false)
   /// 승인번호

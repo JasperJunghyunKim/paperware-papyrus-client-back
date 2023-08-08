@@ -20,14 +20,14 @@ export class ByCardChangeService {
     accountedType: AccountedType,
     byCardCreateRequest: ByCardCreateRequestDto,
   ): Promise<void> {
-    const amount = byCardCreateRequest.amount;
-    const chargeAmount = byCardCreateRequest.chargeAmount || 0;
-    const totalAmount =
-      amount +
+    const cardAmount = byCardCreateRequest.amount;
+    const vatPrice = byCardCreateRequest.chargeAmount || 0;
+    const amount =
+      cardAmount +
       (byCardCreateRequest.isCharge
         ? accountedType === 'PAID'
-          ? -chargeAmount
-          : chargeAmount
+          ? -vatPrice
+          : vatPrice
         : 0);
 
     await lastValueFrom(
@@ -51,8 +51,8 @@ export class ByCardChangeService {
               create: {
                 cardAmount: amount,
                 isCharge: byCardCreateRequest.isCharge,
-                chargeAmount: chargeAmount,
-                totalAmount: totalAmount,
+                vatPrice: vatPrice,
+                amount: amount,
                 approvalNumber: byCardCreateRequest.approvalNumber ?? '',
                 card:
                   accountedType === 'PAID'
@@ -97,14 +97,14 @@ export class ByCardChangeService {
     if (check.accountedMethod !== 'CARD_PAYMENT')
       throw new ConflictException(`수금/지급 수단 에러`);
 
-    const amount = byCardUpdateRequest.amount;
-    const chargeAmount = byCardUpdateRequest.chargeAmount || 0;
-    const totalAmount =
-      amount +
+    const cardAmount = byCardUpdateRequest.amount;
+    const vatPrice = byCardUpdateRequest.chargeAmount || 0;
+    const amount =
+      cardAmount +
       (byCardUpdateRequest.isCharge
         ? accountedType === 'PAID'
-          ? -chargeAmount
-          : chargeAmount
+          ? -vatPrice
+          : vatPrice
         : 0);
 
     await lastValueFrom(
@@ -119,8 +119,8 @@ export class ByCardChangeService {
               update: {
                 cardAmount: amount,
                 isCharge: byCardUpdateRequest.isCharge,
-                chargeAmount: chargeAmount,
-                totalAmount: totalAmount,
+                vatPrice: vatPrice,
+                amount: amount,
                 approvalNumber: byCardUpdateRequest.approvalNumber || '',
               },
             },
