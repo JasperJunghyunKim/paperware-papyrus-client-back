@@ -28,6 +28,7 @@ import {
   AccountedByBankAccountCreatedRequest,
   AccountedByCardCreatedRequest,
   AccountedByCashCreatedRequest,
+  AccountedByOffsetCreatedRequest,
   AccountedBySecurityCreatedRequest,
   AccountedUnpaidListQuery,
 } from 'src/@shared/api';
@@ -382,4 +383,28 @@ export class AccountedByCardCreatedDto
       throw new BadRequestException(`계좌를 선택해 주세요.`);
     }
   }
+}
+
+/** 수금/지급 등록 (상계) */
+export class AccountedByOffsetCreatedDto
+  implements AccountedByOffsetCreatedRequest
+{
+  @IsString()
+  @Length(10, 10)
+  readonly companyRegistrationNumber: string;
+
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly amount: number;
 }

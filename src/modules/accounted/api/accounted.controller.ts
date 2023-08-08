@@ -21,6 +21,7 @@ import {
   AccountedByBankAccountCreatedDto,
   AccountedByCardCreatedDto,
   AccountedByCashCreatedDto,
+  AccountedByOffsetCreatedDto,
   AccountedBySecurityCreatedDto,
   AccountedTypeDto,
   AccountedUnpaidListDto,
@@ -104,7 +105,7 @@ export class AccountedController {
     });
   }
 
-  /** 현금 등록 */
+  /** 카드입금 등록 */
   @Post('/card')
   @UseGuards(AuthGuard)
   async createByCard(
@@ -116,6 +117,19 @@ export class AccountedController {
       companyId: req.user.companyId,
       ...dto,
       vatPrice: dto.vatPrice || 0,
+    });
+  }
+
+  /** 현금 등록 */
+  @Post('/offset')
+  @UseGuards(AuthGuard)
+  async createByOffset(
+    @Request() req: AuthType,
+    @Body() dto: AccountedByOffsetCreatedDto,
+  ) {
+    return await this.change.createByOffset({
+      companyId: req.user.companyId,
+      ...dto,
     });
   }
 }

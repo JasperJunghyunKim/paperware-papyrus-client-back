@@ -324,4 +324,79 @@ export class AccountedChangeService {
       });
     });
   }
+
+  async createByOffset(params: {
+    companyId: number;
+    companyRegistrationNumber: string;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const byOffsetPair = await tx.byOffsetPair.create({
+        data: {},
+      });
+
+      const collected = await tx.accounted.create({
+        data: {
+          company: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
+          accountedType: 'COLLECTED',
+          accountedSubject: params.accountedSubject,
+          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedDate: params.accountedDate,
+          memo: params.memo || '',
+          byOffset: {
+            create: {
+              amount: params.amount,
+              byOffsetPairId: byOffsetPair.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          byOffset: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      const paid = await tx.accounted.create({
+        data: {
+          company: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          partnerCompanyRegistrationNumber: params.companyRegistrationNumber,
+          accountedType: 'PAID',
+          accountedSubject: params.accountedSubject,
+          accountedMethod: 'ACCOUNT_TRANSFER',
+          accountedDate: params.accountedDate,
+          memo: params.memo || '',
+          byOffset: {
+            create: {
+              amount: params.amount,
+              byOffsetPairId: byOffsetPair.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          byOffset: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+    });
+  }
 }

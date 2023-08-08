@@ -52,7 +52,7 @@ export class ByOffsetRetriveService {
       accountedDate: accounted.accountedDate.toISOString(),
       accountedSubject: accounted.accountedSubject,
       accountedMethod: accounted.accountedMethod,
-      amount: accounted.byOffset.offsetAmount,
+      amount: accounted.byOffset.amount,
       memo: accounted.memo,
       partnerNickName: partner.partnerNickName || '',
     };

@@ -35,7 +35,7 @@ export class ByOffsetChangeService {
       memo: byOffsetCreateRequest.memo || '',
       byOffset: {
         create: {
-          offsetAmount: byOffsetCreateRequest.amount,
+          amount: byOffsetCreateRequest.amount,
         },
       },
     };
@@ -68,30 +68,6 @@ export class ByOffsetChangeService {
               id: true,
             },
           },
-        },
-      });
-
-      await tx.byOffsetPair.create({
-        data: {
-          byOffset: {
-            connect: {
-              id: paid.byOffset.id,
-            },
-          },
-          paidId: paid.id,
-          collectedId: collected.id,
-        },
-      });
-
-      await tx.byOffsetPair.create({
-        data: {
-          byOffset: {
-            connect: {
-              id: collected.byOffset.id,
-            },
-          },
-          paidId: paid.id,
-          collectedId: collected.id,
         },
       });
     });
@@ -131,7 +107,7 @@ export class ByOffsetChangeService {
           memo: byOffsetUpdateRequest.memo || '',
           byOffset: {
             update: {
-              offsetAmount: byOffsetUpdateRequest.amount,
+              amount: byOffsetUpdateRequest.amount,
             },
           },
         },
@@ -147,7 +123,7 @@ export class ByOffsetChangeService {
           memo: byOffsetUpdateRequest.memo || '',
           byOffset: {
             update: {
-              offsetAmount: byOffsetUpdateRequest.amount,
+              amount: byOffsetUpdateRequest.amount,
             },
           },
         },
@@ -215,22 +191,6 @@ export class ByOffsetChangeService {
         accountedType: 'PAID',
       },
     });
-
-    const collected = await this.prisma.accounted.findFirst({
-      select: {
-        id: true,
-        byOffset: {
-          include: {
-            offsetPair: true,
-          },
-        },
-      },
-      where: {
-        id: paid.byOffset.offsetPair.collectedId,
-      },
-    });
-
-    return [paid, collected];
   }
 
   private async collectedByPaid(accountedId: number) {
@@ -248,21 +208,5 @@ export class ByOffsetChangeService {
         accountedType: 'COLLECTED',
       },
     });
-
-    const paid = await this.prisma.accounted.findFirst({
-      select: {
-        id: true,
-        byOffset: {
-          include: {
-            offsetPair: true,
-          },
-        },
-      },
-      where: {
-        id: collected.byOffset.offsetPair.paidId,
-      },
-    });
-
-    return [paid, collected];
   }
 }
