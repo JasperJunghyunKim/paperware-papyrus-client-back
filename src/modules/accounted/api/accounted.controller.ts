@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotImplementedException,
   Param,
@@ -261,5 +262,11 @@ export class AccountedController {
       accountedId: param.id,
       ...body,
     });
+  }
+
+  @Delete('/:id')
+  @UseGuards(AuthGuard)
+  async delete(@Request() req: AuthType, @Param() param: IdDto) {
+    return await this.change.delete(req.user.companyId, param.id);
   }
 }

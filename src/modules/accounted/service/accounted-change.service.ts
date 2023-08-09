@@ -806,4 +806,146 @@ export class AccountedChangeService {
       });
     });
   }
+
+  async delete(companyId: number, accountedId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(tx, companyId, accountedId);
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+
+      // 유가증권 & 수금일때 유가증권 상태에따라 삭제가능여부 체크
+      if (
+        accounted.accountedMethod === 'PROMISSORY_NOTE' &&
+        accounted.accountedType === 'COLLECTED'
+      ) {
+        const security = accounted.bySecurity.security;
+        const paid =
+          security.bySecurities.find(
+            (bs) => bs.accounted.accountedType === 'PAID',
+          ) || null;
+
+        if (paid || security.securityStatus !== 'NONE')
+          throw new ConflictException(`삭제불가능한 유가증권 상태입니다.`);
+      }
+
+      if (accounted.accountedMethod === 'OFFSET') {
+        // 상계일때 수금, 지급 둘 다 삭제
+        await tx.accounted.updateMany({
+          where: {
+            id: {
+              in: accounted.byOffset.offsetPair.byOffsets.map(
+                (bo) => bo.accounted.id,
+              ),
+            },
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      } else {
+        await tx.accounted.update({
+          where: {
+            id: accounted.id,
+          },
+          data: {
+            isDeleted: true,
+          },
+        });
+      }
+
+      switch (accounted.accountedMethod) {
+        case 'ACCOUNT_TRANSFER':
+          await tx.byBankAccount.update({
+            where: {
+              id: accounted.byBankAccount.id,
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+          break;
+        case 'CARD_PAYMENT':
+          await tx.byCard.update({
+            where: {
+              id: accounted.byCard.id,
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+          break;
+        case 'CASH':
+          await tx.byCash.update({
+            where: {
+              id: accounted.byCash.id,
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+          break;
+        case 'OFFSET':
+          await tx.byOffset.updateMany({
+            where: {
+              id: {
+                in: accounted.byOffset.offsetPair.byOffsets.map((bo) => bo.id),
+              },
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+          break;
+        case 'PROMISSORY_NOTE':
+          if (accounted.accountedType === 'COLLECTED') {
+            // 수금 => 유가증권 삭제
+            const collected =
+              accounted.bySecurity.security.bySecurities.find(
+                (bs) => bs.accounted.accountedType === 'COLLECTED',
+              ) || null;
+            await tx.bySecurity.update({
+              where: {
+                id: collected.id,
+              },
+              data: {
+                isDeleted: true,
+              },
+            });
+            await tx.security.update({
+              where: {
+                id: collected.securityId,
+              },
+              data: {
+                isDeleted: true,
+              },
+            });
+          } else {
+            // 지급 => 유가증권 상태 되돌림
+            const paid =
+              accounted.bySecurity.security.bySecurities.find(
+                (bs) => bs.accounted.accountedType === 'PAID',
+              ) || null;
+            await tx.bySecurity.update({
+              where: {
+                id: paid.id,
+              },
+              data: {
+                isDeleted: true,
+              },
+            });
+          }
+          break;
+        case 'ETC':
+          await tx.byEtc.update({
+            where: {
+              id: accounted.byEtc.id,
+            },
+            data: {
+              isDeleted: true,
+            },
+          });
+          break;
+      }
+    });
+  }
 }
