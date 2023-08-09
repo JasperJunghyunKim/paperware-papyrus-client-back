@@ -342,13 +342,13 @@ export class AccountedRetriveService {
               )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(o.amount, 0) + IFNULL(s2.securityAmount, 0) END), 0) AS price7
 
         FROM Accounted      AS a
-      LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
-      LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
-      LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
-      LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
-      LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
-      LEFT JOIN Security       AS s2 ON s2.id = s.securityId
-      LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+      LEFT JOIN ByCash         AS c  ON c.accountedId = a.id AND c.isDeleted = ${false}
+      LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id AND e.isDeleted = ${false}
+      LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id AND b.isDeleted = ${false}
+      LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id AND c2.isDeleted = ${false}
+      LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id AND s.isDeleted = ${false}
+      LEFT JOIN Security       AS s2 ON s2.id = s.securityId AND s2.isDeleted = ${false}
+      LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id AND o.isDeleted = ${false}
 
       WHERE a.companyId = ${companyId}
         AND a.accountedType = ${accountedType}
@@ -491,13 +491,13 @@ export class AccountedRetriveService {
               )}-${lastDay} 23:59:59.999`} THEN IFNULL(c.amount, 0) + IFNULL(e.amount, 0) + IFNULL(b.amount, 0) + IFNULL(c2.amount, 0) + IFNULL(o.amount, 0) + IFNULL(s2.securityAmount, 0) END), 0) AS price7
 
         FROM Accounted      AS a
-    LEFT JOIN ByCash         AS c  ON c.accountedId = a.id
-    LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id
-    LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id
-    LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id
-    LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id
-    LEFT JOIN Security       AS s2 ON s2.id = s.securityId
-    LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id
+    LEFT JOIN ByCash         AS c  ON c.accountedId = a.id  AND c.isDeleted = ${false}
+    LEFT JOIN ByEtc          AS e  ON e.accountedId = a.id AND e.isDeleted = ${false}
+    LEFT JOIN ByBankAccount  AS b  ON b.accountedId = a.id AND b.isDeleted = ${false}
+    LEFT JOIN ByCard         AS c2 ON c2.accountedId = a.id AND c2.isDeleted = ${false}
+    LEFT JOIN BySecurity     AS s  ON s.accountedId = a.id AND s.isDeleted = ${false}
+    LEFT JOIN Security       AS s2 ON s2.id = s.securityId AND s2.isDeleted = ${false}
+    LEFT JOIN ByOffset       AS o  ON o.accountedId = a.id AND o.isDeleted = ${false}
     
     WHERE a.companyId = ${companyId}
       AND a.accountedType = ${accountedType}
