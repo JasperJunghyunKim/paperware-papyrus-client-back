@@ -665,8 +665,8 @@ export class AccountedChangeService {
           security.bySecurities.find(
             (bs) => bs.accounted.accountedType === 'PAID',
           ) || null;
-        if (!paid) {
-          // 지급에 사용되지 않았을때에만 유가증권 정보 수정가능
+        if (!paid && security.securityStatus === 'NONE') {
+          // 지급에 사용되지 않고, 기본상태일때에만 유가증권 정보 수정가능
           await tx.security.update({
             where: {
               id: security.id,
