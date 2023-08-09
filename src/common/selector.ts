@@ -1188,7 +1188,11 @@ export const ACCOUNTED = {
   byCard: {
     select: {
       id: true,
+      cardAmount: true,
+      vatPrice: true,
       amount: true,
+      isCharge: true,
+      approvalNumber: true,
       card: true,
       bankAccount: true,
     },
