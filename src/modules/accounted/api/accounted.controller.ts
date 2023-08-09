@@ -24,6 +24,7 @@ import {
   AccountedByBankAccountUpdateDto,
   AccountedByCardCreatedDto,
   AccountedByCashCreatedDto,
+  AccountedByCashUpdateDto,
   AccountedByOffsetCreatedDto,
   AccountedBySecurityCreatedDto,
   AccountedListDto,
@@ -199,8 +200,16 @@ export class AccountedController {
   /** 현금 수정 */
   @Put('/:id/cash')
   @UseGuards(AuthGuard)
-  async updateByCash(@Request() req: AuthType, @Param() param: IdDto) {
-    throw new NotImplementedException();
+  async updateByCash(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: AccountedByCashUpdateDto,
+  ) {
+    return await this.change.updateByCash({
+      companyId: req.user.companyId,
+      accountedId: param.id,
+      ...body,
+    });
   }
 
   /** 상계 수정 */

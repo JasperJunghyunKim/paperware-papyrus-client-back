@@ -502,4 +502,48 @@ export class AccountedChangeService {
       });
     });
   }
+
+  async updateByCash(params: {
+    companyId: number;
+    accountedId: number;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(
+        tx,
+        params.companyId,
+        params.accountedId,
+      );
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+      if (accounted.accountedMethod !== 'CASH')
+        throw new ConflictException(`회계수단 에러`);
+
+      await tx.byCash.update({
+        where: {
+          id: accounted.byCash.id,
+        },
+        data: {
+          amount: params.amount,
+        },
+      });
+
+      return await tx.accounted.update({
+        select: {
+          id: true,
+        },
+        where: {
+          id: params.accountedId,
+        },
+        data: {
+          accountedDate: params.accountedDate,
+          accountedSubject: params.accountedSubject,
+          memo: params.memo || '',
+        },
+      });
+    });
+  }
 }
