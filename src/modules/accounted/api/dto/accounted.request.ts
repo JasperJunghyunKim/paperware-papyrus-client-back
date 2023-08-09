@@ -28,6 +28,7 @@ import {
   AccountedByBankAccountCreatedRequest,
   AccountedByBankAccountUpdateRequest,
   AccountedByCardCreatedRequest,
+  AccountedByCardUpdateRequest,
   AccountedByCashCreatedRequest,
   AccountedByCashUpdateRequest,
   AccountedByEtcCreatedRequest,
@@ -450,6 +451,39 @@ export class AccountedByBankAccountUpdateDto
   readonly amount: number;
 }
 
+/** 수금/지급 수정 (카드) */
+export class AccountedByCardUpdateDto implements AccountedByCardUpdateRequest {
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly cardAmount: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  readonly vatPrice: number | null = null;
+
+  @IsBoolean()
+  readonly isCharge: boolean;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsString()
+  @IsOnlyNumber()
+  @Length(0, 150)
+  readonly approvalNumber: string | null = null;
+}
+
 /** 수금/지급 수정 (현금) */
 export class AccountedByCashUpdateDto implements AccountedByCashUpdateRequest {
   @IsEnum(Subject)
@@ -488,7 +522,7 @@ export class AccountedByOffsetUpdateDto
   readonly amount: number;
 }
 
-/** 수금/지급 수정 (상계) */
+/** 수금/지급 수정 (기타) */
 export class AccountedByEtcUpdateDto implements AccountedByEtcUpdateRequest {
   @IsEnum(Subject)
   readonly accountedSubject: Subject;

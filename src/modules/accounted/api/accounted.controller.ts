@@ -23,6 +23,7 @@ import {
   AccountedByBankAccountCreatedDto,
   AccountedByBankAccountUpdateDto,
   AccountedByCardCreatedDto,
+  AccountedByCardUpdateDto,
   AccountedByCashCreatedDto,
   AccountedByCashUpdateDto,
   AccountedByEtcUpdateDto,
@@ -195,8 +196,17 @@ export class AccountedController {
   /** 카드입금 수정 */
   @Put('/:id/card')
   @UseGuards(AuthGuard)
-  async updateByCard(@Request() req: AuthType, @Param() param: IdDto) {
-    throw new NotImplementedException();
+  async updateByCard(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: AccountedByCardUpdateDto,
+  ) {
+    return await this.change.updateByCard({
+      companyId: req.user.companyId,
+      accountedId: param.id,
+      ...body,
+      vatPrice: body.vatPrice || 0,
+    });
   }
 
   /** 현금 수정 */

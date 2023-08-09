@@ -518,6 +518,67 @@ export class AccountedChangeService {
     });
   }
 
+  async updateByCard(params: {
+    companyId: number;
+    accountedId: number;
+    accountedDate: string;
+    accountedSubject: Subject;
+    cardAmount: number;
+    vatPrice: number;
+    isCharge: boolean;
+    memo: string | null;
+    approvalNumber: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(
+        tx,
+        params.companyId,
+        params.accountedId,
+      );
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+      if (accounted.accountedMethod !== 'CARD_PAYMENT')
+        throw new ConflictException(`회계수단 에러`);
+
+      const cardAmount = params.cardAmount;
+      const vatPrice = params.vatPrice || 0;
+      const amount =
+        cardAmount +
+        (params.isCharge
+          ? accounted.accountedType === 'PAID'
+            ? -vatPrice
+            : vatPrice
+          : 0);
+
+      await tx.byCard.update({
+        where: {
+          id: accounted.byCard.id,
+        },
+        data: {
+          cardAmount,
+          vatPrice,
+          amount,
+          approvalNumber: params.approvalNumber || '',
+          isCharge: params.isCharge,
+        },
+      });
+
+      return await tx.accounted.update({
+        select: {
+          id: true,
+        },
+        where: {
+          id: params.accountedId,
+        },
+        data: {
+          accountedDate: params.accountedDate,
+          accountedSubject: params.accountedSubject,
+          memo: params.memo || '',
+        },
+      });
+    });
+  }
+
   async updateByCash(params: {
     companyId: number;
     accountedId: number;
