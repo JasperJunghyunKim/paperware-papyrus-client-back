@@ -1225,7 +1225,6 @@ export const ACCOUNTED = {
   bySecurity: {
     select: {
       id: true,
-      amount: true,
       security: {
         select: SECURITY,
       },

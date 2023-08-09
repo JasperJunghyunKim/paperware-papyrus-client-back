@@ -1285,8 +1285,6 @@ enum EndorsementType {
 model BySecurity {
   /// 식별자
   id              Int              @id @default(autoincrement())
-  /// 금액
-  amount          Int
   /// 배서구분
   endorsementType EndorsementType?
   /// 배서자

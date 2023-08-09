@@ -252,10 +252,6 @@ export class AccountedBySecurityCreatedDto
   @IsString()
   readonly memo: string | null = null;
 
-  @IsInt()
-  @Min(0)
-  readonly amount: number;
-
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsEnum(EndorsementType)

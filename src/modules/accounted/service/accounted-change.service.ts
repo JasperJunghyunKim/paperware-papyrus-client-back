@@ -80,7 +80,6 @@ export class AccountedChangeService {
     companyRegistrationNumber: string;
     accountedDate: string;
     accountedSubject: Subject;
-    amount: number;
     memo?: string;
     endorsementType: EndorsementType; // 배서구분
     endorsement?: string; // 배서자
@@ -137,7 +136,6 @@ export class AccountedChangeService {
             bySecurity: {
               create: {
                 securityId: params.securityId,
-                amount: params.amount,
               },
             },
           },
@@ -168,7 +166,6 @@ export class AccountedChangeService {
               create: {
                 endorsement: params.endorsement || '',
                 endorsementType: params.endorsementType,
-                amount: params.amount,
                 security: {
                   create: {
                     securityType: params.security.securityType,
