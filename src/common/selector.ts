@@ -1225,6 +1225,8 @@ export const ACCOUNTED = {
   bySecurity: {
     select: {
       id: true,
+      endorsementType: true,
+      endorsement: true,
       security: {
         select: SECURITY,
       },
