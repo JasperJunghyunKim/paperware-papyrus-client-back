@@ -611,6 +611,65 @@ export const ORDER_REFUND = {
   },
 } satisfies Prisma.OrderRefundSelect;
 
+export const ORDER_RETURN = {
+  id: true,
+  orderId: true,
+  order: {
+    select: {
+      srcCompany: {
+        select: COMPANY,
+      },
+      dstCompany: {
+        select: COMPANY,
+      },
+      tradePrice: {
+        include: {
+          orderStockTradePrice: true,
+        },
+      },
+    },
+  },
+  wantedDate: true,
+  dstLocation: {
+    select: LOCATION,
+  },
+  plan: {
+    select: {
+      id: true,
+      planNo: true,
+      type: true,
+      assignStockEvent: { select: STOCK_EVENT },
+      companyId: true,
+      status: true,
+    },
+    where: {
+      isDeleted: false,
+    },
+  },
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
+} satisfies Prisma.OrderReturnSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -644,6 +703,9 @@ export const ORDER = {
   },
   orderRefund: {
     select: ORDER_REFUND,
+  },
+  orderReturn: {
+    select: ORDER_RETURN,
   },
   depositEvent: {
     include: {

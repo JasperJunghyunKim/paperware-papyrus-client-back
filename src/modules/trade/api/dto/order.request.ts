@@ -1,4 +1,3 @@
-import { BadRequestException } from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
@@ -20,19 +19,16 @@ import {
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { isLength } from 'lodash';
 import {
   OrderStockCreateRequest,
   OrderStockUpdateRequest,
   OrderListQuery,
   OrderStockArrivalListQuery,
   OrderStockArrivalCreateRequest,
-  StockCreateStockPriceRequest,
   OrderStockTradeAltBundleUpdateRequest,
   OrderStockTradePriceUpdateRequest,
   TradePriceUpdateRequest,
   OrderDepositCreateRequest,
-  OrderStockAssignStockRequest,
   OrderStockAssignStockUpdateRequest,
   OrderDepositListQuery,
   DepositCreateRequest,
@@ -46,6 +42,7 @@ import {
   OrderDepositUpdateAssignRequest,
   OrderDepositUpdateRequest,
   OrderRefundCreateRequest,
+  OrderReturnCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -1184,4 +1181,101 @@ export class OrderRefundCreateDto implements OrderRefundCreateRequest {
   @IsString()
   @Length(0, 100)
   readonly originOrderNo: string | null = null;
+}
+
+/** 반품 등록 */
+export class OrderReturnCreateDto implements OrderReturnCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly originOrderNo: string | null = null;
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @IsDateString()
+  readonly wantedDate: string;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly locationId: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 150)
+  readonly memo: string | null = null;
+
+  // 원지 스펙
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly quantity: number = 0;
 }

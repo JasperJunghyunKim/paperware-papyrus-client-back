@@ -38,6 +38,7 @@ import OrderStockCreateRequestDto, {
   OrderProcessInfoUpdateDto,
   OrderProcessStockUpdateDto,
   OrderRefundCreateDto,
+  OrderReturnCreateDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
@@ -50,6 +51,7 @@ import {
   OrderEtcResponse,
   OrderProcessResponse,
   OrderRefundResponse,
+  OrderReturnResponse,
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
@@ -735,5 +737,35 @@ export class OrderController {
       idDto.id,
     );
     return item;
+  }
+
+  /** 반품 등록 */
+  @Post('/return')
+  @UseGuards(AuthGuard)
+  async createReturn(
+    @Request() req: AuthType,
+    @Body() dto: OrderReturnCreateDto,
+  ): Promise<OrderCreateResponse> {
+    if (
+      req.user.companyId !== dto.srcCompanyId &&
+      req.user.companyId !== dto.dstCompanyId
+    )
+      throw new BadRequestException(`잘못된 요청 입니다.`);
+
+    return await this.change.createReturn({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      ...dto,
+    });
+  }
+
+  /** 반품 상세 */
+  @Get('/:id/return')
+  @UseGuards(AuthGuard)
+  async getOrderReturn(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+  ): Promise<OrderReturnResponse> {
+    return await this.retrive.getOrderReturn(req.user.companyId, param.id);
   }
 }

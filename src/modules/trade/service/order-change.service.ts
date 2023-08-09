@@ -1500,6 +1500,36 @@ export class OrderChangeService {
         case OrderType.REFUND:
           break;
         case OrderType.RETURN:
+          // 플랜 생성 및 출고 자동생성
+          const srcPlan = await tx.plan.create({
+            data: {
+              planNo: ulid(),
+              type: 'RETURN_BUYER',
+              companyId: order.srcCompany.id,
+              orderReturnId: order.orderReturn.id,
+              task: {
+                create: {
+                  taskNo: ulid(),
+                  type: 'RELEASE',
+                  status: 'PREPARING',
+                  taskQuantity: {
+                    create: {
+                      quantity: order.orderReturn.quantity,
+                      memo: '',
+                    },
+                  },
+                },
+              },
+            },
+          });
+          const dstPlan = await tx.plan.create({
+            data: {
+              planNo: ulid(),
+              type: 'RETURN_SELLER',
+              companyId: order.dstCompany.id,
+              orderReturnId: order.orderReturn.id,
+            },
+          });
           break;
         default:
           break;
@@ -3900,6 +3930,109 @@ export class OrderChangeService {
             create: {
               originOrderNo: params.originOrderNo || null,
               item: params.item || '',
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return this.getOrderCreateResponseTx(tx, order.id);
+    });
+  }
+
+  async createReturn(params: {
+    userId: number;
+    companyId: number;
+    srcCompanyId: number;
+    dstCompanyId: number;
+    originOrderNo: string | null;
+    orderDate: string;
+    wantedDate: string;
+    locationId: number;
+    memo: string | null;
+    // 원지 스펙
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }): Promise<Model.Order> {
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: params.dstCompanyId,
+        },
+      });
+      if (!dstCompany)
+        throw new BadRequestException(`존재하지 않는 거래처입니다.`);
+
+      if (
+        params.companyId !== params.dstCompanyId &&
+        dstCompany.managedById === null
+      )
+        throw new BadRequestException(
+          `반품은 판매기업에서만 등록할 수 있습니다. 구매처에 문의해주세요.`,
+        );
+
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
+      const order = await tx.order.create({
+        data: {
+          orderType: 'RETURN',
+          orderNo: Util.serialT(invoiceCode),
+          srcCompany: {
+            connect: {
+              id: params.srcCompanyId,
+            },
+          },
+          dstCompany: {
+            connect: {
+              id: params.dstCompanyId,
+            },
+          },
+          status:
+            params.companyId === params.srcCompanyId
+              ? 'ORDER_PREPARING'
+              : 'OFFER_PREPARING',
+          memo: params.memo || '',
+          ordererName:
+            params.companyId === params.srcCompanyId ? user.name : '',
+          createdComapny: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          orderReturn: {
+            create: {
+              originOrderNo: params.originOrderNo || null,
+              dstLocationId: params.locationId,
+              wantedDate: params.wantedDate,
+              productId: params.productId,
+              packagingId: params.packagingId,
+              grammage: params.grammage,
+              sizeX: params.sizeX,
+              sizeY: params.sizeY || 0,
+              paperColorId: params.paperColorId,
+              paperColorGroupId: params.paperColorGroupId,
+              paperPatternId: params.paperPatternId,
+              paperCertId: params.paperCertId,
+              quantity: params.quantity,
             },
           },
         },

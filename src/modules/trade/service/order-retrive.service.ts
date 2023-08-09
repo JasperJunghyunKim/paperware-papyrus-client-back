@@ -1003,6 +1003,25 @@ export class OrderRetriveService {
     return item;
   }
 
+  async getOrderReturn(
+    companyId: number,
+    orderId: number,
+  ): Promise<Model.OrderReturn> {
+    const item = await this.prisma.orderReturn.findFirst({
+      select: Selector.ORDER_RETURN,
+      where: {
+        orderId,
+      },
+    });
+    if (
+      item.order.dstCompany.id !== companyId &&
+      item.order.srcCompany.id !== companyId
+    )
+      throw new NotFoundException(`존재하지 않는 환불 정보입니다.`);
+
+    return Util.serialize(item);
+  }
+
   async getNotUsingInvoiceCode(): Promise<string> {
     const invoice = await this.prisma.tempInvoiceCode.findFirst();
     return invoice.invoiceCode + String(invoice.number);
