@@ -80,25 +80,25 @@ export class AccountedChangeService {
     companyRegistrationNumber: string;
     accountedDate: string;
     accountedSubject: Subject;
-    memo?: string;
+    memo: string | null;
     endorsementType: EndorsementType; // 배서구분
-    endorsement?: string; // 배서자
-    securityId?: number; // 지급시 필수
-    security?: {
+    endorsement: string | null; // 배서자
+    securityId: number | null; // 지급시 필수
+    security: {
       securityType: SecurityType;
       securitySerial: string;
       securityAmount: number;
-      drawedDate?: string;
-      drawedBank?: Bank;
-      drawedBankBranch?: string;
-      drawedRegion?: string;
-      drawer?: string;
-      maturedDate?: string;
-      payingBank?: Bank;
-      payingBankBranch?: string;
-      payer?: string;
-      memo?: string;
-    }; // 수금시 필수
+      drawedDate: string | null;
+      drawedBank: Bank | null;
+      drawedBankBranch: string | null;
+      drawedRegion: string | null;
+      drawer: string | null;
+      maturedDate: string | null;
+      payingBank: Bank | null;
+      payingBankBranch: string | null;
+      payer: string | null;
+      memo: string | null;
+    } | null; // 수금시 필수
   }) {
     return await this.prisma.$transaction(async (tx) => {
       if (params.accountedType === AccountedType.PAID) {
@@ -603,6 +603,102 @@ export class AccountedChangeService {
           amount: params.amount,
         },
       });
+
+      return await tx.accounted.update({
+        select: {
+          id: true,
+        },
+        where: {
+          id: params.accountedId,
+        },
+        data: {
+          accountedDate: params.accountedDate,
+          accountedSubject: params.accountedSubject,
+          memo: params.memo || '',
+        },
+      });
+    });
+  }
+
+  async updateBySecurity(params: {
+    companyId: number;
+    accountedId: number;
+    accountedDate: string;
+    accountedSubject: Subject;
+    memo: string | null;
+    endorsementType: EndorsementType | null; // 배서구분
+    endorsement: string | null; // 배서자
+    security: {
+      securityType: SecurityType;
+      securitySerial: string;
+      securityAmount: number;
+      drawedDate?: string;
+      drawedBank?: Bank;
+      drawedBankBranch?: string;
+      drawedRegion?: string;
+      drawer?: string;
+      maturedDate?: string;
+      payingBank?: Bank;
+      payingBankBranch?: string;
+      payer?: string;
+      memo?: string;
+    } | null; // 수금시 수증가능
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(
+        tx,
+        params.companyId,
+        params.accountedId,
+      );
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+      if (accounted.accountedMethod !== 'PROMISSORY_NOTE')
+        throw new ConflictException(`회계수단 에러`);
+
+      if (accounted.accountedType === 'COLLECTED') {
+        // 수금일때 유가증권관련 정보 수정
+        if (!params.endorsementType)
+          throw new BadRequestException(`배서구분을 입력하셔야합니다.`);
+
+        const security = accounted.bySecurity.security;
+        const paid =
+          security.bySecurities.find(
+            (bs) => bs.accounted.accountedType === 'PAID',
+          ) || null;
+        if (!paid) {
+          // 지급에 사용되지 않았을때에만 유가증권 정보 수정가능
+          await tx.security.update({
+            where: {
+              id: security.id,
+            },
+            data: {
+              securityType: params.security.securityType,
+              securitySerial: params.security.securitySerial,
+              securityAmount: params.security.securityAmount,
+              drawedDate: params.security.drawedDate,
+              drawedBank: params.security.drawedBank,
+              drawedBankBranch: params.security.drawedBankBranch || '',
+              drawedRegion: params.security.drawedRegion || '',
+              drawer: params.security.drawer || '',
+              maturedDate: params.security.maturedDate,
+              payingBank: params.security.payingBank,
+              payingBankBranch: params.security.payingBankBranch || '',
+              payer: params.security.payer || '',
+              memo: params.memo || '',
+            },
+          });
+        }
+
+        await tx.bySecurity.update({
+          where: {
+            id: accounted.bySecurity.id,
+          },
+          data: {
+            endorsementType: params.endorsementType,
+            endorsement: params.endorsement || '',
+          },
+        });
+      }
 
       return await tx.accounted.update({
         select: {

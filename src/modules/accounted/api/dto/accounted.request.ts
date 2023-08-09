@@ -36,6 +36,7 @@ import {
   AccountedByOffsetCreatedRequest,
   AccountedByOffsetUpdateRequest,
   AccountedBySecurityCreatedRequest,
+  AccountedBySecurityUpdateRequest,
   AccountedListQuery,
   AccountedUnpaidListQuery,
 } from 'src/@shared/api';
@@ -119,45 +120,27 @@ export class AccountedByBankAccountCreatedDto
 
 /** 수금/지급 등록 (유가증권) */
 class Security {
-  /**
-   * 유가증권 타입
-   */
   @IsEnum(SecurityType)
   readonly securityType: SecurityType;
 
-  /**
-   * 유가증권 번호
-   */
   @IsString()
   @Length(1, 100)
   readonly securitySerial: string;
 
-  /**
-   * 유가증권 금액
-   */
   @IsInt()
   @Min(0)
   readonly securityAmount: number;
 
-  /**
-   * 발행일
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsDateString()
   readonly drawedDate: string | null = null;
 
-  /**
-   * 발행 은행
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsEnum(Bank)
   readonly drawedBank: Bank | null = null;
 
-  /**
-   * 발행 은행 지점
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -165,9 +148,6 @@ class Security {
   @IsName()
   readonly drawedBankBranch: string | null = null;
 
-  /**
-   * 발행 지역
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -175,9 +155,6 @@ class Security {
   @IsName()
   readonly drawedRegion: string | null = null;
 
-  /**
-   * 발행인
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -185,25 +162,16 @@ class Security {
   @IsName()
   readonly drawer: string | null = null;
 
-  /**
-   * 만기일
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsDateString()
   readonly maturedDate: string | null = null;
 
-  /**
-   * 지급은행
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsEnum(Bank)
   readonly payingBank: Bank | null = null;
 
-  /**
-   * 지급은행 지점
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -211,9 +179,6 @@ class Security {
   @IsName()
   readonly payingBankBranch: string | null = null;
 
-  /**
-   * 지급인
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -221,9 +186,6 @@ class Security {
   @IsName()
   readonly payer: string | null = null;
 
-  /**
-   * 메모
-   */
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsString()
@@ -273,7 +235,7 @@ export class AccountedBySecurityCreatedDto
   @IsObject()
   @Type(() => Security)
   @ValidateNested()
-  readonly security: Security | null;
+  readonly security: Security | null = null;
 
   validate() {
     if (this.accountedType === 'COLLECTED' && this.security === null) {
@@ -376,6 +338,39 @@ export class AccountedByCardCreatedDto
       throw new BadRequestException(`계좌를 선택해 주세요.`);
     }
   }
+}
+
+/** 수금/지급 수정 (유가증권) */
+export class AccountedBySecurityUpdateDto
+  implements AccountedBySecurityUpdateRequest
+{
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsEnum(EndorsementType)
+  readonly endorsementType: EndorsementType | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly endorsement: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsObject()
+  @Type(() => Security)
+  @ValidateNested()
+  readonly security: Security | null = null;
 }
 
 /** 수금/지급 등록 (상계) */
