@@ -3853,7 +3853,7 @@ export class OrderChangeService {
 
       if (
         params.companyId !== params.dstCompanyId &&
-        dstCompany.managedById !== null
+        dstCompany.managedById === null
       )
         throw new BadRequestException(
           `환불은 판매기업에서만 등록할 수 있습니다. 구매처에 문의해주세요.`,
