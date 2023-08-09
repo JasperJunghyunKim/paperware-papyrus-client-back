@@ -949,6 +949,8 @@ export class OrderRetriveService {
             status: true,
             isEntrusted: true,
             memo: true,
+            dstCompanyId: true,
+            srcCompanyId: true,
           },
         },
         item: true,
@@ -957,6 +959,46 @@ export class OrderRetriveService {
         orderId,
       },
     });
+    if (
+      item.order.dstCompanyId !== companyId &&
+      item.order.srcCompanyId !== companyId
+    )
+      throw new NotFoundException(`존재하지 않는 기타매출 정보입니다.`);
+
+    return item;
+  }
+
+  async getOrderRefund(
+    companyId: number,
+    orderId: number,
+  ): Promise<Model.OrderRefund> {
+    const item = await this.prisma.orderRefund.findFirst({
+      select: {
+        id: true,
+        order: {
+          select: {
+            id: true,
+            orderNo: true,
+            orderType: true,
+            status: true,
+            isEntrusted: true,
+            memo: true,
+            dstCompanyId: true,
+            srcCompanyId: true,
+          },
+        },
+        originOrderNo: true,
+        item: true,
+      },
+      where: {
+        orderId,
+      },
+    });
+    if (
+      item.order.dstCompanyId !== companyId &&
+      item.order.srcCompanyId !== companyId
+    )
+      throw new NotFoundException(`존재하지 않는 환불 정보입니다.`);
 
     return item;
   }

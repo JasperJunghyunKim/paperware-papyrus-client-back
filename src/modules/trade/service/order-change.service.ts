@@ -1331,6 +1331,8 @@ export class OrderChangeService {
           orderStock: true,
           orderDeposit: true,
           orderProcess: true,
+          orderRefund: true,
+          orderReturn: true,
         },
       });
 
@@ -1494,6 +1496,10 @@ export class OrderChangeService {
           }
           // 출고 및 도착예정재고 자동 생성
           await this.acceptOrderProcessTx(tx, orderId);
+          break;
+        case OrderType.REFUND:
+          break;
+        case OrderType.RETURN:
           break;
         default:
           break;

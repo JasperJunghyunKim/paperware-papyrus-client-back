@@ -49,6 +49,7 @@ import {
   OrderDepositResponse,
   OrderEtcResponse,
   OrderProcessResponse,
+  OrderRefundResponse,
   OrderStockArrivalListResponse,
   TradePriceResponse,
 } from 'src/@shared/api';
@@ -720,5 +721,19 @@ export class OrderController {
       companyId: req.user.companyId,
       ...dto,
     });
+  }
+
+  /** 환불 상세 */
+  @Get('/:id/refund')
+  @UseGuards(AuthGuard)
+  async getOrderRefund(
+    @Request() req: AuthType,
+    @Param() idDto: IdDto,
+  ): Promise<OrderRefundResponse> {
+    const item = await this.retrive.getOrderRefund(
+      req.user.companyId,
+      idDto.id,
+    );
+    return item;
   }
 }

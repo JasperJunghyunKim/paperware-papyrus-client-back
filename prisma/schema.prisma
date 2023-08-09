@@ -590,6 +590,7 @@ model OrderReturn {
   orderId           Int              @unique
   order             Order            @relation(fields: [orderId], references: [id])
   originOrderNo     String?
+  plan              Plan[]
   // 반품원지 스펙정보
   companyId         Int
   company           Company          @relation(fields: [companyId], references: [id])
@@ -685,6 +686,8 @@ enum PlanType {
   TRADE_WITHDRAW_BUYER // 보관 입고
   TRADE_OUTSOURCE_PROCESS_SELLER // 외주 공정
   TRADE_OUTSOURCE_PROCESS_BUYER // 외주 매입
+  RETURN_SELLER // 매출반품
+  RETURN_BUYER // 매입반품
 }
 
 enum PlanStatus {
@@ -715,6 +718,8 @@ model Plan {
   planShipping       PlanShipping?
   orderProcessId     Int?
   orderProcess       OrderProcess? @relation(fields: [orderProcessId], references: [id])
+  orderReturnId      Int?
+  orderReturn        OrderReturn?  @relation(fields: [orderReturnId], references: [id])
 }
 
 model PlanShipping {
