@@ -26,6 +26,7 @@ import {
   AccountedByCashCreatedDto,
   AccountedByCashUpdateDto,
   AccountedByOffsetCreatedDto,
+  AccountedByOffsetUpdateDto,
   AccountedBySecurityCreatedDto,
   AccountedListDto,
   AccountedUnpaidListDto,
@@ -215,8 +216,16 @@ export class AccountedController {
   /** 상계 수정 */
   @Put('/:id/offset')
   @UseGuards(AuthGuard)
-  async updateByOffset(@Request() req: AuthType, @Param() param: IdDto) {
-    throw new NotImplementedException();
+  async updateByOffset(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: AccountedByOffsetUpdateDto,
+  ) {
+    return await this.change.updateByOffset({
+      companyId: req.user.companyId,
+      accountedId: param.id,
+      ...body,
+    });
   }
 
   /** 유가증권 수정 */

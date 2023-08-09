@@ -32,6 +32,7 @@ import {
   AccountedByCashUpdateRequest,
   AccountedByEtcCreatedRequest,
   AccountedByOffsetCreatedRequest,
+  AccountedByOffsetUpdateRequest,
   AccountedBySecurityCreatedRequest,
   AccountedListQuery,
   AccountedUnpaidListQuery,
@@ -450,6 +451,26 @@ export class AccountedByBankAccountUpdateDto
 
 /** 수금/지급 수정 (현금) */
 export class AccountedByCashUpdateDto implements AccountedByCashUpdateRequest {
+  @IsEnum(Subject)
+  readonly accountedSubject: Subject;
+
+  @IsDateString()
+  readonly accountedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  readonly memo: string | null = null;
+
+  @IsInt()
+  @Min(0)
+  readonly amount: number;
+}
+
+/** 수금/지급 수정 (상계) */
+export class AccountedByOffsetUpdateDto
+  implements AccountedByOffsetUpdateRequest
+{
   @IsEnum(Subject)
   readonly accountedSubject: Subject;
 

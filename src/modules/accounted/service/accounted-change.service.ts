@@ -450,7 +450,22 @@ export class AccountedChangeService {
     accountedId: number,
   ) {
     return await this.prisma.accounted.findFirst({
-      select: Selector.ACCOUNTED,
+      select: {
+        ...Selector.ACCOUNTED,
+        byOffset: {
+          include: {
+            offsetPair: {
+              include: {
+                byOffsets: {
+                  include: {
+                    accounted: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
       where: {
         id: accountedId,
         companyId,
@@ -537,6 +552,53 @@ export class AccountedChangeService {
         },
         where: {
           id: params.accountedId,
+        },
+        data: {
+          accountedDate: params.accountedDate,
+          accountedSubject: params.accountedSubject,
+          memo: params.memo || '',
+        },
+      });
+    });
+  }
+
+  async updateByOffset(params: {
+    companyId: number;
+    accountedId: number;
+    accountedDate: string;
+    accountedSubject: Subject;
+    amount: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const accounted = await this.getAccounted(
+        tx,
+        params.companyId,
+        params.accountedId,
+      );
+      if (!accounted)
+        throw new NotFoundException(`존재하지 않는 회계정보입니다.`);
+      if (accounted.accountedMethod !== 'OFFSET')
+        throw new ConflictException(`회계수단 에러`);
+
+      const pair = accounted.byOffset.offsetPair;
+
+      await tx.byOffset.updateMany({
+        where: {
+          id: {
+            in: pair.byOffsets.map((offset) => offset.id),
+          },
+        },
+        data: {
+          amount: params.amount,
+        },
+      });
+
+      return await tx.accounted.updateMany({
+        where: {
+          id: {
+            in: pair.byOffsets.map((offset) => offset.accounted.id),
+          },
         },
         data: {
           accountedDate: params.accountedDate,
