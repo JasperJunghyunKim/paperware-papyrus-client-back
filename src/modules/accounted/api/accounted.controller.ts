@@ -25,6 +25,7 @@ import {
   AccountedByCardCreatedDto,
   AccountedByCashCreatedDto,
   AccountedByCashUpdateDto,
+  AccountedByEtcUpdateDto,
   AccountedByOffsetCreatedDto,
   AccountedByOffsetUpdateDto,
   AccountedBySecurityCreatedDto,
@@ -163,7 +164,7 @@ export class AccountedController {
     @Request() req: AuthType,
     @Body() dto: AccountedByCashCreatedDto,
   ) {
-    return await this.change.createByCash({
+    return await this.change.createByEtc({
       companyId: req.user.companyId,
       ...dto,
     });
@@ -228,10 +229,18 @@ export class AccountedController {
     });
   }
 
-  /** 유가증권 수정 */
+  /** 기타 수정 */
   @Put('/:id/etc')
   @UseGuards(AuthGuard)
-  async updateByEtc(@Request() req: AuthType, @Param() param: IdDto) {
-    throw new NotImplementedException();
+  async updateByEtc(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() body: AccountedByEtcUpdateDto,
+  ) {
+    return await this.change.updateByEtc({
+      companyId: req.user.companyId,
+      accountedId: param.id,
+      ...body,
+    });
   }
 }
