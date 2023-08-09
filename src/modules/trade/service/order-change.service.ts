@@ -2270,6 +2270,18 @@ export class OrderChangeService {
       });
       if (!order) throw new NotFoundException('존재하지 않는 주문입니다');
 
+      switch (order.orderType) {
+        case 'REFUND':
+        case 'RETURN':
+          if (params.suppliedPrice > 0 || params.vatPrice > 0)
+            throw new BadRequestException(`금액은 0보다 작거나 같아야 합니다.`);
+          break;
+        default:
+          if (params.suppliedPrice < 0 || params.vatPrice < 0)
+            throw new BadRequestException(`금액은 0보다 크거나 같아야 합니다.`);
+          break;
+      }
+
       // // 원지 정보는 판매자(dstCompany)의 Plan에서 지정하므로 판매자의 Plan을 필터링
       // const plan = order.orderStock?.plan.find(
       //   (plan) => plan.companyId === order.dstCompanyId,

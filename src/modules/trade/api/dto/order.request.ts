@@ -504,12 +504,10 @@ export class UpdateOrderDepositTradePriceDto
 export class UpdateTradePriceDto implements TradePriceUpdateRequest {
   @IsNumber()
   @Type(() => Number)
-  @Min(0)
   readonly suppliedPrice: number;
 
   @IsNumber()
   @Type(() => Number)
-  @Min(0)
   readonly vatPrice: number;
 
   @IsOptional()
