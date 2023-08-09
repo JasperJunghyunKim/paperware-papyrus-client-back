@@ -45,6 +45,7 @@ import {
   OrderEtcUpdateRequest,
   OrderDepositUpdateAssignRequest,
   OrderDepositUpdateRequest,
+  OrderRefundCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -1151,4 +1152,36 @@ export class OrderEtcUpdateDto implements OrderEtcUpdateRequest {
 
   @IsDateString()
   readonly orderDate: string;
+}
+
+/** 환불 등록 */
+export class OrderRefundCreateDto implements OrderRefundCreateRequest {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly item: string = '';
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly originOrderNo: string | null = null;
 }

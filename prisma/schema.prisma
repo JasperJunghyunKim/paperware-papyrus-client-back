@@ -57,6 +57,7 @@ model PaperColorGroup {
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
+  OrderReturn            OrderReturn[]
 }
 
 model PaperColor {
@@ -71,6 +72,7 @@ model PaperColor {
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
+  OrderReturn            OrderReturn[]
 }
 
 model PaperPattern {
@@ -85,6 +87,7 @@ model PaperPattern {
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
+  OrderReturn            OrderReturn[]
 }
 
 model PaperCert {
@@ -99,6 +102,7 @@ model PaperCert {
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
+  OrderReturn            OrderReturn[]
 }
 
 enum PackagingType {
@@ -120,6 +124,7 @@ model Packaging {
   OrderDeposit OrderDeposit[]
   OrderStock   OrderStock[]
   OrderProcess OrderProcess[]
+  OrderReturn  OrderReturn[]
 
   @@unique([type, packA, packB])
 }
@@ -142,6 +147,7 @@ model Product {
   OrderDeposit           OrderDeposit[]
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
+  OrderReturn            OrderReturn[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -162,6 +168,7 @@ model Warehouse {
   stock        Stock[]
   OrderStock   OrderStock[]
   OrderProcess OrderProcess[]
+  OrderReturn  OrderReturn[]
 }
 
 // Stock
@@ -330,6 +337,7 @@ model Company {
   srcOrderRequest                OrderRequest[]                @relation("srcOrderRequestCompany")
   dstOrderRequest                OrderRequest[]                @relation("dstOrderRequestCompany")
   Accounted                      Accounted[]
+  OrderReturn                    OrderReturn[]
 }
 
 model BusinessRelationship {
@@ -454,6 +462,8 @@ enum OrderType {
   DEPOSIT
   OUTSOURCE_PROCESS
   ETC
+  REFUND
+  RETURN
 }
 
 model Order {
@@ -477,6 +487,8 @@ model Order {
   orderDeposit      OrderDeposit?
   orderProcess      OrderProcess?
   orderEtc          OrderEtc?
+  orderRefund       OrderRefund?
+  orderReturn       OrderReturn?
   taxInvoiceId      Int?
   taxInvoice        TaxInvoice?   @relation(fields: [taxInvoiceId], references: [id])
   revision          Int           @default(0)
@@ -563,6 +575,43 @@ model OrderEtc {
   orderId Int    @unique
   order   Order  @relation(fields: [orderId], references: [id])
   item    String
+}
+
+model OrderRefund {
+  id            Int     @id @default(autoincrement())
+  orderId       Int     @unique
+  order         Order   @relation(fields: [orderId], references: [id])
+  originOrderNo String?
+  item          String  @default("")
+}
+
+model OrderReturn {
+  id                Int              @id @default(autoincrement())
+  orderId           Int              @unique
+  order             Order            @relation(fields: [orderId], references: [id])
+  originOrderNo     String?
+  // 반품원지 스펙정보
+  companyId         Int
+  company           Company          @relation(fields: [companyId], references: [id])
+  planId            Int?
+  warehouseId       Int?
+  warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  quantity          Int              @default(0)
 }
 
 model TradePrice {

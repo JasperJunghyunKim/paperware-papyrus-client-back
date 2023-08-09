@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE `User` ADD COLUMN `lastLoginTime` DATETIME(3) NULL,
-    MODIFY `phoneNo` VARCHAR(191) NOT NULL DEFAULT '';

@@ -595,6 +595,22 @@ export const ORDER_ETC = {
   },
 } satisfies Prisma.OrderEtcSelect;
 
+export const ORDER_REFUND = {
+  id: true,
+  originOrderNo: true,
+  item: true,
+  order: {
+    select: {
+      id: true,
+      orderNo: true,
+      orderType: true,
+      status: true,
+      isEntrusted: true,
+      memo: true,
+    },
+  },
+} satisfies Prisma.OrderRefundSelect;
+
 export const ORDER = {
   id: true,
   orderNo: true,
@@ -625,6 +641,9 @@ export const ORDER = {
   },
   orderEtc: {
     select: ORDER_ETC,
+  },
+  orderRefund: {
+    select: ORDER_REFUND,
   },
   depositEvent: {
     include: {

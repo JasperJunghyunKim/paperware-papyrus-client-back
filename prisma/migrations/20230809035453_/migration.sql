@@ -175,13 +175,26 @@ CREATE TABLE `User` (
     `username` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
-    `phoneNo` VARCHAR(191) NOT NULL,
+    `phoneNo` VARCHAR(191) NOT NULL DEFAULT '',
     `email` VARCHAR(191) NULL,
     `birthDate` DATETIME(3) NULL,
     `companyId` INTEGER NULL,
+    `isActivated` BOOLEAN NOT NULL DEFAULT true,
+    `isAdmin` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `lastLoginTime` DATETIME(3) NULL,
 
     UNIQUE INDEX `User_username_key`(`username`),
     PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `UserFindPasswordAuth` (
+    `userId` INTEGER NOT NULL,
+    `authKey` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `UserFindPasswordAuth_userId_key`(`userId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -202,6 +215,9 @@ CREATE TABLE `Company` (
     `managedById` INTEGER NULL,
     `startDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `memo` VARCHAR(191) NOT NULL DEFAULT '',
+    `isActivated` BOOLEAN NOT NULL DEFAULT true,
+    `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -271,7 +287,7 @@ CREATE TABLE `OfficialPriceMap` (
 -- CreateTable
 CREATE TABLE `Order` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `orderType` ENUM('NORMAL', 'DEPOSIT', 'OUTSOURCE_PROCESS', 'ETC') NOT NULL,
+    `orderType` ENUM('NORMAL', 'DEPOSIT', 'OUTSOURCE_PROCESS', 'ETC', 'REFUND', 'RETURN') NOT NULL,
     `orderNo` VARCHAR(191) NOT NULL,
     `orderDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `srcCompanyId` INTEGER NOT NULL,
@@ -351,6 +367,40 @@ CREATE TABLE `OrderEtc` (
     `item` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `OrderEtc_orderId_key`(`orderId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Refund` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `orderId` INTEGER NOT NULL,
+    `originOrderNo` VARCHAR(191) NULL,
+    `item` VARCHAR(191) NOT NULL,
+
+    UNIQUE INDEX `Refund_orderId_key`(`orderId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Return` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `orderId` INTEGER NOT NULL,
+    `originOrderNo` VARCHAR(191) NULL,
+    `companyId` INTEGER NOT NULL,
+    `planId` INTEGER NULL,
+    `warehouseId` INTEGER NULL,
+    `productId` INTEGER NOT NULL,
+    `packagingId` INTEGER NOT NULL,
+    `grammage` INTEGER NOT NULL,
+    `sizeX` INTEGER NOT NULL,
+    `sizeY` INTEGER NOT NULL,
+    `paperColorGroupId` INTEGER NULL,
+    `paperColorId` INTEGER NULL,
+    `paperPatternId` INTEGER NULL,
+    `paperCertId` INTEGER NULL,
+    `quantity` INTEGER NOT NULL DEFAULT 0,
+
+    UNIQUE INDEX `Return_orderId_key`(`orderId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -466,10 +516,17 @@ CREATE TABLE `TaskQuantity` (
 -- CreateTable
 CREATE TABLE `Shipping` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `type` ENUM('INHOUSE', 'OUTSOURCE', 'PARTNER_PICKUP') NOT NULL,
     `shippingNo` VARCHAR(191) NOT NULL,
+    `price` DOUBLE NOT NULL DEFAULT 0,
     `companyId` INTEGER NOT NULL,
     `status` ENUM('PREPARING', 'PROGRESSING', 'DONE') NOT NULL DEFAULT 'PREPARING',
+    `managerId` INTEGER NULL,
+    `companyRegistrationNumber` VARCHAR(191) NULL,
+    `memo` VARCHAR(191) NOT NULL DEFAULT '',
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `createdById` INTEGER NOT NULL,
 
     UNIQUE INDEX `Shipping_shippingNo_key`(`shippingNo`),
     PRIMARY KEY (`id`)
@@ -542,7 +599,7 @@ CREATE TABLE `TaxInvoice` (
 CREATE TABLE `BankAccount` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `companyId` INTEGER NOT NULL,
-    `bankComapny` ENUM('KAKAO_BANK', 'KOOKMIN_BANK', 'KEB_HANA_BANK', 'NH_BANK', 'SHINHAN_BANK', 'IBK', 'WOORI_BANK', 'CITI_BANK_KOREA', 'HANA_BANK', 'SC_FIRST_BANK', 'KYONGNAM_BANK', 'KWANGJU_BANK', 'DAEGU_BANK', 'DEUTSCHE_BANK', 'BANK_OF_AMERICA', 'BUSAN_BANK', 'NACF', 'SAVINGS_BANK', 'NACCSF', 'SUHYUP_BANK', 'NACUFOK', 'POST_OFFICE', 'JEONBUK_BANK', 'JEJU_BANK', 'K_BANK', 'TOS_BANK') NOT NULL,
+    `bank` ENUM('KAKAO_BANK', 'KOOKMIN_BANK', 'KEB_HANA_BANK', 'NH_BANK', 'SHINHAN_BANK', 'IBK', 'WOORI_BANK', 'CITI_BANK_KOREA', 'HANA_BANK', 'SC_FIRST_BANK', 'KYONGNAM_BANK', 'KWANGJU_BANK', 'DAEGU_BANK', 'DEUTSCHE_BANK', 'BANK_OF_AMERICA', 'BUSAN_BANK', 'NACF', 'SAVINGS_BANK', 'NACCSF', 'SUHYUP_BANK', 'NACUFOK', 'POST_OFFICE', 'JEONBUK_BANK', 'JEJU_BANK', 'K_BANK', 'TOS_BANK') NOT NULL,
     `accountName` VARCHAR(30) NOT NULL,
     `accountType` ENUM('DEPOSIT') NOT NULL,
     `accountNumber` VARCHAR(30) NOT NULL,
@@ -571,8 +628,7 @@ CREATE TABLE `Security` (
     `securityType` ENUM('PROMISSORY_NOTE', 'ELECTRONIC_NOTE', 'ELECTRONIC_BOND', 'PERSONAL_CHECK', 'DEMAND_DRAFT', 'HOUSEHOLD_CHECK', 'STATIONERY_NOTE', 'ETC') NOT NULL,
     `securitySerial` VARCHAR(191) NOT NULL,
     `securityAmount` DOUBLE NOT NULL,
-    `securityStatus` ENUM('NONE', 'ENDORSED', 'NORMAL_PAYMENT', 'DISCOUNT_PAYMENT', 'INSOLVENCY', 'LOST', 'SAFEKEEPING') NOT NULL DEFAULT 'NONE',
-    `drawedStatus` ENUM('SELF', 'ACCOUNTED') NOT NULL,
+    `securityStatus` ENUM('NONE', 'NORMAL_PAYMENT', 'DISCOUNT_PAYMENT', 'INSOLVENCY', 'LOST', 'SAFEKEEPING') NOT NULL DEFAULT 'NONE',
     `drawedDate` DATETIME(3) NULL,
     `drawedBank` ENUM('KAKAO_BANK', 'KOOKMIN_BANK', 'KEB_HANA_BANK', 'NH_BANK', 'SHINHAN_BANK', 'IBK', 'WOORI_BANK', 'CITI_BANK_KOREA', 'HANA_BANK', 'SC_FIRST_BANK', 'KYONGNAM_BANK', 'KWANGJU_BANK', 'DAEGU_BANK', 'DEUTSCHE_BANK', 'BANK_OF_AMERICA', 'BUSAN_BANK', 'NACF', 'SAVINGS_BANK', 'NACCSF', 'SUHYUP_BANK', 'NACUFOK', 'POST_OFFICE', 'JEONBUK_BANK', 'JEJU_BANK', 'K_BANK', 'TOS_BANK') NULL,
     `drawedBankBranch` VARCHAR(191) NULL,
@@ -620,12 +676,12 @@ CREATE TABLE `PartnerTaxManager` (
 CREATE TABLE `Accounted` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `companyId` INTEGER NOT NULL,
-    `partnerCompanyRegistrationNumber` VARCHAR(191) NOT NULL,
+    `companyRegistrationNumber` VARCHAR(191) NOT NULL,
     `accountedType` ENUM('PAID', 'COLLECTED') NOT NULL,
-    `accountedMethod` ENUM('ACCOUNT_TRANSFER', 'PROMISSORY_NOTE', 'CARD_PAYMENT', 'CASH', 'OFFSET', 'ETC', 'All') NOT NULL,
+    `accountedMethod` ENUM('ACCOUNT_TRANSFER', 'PROMISSORY_NOTE', 'CARD_PAYMENT', 'CASH', 'OFFSET', 'ETC') NOT NULL,
     `accountedDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `accountedSubject` ENUM('ACCOUNTS_RECEIVABLE', 'UNPAID', 'ADVANCES', 'MISCELLANEOUS_INCOME', 'PRODUCT_SALES', 'ETC', 'All') NOT NULL,
-    `memo` VARCHAR(500) NULL,
+    `accountedSubject` ENUM('ACCOUNTS_RECEIVABLE', 'UNPAID', 'ADVANCES', 'MISCELLANEOUS_INCOME', 'PRODUCT_SALES', 'ETC') NOT NULL,
+    `memo` VARCHAR(500) NOT NULL DEFAULT '',
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
 
     PRIMARY KEY (`id`)
@@ -634,7 +690,7 @@ CREATE TABLE `Accounted` (
 -- CreateTable
 CREATE TABLE `ByCash` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `cashAmount` INTEGER NOT NULL,
+    `amount` INTEGER NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `accountedId` INTEGER NOT NULL,
 
@@ -645,7 +701,7 @@ CREATE TABLE `ByCash` (
 -- CreateTable
 CREATE TABLE `ByEtc` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `etcAmount` INTEGER NOT NULL,
+    `amount` INTEGER NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `accountedId` INTEGER NOT NULL,
 
@@ -656,7 +712,7 @@ CREATE TABLE `ByEtc` (
 -- CreateTable
 CREATE TABLE `ByBankAccount` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `bankAccountAmount` INTEGER NOT NULL,
+    `amount` INTEGER NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `accountedId` INTEGER NOT NULL,
     `bankAccountId` INTEGER NOT NULL,
@@ -669,8 +725,8 @@ CREATE TABLE `ByBankAccount` (
 CREATE TABLE `ByCard` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `cardAmount` INTEGER NOT NULL,
-    `chargeAmount` INTEGER NOT NULL,
-    `totalAmount` INTEGER NOT NULL,
+    `vatPrice` INTEGER NOT NULL,
+    `amount` INTEGER NOT NULL,
     `isCharge` BOOLEAN NOT NULL DEFAULT false,
     `approvalNumber` VARCHAR(191) NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
@@ -685,9 +741,10 @@ CREATE TABLE `ByCard` (
 -- CreateTable
 CREATE TABLE `ByOffset` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `offsetAmount` INTEGER NOT NULL,
+    `amount` INTEGER NOT NULL,
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `accountedId` INTEGER NOT NULL,
+    `byOffsetPairId` INTEGER NOT NULL,
 
     UNIQUE INDEX `ByOffset_accountedId_key`(`accountedId`),
     PRIMARY KEY (`id`)
@@ -696,11 +753,7 @@ CREATE TABLE `ByOffset` (
 -- CreateTable
 CREATE TABLE `ByOffsetPair` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `paidId` INTEGER NOT NULL,
-    `collectedId` INTEGER NOT NULL,
-    `byOffsetId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `ByOffsetPair_byOffsetId_key`(`byOffsetId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -708,7 +761,7 @@ CREATE TABLE `ByOffsetPair` (
 CREATE TABLE `BySecurity` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `endorsementType` ENUM('NONE', 'SELF_NOTE', 'OTHERS_NOTE') NULL,
-    `endorsement` VARCHAR(191) NULL,
+    `endorsement` VARCHAR(191) NOT NULL DEFAULT '',
     `isDeleted` BOOLEAN NOT NULL DEFAULT false,
     `securityId` INTEGER NOT NULL,
     `accountedId` INTEGER NOT NULL,
@@ -869,6 +922,39 @@ CREATE TABLE `TempInvoiceCode` (
     `maxPercent` DOUBLE NOT NULL,
 
     UNIQUE INDEX `TempInvoiceCode_invoiceCode_key`(`invoiceCode`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Authentication` (
+    `phoneNo` VARCHAR(191) NOT NULL,
+    `authNo` VARCHAR(191) NOT NULL,
+    `authKey` VARCHAR(191) NOT NULL,
+    `count` INTEGER NOT NULL DEFAULT 1,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Authentication_phoneNo_key`(`phoneNo`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `AuthenticationLog` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `type` ENUM('CREATE', 'AUTH_NO', 'AUTH_KEY') NOT NULL,
+    `phoneNo` VARCHAR(191) NOT NULL,
+    `authNo` VARCHAR(191) NOT NULL,
+    `authKey` VARCHAR(191) NOT NULL,
+    `inputAuthNo` VARCHAR(191) NULL,
+    `inputAuthKey` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `UserMenu` (
+    `userId` INTEGER NOT NULL,
+    `menu` TEXT NOT NULL,
+
+    UNIQUE INDEX `UserMenu_userId_key`(`userId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -1061,6 +1147,36 @@ ALTER TABLE `OrderProcess` ADD CONSTRAINT `OrderProcess_paperCertId_fkey` FOREIG
 ALTER TABLE `OrderEtc` ADD CONSTRAINT `OrderEtc_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `Refund` ADD CONSTRAINT `Refund_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_warehouseId_fkey` FOREIGN KEY (`warehouseId`) REFERENCES `Warehouse`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_packagingId_fkey` FOREIGN KEY (`packagingId`) REFERENCES `Packaging`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_paperColorGroupId_fkey` FOREIGN KEY (`paperColorGroupId`) REFERENCES `PaperColorGroup`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_paperColorId_fkey` FOREIGN KEY (`paperColorId`) REFERENCES `PaperColor`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_paperPatternId_fkey` FOREIGN KEY (`paperPatternId`) REFERENCES `PaperPattern`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Return` ADD CONSTRAINT `Return_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `TradePrice` ADD CONSTRAINT `TradePrice_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1116,6 +1232,12 @@ ALTER TABLE `TaskQuantity` ADD CONSTRAINT `TaskQuantity_invoiceId_fkey` FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE `Shipping` ADD CONSTRAINT `Shipping_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Shipping` ADD CONSTRAINT `Shipping_managerId_fkey` FOREIGN KEY (`managerId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Shipping` ADD CONSTRAINT `Shipping_createdById_fkey` FOREIGN KEY (`createdById`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Invoice` ADD CONSTRAINT `Invoice_shippingId_fkey` FOREIGN KEY (`shippingId`) REFERENCES `Shipping`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1187,7 +1309,7 @@ ALTER TABLE `ByCard` ADD CONSTRAINT `ByCard_bankAccountId_fkey` FOREIGN KEY (`ba
 ALTER TABLE `ByOffset` ADD CONSTRAINT `ByOffset_accountedId_fkey` FOREIGN KEY (`accountedId`) REFERENCES `Accounted`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE `ByOffsetPair` ADD CONSTRAINT `ByOffsetPair_byOffsetId_fkey` FOREIGN KEY (`byOffsetId`) REFERENCES `ByOffset`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `ByOffset` ADD CONSTRAINT `ByOffset_byOffsetPairId_fkey` FOREIGN KEY (`byOffsetPairId`) REFERENCES `ByOffsetPair`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `BySecurity` ADD CONSTRAINT `BySecurity_securityId_fkey` FOREIGN KEY (`securityId`) REFERENCES `Security`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
@@ -1299,6 +1421,9 @@ ALTER TABLE `OrderRequest` ADD CONSTRAINT `OrderRequest_locationId_fkey` FOREIGN
 
 -- AddForeignKey
 ALTER TABLE `OrderRequestItem` ADD CONSTRAINT `OrderRequestItem_orderRequestId_fkey` FOREIGN KEY (`orderRequestId`) REFERENCES `OrderRequest`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `UserMenu` ADD CONSTRAINT `UserMenu_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `_OrderStockToStockEvent` ADD CONSTRAINT `_OrderStockToStockEvent_A_fkey` FOREIGN KEY (`A`) REFERENCES `OrderStock`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

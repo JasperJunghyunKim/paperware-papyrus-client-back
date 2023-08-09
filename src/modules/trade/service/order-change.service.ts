@@ -3825,4 +3825,84 @@ export class OrderChangeService {
     });
     return order;
   }
+
+  async createRefund(params: {
+    userId: number;
+    companyId: number;
+    srcCompanyId: number;
+    dstCompanyId: number;
+    originOrderNo: string | null;
+    orderDate: string;
+    item: string | null;
+    memo: string | null;
+  }): Promise<Model.Order> {
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
+      const dstCompany = await tx.company.findUnique({
+        where: {
+          id: params.dstCompanyId,
+        },
+      });
+      if (!dstCompany)
+        throw new BadRequestException(`존재하지 않는 거래처입니다.`);
+
+      if (
+        params.companyId !== params.dstCompanyId &&
+        dstCompany.managedById !== null
+      )
+        throw new BadRequestException(
+          `환불은 판매기업에서만 등록할 수 있습니다. 구매처에 문의해주세요.`,
+        );
+
+      const invoiceCode =
+        dstCompany.managedById === null
+          ? dstCompany.invoiceCode
+          : await this.orderRetriveService.getNotUsingInvoiceCode();
+
+      const order = await tx.order.create({
+        data: {
+          orderType: 'REFUND',
+          orderNo: Util.serialT(invoiceCode),
+          srcCompany: {
+            connect: {
+              id: params.srcCompanyId,
+            },
+          },
+          dstCompany: {
+            connect: {
+              id: params.dstCompanyId,
+            },
+          },
+          status:
+            params.companyId === params.srcCompanyId
+              ? 'ORDER_PREPARING'
+              : 'OFFER_PREPARING',
+          memo: params.memo || '',
+          ordererName:
+            params.companyId === params.srcCompanyId ? user.name : '',
+          createdComapny: {
+            connect: {
+              id: params.companyId,
+            },
+          },
+          orderRefund: {
+            create: {
+              originOrderNo: params.originOrderNo || null,
+              item: params.item || '',
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return this.getOrderCreateResponseTx(tx, order.id);
+    });
+  }
 }

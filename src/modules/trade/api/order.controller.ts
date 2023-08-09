@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -36,6 +37,7 @@ import OrderStockCreateRequestDto, {
   OrderProcessCreateDto,
   OrderProcessInfoUpdateDto,
   OrderProcessStockUpdateDto,
+  OrderRefundCreateDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
@@ -698,5 +700,25 @@ export class OrderController {
     });
 
     return order;
+  }
+
+  /** 환불 등록 */
+  @Post('/refund')
+  @UseGuards(AuthGuard)
+  async createRefund(
+    @Request() req: AuthType,
+    @Body() dto: OrderRefundCreateDto,
+  ): Promise<OrderCreateResponse> {
+    if (
+      req.user.companyId !== dto.srcCompanyId &&
+      req.user.companyId !== dto.dstCompanyId
+    )
+      throw new BadRequestException(`잘못된 요청 입니다.`);
+
+    return await this.change.createRefund({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      ...dto,
+    });
   }
 }
