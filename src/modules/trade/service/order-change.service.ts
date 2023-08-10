@@ -1073,7 +1073,7 @@ export class OrderChangeService {
           '주문 요청을 보낼 수 있는 주문상태가 아닙니다.',
         );
       }
-      if (!Util.inc(order.orderType, 'REFUND', 'RETURN'))
+      if (Util.inc(order.orderType, 'REFUND', 'RETURN'))
         throw new ConflictException(`요청을 할 수 없는 주문타입입니다.`);
       if (partnerCompany.managedById !== null)
         throw new ConflictException(
