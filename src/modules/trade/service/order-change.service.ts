@@ -637,6 +637,7 @@ export class OrderChangeService {
     userId: number,
     type: OrderHistoryType,
   ) {
+    console.log(1111, orderId, userId, type);
     await tx.orderHistory.create({
       data: {
         order: {

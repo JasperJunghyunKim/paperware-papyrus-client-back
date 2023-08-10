@@ -526,7 +526,7 @@ enum OrderHistoryType {
 
 model OrderHistory {
   id        Int              @id @default(autoincrement())
-  orderId   Int              @unique
+  orderId   Int
   order     Order            @relation(fields: [orderId], references: [id])
   type      OrderHistoryType
   userId    Int

@@ -308,6 +308,17 @@ CREATE TABLE `Order` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `OrderHistory` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `orderId` INTEGER NOT NULL,
+    `type` ENUM('CREATE', 'ACCEPT', 'PLAN_START', 'PLAN_CANCEL', 'ORDER_CANCEL', 'OFFER_REQUEST', 'OFFER_REQUEST_CANCEL', 'OFFER_REQUEST_REJECT', 'ORDER_REQUEST', 'ORDER_REQUEST_CANCEL', 'ORDER_REQUEST_REJECT') NOT NULL,
+    `userId` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `OrderStock` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `orderId` INTEGER NOT NULL,
@@ -371,24 +382,23 @@ CREATE TABLE `OrderEtc` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Refund` (
+CREATE TABLE `OrderRefund` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `orderId` INTEGER NOT NULL,
     `originOrderNo` VARCHAR(191) NULL,
-    `item` VARCHAR(191) NOT NULL,
+    `item` VARCHAR(191) NOT NULL DEFAULT '',
 
-    UNIQUE INDEX `Refund_orderId_key`(`orderId`),
+    UNIQUE INDEX `OrderRefund_orderId_key`(`orderId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Return` (
+CREATE TABLE `OrderReturn` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `orderId` INTEGER NOT NULL,
     `originOrderNo` VARCHAR(191) NULL,
-    `companyId` INTEGER NOT NULL,
-    `planId` INTEGER NULL,
-    `warehouseId` INTEGER NULL,
+    `dstLocationId` INTEGER NOT NULL,
+    `wantedDate` DATETIME(3) NOT NULL,
     `productId` INTEGER NOT NULL,
     `packagingId` INTEGER NOT NULL,
     `grammage` INTEGER NOT NULL,
@@ -400,7 +410,7 @@ CREATE TABLE `Return` (
     `paperCertId` INTEGER NULL,
     `quantity` INTEGER NOT NULL DEFAULT 0,
 
-    UNIQUE INDEX `Return_orderId_key`(`orderId`),
+    UNIQUE INDEX `OrderReturn_orderId_key`(`orderId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -446,7 +456,7 @@ CREATE TABLE `OrderStockTradeAltBundle` (
 CREATE TABLE `Plan` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `planNo` VARCHAR(191) NOT NULL,
-    `type` ENUM('INHOUSE_CREATE', 'INHOUSE_MODIFY', 'INHOUSE_RELOCATION', 'INHOUSE_PROCESS', 'INHOUSE_STOCK_QUANTITY_CHANGE', 'TRADE_NORMAL_SELLER', 'TRADE_NORMAL_BUYER', 'TRADE_WITHDRAW_SELLER', 'TRADE_WITHDRAW_BUYER', 'TRADE_OUTSOURCE_PROCESS_SELLER', 'TRADE_OUTSOURCE_PROCESS_BUYER') NOT NULL,
+    `type` ENUM('INHOUSE_CREATE', 'INHOUSE_MODIFY', 'INHOUSE_RELOCATION', 'INHOUSE_PROCESS', 'INHOUSE_STOCK_QUANTITY_CHANGE', 'TRADE_NORMAL_SELLER', 'TRADE_NORMAL_BUYER', 'TRADE_WITHDRAW_SELLER', 'TRADE_WITHDRAW_BUYER', 'TRADE_OUTSOURCE_PROCESS_SELLER', 'TRADE_OUTSOURCE_PROCESS_BUYER', 'RETURN_SELLER', 'RETURN_BUYER') NOT NULL,
     `companyId` INTEGER NOT NULL,
     `status` ENUM('PREPARING', 'PROGRESSING', 'PROGRESSED', 'CANCELLED') NOT NULL DEFAULT 'PREPARING',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -454,6 +464,7 @@ CREATE TABLE `Plan` (
     `assignStockEventId` INTEGER NULL,
     `orderStockId` INTEGER NULL,
     `orderProcessId` INTEGER NULL,
+    `orderReturnId` INTEGER NULL,
 
     UNIQUE INDEX `Plan_planNo_key`(`planNo`),
     UNIQUE INDEX `Plan_assignStockEventId_key`(`assignStockEventId`),
@@ -1081,6 +1092,12 @@ ALTER TABLE `Order` ADD CONSTRAINT `Order_taxInvoiceId_fkey` FOREIGN KEY (`taxIn
 ALTER TABLE `Order` ADD CONSTRAINT `Order_createdCompanyId_fkey` FOREIGN KEY (`createdCompanyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `OrderHistory` ADD CONSTRAINT `OrderHistory_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `OrderHistory` ADD CONSTRAINT `OrderHistory_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `OrderStock` ADD CONSTRAINT `OrderStock_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1147,34 +1164,31 @@ ALTER TABLE `OrderProcess` ADD CONSTRAINT `OrderProcess_paperCertId_fkey` FOREIG
 ALTER TABLE `OrderEtc` ADD CONSTRAINT `OrderEtc_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Refund` ADD CONSTRAINT `Refund_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderRefund` ADD CONSTRAINT `OrderRefund_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_companyId_fkey` FOREIGN KEY (`companyId`) REFERENCES `Company`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_dstLocationId_fkey` FOREIGN KEY (`dstLocationId`) REFERENCES `Location`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_warehouseId_fkey` FOREIGN KEY (`warehouseId`) REFERENCES `Warehouse`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `Product`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_packagingId_fkey` FOREIGN KEY (`packagingId`) REFERENCES `Packaging`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_packagingId_fkey` FOREIGN KEY (`packagingId`) REFERENCES `Packaging`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_paperColorGroupId_fkey` FOREIGN KEY (`paperColorGroupId`) REFERENCES `PaperColorGroup`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_paperColorGroupId_fkey` FOREIGN KEY (`paperColorGroupId`) REFERENCES `PaperColorGroup`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_paperColorId_fkey` FOREIGN KEY (`paperColorId`) REFERENCES `PaperColor`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_paperColorId_fkey` FOREIGN KEY (`paperColorId`) REFERENCES `PaperColor`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_paperPatternId_fkey` FOREIGN KEY (`paperPatternId`) REFERENCES `PaperPattern`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_paperPatternId_fkey` FOREIGN KEY (`paperPatternId`) REFERENCES `PaperPattern`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Return` ADD CONSTRAINT `Return_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `OrderReturn` ADD CONSTRAINT `OrderReturn_paperCertId_fkey` FOREIGN KEY (`paperCertId`) REFERENCES `PaperCert`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `TradePrice` ADD CONSTRAINT `TradePrice_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1205,6 +1219,9 @@ ALTER TABLE `Plan` ADD CONSTRAINT `Plan_orderStockId_fkey` FOREIGN KEY (`orderSt
 
 -- AddForeignKey
 ALTER TABLE `Plan` ADD CONSTRAINT `Plan_orderProcessId_fkey` FOREIGN KEY (`orderProcessId`) REFERENCES `OrderProcess`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Plan` ADD CONSTRAINT `Plan_orderReturnId_fkey` FOREIGN KEY (`orderReturnId`) REFERENCES `OrderReturn`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PlanShipping` ADD CONSTRAINT `PlanShipping_planId_fkey` FOREIGN KEY (`planId`) REFERENCES `Plan`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
