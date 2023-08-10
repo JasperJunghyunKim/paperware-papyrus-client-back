@@ -154,24 +154,36 @@ export class SettingUserChangeService {
     });
   }
 
-  async updateUserMenu(companyId: number, userId: number, menu: string) {
+  async updateUserMenu(
+    userId: number,
+    companyId: number,
+    chageUserId: number,
+    menu: string,
+  ) {
     await this.prisma.$transaction(async (tx) => {
-      const user = await tx.user.findFirst({
+      const adminUser = await tx.user.findUnique({
         where: {
           id: userId,
+        },
+      });
+      if (!adminUser.isAdmin)
+        throw new ForbiddenException(`수정 권한이 없습니다.`);
+
+      const user = await tx.user.findFirst({
+        where: {
+          id: chageUserId,
           companyId,
         },
       });
       if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
-      if (!user.isAdmin) throw new ForbiddenException(`수정 권한이 없습니다.`);
 
       await tx.userMenu.upsert({
         where: {
-          userId,
+          userId: chageUserId,
         },
         create: {
           menu,
-          userId,
+          userId: chageUserId,
         },
         update: {
           menu,

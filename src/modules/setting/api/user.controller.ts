@@ -137,6 +137,7 @@ export class SettingUserController {
     @Body() body: UserMenuUpdateDto,
   ) {
     return await this.change.updateUserMenu(
+      req.user.id,
       req.user.companyId,
       param.id,
       body.menu,
