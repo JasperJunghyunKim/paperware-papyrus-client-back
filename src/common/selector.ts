@@ -724,6 +724,20 @@ export const ORDER = {
       },
     },
   },
+  histories: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          company: true,
+        },
+      },
+    },
+    orderBy: {
+      id: 'asc',
+    },
+  },
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
