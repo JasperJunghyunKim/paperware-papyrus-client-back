@@ -4,13 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PlanStatus, PlanType } from '@prisma/client';
+import { OrderHistoryType, PlanStatus, PlanType } from '@prisma/client';
 import { Task } from 'src/@shared';
 import { Util } from 'src/common';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
 import { StockChangeService } from 'src/modules/stock/service/stock-change.service';
 import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
+import { OrderChangeService } from 'src/modules/trade/service/order-change.service';
 import { ulid } from 'ulid';
 
 @Injectable()
@@ -21,8 +22,31 @@ export class PlanChangeService {
     private stockQuantityChecker: StockQuantityChecker,
   ) {}
 
-  async startPlan(params: { planId: number }) {
-    const { planId } = params;
+  private async createOrderHistoryTx(
+    tx: PrismaTransaction,
+    orderId: number,
+    userId: number,
+    type: OrderHistoryType,
+  ) {
+    await tx.orderHistory.create({
+      data: {
+        order: {
+          connect: {
+            id: orderId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        type,
+      },
+    });
+  }
+
+  async startPlan(params: { userId: number; planId: number }) {
+    const { userId, planId } = params;
 
     await this.prisma.$transaction(async (tx: PrismaTransaction) => {
       const plan = await tx.plan.findUnique({
@@ -34,6 +58,9 @@ export class PlanChangeService {
           type: true,
           status: true,
           company: true,
+          orderStock: true,
+          orderProcess: true,
+          orderReturn: true,
           assignStockEvent: {
             select: {
               stock: {
@@ -145,6 +172,18 @@ export class PlanChangeService {
         }
       }
 
+      const orderId = plan.orderStock
+        ? plan.orderStock.orderId
+        : plan.orderProcess
+        ? plan.orderProcess.orderId
+        : plan.orderReturn
+        ? plan.orderReturn.orderId
+        : null;
+
+      if (orderId) {
+        await this.createOrderHistoryTx(tx, orderId, userId, 'PLAN_START');
+      }
+
       return await tx.plan.update({
         where: {
           id: planId,
@@ -156,9 +195,9 @@ export class PlanChangeService {
     });
   }
 
-  async backwardPlan(companyId: number, planId: number) {
+  async backwardPlan(userId: number, companyId: number, planId: number) {
     await this.prisma.$transaction(async (tx) => {
-      const [plan]: {
+      const [planCheck]: {
         id: number;
         status: PlanStatus;
       }[] = await tx.$queryRaw`
@@ -170,13 +209,59 @@ export class PlanChangeService {
           
           FOR UPDATE;
       `;
-      if (!plan) throw new NotFoundException(`존재하지 않는 작업계획입니다.`);
-      if (plan.status === 'PREPARING') {
+      if (!planCheck)
+        throw new NotFoundException(`존재하지 않는 작업계획입니다.`);
+      if (planCheck.status === 'PREPARING') {
         throw new ConflictException(`작업지시되지 않은 작업계획입니다.`);
-      } else if (plan.status === 'PROGRESSED') {
+      } else if (planCheck.status === 'PROGRESSED') {
         throw new ConflictException(
           `작업완료된 작업계획은 취소할 수 없습니다.`,
         );
+      }
+
+      const plan = await tx.plan.findUnique({
+        where: {
+          id: planId,
+        },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          company: true,
+          orderStock: true,
+          orderProcess: true,
+          orderReturn: true,
+          assignStockEvent: {
+            select: {
+              stock: {
+                select: {
+                  id: true,
+                  product: true,
+                  grammage: true,
+                  packaging: true,
+                  sizeX: true,
+                  sizeY: true,
+                  paperColorGroup: true,
+                  paperColor: true,
+                  paperPattern: true,
+                  paperCert: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const orderId = plan.orderStock
+        ? plan.orderStock.orderId
+        : plan.orderProcess
+        ? plan.orderProcess.orderId
+        : plan.orderReturn
+        ? plan.orderReturn.orderId
+        : null;
+
+      if (orderId) {
+        await this.createOrderHistoryTx(tx, orderId, userId, 'PLAN_CANCEL');
       }
 
       await tx.plan.update({

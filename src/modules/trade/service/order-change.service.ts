@@ -13,6 +13,8 @@ import {
   DiscountType,
   OfficialPriceType,
   OrderDeposit,
+  OrderHistory,
+  OrderHistoryType,
   OrderStatus,
   OrderType,
   PackagingType,
@@ -629,6 +631,29 @@ export class OrderChangeService {
     return Util.serialize(result);
   }
 
+  private async createOrderHistoryTx(
+    tx: PrismaTransaction,
+    orderId: number,
+    userId: number,
+    type: OrderHistoryType,
+  ) {
+    await tx.orderHistory.create({
+      data: {
+        order: {
+          connect: {
+            id: orderId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        type,
+      },
+    });
+  }
+
   async insertOrder(params: {
     userId: number;
     srcCompanyId: number;
@@ -1056,7 +1081,11 @@ export class OrderChangeService {
     }
   }
 
-  async request(params: { companyId: number; orderId: number }) {
+  async request(params: {
+    userId: number;
+    companyId: number;
+    orderId: number;
+  }) {
     const { companyId, orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -1133,6 +1162,13 @@ export class OrderChangeService {
           break;
       }
 
+      await this.createOrderHistoryTx(
+        tx,
+        params.orderId,
+        params.userId,
+        order.status === 'OFFER_PREPARING' ? 'OFFER_REQUEST' : 'ORDER_REQUEST',
+      );
+
       await tx.order.update({
         where: {
           id: orderId,
@@ -1147,7 +1183,7 @@ export class OrderChangeService {
     });
   }
 
-  async cancel(companyId: number, orderId: number) {
+  async cancel(userId: number, companyId: number, orderId: number) {
     await this.prisma.$transaction(async (tx) => {
       const orderForUpdate = await tx.$queryRaw`
         SELECT *
@@ -1291,6 +1327,8 @@ export class OrderChangeService {
         default:
           break;
       }
+
+      await this.createOrderHistoryTx(tx, orderId, userId, 'ORDER_CANCEL');
     });
   }
 
@@ -1558,6 +1596,8 @@ export class OrderChangeService {
           },
         },
       });
+
+      await this.createOrderHistoryTx(tx, orderId, params.userId, 'ACCEPT');
     });
   }
 
@@ -1836,7 +1876,7 @@ export class OrderChangeService {
     });
   }
 
-  async reject(params: { orderId: number }) {
+  async reject(params: { userId: number; companyId: number; orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -1847,6 +1887,8 @@ export class OrderChangeService {
         select: {
           status: true,
           orderType: true,
+          srcCompanyId: true,
+          dstCompanyId: true,
           orderStock: {
             include: {
               plan: {
@@ -1867,6 +1909,12 @@ export class OrderChangeService {
           },
         },
       });
+      if (
+        !order ||
+        (order.dstCompanyId !== params.companyId &&
+          order.srcCompanyId !== params.companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
 
       if (!Util.inc(order.status, 'OFFER_REQUESTED', 'ORDER_REQUESTED')) {
         throw new ConflictException('주문을 거절할 수 없는 상태입니다.');
@@ -1893,6 +1941,15 @@ export class OrderChangeService {
           break;
       }
 
+      await this.createOrderHistoryTx(
+        tx,
+        params.orderId,
+        params.userId,
+        order.status === 'OFFER_REQUESTED'
+          ? 'OFFER_REQUEST_REJECT'
+          : 'ORDER_REQUEST_REJECT',
+      );
+
       await tx.order.update({
         where: {
           id: orderId,
@@ -1907,7 +1964,7 @@ export class OrderChangeService {
     });
   }
 
-  async reset(params: { orderId: number }) {
+  async reset(params: { userId: number; companyId: number; orderId: number }) {
     const { orderId } = params;
 
     await this.prisma.$transaction(async (tx) => {
@@ -1919,6 +1976,8 @@ export class OrderChangeService {
           id: true,
           orderType: true,
           status: true,
+          srcCompanyId: true,
+          dstCompanyId: true,
           orderStock: {
             select: {
               plan: {
@@ -1939,7 +1998,12 @@ export class OrderChangeService {
           },
         },
       });
-
+      if (
+        !order ||
+        (order.srcCompanyId !== params.companyId &&
+          order.dstCompanyId !== params.companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
       if (
         !Util.inc(
           order.status,
@@ -1976,6 +2040,15 @@ export class OrderChangeService {
         default:
           break;
       }
+
+      await this.createOrderHistoryTx(
+        tx,
+        orderId,
+        params.userId,
+        order.status === 'OFFER_REJECTED' || order.status === 'OFFER_REQUESTED'
+          ? 'OFFER_REQUEST_CANCEL'
+          : 'ORDER_REQUEST_CANCEL',
+      );
 
       await tx.order.update({
         where: {

@@ -506,6 +506,8 @@ enum OrderHistoryType {
   ACCEPT
   // 작업지시
   PLAN_START
+  // 작업지시취소
+  PLAN_CANCEL
   // 주문취소
   ORDER_CANCEL
   // 구매제안

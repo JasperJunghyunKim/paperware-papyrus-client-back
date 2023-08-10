@@ -337,6 +337,7 @@ export class OrderController {
     // TODO: 조건 확인 필요함
 
     await this.change.request({
+      userId: req.user.id,
       companyId: req.user.companyId,
       orderId: Number(id),
     });
@@ -367,13 +368,11 @@ export class OrderController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async rejectOrder(@Request() req: AuthType, @Param('id') id: string) {
-    const order = await this.retrive.getItem({ orderId: Number(id) });
-
-    if (!order) {
-      throw new ForbiddenException('존재하지 않는 주문입니다.');
-    }
-
-    await this.change.reject({ orderId: Number(id) });
+    await this.change.reject({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      orderId: Number(id),
+    });
   }
 
   @Post(':id/delete')
@@ -393,20 +392,18 @@ export class OrderController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async cancelOrder(@Request() req: AuthType, @Param() param: IdDto) {
-    return await this.change.cancel(req.user.companyId, param.id);
+    return await this.change.cancel(req.user.id, req.user.companyId, param.id);
   }
 
   @Post(':id/reset')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   async resetOrder(@Request() req: AuthType, @Param('id') id: string) {
-    const order = await this.retrive.getItem({ orderId: Number(id) });
-
-    if (!order) {
-      throw new ForbiddenException('존재하지 않는 주문입니다.');
-    }
-
-    await this.change.reset({ orderId: Number(id) });
+    await this.change.reset({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      orderId: Number(id),
+    });
   }
 
   @Post(':id/arrival')

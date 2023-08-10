@@ -137,6 +137,7 @@ export class PlanController {
     }
 
     const updatedPlan = await this.planChangeService.startPlan({
+      userId: req.user.id,
       planId: id,
     });
 
@@ -148,6 +149,7 @@ export class PlanController {
   @UseGuards(AuthGuard)
   async backwardPlan(@Request() req: AuthType, @Param() param: IdDto) {
     return await this.planChangeService.backwardPlan(
+      req.user.id,
       req.user.companyId,
       param.id,
     );
