@@ -266,6 +266,7 @@ model User {
   menu            UserMenu?
   shipping        Shipping[]
   createdShipping Shipping[]     @relation("createdBy")
+  OrderHistory    OrderHistory[]
 }
 
 model UserFindPasswordAuth {
@@ -466,21 +467,21 @@ enum OrderType {
 }
 
 model Order {
-  id                Int           @id @default(autoincrement())
+  id                Int            @id @default(autoincrement())
   orderType         OrderType
-  orderNo           String        @unique
-  orderDate         DateTime      @default(now())
+  orderNo           String         @unique
+  orderDate         DateTime       @default(now())
   srcCompanyId      Int
-  srcCompany        Company       @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
+  srcCompany        Company        @relation("srcOrderCompany", fields: [srcCompanyId], references: [id])
   dstCompanyId      Int
-  dstCompany        Company       @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
-  status            OrderStatus   @default(ORDER_PREPARING)
-  isEntrusted       Boolean       @default(false)
+  dstCompany        Company        @relation("dstOrderCompany", fields: [dstCompanyId], references: [id])
+  status            OrderStatus    @default(ORDER_PREPARING)
+  isEntrusted       Boolean        @default(false)
   memo              String
-  ordererName       String        @default("")
+  ordererName       String         @default("")
   acceptedCompanyId Int?
-  acceptedCompany   Company?      @relation("acceptedCompany", fields: [acceptedCompanyId], references: [id])
-  isStockRejected   Boolean       @default(false)
+  acceptedCompany   Company?       @relation("acceptedCompany", fields: [acceptedCompanyId], references: [id])
+  isStockRejected   Boolean        @default(false)
   orderStock        OrderStock?
   tradePrice        TradePrice[]
   orderDeposit      OrderDeposit?
@@ -489,12 +490,46 @@ model Order {
   orderRefund       OrderRefund?
   orderReturn       OrderReturn?
   taxInvoiceId      Int?
-  taxInvoice        TaxInvoice?   @relation(fields: [taxInvoiceId], references: [id])
-  revision          Int           @default(0)
+  taxInvoice        TaxInvoice?    @relation(fields: [taxInvoiceId], references: [id])
+  revision          Int            @default(0)
   depositEventId    Int?
   depositEvent      DepositEvent?
   createdCompanyId  Int
-  createdComapny    Company       @relation("createdCompany", fields: [createdCompanyId], references: [id])
+  createdComapny    Company        @relation("createdCompany", fields: [createdCompanyId], references: [id])
+  histories         OrderHistory[]
+}
+
+enum OrderHistoryType {
+  // 최초작성
+  CREATE
+  // 주문확정
+  ACCEPT
+  // 작업지시
+  PLAN_START
+  // 주문취소
+  ORDER_CANCEL
+  // 구매제안
+  OFFER_REQUEST
+  // 구매제안취소
+  OFFER_REQUEST_CANCEL
+  // 구매제안반려
+  OFFER_REQUEST_REJECT
+  // 주문접수
+  ORDER_REQUEST
+  // 주문접수취소
+  ORDER_REQUEST_CANCEL
+  // 주문접수반려
+  ORDER_REQUEST_REJECT
+}
+
+model OrderHistory {
+  id        Int              @id @default(autoincrement())
+  orderId   Int              @unique
+  order     Order            @relation(fields: [orderId], references: [id])
+  type      OrderHistoryType
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id])
+  createdAt DateTime         @default(now())
 }
 
 model OrderStock {

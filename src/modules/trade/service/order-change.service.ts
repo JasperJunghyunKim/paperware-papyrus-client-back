@@ -760,6 +760,16 @@ export class OrderChangeService {
               quantity: params.quantity,
             },
           },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: params.userId,
+                },
+              },
+            },
+          },
         },
         select: {
           id: true,
@@ -2818,6 +2828,16 @@ export class OrderChangeService {
               quantity,
             },
           },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -3473,6 +3493,16 @@ export class OrderChangeService {
               quantity,
             },
           },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: params.userId,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -3789,6 +3819,16 @@ export class OrderChangeService {
               item,
             },
           },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: params.userId,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -3944,6 +3984,16 @@ export class OrderChangeService {
               item: params.item || '',
             },
           },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: params.userId,
+                },
+              },
+            },
+          },
         },
         select: {
           id: true,
@@ -4045,6 +4095,16 @@ export class OrderChangeService {
               paperPatternId: params.paperPatternId,
               paperCertId: params.paperCertId,
               quantity: params.quantity,
+            },
+          },
+          histories: {
+            create: {
+              type: 'CREATE',
+              user: {
+                connect: {
+                  id: params.userId,
+                },
+              },
             },
           },
         },
