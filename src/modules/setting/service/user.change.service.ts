@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -162,6 +163,7 @@ export class SettingUserChangeService {
         },
       });
       if (!user) throw new NotFoundException(`존재하지 않는 직원정보 입니다.`);
+      if (!user.isAdmin) throw new ForbiddenException(`수정 권한이 없습니다.`);
 
       await tx.userMenu.upsert({
         where: {
