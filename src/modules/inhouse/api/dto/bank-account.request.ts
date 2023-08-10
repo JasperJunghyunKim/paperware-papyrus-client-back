@@ -48,7 +48,7 @@ export class BankAccountCreateRequestDto implements BankAccountCreateRequest {
 
   @IsString()
   @IsAccountNumber()
-  @Length(1, 150)
+  @Length(1, 20)
   readonly accountNumber: string;
 
   @IsString()
