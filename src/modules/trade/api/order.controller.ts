@@ -295,7 +295,11 @@ export class OrderController {
       throw new ForbiddenException('존재하지 않는 주문입니다.');
     }
 
-    if (order.srcCompany.id !== req.user.companyId) {
+    if (
+      order.orderType === 'RETURN'
+        ? order.dstCompany.id !== req.user.companyId
+        : order.srcCompany.id !== req.user.companyId
+    ) {
       throw new ForbiddenException('조회 권한이 없습니다.');
     }
 
@@ -308,6 +312,8 @@ export class OrderController {
     const total = await this.retrive.getArrivalStockCount({
       orderId: Number(id),
     });
+
+    console.log(111, items);
 
     return {
       items: items.map((item) => {
@@ -417,16 +423,6 @@ export class OrderController {
     @Param('id') id: string,
     @Body() body: OrderStockArrivalCreateRequestDto,
   ) {
-    const order = await this.retrive.getItem({ orderId: Number(id) });
-
-    if (!order) {
-      throw new ForbiddenException('존재하지 않는 주문입니다.');
-    }
-
-    if (order.srcCompany.id !== req.user.companyId) {
-      throw new ForbiddenException('등록 권한이 없습니다.');
-    }
-
     await this.change.createArrival({
       companyId: req.user.companyId,
       orderId: Number(id),

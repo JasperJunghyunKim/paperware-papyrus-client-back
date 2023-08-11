@@ -2108,6 +2108,9 @@ export class OrderChangeService {
         case OrderType.OUTSOURCE_PROCESS:
           await this.createArrivalToOutsourceProcessTrade(tx, params);
           break;
+        case OrderType.RETURN:
+          await this.createArrivalToReturnTrade(tx, params);
+          break;
         default:
           throw new ConflictException(
             `도착예정재고를 추가할 수 없는 주문타입입니다.`,
@@ -2213,6 +2216,57 @@ export class OrderChangeService {
     );
 
     return this.addArrivalToPlanTx(tx, srcPlan, params);
+  }
+
+  /** 반품에 도착예정재고 추가  */
+  async createArrivalToReturnTrade(
+    tx: PrismaTransaction,
+    params: {
+      companyId: number;
+      orderId: number;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+      stockPrice: StockCreateStockPriceRequest | null;
+    },
+  ) {
+    const orderReturn = await tx.orderReturn.findFirst({
+      include: {
+        order: true,
+        plan: {
+          select: {
+            company: {
+              select: {
+                id: true,
+                invoiceCode: true,
+              },
+            },
+            id: true,
+            type: true,
+          },
+        },
+      },
+      where: {
+        orderId: params.orderId,
+      },
+    });
+    if (orderReturn.order.dstCompanyId !== params.companyId)
+      throw new ConflictException(
+        `구매기업은 도착예정 재고를 추가할 수 없습니다.`,
+      );
+
+    const dstPlan = orderReturn.plan.find(
+      (plan) => plan.type === 'RETURN_SELLER',
+    );
+
+    return this.addArrivalToPlanTx(tx, dstPlan, params);
   }
 
   async addArrivalToPlanTx(

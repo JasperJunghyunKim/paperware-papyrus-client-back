@@ -736,17 +736,26 @@ export class OrderRetriveService {
     take?: number;
   }): Promise<Model.Stock[]> {
     const order = await this.prisma.order.findUnique({
+      include: {
+        orderStock: true,
+        orderReturn: true,
+      },
       where: { id: params.orderId },
     });
 
-    const orderStock = await this.prisma.orderStock.findUnique({
-      where: { orderId: params.orderId },
-      select: { id: true },
-    });
-
     // 도착 정보는 구매자(srcCompany) 작업 계획에 있음
+    // 반품의 경우에는 판매자(dstCompany)
     const srcPlan = await this.prisma.plan.findFirst({
-      where: { orderStockId: orderStock.id, companyId: order.srcCompanyId },
+      where: {
+        orderStockId:
+          order.orderType === 'NORMAL' ? order.orderStock.id : undefined,
+        orderReturnId:
+          order.orderType === 'RETURN' ? order.orderReturn.id : undefined,
+        companyId:
+          order.orderType === 'RETURN'
+            ? order.dstCompanyId
+            : order.srcCompanyId,
+      },
       select: {
         id: true,
       },
@@ -761,23 +770,34 @@ export class OrderRetriveService {
       take: params.take,
     });
 
-    return Util.serialize(list);
+    return list.map((item) => Util.serialize(item));
   }
 
   /** 도착 목록 수 가져오기 */
   async getArrivalStockCount(params: { orderId: number }): Promise<number> {
     const order = await this.prisma.order.findUnique({
+      include: {
+        orderStock: true,
+        orderReturn: true,
+      },
       where: { id: params.orderId },
     });
 
-    const orderStock = await this.prisma.orderStock.findUnique({
-      where: { orderId: params.orderId },
-      select: { id: true },
-    });
+    console.log(111, order);
 
     // 도착 정보는 구매자(srcCompany) 작업 계획에 있음
+    // 반품의 경우에는 판매자(dstCompany)
     const srcPlan = await this.prisma.plan.findFirst({
-      where: { orderStockId: orderStock.id, companyId: order.srcCompanyId },
+      where: {
+        orderStockId:
+          order.orderType === 'NORMAL' ? order.orderStock.id : undefined,
+        orderReturnId:
+          order.orderType === 'RETURN' ? order.orderReturn.id : undefined,
+        companyId:
+          order.orderType === 'RETURN'
+            ? order.dstCompanyId
+            : order.srcCompanyId,
+      },
       select: {
         id: true,
       },
