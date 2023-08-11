@@ -38,7 +38,10 @@ import OrderStockCreateRequestDto, {
   OrderProcessInfoUpdateDto,
   OrderProcessStockUpdateDto,
   OrderRefundCreateDto,
+  OrderRefundUpdateDto,
   OrderReturnCreateDto,
+  OrderReturnUpdateDto,
+  OrderReturnUpdateStockDto,
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
@@ -736,6 +739,21 @@ export class OrderController {
     return item;
   }
 
+  @Put('/:id/refund')
+  @UseGuards(AuthGuard)
+  async updateOrderRefund(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: OrderRefundUpdateDto,
+  ) {
+    return await this.change.updateRefund({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      orderId: param.id,
+      ...dto,
+    });
+  }
+
   /** 반품 등록 */
   @Post('/return')
   @UseGuards(AuthGuard)
@@ -764,5 +782,36 @@ export class OrderController {
     @Param() param: IdDto,
   ): Promise<OrderReturnResponse> {
     return await this.retrive.getOrderReturn(req.user.companyId, param.id);
+  }
+
+  /** 반품 수정 */
+  @Put('/:id/return')
+  @UseGuards(AuthGuard)
+  async updateReturn(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: OrderReturnUpdateDto,
+  ): Promise<OrderCreateResponse> {
+    return await this.change.updateReturn({
+      companyId: req.user.companyId,
+      orderId: param.id,
+      ...dto,
+    });
+  }
+
+  /** 반품 원지 수정 */
+  @Put('/:id/return/stock')
+  @UseGuards(AuthGuard)
+  async updateReturnStock(
+    @Request() req: AuthType,
+    @Param() param: IdDto,
+    @Body() dto: OrderReturnUpdateStockDto,
+  ): Promise<OrderCreateResponse> {
+    return await this.change.updateReturnStock({
+      companyId: req.user.companyId,
+      orderId: param.id,
+      ...dto,
+      sizeY: dto.sizeY || 0,
+    });
   }
 }

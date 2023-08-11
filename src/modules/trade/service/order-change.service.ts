@@ -4077,6 +4077,79 @@ export class OrderChangeService {
     });
   }
 
+  async updateRefund(params: {
+    userId: number;
+    companyId: number;
+    orderId: number;
+    originOrderNo: string | null;
+    orderDate: string;
+    item: string | null;
+    memo: string | null;
+  }): Promise<Model.Order> {
+    return await this.prisma.$transaction(async (tx) => {
+      const [orderForUpdate]: {
+        id: number;
+        orderType: OrderType;
+        status: OrderStatus;
+        srcCompanyId: number;
+        dstCompanyId: number;
+      }[] = await tx.$queryRaw`
+        SELECT id, orderType, status,  srcCompanyId, dstCompanyId
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+      `;
+      if (
+        !orderForUpdate ||
+        orderForUpdate.status === OrderStatus.CANCELLED ||
+        (orderForUpdate.dstCompanyId !== params.companyId &&
+          orderForUpdate.srcCompanyId !== params.companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (orderForUpdate.orderType !== 'REFUND')
+        throw new ConflictException(`주문타입 에러`);
+
+      const order = await tx.order.findUnique({
+        select: {
+          srcCompany: true,
+          dstCompany: true,
+          orderRefund: true,
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+
+      if (
+        order.dstCompany.managedById === null &&
+        order.dstCompany.id !== params.companyId
+      )
+        throw new ForbiddenException(`판매기업에서만 수정 가능합니다.`);
+
+      await tx.order.update({
+        data: {
+          orderDate: params.orderDate,
+          memo: params.memo || '',
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+
+      await tx.orderRefund.update({
+        data: {
+          item: params.item || '',
+          originOrderNo: params.originOrderNo || null,
+        },
+        where: {
+          id: order.orderRefund.id,
+        },
+      });
+      await this.updateOrderRevisionTx(tx, params.orderId);
+
+      return this.getOrderCreateResponseTx(tx, params.orderId);
+    });
+  }
+
   async createReturn(params: {
     userId: number;
     companyId: number;
@@ -4187,6 +4260,152 @@ export class OrderChangeService {
       });
 
       return this.getOrderCreateResponseTx(tx, order.id);
+    });
+  }
+
+  async updateReturn(params: {
+    companyId: number;
+    orderId: number;
+    originOrderNo: string | null;
+    orderDate: string;
+    wantedDate: string;
+    locationId: number;
+    memo: string | null;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [orderForUpdate]: {
+        id: number;
+        orderType: OrderType;
+        status: OrderStatus;
+        srcCompanyId: number;
+        dstCompanyId: number;
+      }[] = await tx.$queryRaw`
+        SELECT id, orderType, status,  srcCompanyId, dstCompanyId
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+      `;
+      if (
+        !orderForUpdate ||
+        orderForUpdate.status === OrderStatus.CANCELLED ||
+        (orderForUpdate.dstCompanyId !== params.companyId &&
+          orderForUpdate.srcCompanyId !== params.companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (orderForUpdate.orderType !== 'RETURN')
+        throw new ConflictException(`주문타입 에러`);
+
+      const order = await tx.order.findUnique({
+        select: {
+          srcCompany: true,
+          dstCompany: true,
+          orderReturn: true,
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+
+      if (
+        order.dstCompany.managedById === null &&
+        order.dstCompany.id !== params.companyId
+      )
+        throw new ForbiddenException(`판매기업에서만 수정 가능합니다.`);
+
+      await tx.order.update({
+        data: {
+          orderDate: params.orderDate,
+          memo: params.memo || '',
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+
+      await tx.orderReturn.update({
+        data: {
+          originOrderNo: params.originOrderNo || null,
+          dstLocationId: params.locationId,
+          wantedDate: params.wantedDate,
+        },
+        where: {
+          id: order.orderReturn.id,
+        },
+      });
+      await this.updateOrderRevisionTx(tx, params.orderId);
+
+      return this.getOrderCreateResponseTx(tx, params.orderId);
+    });
+  }
+
+  async updateReturnStock(params: {
+    companyId: number;
+    orderId: number;
+    productId: number;
+    packagingId: number;
+    grammage: number;
+    sizeX: number;
+    sizeY: number;
+    paperColorGroupId: number | null;
+    paperColorId: number | null;
+    paperPatternId: number | null;
+    paperCertId: number | null;
+    quantity: number;
+  }) {
+    return await this.prisma.$transaction(async (tx) => {
+      const [orderForUpdate]: {
+        id: number;
+        orderType: OrderType;
+        status: OrderStatus;
+        srcCompanyId: number;
+        dstCompanyId: number;
+      }[] = await tx.$queryRaw`
+        SELECT id, orderType, status,  srcCompanyId, dstCompanyId
+          FROM \`Order\`
+         WHERE id = ${params.orderId}
+      `;
+      if (
+        !orderForUpdate ||
+        orderForUpdate.status === OrderStatus.CANCELLED ||
+        (orderForUpdate.dstCompanyId !== params.companyId &&
+          orderForUpdate.srcCompanyId !== params.companyId)
+      )
+        throw new NotFoundException(`존재하지 않는 주문입니다.`);
+      if (orderForUpdate.orderType !== 'RETURN')
+        throw new ConflictException(`주문타입 에러`);
+      if (
+        !Util.inc(orderForUpdate.status, 'OFFER_PREPARING', 'ORDER_PREPARING')
+      )
+        throw new BadRequestException(`원지정보를 수정할 수 없는 상태입니다.`);
+
+      const order = await tx.order.findUnique({
+        select: {
+          orderReturn: true,
+        },
+        where: {
+          id: params.orderId,
+        },
+      });
+
+      await tx.orderReturn.update({
+        data: {
+          productId: params.productId,
+          packagingId: params.packagingId,
+          grammage: params.grammage,
+          sizeX: params.sizeX,
+          sizeY: params.sizeY,
+          paperColorGroupId: params.paperColorGroupId,
+          paperColorId: params.paperColorId,
+          paperPatternId: params.paperPatternId,
+          paperCertId: params.paperCertId,
+          quantity: params.quantity,
+        },
+        where: {
+          id: order.orderReturn.id,
+        },
+      });
+      await this.updateOrderRevisionTx(tx, params.orderId);
+
+      return this.getOrderCreateResponseTx(tx, params.orderId);
     });
   }
 }

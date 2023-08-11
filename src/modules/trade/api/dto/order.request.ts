@@ -43,6 +43,9 @@ import {
   OrderDepositUpdateRequest,
   OrderRefundCreateRequest,
   OrderReturnCreateRequest,
+  OrderRefundUpdateRequest,
+  OrderReturnUpdateRequest,
+  OrderReturnUpdateStockRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -1181,6 +1184,28 @@ export class OrderRefundCreateDto implements OrderRefundCreateRequest {
   readonly originOrderNo: string | null = null;
 }
 
+/** 환불 수정 */
+export class OrderRefundUpdateDto implements OrderRefundUpdateRequest {
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly item: string = '';
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly originOrderNo: string | null = null;
+}
+
 /** 반품 등록 */
 export class OrderReturnCreateDto implements OrderReturnCreateRequest {
   @IsInt()
@@ -1216,6 +1241,96 @@ export class OrderReturnCreateDto implements OrderReturnCreateRequest {
   @Length(0, 150)
   readonly memo: string | null = null;
 
+  // 원지 스펙
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeX: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly quantity: number = 0;
+}
+
+/** 반품 수정 */
+export class OrderReturnUpdateDto implements OrderReturnUpdateRequest {
+  @IsDateString()
+  readonly wantedDate: string;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly locationId: number;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 300)
+  readonly memo: string = '';
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  readonly originOrderNo: string | null = null;
+}
+
+export class OrderReturnUpdateStockDto
+  implements OrderReturnUpdateStockRequest
+{
   // 원지 스펙
   @IsInt()
   @Type(() => Number)
