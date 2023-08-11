@@ -614,6 +614,7 @@ export const ORDER_REFUND = {
 export const ORDER_RETURN = {
   id: true,
   orderId: true,
+  originOrderNo:true,
   order: {
     select: {
       srcCompany: {
