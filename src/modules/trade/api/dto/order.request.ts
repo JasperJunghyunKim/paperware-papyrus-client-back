@@ -1398,7 +1398,10 @@ export class OrderReturnUpdateStockDto
   readonly quantity: number = 0;
 }
 
-/** 일괄 등록 */
+enum OrderGroupStatus {
+  OFFER_REQUESTED = 'OFFER_REQUESTED',
+  ACCEPTED = 'ACCEPTED',
+}
 
 export class OrderStockGroupItem {
   @IsInt()
@@ -1498,8 +1501,13 @@ export class OrderStockGroupItem {
   @Type(() => Number)
   @Min(0)
   readonly quantity: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsEnum(OrderGroupStatus)
+  readonly orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null = null;
 }
 
+/** 일괄 등록 */
 export class OrderStockGroupCreateDto implements OrderStockGroupCreateRequest {
   @IsArray()
   @ArrayMinSize(1)

@@ -4565,6 +4565,7 @@ export class OrderChangeService {
     }[];
   }) {
     // TODO: 재고가용수량 체크
+    // TODO: (매출)사용거래처 주문상태값 validation
 
     const locationId = params.orders[0].locationId;
 
