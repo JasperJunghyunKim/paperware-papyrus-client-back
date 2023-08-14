@@ -313,8 +313,6 @@ export class OrderController {
       orderId: Number(id),
     });
 
-    console.log(111, items);
-
     return {
       items: items.map((item) => {
         return Util.serialize({

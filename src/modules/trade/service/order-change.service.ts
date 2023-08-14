@@ -1549,6 +1549,14 @@ export class OrderChangeService {
           break;
         case OrderType.RETURN:
           // 플랜 생성 및 출고 자동생성
+          const dstPlan = await tx.plan.create({
+            data: {
+              planNo: ulid(),
+              type: 'RETURN_SELLER',
+              companyId: order.dstCompany.id,
+              orderReturnId: order.orderReturn.id,
+            },
+          });
           const srcPlan = await tx.plan.create({
             data: {
               planNo: ulid(),
@@ -1570,14 +1578,79 @@ export class OrderChangeService {
               },
             },
           });
-          const dstPlan = await tx.plan.create({
+          const stockEvent = await tx.stockEvent.create({
             data: {
-              planNo: ulid(),
-              type: 'RETURN_SELLER',
-              companyId: order.dstCompany.id,
-              orderReturnId: order.orderReturn.id,
+              change: 0,
+              status: 'PENDING',
+              assignPlan: {
+                connect: {
+                  id: srcPlan.id,
+                },
+              },
+              plan: {
+                connect: {
+                  id: srcPlan.id,
+                },
+              },
+              stock: {
+                create: {
+                  serial: ulid(),
+                  company: {
+                    connect: {
+                      id: order.dstCompany.id,
+                    },
+                  },
+                  grammage: order.orderReturn.grammage,
+                  sizeX: order.orderReturn.sizeX,
+                  sizeY: order.orderReturn.sizeY,
+                  product: {
+                    connect: {
+                      id: order.orderReturn.productId,
+                    },
+                  },
+                  packaging: {
+                    connect: {
+                      id: order.orderReturn.packagingId,
+                    },
+                  },
+                  paperColorGroup: order.orderReturn.paperColorGroupId
+                    ? {
+                        connect: {
+                          id: order.orderReturn.paperColorGroupId,
+                        },
+                      }
+                    : undefined,
+                  paperColor: order.orderReturn.paperColorId
+                    ? {
+                        connect: {
+                          id: order.orderReturn.paperColorId,
+                        },
+                      }
+                    : undefined,
+                  paperPattern: order.orderReturn.paperPatternId
+                    ? {
+                        connect: {
+                          id: order.orderReturn.paperPatternId,
+                        },
+                      }
+                    : undefined,
+                  paperCert: order.orderReturn.paperCertId
+                    ? {
+                        connect: {
+                          id: order.orderReturn.paperCertId,
+                        },
+                      }
+                    : undefined,
+                  initialPlan: {
+                    connect: {
+                      id: dstPlan.id,
+                    },
+                  },
+                },
+              },
             },
           });
+
           break;
         default:
           break;
