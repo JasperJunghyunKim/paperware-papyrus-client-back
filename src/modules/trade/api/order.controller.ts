@@ -7,6 +7,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Param,
   Post,
   Put,
@@ -45,6 +46,7 @@ import OrderStockCreateRequestDto, {
   OrderStockArrivalCreateRequestDto,
   OrderStockArrivalListQueryDto,
   OrderStockAssignStockUpdateRequestDto,
+  OrderStockGroupCreateDto,
   OrderStockUpdateRequestDto,
   UpdateTradePriceDto,
 } from './dto/order.request';
@@ -806,6 +808,21 @@ export class OrderController {
       orderId: param.id,
       ...dto,
       sizeY: dto.sizeY || 0,
+    });
+  }
+
+  @Post('/stock/group')
+  @UseGuards(AuthGuard)
+  async createOrderStockGroup(
+    @Request() req: AuthType,
+    @Body() dto: OrderStockGroupCreateDto,
+  ): Promise<OrderCreateResponse> {
+    const isOffer = dto.validate(req.user.companyId);
+    return await this.change.createOrderGroup({
+      userId: req.user.id,
+      companyId: req.user.companyId,
+      isOffer,
+      ...dto,
     });
   }
 }

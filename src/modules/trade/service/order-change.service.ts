@@ -20,6 +20,7 @@ import {
   PackagingType,
   PlanType,
   PriceUnit,
+  Prisma,
   Stock,
   StockEvent,
 } from '@prisma/client';
@@ -4533,6 +4534,142 @@ export class OrderChangeService {
       await this.updateOrderRevisionTx(tx, params.orderId);
 
       return this.getOrderCreateResponseTx(tx, params.orderId);
+    });
+  }
+
+  async createOrderGroup(params: {
+    userId: number;
+    companyId: number;
+    isOffer: boolean;
+    orders: {
+      srcCompanyId: number;
+      dstCompanyId: number;
+      orderDate: string;
+      locationId: number;
+      wantedDate: string;
+      memo: string | null;
+      isDirectShipping?: boolean;
+      // 원지 스펙
+      warehouseId: number | null;
+      planId: number | null;
+      productId: number;
+      packagingId: number;
+      grammage: number;
+      sizeX: number;
+      sizeY: number;
+      paperColorGroupId: number | null;
+      paperColorId: number | null;
+      paperPatternId: number | null;
+      paperCertId: number | null;
+      quantity: number;
+    }[];
+  }) {
+    // TODO: 재고가용수량 체크
+
+    const locationId = params.orders[0].locationId;
+
+    return await this.prisma.$transaction(async (tx) => {
+      const location = await tx.location.findFirst({
+        where: {
+          id: locationId,
+          companyId: params.companyId,
+          isDeleted: false,
+        },
+      });
+      if (!location)
+        throw new BadRequestException(`존재하지 않는 도착지 입니다.`);
+
+      const user = await tx.user.findUnique({
+        where: {
+          id: params.userId,
+        },
+      });
+
+      const dstCompanyInvoiceCodeMap = new Map<number, string>();
+      if (params.isOffer) {
+        // 매출
+        const dstCompany = await tx.company.findUnique({
+          where: {
+            id: params.orders[0].dstCompanyId,
+          },
+        });
+        const invoiceCode =
+          dstCompany.managedById === null
+            ? dstCompany.invoiceCode
+            : await this.orderRetriveService.getNotUsingInvoiceCode();
+        dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
+      } else {
+        // 매입
+        const dstCompanyIds = Array.from(
+          new Set(params.orders.map((o) => o.dstCompanyId)),
+        );
+        const dstCompanies = await tx.company.findMany({
+          where: {
+            id: {
+              in: dstCompanyIds,
+            },
+          },
+        });
+        for (const dstCompany of dstCompanies) {
+          const invoiceCode =
+            dstCompany.managedById === null
+              ? dstCompany.invoiceCode
+              : await this.orderRetriveService.getNotUsingInvoiceCode();
+          dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
+        }
+      }
+      const result: { f0: number }[] = await tx.$queryRaw`
+        INSERT INTO \`Order\` 
+        (orderType, orderNo, orderDate, srcCompanyId, dstCompanyId, status, memo, ordererName, createdCompanyId)
+        VALUES ${Prisma.join(
+          params.orders.map(
+            (o) => Prisma.sql`(
+              ${OrderType.NORMAL}, 
+              ${Util.serialT(dstCompanyInvoiceCodeMap.get(o.dstCompanyId))},
+              ${new Date(o.orderDate)},
+              ${o.srcCompanyId},
+              ${o.dstCompanyId},
+              ${
+                params.isOffer
+                  ? OrderStatus.OFFER_PREPARING
+                  : OrderStatus.ORDER_PREPARING
+              },
+              ${o.memo || ''},
+              ${params.isOffer ? '' : user.name},
+              ${params.companyId}
+              )`,
+          ),
+        )}
+
+        RETURNING id;
+      `;
+
+      const orderIds = result.map((o) => o.f0);
+      await tx.orderStock.createMany({
+        data: params.orders.map((o, i) => ({
+          orderId: orderIds[i],
+          dstLocationId: o.locationId,
+          isDirectShipping: params.isOffer
+            ? false
+            : o.isDirectShipping || false,
+          wantedDate: o.wantedDate,
+          companyId: o.dstCompanyId,
+          planId: o.planId,
+          warehouseId: o.warehouseId,
+          productId: o.productId,
+          packagingId: o.packagingId,
+          grammage: o.grammage,
+          sizeX: o.sizeX,
+          sizeY: o.sizeY || 0,
+          paperColorGroupId: o.paperColorGroupId,
+          paperColorId: o.paperColorId,
+          paperPatternId: o.paperPatternId,
+          paperCertId: o.paperCertId,
+          quantity: o.quantity,
+        })),
+      });
+
+      return this.getOrderCreateResponseTx(tx, orderIds[0]);
     });
   }
 }

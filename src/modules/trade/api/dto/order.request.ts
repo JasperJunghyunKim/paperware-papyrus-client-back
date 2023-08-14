@@ -1,6 +1,10 @@
+import { BadRequestException } from '@nestjs/common';
 import { DiscountType, OfficialPriceType, PriceUnit } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsBooleanString,
   IsDateString,
@@ -46,6 +50,7 @@ import {
   OrderRefundUpdateRequest,
   OrderReturnUpdateRequest,
   OrderReturnUpdateStockRequest,
+  OrderStockGroupCreateRequest,
 } from 'src/@shared/api';
 import { StockCreateStockPriceDto } from 'src/modules/stock/api/dto/stock.request';
 
@@ -1391,4 +1396,147 @@ export class OrderReturnUpdateStockDto
   @Type(() => Number)
   @Min(0)
   readonly quantity: number = 0;
+}
+
+/** 일괄 등록 */
+
+export class OrderStockGroupItem {
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly srcCompanyId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly dstCompanyId: number;
+
+  @IsDateString()
+  readonly orderDate: string;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly locationId: number;
+
+  @IsDateString()
+  readonly wantedDate: string;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsOptional()
+  @IsString()
+  @Length(0, 150)
+  readonly memo: string | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsBoolean()
+  readonly isDirectShipping: boolean | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly warehouseId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly planId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly productId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly packagingId: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly grammage: number;
+
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly sizeX: number;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly sizeY: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorGroupId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperColorId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperPatternId: number | null = null;
+
+  @ValidateIf((obj, val) => val !== null)
+  @IsInt()
+  @Type(() => Number)
+  @IsPositive()
+  readonly paperCertId: number | null = null;
+
+  @IsInt()
+  @Type(() => Number)
+  @Min(0)
+  readonly quantity: number;
+}
+
+export class OrderStockGroupCreateDto implements OrderStockGroupCreateRequest {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20)
+  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => OrderStockGroupItem)
+  readonly orders: OrderStockGroupItem[];
+
+  /** returns isOffer */
+  validate(companyId: number): boolean {
+    const isOffer = companyId === this.orders[0].dstCompanyId;
+    const locationId = this.orders[0].locationId;
+    const orderDate = this.orders[0].orderDate;
+    const wantedDate = this.orders[0].wantedDate;
+    const isDirectShipping = this.orders[0].isDirectShipping;
+
+    for (const order of this.orders) {
+      if (isOffer && order.dstCompanyId !== companyId)
+        throw new BadRequestException(`판매자 ID 에러`);
+      if (!isOffer && order.srcCompanyId !== companyId)
+        throw new BadRequestException(`구매자 ID 에러`);
+      if (order.srcCompanyId === order.dstCompanyId)
+        throw new BadRequestException(
+          `자신의 회사에 거래를 등록할 수 없습니다.`,
+        );
+
+      if (locationId !== order.locationId)
+        throw new BadRequestException(`배송지 ID 에러`);
+      if (orderDate !== order.orderDate)
+        throw new BadRequestException(`주문일 에러`);
+      if (wantedDate !== order.wantedDate)
+        throw new BadRequestException(`납기일시 에러`);
+      if (isDirectShipping !== order.isDirectShipping)
+        throw new BadRequestException(`직송여부 에러`);
+    }
+
+    return isOffer;
+  }
 }
