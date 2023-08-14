@@ -281,6 +281,12 @@ export class PlanRetriveService {
 
        WHERE p.companyId = ${params.companyId}
          AND p.isDeleted = ${false}
+         AND p.type IN (${Prisma.join([
+           PlanType.INHOUSE_PROCESS,
+           PlanType.TRADE_NORMAL_SELLER,
+           PlanType.TRADE_OUTSOURCE_PROCESS_SELLER,
+           PlanType.RETURN_BUYER,
+         ])})
          AND ${statusQuery}
          AND ${typeQuery}
          ${planNoQuery}
