@@ -4631,8 +4631,8 @@ export class OrderChangeService {
               ${o.dstCompanyId},
               ${
                 params.isOffer
-                  ? OrderStatus.OFFER_PREPARING
-                  : OrderStatus.ORDER_PREPARING
+                  ? OrderStatus.OFFER_REQUESTED
+                  : OrderStatus.ORDER_REQUESTED
               },
               ${o.memo || ''},
               ${params.isOffer ? '' : user.name},
