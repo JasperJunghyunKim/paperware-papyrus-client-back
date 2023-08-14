@@ -284,6 +284,7 @@ export class PlanRetriveService {
          AND p.type IN (${Prisma.join([
            PlanType.INHOUSE_PROCESS,
            PlanType.TRADE_NORMAL_SELLER,
+           PlanType.TRADE_OUTSOURCE_PROCESS_BUYER,
            PlanType.TRADE_OUTSOURCE_PROCESS_SELLER,
            PlanType.RETURN_BUYER,
          ])})
