@@ -4562,9 +4562,11 @@ export class OrderChangeService {
       paperPatternId: number | null;
       paperCertId: number | null;
       quantity: number;
+      orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null;
     }[];
   }) {
     // TODO: 재고가용수량 체크
+
     // TODO: (매출)사용거래처 주문상태값 validation
 
     const locationId = params.orders[0].locationId;
@@ -4619,6 +4621,7 @@ export class OrderChangeService {
           dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
         }
       }
+
       const result: { f0: number }[] = await tx.$queryRaw`
         INSERT INTO \`Order\` 
         (orderType, orderNo, orderDate, srcCompanyId, dstCompanyId, status, memo, ordererName, createdCompanyId)
@@ -4630,11 +4633,7 @@ export class OrderChangeService {
               ${new Date(o.orderDate)},
               ${o.srcCompanyId},
               ${o.dstCompanyId},
-              ${
-                params.isOffer
-                  ? OrderStatus.OFFER_REQUESTED
-                  : OrderStatus.ORDER_REQUESTED
-              },
+              ${params.isOffer ? o.orderStatus : OrderStatus.ORDER_REQUESTED},
               ${o.memo || ''},
               ${params.isOffer ? '' : user.name},
               ${params.companyId}
@@ -4669,6 +4668,8 @@ export class OrderChangeService {
           quantity: o.quantity,
         })),
       });
+
+      // TODO: 승인 or 요청 처리
 
       return this.getOrderCreateResponseTx(tx, orderIds[0]);
     });

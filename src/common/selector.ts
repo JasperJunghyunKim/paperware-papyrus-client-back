@@ -614,7 +614,7 @@ export const ORDER_REFUND = {
 export const ORDER_RETURN = {
   id: true,
   orderId: true,
-  originOrderNo:true,
+  originOrderNo: true,
   order: {
     select: {
       srcCompany: {
@@ -1325,6 +1325,11 @@ export const ACCOUNTED = {
       endorsement: true,
       security: {
         select: SECURITY,
+      },
+      accounted: {
+        select: {
+          accountedType: true,
+        },
       },
     },
   },

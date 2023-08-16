@@ -1524,6 +1524,7 @@ export class OrderStockGroupCreateDto implements OrderStockGroupCreateRequest {
     const orderDate = this.orders[0].orderDate;
     const wantedDate = this.orders[0].wantedDate;
     const isDirectShipping = this.orders[0].isDirectShipping;
+    const orderStatus = this.orders[0].orderStatus;
 
     for (const order of this.orders) {
       if (isOffer && order.dstCompanyId !== companyId)
@@ -1543,6 +1544,8 @@ export class OrderStockGroupCreateDto implements OrderStockGroupCreateRequest {
         throw new BadRequestException(`납기일시 에러`);
       if (isDirectShipping !== order.isDirectShipping)
         throw new BadRequestException(`직송여부 에러`);
+      if (orderStatus !== order.orderStatus)
+        throw new BadRequestException(`주문상태값 에러`);
     }
 
     return isOffer;
