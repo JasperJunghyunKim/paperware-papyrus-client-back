@@ -818,6 +818,8 @@ export class OrderController {
     @Body() dto: OrderStockGroupCreateDto,
   ): Promise<OrderCreateResponse> {
     const isOffer = dto.validate(req.user.companyId);
+    throw new NotImplementedException();
+
     return await this.change.createOrderGroup({
       userId: req.user.id,
       companyId: req.user.companyId,
