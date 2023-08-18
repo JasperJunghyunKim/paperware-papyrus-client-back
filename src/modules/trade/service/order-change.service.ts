@@ -4649,6 +4649,7 @@ export class OrderChangeService {
 
       const dstCompanyInvoiceCodeMap = new Map<number, string>();
       const dstCompanyMap = new Map<number, Company>();
+      const srcCompanyMap = new Map<number, Company>();
       if (params.isOffer) {
         // 매출
         const dstCompany = await tx.company.findUnique({
@@ -4660,7 +4661,21 @@ export class OrderChangeService {
           dstCompany.managedById === null
             ? dstCompany.invoiceCode
             : await this.orderRetriveService.getNotUsingInvoiceCode();
+
+        const srcCompaies = await tx.company.findMany({
+          where: {
+            id: {
+              in: params.orders.map((o) => o.srcCompanyId),
+            },
+          },
+        });
+
         dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
+        dstCompanyMap.set(dstCompany.id, dstCompany);
+
+        for (const srcCompany of srcCompaies) {
+          srcCompanyMap.set(srcCompany.id, srcCompany);
+        }
       } else {
         // 매입
         const dstCompanyIds = Array.from(
@@ -4674,6 +4689,12 @@ export class OrderChangeService {
           },
         });
 
+        const srcCompany = await tx.company.findUnique({
+          where: {
+            id: params.companyId,
+          },
+        });
+
         for (const dstCompany of dstCompanies) {
           const invoiceCode =
             dstCompany.managedById === null
@@ -4682,6 +4703,7 @@ export class OrderChangeService {
           dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
           dstCompanyMap.set(dstCompany.id, dstCompany);
         }
+        srcCompanyMap.set(srcCompany.id, srcCompany);
       }
 
       const result: { f0: number; f1: OrderStatus }[] = await tx.$queryRaw`
@@ -4757,6 +4779,44 @@ export class OrderChangeService {
               orderStockId: orderStock.id,
             },
           });
+
+          if (srcCompanyMap.get(order.srcCompanyId).managedById === null) {
+            await tx.stockEvent.create({
+              data: {
+                change: orderStock.quantity,
+                status: 'PENDING',
+                plan: {
+                  connect: {
+                    id: srcPlan.id,
+                  },
+                },
+                orderStockArrival: {
+                  connect: {
+                    id: orderStock.id,
+                  },
+                },
+                stock: {
+                  create: {
+                    serial: ulid(),
+                    companyId: order.srcCompanyId,
+                    warehouseId: null,
+                    planId: srcPlan.id,
+                    productId: orderStock.productId,
+                    packagingId: orderStock.packagingId,
+                    grammage: orderStock.grammage,
+                    sizeX: orderStock.sizeX,
+                    sizeY: orderStock.sizeY,
+                    paperColorGroupId: orderStock.paperColorGroupId,
+                    paperColorId: orderStock.paperColorId,
+                    paperPatternId: orderStock.paperPatternId,
+                    paperCertId: orderStock.paperCertId,
+                    cachedQuantityAvailable: orderStock.quantity,
+                    initialPlanId: srcPlan.id,
+                  },
+                },
+              },
+            });
+          }
 
           const dstPlan = await tx.plan.create({
             data: {
