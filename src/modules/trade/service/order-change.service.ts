@@ -4780,7 +4780,11 @@ export class OrderChangeService {
             },
           });
 
-          if (srcCompanyMap.get(order.srcCompanyId).managedById === null) {
+          // 구매자가 사용중 && 거래승인시 도착예정재고 생성
+          if (
+            result[i].f1 === 'ACCEPTED' &&
+            srcCompanyMap.get(order.srcCompanyId).managedById === null
+          ) {
             await tx.stockEvent.create({
               data: {
                 change: orderStock.quantity,
