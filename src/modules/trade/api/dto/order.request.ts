@@ -1544,7 +1544,7 @@ export class OrderStockGroupCreateDto implements OrderStockGroupCreateRequest {
         throw new BadRequestException(`납기일시 에러`);
       if (isDirectShipping !== order.isDirectShipping)
         throw new BadRequestException(`직송여부 에러`);
-      if (orderStatus !== order.orderStatus)
+      if (orderStatus !== order.orderStatus || (isOffer && !order.orderStatus))
         throw new BadRequestException(`주문상태값 에러`);
     }
 

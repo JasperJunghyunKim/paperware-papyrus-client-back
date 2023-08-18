@@ -4565,10 +4565,6 @@ export class OrderChangeService {
       orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null;
     }[];
   }) {
-    // TODO: 재고가용수량 체크
-
-    // TODO: (매출)사용거래처 주문상태값 validation
-
     const locationId = params.orders[0].locationId;
 
     return await this.prisma.$transaction(async (tx) => {
@@ -4588,7 +4584,71 @@ export class OrderChangeService {
         },
       });
 
+      // 매출일때 자사재고 수량 체크 (key: 스펙, value: 스펙및수량)
+      const stockMap = new Map<
+        string,
+        {
+          warehouseId: number | null;
+          planId: number | null;
+          productId: number;
+          packagingId: number;
+          grammage: number;
+          sizeX: number;
+          sizeY: number;
+          paperColorGroupId: number | null;
+          paperColorId: number | null;
+          paperPatternId: number | null;
+          paperCertId: number | null;
+          quantity: number;
+        }
+      >();
+      if (params.isOffer) {
+        for (const order of params.orders) {
+          const key = `${order.warehouseId}-${order.planId}-${
+            order.productId
+          }-${order.packagingId}-${order.grammage}-${order.sizeX}-${
+            order.sizeY || 0
+          }-${order.paperColorGroupId}-${order.paperColorId}-${
+            order.paperPatternId
+          }-${order.paperCertId}`;
+
+          const value = stockMap.get(key);
+          if (value === null || value === undefined) {
+            stockMap.set(key, order);
+          } else {
+            stockMap.set(key, {
+              ...order,
+              quantity: value.quantity + order.quantity,
+            });
+          }
+        }
+
+        for (const key of stockMap.keys()) {
+          const value = stockMap.get(key);
+          await this.stockQuantityChecker.checkStockGroupAvailableQuantityTx(
+            tx,
+            {
+              inquiryCompanyId: params.companyId,
+              companyId: params.companyId,
+              warehouseId: value.warehouseId,
+              planId: value.planId,
+              productId: value.productId,
+              packagingId: value.packagingId,
+              grammage: value.grammage,
+              sizeX: value.sizeX,
+              sizeY: value.sizeY,
+              paperColorGroupId: value.paperColorGroupId,
+              paperColorId: value.paperColorId,
+              paperPatternId: value.paperPatternId,
+              paperCertId: value.paperCertId,
+              quantity: value.quantity,
+            },
+          );
+        }
+      }
+
       const dstCompanyInvoiceCodeMap = new Map<number, string>();
+      const dstCompanyMap = new Map<number, Company>();
       if (params.isOffer) {
         // 매출
         const dstCompany = await tx.company.findUnique({
@@ -4613,16 +4673,18 @@ export class OrderChangeService {
             },
           },
         });
+
         for (const dstCompany of dstCompanies) {
           const invoiceCode =
             dstCompany.managedById === null
               ? dstCompany.invoiceCode
               : await this.orderRetriveService.getNotUsingInvoiceCode();
           dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
+          dstCompanyMap.set(dstCompany.id, dstCompany);
         }
       }
 
-      const result: { f0: number }[] = await tx.$queryRaw`
+      const result: { f0: number; f1: OrderStatus }[] = await tx.$queryRaw`
         INSERT INTO \`Order\` 
         (orderType, orderNo, orderDate, srcCompanyId, dstCompanyId, status, memo, ordererName, createdCompanyId)
         VALUES ${Prisma.join(
@@ -4633,7 +4695,13 @@ export class OrderChangeService {
               ${new Date(o.orderDate)},
               ${o.srcCompanyId},
               ${o.dstCompanyId},
-              ${params.isOffer ? o.orderStatus : OrderStatus.ORDER_REQUESTED},
+              ${
+                params.isOffer
+                  ? o.orderStatus
+                  : dstCompanyMap.get(o.dstCompanyId).managedById === null
+                  ? OrderStatus.ORDER_REQUESTED
+                  : OrderStatus.ACCEPTED
+              },
               ${o.memo || ''},
               ${params.isOffer ? '' : user.name},
               ${params.companyId}
@@ -4641,7 +4709,7 @@ export class OrderChangeService {
           ),
         )}
 
-        RETURNING id;
+        RETURNING id, status;
       `;
 
       const orderIds = result.map((o) => o.f0);
@@ -4670,6 +4738,73 @@ export class OrderChangeService {
       });
 
       // TODO: 승인 or 요청 처리
+      for (let i = 0; i < result.length; i++) {
+        if (result[i].f1 === 'ACCEPTED' || result[i].f1 === 'OFFER_REQUESTED') {
+          const order = params.orders[i];
+          const orderStock = await tx.orderStock.findUnique({
+            where: {
+              orderId: result[i].f0,
+            },
+          });
+
+          // plan 생성
+          const srcPlan = await tx.plan.create({
+            data: {
+              planNo: ulid(),
+              type: 'TRADE_NORMAL_BUYER',
+              companyId: order.srcCompanyId,
+              status: 'PREPARING',
+              orderStockId: orderStock.id,
+            },
+          });
+
+          const dstPlan = await tx.plan.create({
+            data: {
+              planNo: ulid(),
+              type: 'TRADE_NORMAL_BUYER',
+              companyId: order.srcCompanyId,
+              status: 'PREPARING',
+              orderStockId: orderStock.id,
+            },
+          });
+
+          const assignStockEvent = await tx.stockEvent.create({
+            data: {
+              stock: {
+                create: {
+                  serial: ulid(),
+                  companyId: orderStock.companyId,
+                  warehouseId: orderStock.warehouseId,
+                  planId: orderStock.planId,
+                  productId: orderStock.productId,
+                  packagingId: orderStock.packagingId,
+                  grammage: orderStock.grammage,
+                  sizeX: orderStock.sizeX,
+                  sizeY: orderStock.sizeY,
+                  paperColorGroupId: orderStock.paperColorGroupId,
+                  paperColorId: orderStock.paperColorId,
+                  paperPatternId: orderStock.paperPatternId,
+                  paperCertId: orderStock.paperCertId,
+                  cachedQuantityAvailable: -orderStock.quantity,
+                  initialPlanId: dstPlan.id,
+                },
+              },
+              change: -order.quantity,
+              status: 'PENDING',
+              assignPlan: {
+                connect: {
+                  id: dstPlan.id,
+                },
+              },
+              plan: {
+                connect: {
+                  id: dstPlan.id,
+                },
+              },
+            },
+          });
+        }
+      }
 
       return this.getOrderCreateResponseTx(tx, orderIds[0]);
     });

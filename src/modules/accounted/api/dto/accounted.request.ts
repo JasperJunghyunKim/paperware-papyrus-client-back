@@ -230,7 +230,9 @@ export class AccountedBySecurityCreatedDto
   @IsPositive()
   readonly securityId: number | null;
 
-  @ValidateIf((obj, val) => val !== null)
+  @ValidateIf(
+    (obj, val) => val !== null && obj.accountedType === AccountedType.COLLECTED,
+  )
   @IsOptional()
   @IsObject()
   @Type(() => Security)
