@@ -367,7 +367,9 @@ export class AccountedBySecurityUpdateDto
   @IsString()
   readonly endorsement: string | null = null;
 
-  @ValidateIf((obj, val) => val !== null)
+  @ValidateIf(
+    (obj, val) => val !== null && obj.accountedType === AccountedType.COLLECTED,
+  )
   @IsOptional()
   @IsObject()
   @Type(() => Security)
