@@ -1692,7 +1692,6 @@ model Cart {
   paperCertId       Int?
   paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
   quantity          Int              @default(0)
-
-  memo      String  @default("")
-  isDeleted Boolean @default(false)
+  memo              String           @default("")
+  isDeleted         Boolean          @default(false)
 }

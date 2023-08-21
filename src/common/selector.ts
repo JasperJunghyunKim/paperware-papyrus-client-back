@@ -261,7 +261,36 @@ export const STOCK = {
                   orderStockTradePrice: true,
                 },
               },
-              depositEventId: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -281,7 +310,36 @@ export const STOCK = {
                   orderStockTradePrice: true,
                 },
               },
-              depositEventId: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -360,7 +418,36 @@ export const STOCK_EVENT = {
             select: {
               srcCompany: true,
               dstCompany: true,
-              depositEventId: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -371,7 +458,36 @@ export const STOCK_EVENT = {
             select: {
               srcCompany: true,
               dstCompany: true,
-              depositEventId: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -396,7 +512,36 @@ export const ORDER_STOCK = {
           orderStockTradePrice: true,
         },
       },
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
   wantedDate: true,
@@ -476,7 +621,36 @@ export const ORDER_DEPOSIT = {
       status: true,
       isEntrusted: true,
       memo: true,
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
 } satisfies Prisma.OrderDepositSelect;
@@ -538,7 +712,36 @@ export const ORDER_PROCESS = {
           orderDepositTradePrice: true,
         },
       },
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
   plan: {
@@ -598,7 +801,36 @@ export const ORDER_ETC = {
       status: true,
       isEntrusted: true,
       memo: true,
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
 } satisfies Prisma.OrderEtcSelect;
@@ -615,7 +847,36 @@ export const ORDER_REFUND = {
       status: true,
       isEntrusted: true,
       memo: true,
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
 } satisfies Prisma.OrderRefundSelect;
@@ -637,7 +898,36 @@ export const ORDER_RETURN = {
           orderStockTradePrice: true,
         },
       },
-      depositEventId: true,
+      depositEvent: {
+        include: {
+          deposit: {
+            select: {
+              id: true,
+              packaging: {
+                select: PACKAGING,
+              },
+              product: {
+                select: PRODUCT,
+              },
+              grammage: true,
+              sizeX: true,
+              sizeY: true,
+              paperColorGroup: {
+                select: PAPER_COLOR_GROUP,
+              },
+              paperColor: {
+                select: PAPER_COLOR,
+              },
+              paperPattern: {
+                select: PAPER_PATTERN,
+              },
+              paperCert: {
+                select: PAPER_CERT,
+              },
+            },
+          },
+        },
+      },
     },
   },
   wantedDate: true,
@@ -749,7 +1039,6 @@ export const ORDER = {
       id: 'asc',
     },
   },
-  depositEventId: true,
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -866,7 +1155,36 @@ export const PLAN = {
                                       orderStockTradePrice: true,
                                     },
                                   },
-                                  depositEventId: true,
+                                  depositEvent: {
+                                    include: {
+                                      deposit: {
+                                        select: {
+                                          id: true,
+                                          packaging: {
+                                            select: PACKAGING,
+                                          },
+                                          product: {
+                                            select: PRODUCT,
+                                          },
+                                          grammage: true,
+                                          sizeX: true,
+                                          sizeY: true,
+                                          paperColorGroup: {
+                                            select: PAPER_COLOR_GROUP,
+                                          },
+                                          paperColor: {
+                                            select: PAPER_COLOR,
+                                          },
+                                          paperPattern: {
+                                            select: PAPER_PATTERN,
+                                          },
+                                          paperCert: {
+                                            select: PAPER_CERT,
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
                                 },
                               },
                             },
@@ -886,7 +1204,36 @@ export const PLAN = {
                                       orderStockTradePrice: true,
                                     },
                                   },
-                                  depositEventId: true,
+                                  depositEvent: {
+                                    include: {
+                                      deposit: {
+                                        select: {
+                                          id: true,
+                                          packaging: {
+                                            select: PACKAGING,
+                                          },
+                                          product: {
+                                            select: PRODUCT,
+                                          },
+                                          grammage: true,
+                                          sizeX: true,
+                                          sizeY: true,
+                                          paperColorGroup: {
+                                            select: PAPER_COLOR_GROUP,
+                                          },
+                                          paperColor: {
+                                            select: PAPER_COLOR,
+                                          },
+                                          paperPattern: {
+                                            select: PAPER_PATTERN,
+                                          },
+                                          paperCert: {
+                                            select: PAPER_CERT,
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
                                 },
                               },
                             },
@@ -908,7 +1255,36 @@ export const PLAN = {
                             select: {
                               srcCompany: true,
                               dstCompany: true,
-                              depositEventId: true,
+                              depositEvent: {
+                                include: {
+                                  deposit: {
+                                    select: {
+                                      id: true,
+                                      packaging: {
+                                        select: PACKAGING,
+                                      },
+                                      product: {
+                                        select: PRODUCT,
+                                      },
+                                      grammage: true,
+                                      sizeX: true,
+                                      sizeY: true,
+                                      paperColorGroup: {
+                                        select: PAPER_COLOR_GROUP,
+                                      },
+                                      paperColor: {
+                                        select: PAPER_COLOR,
+                                      },
+                                      paperPattern: {
+                                        select: PAPER_PATTERN,
+                                      },
+                                      paperCert: {
+                                        select: PAPER_CERT,
+                                      },
+                                    },
+                                  },
+                                },
+                              },
                             },
                           },
                         },
@@ -919,7 +1295,36 @@ export const PLAN = {
                             select: {
                               srcCompany: true,
                               dstCompany: true,
-                              depositEventId: true,
+                              depositEvent: {
+                                include: {
+                                  deposit: {
+                                    select: {
+                                      id: true,
+                                      packaging: {
+                                        select: PACKAGING,
+                                      },
+                                      product: {
+                                        select: PRODUCT,
+                                      },
+                                      grammage: true,
+                                      sizeX: true,
+                                      sizeY: true,
+                                      paperColorGroup: {
+                                        select: PAPER_COLOR_GROUP,
+                                      },
+                                      paperColor: {
+                                        select: PAPER_COLOR,
+                                      },
+                                      paperPattern: {
+                                        select: PAPER_PATTERN,
+                                      },
+                                      paperCert: {
+                                        select: PAPER_CERT,
+                                      },
+                                    },
+                                  },
+                                },
+                              },
                             },
                           },
                         },
@@ -1003,7 +1408,36 @@ export const PLAN = {
                           orderStockTradePrice: true,
                         },
                       },
-                      depositEventId: true,
+                      depositEvent: {
+                        include: {
+                          deposit: {
+                            select: {
+                              id: true,
+                              packaging: {
+                                select: PACKAGING,
+                              },
+                              product: {
+                                select: PRODUCT,
+                              },
+                              grammage: true,
+                              sizeX: true,
+                              sizeY: true,
+                              paperColorGroup: {
+                                select: PAPER_COLOR_GROUP,
+                              },
+                              paperColor: {
+                                select: PAPER_COLOR,
+                              },
+                              paperPattern: {
+                                select: PAPER_PATTERN,
+                              },
+                              paperCert: {
+                                select: PAPER_CERT,
+                              },
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
@@ -1023,7 +1457,36 @@ export const PLAN = {
                           orderStockTradePrice: true,
                         },
                       },
-                      depositEventId: true,
+                      depositEvent: {
+                        include: {
+                          deposit: {
+                            select: {
+                              id: true,
+                              packaging: {
+                                select: PACKAGING,
+                              },
+                              product: {
+                                select: PRODUCT,
+                              },
+                              grammage: true,
+                              sizeX: true,
+                              sizeY: true,
+                              paperColorGroup: {
+                                select: PAPER_COLOR_GROUP,
+                              },
+                              paperColor: {
+                                select: PAPER_COLOR,
+                              },
+                              paperPattern: {
+                                select: PAPER_PATTERN,
+                              },
+                              paperCert: {
+                                select: PAPER_CERT,
+                              },
+                            },
+                          },
+                        },
+                      },
                     },
                   },
                 },
