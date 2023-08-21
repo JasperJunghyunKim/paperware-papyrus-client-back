@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CartType } from '@prisma/client';
 import { PrismaService } from 'src/core';
 import { StockQuantityChecker } from 'src/modules/stock/service/stock-quantity-checker';
@@ -77,6 +81,29 @@ export class CartChangeService {
           paperCertId: params.paperCertId,
           quantity: params.quantity,
           memo: params.memo || '',
+        },
+      });
+    });
+  }
+
+  async delete(userId: number, cartId: number) {
+    await this.prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.findFirst({
+        where: {
+          id: cartId,
+          userId,
+          isDeleted: false,
+        },
+      });
+      if (!cart)
+        throw new NotFoundException(`존재하지 않는 장바구니 품목입니다.`);
+
+      await tx.cart.update({
+        where: {
+          id: cartId,
+        },
+        data: {
+          isDeleted: true,
         },
       });
     });

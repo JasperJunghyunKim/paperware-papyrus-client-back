@@ -8,7 +8,15 @@ import {
   Length,
   ValidateIf,
 } from 'class-validator';
-import { CartCreateRequest } from 'src/@shared/api/trade/cart.request';
+import {
+  CartCreateRequest,
+  CartListQuery,
+} from 'src/@shared/api/trade/cart.request';
+
+export class CartListDto implements CartListQuery {
+  @IsEnum(CartType)
+  readonly type: CartType;
+}
 
 export class CartCreateDto implements CartCreateRequest {
   @IsEnum(CartType)
