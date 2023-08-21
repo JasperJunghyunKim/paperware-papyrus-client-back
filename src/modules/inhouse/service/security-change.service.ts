@@ -74,7 +74,7 @@ export class SecurityChangeService {
       collectedBySecurityId: number | null;
       paidBySecurityId: number | null;
     }[] = await tx.$queryRaw`
-      SELECT *, collected.id AS collectedBySecurityId, paid.id AS paidBySecurityId
+      SELECT s.*, collected.id AS collectedBySecurityId, paid.id AS paidBySecurityId
         FROM Security       AS s
    LEFT JOIN (
         SELECT bs.securityId, bs.id
@@ -105,6 +105,8 @@ export class SecurityChangeService {
         securityId,
         companyId,
       );
+
+      console.log(111, security);
 
       if (!security)
         throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);
