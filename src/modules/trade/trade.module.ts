@@ -11,6 +11,9 @@ import { DepositChangeService } from './service/deposit-change.service';
 import { OrderRequestController } from './api/order-request.controller';
 import { OrderRequestChangeService } from './service/order-rerquest.change.service';
 import { OrderRequestRetriveService } from './service/order-rerquest.retrive.service';
+import { CartController } from './api/cart.controller';
+import { CartRetriveService } from './service/cart.retrive.service';
+import { CartChangeService } from './service/cart.change.service';
 
 @Module({
   imports: [WorkingModule, StockModule],
@@ -22,7 +25,14 @@ import { OrderRequestRetriveService } from './service/order-rerquest.retrive.ser
     DepositChangeService,
     OrderRequestChangeService,
     OrderRequestRetriveService,
+    CartRetriveService,
+    CartChangeService,
   ],
-  controllers: [OrderController, DepositController, OrderRequestController],
+  controllers: [
+    OrderController,
+    DepositController,
+    OrderRequestController,
+    CartController,
+  ],
 })
 export class TradeModule {}

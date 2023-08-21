@@ -58,6 +58,7 @@ model PaperColorGroup {
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
   OrderReturn            OrderReturn[]
+  Cart                   Cart[]
 }
 
 model PaperColor {
@@ -73,6 +74,7 @@ model PaperColor {
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
   OrderReturn            OrderReturn[]
+  Cart                   Cart[]
 }
 
 model PaperPattern {
@@ -88,6 +90,7 @@ model PaperPattern {
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
   OrderReturn            OrderReturn[]
+  Cart                   Cart[]
 }
 
 model PaperCert {
@@ -103,6 +106,7 @@ model PaperCert {
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
   OrderReturn            OrderReturn[]
+  Cart                   Cart[]
 }
 
 enum PackagingType {
@@ -125,6 +129,7 @@ model Packaging {
   OrderStock   OrderStock[]
   OrderProcess OrderProcess[]
   OrderReturn  OrderReturn[]
+  Cart         Cart[]
 
   @@unique([type, packA, packB])
 }
@@ -148,6 +153,7 @@ model Product {
   OrderStock             OrderStock[]
   OrderProcess           OrderProcess[]
   OrderReturn            OrderReturn[]
+  Cart                   Cart[]
 
   @@index([paperDomainId], type: BTree)
   @@index([manufacturerId], type: BTree)
@@ -168,6 +174,7 @@ model Warehouse {
   stock        Stock[]
   OrderStock   OrderStock[]
   OrderProcess OrderProcess[]
+  Cart         Cart[]
 }
 
 // Stock
@@ -266,7 +273,8 @@ model User {
   menu            UserMenu?
   shipping        Shipping[]
   createdShipping Shipping[]     @relation("createdBy")
-  OrderHistory    OrderHistory[]
+  orderHistory    OrderHistory[]
+  cart            Cart[]
 }
 
 model UserFindPasswordAuth {
@@ -337,6 +345,7 @@ model Company {
   srcOrderRequest                OrderRequest[]                @relation("srcOrderRequestCompany")
   dstOrderRequest                OrderRequest[]                @relation("dstOrderRequestCompany")
   Accounted                      Accounted[]
+  Cart                           Cart[]
 }
 
 model BusinessRelationship {
@@ -1648,4 +1657,42 @@ model UserMenu {
   userId Int    @unique
   user   User   @relation(fields: [userId], references: [id])
   menu   String @db.Text
+}
+
+enum CartType {
+  SALES // 매입
+  PURCHASE // 매출
+}
+
+model Cart {
+  id     Int      @id @default(autoincrement())
+  type   CartType
+  userId Int
+  user   User     @relation(fields: [userId], references: [id])
+
+  // 원지 정보
+  companyId         Int
+  company           Company          @relation(fields: [companyId], references: [id])
+  planId            Int?
+  warehouseId       Int?
+  warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
+  productId         Int
+  product           Product          @relation(fields: [productId], references: [id])
+  packagingId       Int
+  packaging         Packaging        @relation(fields: [packagingId], references: [id])
+  grammage          Int
+  sizeX             Int
+  sizeY             Int
+  paperColorGroupId Int?
+  paperColorGroup   PaperColorGroup? @relation(fields: [paperColorGroupId], references: [id])
+  paperColorId      Int?
+  paperColor        PaperColor?      @relation(fields: [paperColorId], references: [id])
+  paperPatternId    Int?
+  paperPattern      PaperPattern?    @relation(fields: [paperPatternId], references: [id])
+  paperCertId       Int?
+  paperCert         PaperCert?       @relation(fields: [paperCertId], references: [id])
+  quantity          Int              @default(0)
+
+  memo      String  @default("")
+  isDeleted Boolean @default(false)
 }
