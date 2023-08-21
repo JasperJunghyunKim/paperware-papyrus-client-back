@@ -4540,37 +4540,22 @@ export class OrderChangeService {
   async createOrderGroup(params: {
     userId: number;
     companyId: number;
-    isOffer: boolean;
-    orders: {
-      srcCompanyId: number;
-      dstCompanyId: number;
-      orderDate: string;
-      locationId: number;
-      wantedDate: string;
-      memo: string | null;
-      isDirectShipping?: boolean;
-      // 원지 스펙
-      warehouseId: number | null;
-      planId: number | null;
-      productId: number;
-      packagingId: number;
-      grammage: number;
-      sizeX: number;
-      sizeY: number;
-      paperColorGroupId: number | null;
-      paperColorId: number | null;
-      paperPatternId: number | null;
-      paperCertId: number | null;
-      quantity: number;
-      orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null;
-    }[];
+    cartIds: number[];
+    srcCompanyId: number | null;
+    orderDate: string;
+    locationId: number;
+    wantedDate: string;
+    memo: string | null;
+    isDirectShipping?: boolean;
+    orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null;
   }) {
-    const locationId = params.orders[0].locationId;
+    const isOffer =
+      params.srcCompanyId !== null || params.srcCompanyId === params.companyId;
 
     return await this.prisma.$transaction(async (tx) => {
       const location = await tx.location.findFirst({
         where: {
-          id: locationId,
+          id: params.locationId,
           companyId: params.companyId,
           isDeleted: false,
         },
@@ -4583,6 +4568,21 @@ export class OrderChangeService {
           id: params.userId,
         },
       });
+
+      const carts = await tx.cart.findMany({
+        where: {
+          id: {
+            in: params.cartIds,
+          },
+          userId: params.userId,
+          isDeleted: false,
+        },
+      });
+      if (carts.length !== params.cartIds.length) {
+        throw new BadRequestException(
+          `존재하지 않는 장바구니 품목이 포함되어 있습니다`,
+        );
+      }
 
       // 매출일때 자사재고 수량 체크 (key: 스펙, value: 스펙및수량)
       const stockMap = new Map<
@@ -4602,8 +4602,8 @@ export class OrderChangeService {
           quantity: number;
         }
       >();
-      if (params.isOffer) {
-        for (const order of params.orders) {
+      if (isOffer) {
+        for (const order of carts) {
           const key = `${order.warehouseId}-${order.planId}-${
             order.productId
           }-${order.packagingId}-${order.grammage}-${order.sizeX}-${
@@ -4650,11 +4650,11 @@ export class OrderChangeService {
       const dstCompanyInvoiceCodeMap = new Map<number, string>();
       const dstCompanyMap = new Map<number, Company>();
       const srcCompanyMap = new Map<number, Company>();
-      if (params.isOffer) {
+      if (isOffer) {
         // 매출
         const dstCompany = await tx.company.findUnique({
           where: {
-            id: params.orders[0].dstCompanyId,
+            id: params.companyId,
           },
         });
         const invoiceCode =
@@ -4665,7 +4665,7 @@ export class OrderChangeService {
         const srcCompaies = await tx.company.findMany({
           where: {
             id: {
-              in: params.orders.map((o) => o.srcCompanyId),
+              in: carts.map((c) => c.companyId),
             },
           },
         });
@@ -4679,7 +4679,7 @@ export class OrderChangeService {
       } else {
         // 매입
         const dstCompanyIds = Array.from(
-          new Set(params.orders.map((o) => o.dstCompanyId)),
+          new Set(carts.map((c) => c.companyId)),
         );
         const dstCompanies = await tx.company.findMany({
           where: {
@@ -4706,26 +4706,38 @@ export class OrderChangeService {
         srcCompanyMap.set(srcCompany.id, srcCompany);
       }
 
+      if (
+        isOffer &&
+        srcCompanyMap.get(params.srcCompanyId).managedById !== null
+      ) {
+        params.orderStatus = 'ACCEPTED';
+      }
+
       const result: { f0: number; f1: OrderStatus }[] = await tx.$queryRaw`
         INSERT INTO \`Order\` 
         (orderType, orderNo, orderDate, srcCompanyId, dstCompanyId, status, memo, ordererName, createdCompanyId)
         VALUES ${Prisma.join(
-          params.orders.map(
-            (o) => Prisma.sql`(
+          carts.map(
+            (c) => Prisma.sql`(
               ${OrderType.NORMAL}, 
-              ${Util.serialT(dstCompanyInvoiceCodeMap.get(o.dstCompanyId))},
-              ${new Date(o.orderDate)},
-              ${o.srcCompanyId},
-              ${o.dstCompanyId},
+              ${Util.serialT(
+                dstCompanyInvoiceCodeMap.get(
+                  isOffer ? params.companyId : c.companyId,
+                ),
+              )},
+              ${new Date(params.orderDate)},
+              ${isOffer ? c.companyId : params.companyId},
+              ${isOffer ? params.companyId : c.companyId},
               ${
-                params.isOffer
-                  ? o.orderStatus
-                  : dstCompanyMap.get(o.dstCompanyId).managedById === null
+                isOffer
+                  ? params.orderStatus
+                  : dstCompanyMap.get(isOffer ? params.companyId : c.companyId)
+                      .managedById === null
                   ? OrderStatus.ORDER_REQUESTED
                   : OrderStatus.ACCEPTED
               },
-              ${o.memo || ''},
-              ${params.isOffer ? '' : user.name},
+              ${c.memo || ''},
+              ${isOffer ? '' : user.name},
               ${params.companyId}
               )`,
           ),
@@ -4734,35 +4746,54 @@ export class OrderChangeService {
         RETURNING id, status;
       `;
 
-      const orderIds = result.map((o) => o.f0);
-      await tx.orderStock.createMany({
-        data: params.orders.map((o, i) => ({
-          orderId: orderIds[i],
-          dstLocationId: o.locationId,
-          isDirectShipping: params.isOffer
-            ? false
-            : o.isDirectShipping || false,
-          wantedDate: o.wantedDate,
-          companyId: o.dstCompanyId,
-          planId: o.planId,
-          warehouseId: o.warehouseId,
-          productId: o.productId,
-          packagingId: o.packagingId,
-          grammage: o.grammage,
-          sizeX: o.sizeX,
-          sizeY: o.sizeY || 0,
-          paperColorGroupId: o.paperColorGroupId,
-          paperColorId: o.paperColorId,
-          paperPatternId: o.paperPatternId,
-          paperCertId: o.paperCertId,
-          quantity: o.quantity,
-        })),
-      });
+      await tx.$queryRaw`
+        INSERT INTO OrderStock (
+          orderId, 
+          dstLocationId, 
+          isDirectShipping,
+          wantedDate,
+          companyId,
+          planId,
+          warehouseId,
+          productId,
+          packagingId,
+          grammage,
+          sizeX,
+          sizeY,
+          paperColorGroupId,
+          paperColorId,
+          paperPatternId,
+          paperCertId,
+          quantity
+        ) VALUES ${Prisma.join(
+          result.map(
+            (o, i) => Prisma.sql`(
+          ${o.f0},
+          ${params.locationId},
+          ${isOffer ? false : params.isDirectShipping || false},
+          ${new Date(params.wantedDate)},
+          ${isOffer ? params.companyId : carts[i].companyId},
+          ${carts[i].planId},
+          ${carts[i].warehouseId},
+          ${carts[i].productId},
+          ${carts[i].packagingId},
+          ${carts[i].grammage},
+          ${carts[i].sizeX},
+          ${carts[i].sizeY},
+          ${carts[i].paperColorGroupId},
+          ${carts[i].paperColorId},
+          ${carts[i].paperPatternId},
+          ${carts[i].paperCertId},
+          ${carts[i].quantity}
+        )`,
+          ),
+        )}
+      `;
 
       // TODO: 승인 or 요청 처리
       for (let i = 0; i < result.length; i++) {
         if (result[i].f1 === 'ACCEPTED' || result[i].f1 === 'OFFER_REQUESTED') {
-          const order = params.orders[i];
+          const order = carts[i];
           const orderStock = await tx.orderStock.findUnique({
             where: {
               orderId: result[i].f0,
@@ -4774,7 +4805,7 @@ export class OrderChangeService {
             data: {
               planNo: ulid(),
               type: 'TRADE_NORMAL_BUYER',
-              companyId: order.srcCompanyId,
+              companyId: isOffer ? order.companyId : params.companyId,
               status: 'PREPARING',
               orderStockId: orderStock.id,
             },
@@ -4783,7 +4814,8 @@ export class OrderChangeService {
           // 구매자가 사용중 && 거래승인시 도착예정재고 생성
           if (
             result[i].f1 === 'ACCEPTED' &&
-            srcCompanyMap.get(order.srcCompanyId).managedById === null
+            srcCompanyMap.get(isOffer ? order.companyId : params.companyId)
+              .managedById === null
           ) {
             await tx.stockEvent.create({
               data: {
@@ -4802,7 +4834,7 @@ export class OrderChangeService {
                 stock: {
                   create: {
                     serial: ulid(),
-                    companyId: order.srcCompanyId,
+                    companyId: isOffer ? order.companyId : params.companyId,
                     warehouseId: null,
                     planId: srcPlan.id,
                     productId: orderStock.productId,
@@ -4826,7 +4858,7 @@ export class OrderChangeService {
             data: {
               planNo: ulid(),
               type: 'TRADE_NORMAL_BUYER',
-              companyId: order.srcCompanyId,
+              companyId: isOffer ? params.companyId : order.companyId,
               status: 'PREPARING',
               orderStockId: orderStock.id,
             },
@@ -4870,7 +4902,18 @@ export class OrderChangeService {
         }
       }
 
-      return this.getOrderCreateResponseTx(tx, orderIds[0]);
+      await tx.cart.updateMany({
+        where: {
+          id: {
+            in: params.cartIds,
+          },
+        },
+        data: {
+          isDeleted: true,
+        },
+      });
+
+      return this.getOrderCreateResponseTx(tx, result[0].f0);
     });
   }
 }

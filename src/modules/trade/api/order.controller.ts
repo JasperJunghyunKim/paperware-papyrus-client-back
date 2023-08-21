@@ -817,12 +817,9 @@ export class OrderController {
     @Request() req: AuthType,
     @Body() dto: OrderStockGroupCreateDto,
   ): Promise<OrderCreateResponse> {
-    const isOffer = dto.validate(req.user.companyId);
-
     return await this.change.createOrderGroup({
       userId: req.user.id,
       companyId: req.user.companyId,
-      isOffer,
       ...dto,
     });
   }
