@@ -261,6 +261,7 @@ export const STOCK = {
                   orderStockTradePrice: true,
                 },
               },
+              depositEventId: true,
             },
           },
         },
@@ -280,6 +281,7 @@ export const STOCK = {
                   orderStockTradePrice: true,
                 },
               },
+              depositEventId: true,
             },
           },
         },
@@ -358,6 +360,7 @@ export const STOCK_EVENT = {
             select: {
               srcCompany: true,
               dstCompany: true,
+              depositEventId: true,
             },
           },
         },
@@ -368,6 +371,7 @@ export const STOCK_EVENT = {
             select: {
               srcCompany: true,
               dstCompany: true,
+              depositEventId: true,
             },
           },
         },
@@ -392,6 +396,7 @@ export const ORDER_STOCK = {
           orderStockTradePrice: true,
         },
       },
+      depositEventId: true,
     },
   },
   wantedDate: true,
@@ -471,6 +476,7 @@ export const ORDER_DEPOSIT = {
       status: true,
       isEntrusted: true,
       memo: true,
+      depositEventId: true,
     },
   },
 } satisfies Prisma.OrderDepositSelect;
@@ -532,6 +538,7 @@ export const ORDER_PROCESS = {
           orderDepositTradePrice: true,
         },
       },
+      depositEventId: true,
     },
   },
   plan: {
@@ -591,6 +598,7 @@ export const ORDER_ETC = {
       status: true,
       isEntrusted: true,
       memo: true,
+      depositEventId: true,
     },
   },
 } satisfies Prisma.OrderEtcSelect;
@@ -607,6 +615,7 @@ export const ORDER_REFUND = {
       status: true,
       isEntrusted: true,
       memo: true,
+      depositEventId: true,
     },
   },
 } satisfies Prisma.OrderRefundSelect;
@@ -628,6 +637,7 @@ export const ORDER_RETURN = {
           orderStockTradePrice: true,
         },
       },
+      depositEventId: true,
     },
   },
   wantedDate: true,
@@ -739,6 +749,7 @@ export const ORDER = {
       id: 'asc',
     },
   },
+  depositEventId: true,
 } satisfies Prisma.OrderSelect;
 
 export const TASK_CONVERTING = {
@@ -855,6 +866,7 @@ export const PLAN = {
                                       orderStockTradePrice: true,
                                     },
                                   },
+                                  depositEventId: true,
                                 },
                               },
                             },
@@ -874,6 +886,7 @@ export const PLAN = {
                                       orderStockTradePrice: true,
                                     },
                                   },
+                                  depositEventId: true,
                                 },
                               },
                             },
@@ -895,6 +908,7 @@ export const PLAN = {
                             select: {
                               srcCompany: true,
                               dstCompany: true,
+                              depositEventId: true,
                             },
                           },
                         },
@@ -905,6 +919,7 @@ export const PLAN = {
                             select: {
                               srcCompany: true,
                               dstCompany: true,
+                              depositEventId: true,
                             },
                           },
                         },
@@ -988,6 +1003,7 @@ export const PLAN = {
                           orderStockTradePrice: true,
                         },
                       },
+                      depositEventId: true,
                     },
                   },
                 },
@@ -1007,6 +1023,7 @@ export const PLAN = {
                           orderStockTradePrice: true,
                         },
                       },
+                      depositEventId: true,
                     },
                   },
                 },
