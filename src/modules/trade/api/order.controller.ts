@@ -319,7 +319,7 @@ export class OrderController {
       items: items.map((item) => {
         return Util.serialize({
           ...item,
-          // TODO: plan ~ nonStoringQuantity
+          companyId: item.company.id,
           plan: null,
           totalQuantity: 0,
           availableQuantity: 0,

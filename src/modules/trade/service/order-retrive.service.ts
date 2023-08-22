@@ -783,8 +783,6 @@ export class OrderRetriveService {
       where: { id: params.orderId },
     });
 
-    console.log(111, order);
-
     // 도착 정보는 구매자(srcCompany) 작업 계획에 있음
     // 반품의 경우에는 판매자(dstCompany)
     const srcPlan = await this.prisma.plan.findFirst({

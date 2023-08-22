@@ -10,6 +10,7 @@ export interface PartnerStockGroupFromDB {
   warehouseIsPublic: boolean;
   warehouseAddress: string;
 
+  companyId: number;
   partnerCompanyId: number;
   partnerCompanyBusinessName: string;
   partnerCompanyRegistrationNumber: string;
@@ -118,6 +119,7 @@ export class PartnerStockRetriveService {
                   , w.address AS warehouseAddress
       
                   -- 메타데이터
+                  , s.companyId AS companyId
                   , packaging.id AS packagingId
                   , packaging.name AS packagingName
                   , packaging.type AS packagingType
@@ -239,6 +241,7 @@ export class PartnerStockRetriveService {
     return {
       items: stockGroups.map((sg) => {
         return {
+          companyId: sg.companyId,
           warehouse: sg.warehouseId
             ? {
                 id: sg.warehouseId,

@@ -29,6 +29,7 @@ interface StockGroupFromDB {
   warehouseAddress: string;
 
   // 메타데이터
+  companyId: number;
   packagingId: number;
   packagingName: string;
   packagingType: PackagingType;
@@ -191,6 +192,7 @@ interface StockGroupDetailFromDB {
   warehouseAddress: string;
 
   // 메타데이터
+  companyId: number;
   packagingId: number;
   packagingName: string;
   packagingType: PackagingType;
@@ -565,6 +567,7 @@ export class StockRetriveService {
             , w.address AS warehouseAddress
 
             -- 메타데이터
+            , s.companyId AS companyId
             , packaging.id AS packagingId
             , packaging.name AS packagingName
             , packaging.type AS packagingType
@@ -875,6 +878,7 @@ export class StockRetriveService {
     return {
       items: stockGroups.map((sg) => {
         return {
+          companyId: sg.companyId,
           warehouse: sg.warehouseId
             ? {
                 id: sg.warehouseId,
@@ -1282,6 +1286,7 @@ export class StockRetriveService {
             , w.address AS warehouseAddress
 
             -- 메타데이터
+            , s.companyId AS companyId
             , packaging.id AS packagingId
             , packaging.name AS packagingName
             , packaging.type AS packagingType
@@ -1372,6 +1377,7 @@ export class StockRetriveService {
     const stockGroup = stockGroups[0];
 
     return {
+      companyId: stockGroup.companyId,
       warehouse: stockGroup.warehouseId
         ? {
             id: stockGroup.warehouseId,
