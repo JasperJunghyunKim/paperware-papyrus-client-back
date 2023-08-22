@@ -1814,3 +1814,49 @@ export const ACCOUNTED = {
     },
   },
 } satisfies Prisma.AccountedSelect;
+
+export const CART = {
+  id: true,
+  type: true,
+  company: {
+    select: {
+      id: true,
+      businessName: true,
+      companyRegistrationNumber: true,
+      bizType: true,
+      bizItem: true,
+      invoiceCode: true,
+      representative: true,
+      address: true,
+      phoneNo: true,
+      faxNo: true,
+      managedById: true,
+      createdAt: true,
+    },
+  },
+  planId: true,
+  warehouse: true,
+  product: {
+    select: PRODUCT,
+  },
+  packaging: {
+    select: PACKAGING,
+  },
+  grammage: true,
+  sizeX: true,
+  sizeY: true,
+  paperColorGroup: {
+    select: PAPER_COLOR_GROUP,
+  },
+  paperColor: {
+    select: PAPER_COLOR,
+  },
+  paperPattern: {
+    select: PAPER_PATTERN,
+  },
+  paperCert: {
+    select: PAPER_CERT,
+  },
+  quantity: true,
+  memo: true,
+} satisfies Prisma.CartSelect;
