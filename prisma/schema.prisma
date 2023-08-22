@@ -763,6 +763,7 @@ model Plan {
   orderProcess       OrderProcess? @relation(fields: [orderProcessId], references: [id])
   orderReturnId      Int?
   orderReturn        OrderReturn?  @relation(fields: [orderReturnId], references: [id])
+  Cart               Cart[]
 }
 
 model PlanShipping {
@@ -1674,6 +1675,7 @@ model Cart {
   companyId         Int
   company           Company          @relation(fields: [companyId], references: [id])
   planId            Int?
+  plan              Plan?            @relation(fields: [planId], references: [id])
   warehouseId       Int?
   warehouse         Warehouse?       @relation(fields: [warehouseId], references: [id])
   productId         Int

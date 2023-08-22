@@ -413,7 +413,7 @@ export const STOCK_EVENT = {
       planNo: true,
       type: true,
       orderStock: {
-        select: {
+        include: {
           order: {
             select: {
               srcCompany: true,
@@ -453,7 +453,7 @@ export const STOCK_EVENT = {
         },
       },
       orderProcess: {
-        select: {
+        include: {
           order: {
             select: {
               srcCompany: true,
@@ -1834,7 +1834,6 @@ export const CART = {
       createdAt: true,
     },
   },
-  planId: true,
   warehouse: true,
   product: {
     select: PRODUCT,
@@ -1859,4 +1858,90 @@ export const CART = {
   },
   quantity: true,
   memo: true,
+  plan: {
+    select: {
+      planNo: true,
+      type: true,
+      orderStock: {
+        select: {
+          order: {
+            select: {
+              srcCompany: true,
+              dstCompany: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderProcess: {
+        select: {
+          order: {
+            select: {
+              srcCompany: true,
+              dstCompany: true,
+              depositEvent: {
+                include: {
+                  deposit: {
+                    select: {
+                      id: true,
+                      packaging: {
+                        select: PACKAGING,
+                      },
+                      product: {
+                        select: PRODUCT,
+                      },
+                      grammage: true,
+                      sizeX: true,
+                      sizeY: true,
+                      paperColorGroup: {
+                        select: PAPER_COLOR_GROUP,
+                      },
+                      paperColor: {
+                        select: PAPER_COLOR,
+                      },
+                      paperPattern: {
+                        select: PAPER_PATTERN,
+                      },
+                      paperCert: {
+                        select: PAPER_CERT,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
 } satisfies Prisma.CartSelect;
