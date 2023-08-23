@@ -63,7 +63,7 @@ export class SecurityChangeService {
     });
   }
 
-  private async getSecurityForUpdateTx(
+  async getSecurityForUpdateTx(
     tx: PrismaTransaction,
     securityId: number,
     companyId: number,
@@ -105,8 +105,6 @@ export class SecurityChangeService {
         securityId,
         companyId,
       );
-
-      console.log(111, security);
 
       if (!security)
         throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);

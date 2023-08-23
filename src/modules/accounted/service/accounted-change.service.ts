@@ -15,10 +15,14 @@ import {
 import { Selector } from 'src/common';
 import { PrismaTransaction } from 'src/common/types';
 import { PrismaService } from 'src/core';
+import { SecurityChangeService } from 'src/modules/inhouse/service/security-change.service';
 
 @Injectable()
 export class AccountedChangeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly securityChangeService: SecurityChangeService,
+  ) {}
 
   // 등록
 
@@ -103,22 +107,18 @@ export class AccountedChangeService {
     return await this.prisma.$transaction(async (tx) => {
       if (params.accountedType === AccountedType.PAID) {
         // 지급일때
-        const [security]: {
-          id: number;
-          securityStatus: SecurityStatus;
-        }[] = await tx.$queryRaw`
-          SELECT *
-            FROM Security 
-           WHERE id = ${params.securityId}
-             AND companyId = ${params.companyId}
-             AND isDeleted = ${false}
-  
-           FOR UPDATE;
-        `;
+        const security =
+          await this.securityChangeService.getSecurityForUpdateTx(
+            tx,
+            params.securityId,
+            params.companyId,
+          );
+
         if (!security)
-          throw new BadRequestException(`존재하지 않는 유가증권 입니다.`);
-        if (security.securityStatus !== 'NONE')
-          throw new ConflictException(`사용할 수 없는 유가증권 입니다.`);
+          throw new NotFoundException(`존재하지 않는 유가증권 정보입니다.`);
+
+        if (security.securityStatus !== 'NONE' || security.paidBySecurityId)
+          throw new ConflictException(`이미 사용된 유가증권입니다.`);
 
         const accounted = await tx.accounted.create({
           data: {

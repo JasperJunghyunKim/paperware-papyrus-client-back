@@ -85,6 +85,7 @@ import { PartnerController } from './api/partner.controller';
     BankAccountRetriveService,
     CardRetriveService,
     LocationRetriveService,
+    SecurityChangeService,
   ],
 })
 export class InhouseModule {}
