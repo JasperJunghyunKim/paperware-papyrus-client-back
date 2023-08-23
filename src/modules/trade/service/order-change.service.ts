@@ -4662,20 +4662,16 @@ export class OrderChangeService {
             ? dstCompany.invoiceCode
             : await this.orderRetriveService.getNotUsingInvoiceCode();
 
-        const srcCompaies = await tx.company.findMany({
+        const srcCompany = await tx.company.findUnique({
           where: {
-            id: {
-              in: carts.map((c) => c.companyId),
-            },
+            id: params.srcCompanyId,
           },
         });
 
         dstCompanyInvoiceCodeMap.set(dstCompany.id, invoiceCode);
         dstCompanyMap.set(dstCompany.id, dstCompany);
 
-        for (const srcCompany of srcCompaies) {
-          srcCompanyMap.set(srcCompany.id, srcCompany);
-        }
+        srcCompanyMap.set(srcCompany.id, srcCompany);
       } else {
         // 매입
         const dstCompanyIds = Array.from(
@@ -4706,6 +4702,7 @@ export class OrderChangeService {
         srcCompanyMap.set(srcCompany.id, srcCompany);
       }
 
+      console.log(1111, params.srcCompanyId, srcCompanyMap);
       if (
         isOffer &&
         srcCompanyMap.get(params.srcCompanyId).managedById !== null
