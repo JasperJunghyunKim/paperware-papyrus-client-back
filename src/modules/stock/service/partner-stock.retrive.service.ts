@@ -189,7 +189,7 @@ export class PartnerStockRetriveService {
                   , COUNT(1) OVER() AS total
 
               FROM Company                      AS myCompany
-              JOIN BusinessRelationship         AS br             ON br.dstCompanyId = myCompany.id
+              JOIN BusinessRelationship         AS br             ON br.dstCompanyId = myCompany.id AND br.isActivated = 1
               JOIN Company                      AS srcCompany     ON srcCompany.id = br.srcCompanyId
       
               JOIN Stock              AS s                        ON s.companyId = srcCompany.id
