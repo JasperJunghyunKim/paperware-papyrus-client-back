@@ -91,6 +91,6 @@ export class CartCreateDto implements CartCreateRequest {
 
   @ValidateIf((obj, val) => val !== null)
   @IsString()
-  @Length(1, 150)
+  @Length(0, 150)
   readonly memo: string | null = null;
 }
