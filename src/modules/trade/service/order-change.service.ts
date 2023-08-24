@@ -11,6 +11,7 @@ import {
   Company,
   DepositEventStatus,
   DiscountType,
+  Location,
   OfficialPriceType,
   OrderDeposit,
   OrderHistory,
@@ -4550,16 +4551,37 @@ export class OrderChangeService {
     orderStatus: 'OFFER_REQUESTED' | 'ACCEPTED' | null;
   }) {
     const isOffer =
-      params.srcCompanyId !== null || params.srcCompanyId === params.companyId;
+      params.srcCompanyId !== null && params.srcCompanyId !== params.companyId;
 
     return await this.prisma.$transaction(async (tx) => {
-      const location = await tx.location.findFirst({
-        where: {
-          id: params.locationId,
-          companyId: params.companyId,
-          isDeleted: false,
-        },
-      });
+      let location: Location | null = null;
+      if (isOffer) {
+        location =
+          (await tx.location.findFirst({
+            where: {
+              id: params.locationId,
+              companyId: params.companyId,
+              isPublic: true,
+              isDeleted: false,
+            },
+          })) ||
+          (await tx.location.findFirst({
+            where: {
+              id: params.locationId,
+              companyId: params.srcCompanyId,
+              isPublic: false,
+              isDeleted: false,
+            },
+          }));
+      } else {
+        location = await tx.location.findFirst({
+          where: {
+            id: params.locationId,
+            companyId: params.companyId,
+            isDeleted: false,
+          },
+        });
+      }
       if (!location)
         throw new BadRequestException(`존재하지 않는 도착지 입니다.`);
 
@@ -4702,7 +4724,6 @@ export class OrderChangeService {
         srcCompanyMap.set(srcCompany.id, srcCompany);
       }
 
-      console.log(1111, params.srcCompanyId, srcCompanyMap);
       if (
         isOffer &&
         srcCompanyMap.get(params.srcCompanyId).managedById !== null
@@ -4723,7 +4744,7 @@ export class OrderChangeService {
                 ),
               )},
               ${new Date(params.orderDate)},
-              ${isOffer ? c.companyId : params.companyId},
+              ${isOffer ? params.srcCompanyId : params.companyId},
               ${isOffer ? params.companyId : c.companyId},
               ${
                 isOffer

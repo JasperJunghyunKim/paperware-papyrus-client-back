@@ -781,6 +781,7 @@ export class StockRetriveService {
                                                                               WHEN initialOp.orderId IS NOT NULL THEN initialOp.orderId
                                                                               ELSE 0
                                                                              END)
+  -- LEFT JOIN DepositEvent        AS initialOde               ON initialOde.orderId = initialO.id
 
    -- 원지 정보
    LEFT JOIN StockEvent         AS ase                      ON ase.id = p.assignStockEventId
@@ -878,6 +879,7 @@ export class StockRetriveService {
     return {
       items: stockGroups.map((sg) => {
         return {
+          depositEvent: {},
           companyId: sg.companyId,
           warehouse: sg.warehouseId
             ? {
