@@ -6,6 +6,7 @@ import {
   IsPositive,
   IsString,
   Length,
+  Min,
   ValidateIf,
 } from 'class-validator';
 import {
@@ -57,7 +58,7 @@ export class CartCreateDto implements CartCreateRequest {
   @ValidateIf((obj, val) => val !== null)
   @IsOptional()
   @IsInt()
-  @IsPositive()
+  @Min(0)
   readonly sizeY: number | null = null;
 
   @ValidateIf((obj, val) => val !== null)
