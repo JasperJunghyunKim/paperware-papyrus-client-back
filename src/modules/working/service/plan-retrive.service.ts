@@ -70,6 +70,7 @@ export class PlanRetriveService {
             PlanType.TRADE_WITHDRAW_BUYER,
             PlanType.TRADE_OUTSOURCE_PROCESS_SELLER,
             PlanType.TRADE_OUTSOURCE_PROCESS_BUYER,
+            PlanType.RETURN_BUYER,
           ])})`
         : Prisma.sql`p.type = ${PlanType.INHOUSE_PROCESS}`;
 
